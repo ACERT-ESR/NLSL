@@ -1,0 +1,127 @@
+*ASSIGN <n> <st> <sp>|Assigns basis set <n> to a site,spectrum
+*AXIAL <tensor>|Set <tensor> (R, g, or A) to axial representation
+*BASIS <filename>|Read in pruned basis as <filename>.ind
+*CALL <filename>|Opens <filename> as input stream for NLSL commands
+*CARTESIAN <tensor>|Set <tensor> (R, g, or A) to cartesian representation
+*CONFIDENCE <val>|Set confidence level (0 to 1) for error estimates
+*CORRELATION|Report correlation matrix
+*DATA <filename>|Read in data file <filename>.dat
+>ASCII|Read ASCII datafile
+>BINARY|Read PC-GENPLOT binary file
+>BCMODE <n>|Baseline-correct data by fitting a line to <n> endpoints
+>DERIV <n>|Derivative mode of data (0 or 1)
+>NSPLINE <n>|Spline data to <n> points
+>SHIFT|Shift calculated spectrum to overlap w/ data
+>NOSHIFT|Don't shift calculated spectrum to overlap w/ data
+>NORM|Normalize to (double) integral of spectrum
+>NONORM|Don't normalize spectrum 
+>WRITE|Force output of data/fit in <dataID>.spc files
+*DELETE <n> or <name>|Delete specified basis set from the buffer
+*ECHO ON/OFF/<text>|Turn command echo on/or or echo text line to screen
+*EXIT|Exit NLSL program
+*FIT|Initiate nonlinear least-squares fitting procedure
+>BOUND <scale>|Scaling factor for initial trust-region boundary
+>CTOL <tol>|Tolerance (0 to 1) for determining a significant component
+>FTOL <tol>|Tolerance for chi-squared convergence of least-squares
+>GTOL <tol>|Tolerance for gradient (curvature) fitting convergence
+>ITERATES|Output calculated function at each iteration (nlsfun.nnn)
+>JACOBI|Produce files containing Jacobian for each iteration
+>MAXFUN <n>|Maximum allowed function (spectrum) calculations
+>MAXITR <n>|Maximum allowed iterations of least-squares procedure
+>NEG|Allow negative scale factors in fit
+>NONEG|Do not allow negative scale factors in fit
+>NOSHIFT|Disable spectral shifting during fit
+>SHIFT|Enable spectral shifting during fit
+>TRACE|Produce "trace" file for fitting procedure
+>TRIDIAG|Produce output of tridiagonal matrices per iteration (nlstri.nnn)
+>UNWEIGHTED|Fit using rms deviation unscaled by spectral noisse
+>WEIGHTED|Fit using true weighted chi-squared
+>WRITE|Write spectrum fit file on termination
+>XTOL <tol>|Tolerance for parameter convergence of least-squares
+*FIX <parameter>|Remove parameter from list of fitting parameters
+*HELP <subj> <keywrd>|Brief description of command and keyword
+*LET <name>=<val>|Assign value <val> to parameter <name>
+*LOG <filename>|Open <filename>.log as a logfile for the NLSL session
+*PARMS (<filename>)|Print all parameter values to screen or <filename> 
+*QUIT|Exit NLSL program
+*READ <filename>|Opens <filename> as input stream for NLSL commands
+*RESET|Clear data and parameter arrays, restoring conditions on entry
+*SCALE <n> <val>/FIX/AUTO|Set constant scale factor for site n
+*SEARCH <parm>|1-D Brent's method minimization of <parm>
+*SERIES <parm>=<vals>|Defines a set of spectra to be fit
+*SHIFT <n> <val>/ON/OFF|Set constant shift for spectrum n
+*SITES <n>|Sets number of different EPR sites per spectrum
+*SPHERICAL <tensor>|Set <tensor> (R, g, or A) to spherical representation
+*STATUS fit/bas/data|Print out status of memory structures or fit
+*VARY <par>|Add <par> to list of fitting parameters
+>SCALE <scale>|Sets scale for given parameter
+>FDSTEP <step>|Sets relative step for derivative calculation
+*WRITE|Write displayed data to <dataID>.spc files
+*VARIABLES|Floating-point variables for EPR calculation
+>PHASE|Phase of spectrum (dispersion=90)
+>WINT0|Isotropic inhomogeneous linewidth
+>WINT2|Psi-dependent inhomogeneous linewidth
+>GXX|x-component of g-tensor (cartesian)
+>GYY|y-component of g-tensor (cartesian)
+>GZZ|z-component of g-tensor (cartesian)
+>G1|0,0 (isotropic) spherical component of g-tensor
+>G2|2,0 (axial) spherical component of g-tensor
+>G3|2,2 (rhombic) component of g-tensor
+>GPRP|perpendicular component of axial g-tensor
+>GRHM|rhombic distortion of axial g-tensor
+>GPLL|parallel component of axial g-tensor
+>AXX|x-component of g-tensor (cartesian)
+>AYY|y-component of g-tensor (cartesian)
+>AZZ|z-component of g-tensor (cartesian)
+>A1|0,0 (isotropic) spherical component of g-tensor
+>A2|2,0 (axial) spherical component of g-tensor
+>A3|2,2 (rhombic) component of g-tensor
+>APRP|perpendicular component of axial g-tensor
+>ARHM|rhombic distortion of axial g-tensor
+>APLL|parallel component of axial g-tensor
+>RX|x-component of rotational diffusion tensor
+>RY|y-component of rotational diffusion tensor
+>RZ|z-component of rotational diffusion tensor
+>RBAR|average rot'l diffusion rate = (Rx Ry Rz)^1/3
+>N|Rotional anisotropy = 2*Rz/(Rx+Ry)
+>NXY|Ratio of Rx/Ry
+>RPRP|Perpendicular component of axial diffusion tensor
+>RRHM|Rhombic distortion of axial diffusion = Rx/Ry
+>RPLL|Perpendicular component of axial diffusion tensor
+>PML|Model-dependent diffusion parameter: z rotation
+>PMXY|Model-dependent diffusion parameter: xy rotation
+>PMZZ|Model-dependent diffusion parameter: internal z rot'n
+>DJF|Rate of jumping among <ist>-symmetric sites
+>DJFPRP|Perpendicular component for anisotropic viscosity model
+>OSS|Heisenberg spin-exchange rate 
+>PSI|Director tilt angle
+>ALPHAD|Alpha Euler angle for diffusion tilt 
+>BETAD|Beta Euler angle for diffusion tilt 
+>GAMMAD|gamma Euler angle for diffusion tilt 
+>ALPHAM|Alpha Euler angle for magnetic tilt 
+>BETAM|Beta Euler angle for magnetic tilt 
+>GAMMAM|Gamma Euler angle for magnetic tilt 
+>C20|Y(2,0) coefficient of orienting potential
+>C22|Y(2,2) coefficient of orienting potential
+>C40|Y(4,0) coefficient of orienting potential
+>C42|Y(4,2) coefficient of orienting potential
+>C44|Y(4,4) coefficient of orienting potential
+>B0|Spectrometer field
+>CGTOL|Tolerance for conjugate gradient convergence
+>SHIFTR|Real part of diagonal shift for SLE matrix
+>SHIFTI|Real part of diagonal shift for SLE matrix
+*INTEGERS|Integer parameters for EPR calculation
+>IN2|Twice the nuclear spin
+>IPDF|Diffusion model (0=Brown,1=non-Brown,2=aniso.visc.)
+>IST|Number of symmetry-related sites for discrete jump
+>ML|0/1 for jump/free diffusion around molecular z
+>MXY|0/1 for jump/free diffusion around molecular x,y
+>MZZ|0/1 for jump/free INTERNAL diffusion around molecular z
+>LEMX|Maximum index for even L-values in basis 
+>LOMX|Maximum index for odd L-values in basis 
+>KMX|Maximum index for K-values in basis 
+>KMN|Minimum index for K-values in basis 
+>MMX|Maximum index for M-values in basis 
+>MMN|Minimum index for M-values in basis 
+>IPNMX|Maximum index for pI values in basis 
+>NSTEP|Number of steps in CG matrix solution

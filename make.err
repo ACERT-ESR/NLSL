@@ -1,0 +1,148 @@
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium nlsl.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium datac.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium fitc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium letc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium addprm.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium rmvprm.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium statc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium tensym.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium writec.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium convtc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium helpc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium srchc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium setprm.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium assgnc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium basisc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium shiftc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium scalec.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium covrpt.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium stats.f
+ In file stats.f:176
+
+      if (x.lt.ZERO .or. x.gt.ONE) pause 'bad argument X in BETAI'      
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:356
+
+      if(x.lt.0..or.a.le.0.)pause 'bad arguments in gammq'              
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:401
+
+      pause 'a too large, ITMAX too small in gcf'                       
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:425
+
+        if(x.lt.0.)pause 'x < 0 in gser'                                
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:438
+
+      pause 'a too large, ITMAX too small in gser'                      
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:486
+
+      if(x1.eq.x2)pause 'you have to guess an initial range in zbrac'   
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:516
+
+     *'root must be bracketed for zbrent'                               
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file stats.f:573
+
+      pause 'zbrent exceeding maximum iterations'                       
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium confc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium series.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium sitec.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium varyc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium fixc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium parc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium strutl.f
+gcc -c -O2 -DADD_UNDERSCORE lprmpt.c
+gcc -c -O2 -DADD_UNDERSCORE catch.c
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium ipfind.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium nlstxt.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium setnm.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium getdat.f
+ In file getdat.f:492
+
+     &    pause 'SPLNAY: Bad interpolated X range.'                     
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+ In file getdat.f:504
+
+        if (h .eq. 0.0D0) pause 'SPLNAY: Bad XA input.'                 
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+gcc -c -O2 -DADD_UNDERSCORE genio.c
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium fmomnt.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium correl.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium ftfuns.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium gconvl.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium fitl.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium lfun.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium lcheck.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium setspc.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium sshift.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium sscale.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium lgrint.f
+ In file lgrint.f:125
+
+      pause 'LGRINT: too many iterations'                               
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium mnbrak.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium brent.f
+ In file brent.f:129
+
+      pause 'Brent exceed maximum iterations.'                          
+                                                                       1
+Warning: Obsolete: PAUSE statement at (1)
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium l1pfun.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium qrutil.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium writr.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium momdls.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium eprls.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium matrll.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium cd2km.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium anxlk.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium w3j.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium stvect.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium cfs.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium cscg.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium zaypx.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium cgltri.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium zdotu.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium zaxpy.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium scmvm.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium tdsqz.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium tdchek.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium pstvec.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium pmatrl.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium ccrints.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium fz.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium bessel.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium plgndr.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium ipar.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium ordrpr.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium lmnls.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium enorm.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium qrfac.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium lmpar.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium qrsolv.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium covar.f
+gcc -c -O2 -DADD_UNDERSCORE pltx.c
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium dchex.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium daxpy.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium dcopy.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium ddot.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium drotg.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium lbasix.f
+gfortran -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium setmts.f
+gfortran -o nlsl nlsl.o datac.o fitc.o letc.o addprm.o rmvprm.o statc.o tensym.o writec.o convtc.o helpc.o srchc.o setprm.o assgnc.o basisc.o shiftc.o scalec.o covrpt.o stats.o confc.o series.o sitec.o varyc.o fixc.o parc.o strutl.o lprmpt.o catch.o ipfind.o nlstxt.o   setnm.o getdat.o genio.o fmomnt.o correl.o ftfuns.o gconvl.o fitl.o lfun.o lcheck.o setspc.o sshift.o sscale.o lgrint.o mnbrak.o brent.o l1pfun.o qrutil.o writr.o momdls.o eprls.o matrll.o cd2km.o anxlk.o w3j.o stvect.o cfs.o cscg.o zaypx.o cgltri.o zdotu.o zaxpy.o scmvm.o tdsqz.o tdchek.o pstvec.o pmatrl.o ccrints.o fz.o bessel.o plgndr.o ipar.o ordrpr.o lmnls.o enorm.o qrfac.o lmpar.o qrsolv.o covar.o pltx.o  dchex.o daxpy.o dcopy.o ddot.o drotg.o lbasix.o setmts.o   -L/usr/X11R6/lib -lX11 -lc
