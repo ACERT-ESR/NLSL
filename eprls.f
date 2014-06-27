@@ -4,33 +4,33 @@ c                       ==================
 c                        subroutine:EPRLS
 c                       ==================
 c
-c       Subroutine version of EPRLL family of programs by D. Schneider.
-c       This routine is intended for use with nonlinear least-squares
-c       applications. The routine calculates the tridiagonal matrix
-c       for the parameters passed in the fparm and iparm arrays using
-c       the Conjugate Gradients version of the Lanczos algorithm.
+c>@brief      Subroutine version of EPRLL family of programs by D. Schneider.
+c> This routine is intended for use with nonlinear least-squares
+c> applications. The routine calculates the tridiagonal matrix
+c> for the parameters passed in the fparm and iparm arrays using
+c> the Conjugate Gradients version of the Lanczos algorithm.
+c>
+c> Calculation parameters are input in the arrays fparm and iparm.
+c> They are expected in the same order as that found in common 
+c> /eprprm/. The input flag icalc is specified as a three-digit
+c> number ijk, where
+c>
+c>                 j.ne.0  => Perform matrix and CG calculations (matrll/cscg) 
+c>                 k.ne.0  => Perform starting vector and CG calculations (stvect/cscg)
+c>
+c> The continued-fractions calculation is always performed.
 c
-c       Calculation parameters are input in the arrays fparm and iparm.
-c       They are expected in the same order as that found in common 
-c       /eprprm/. The input flag icalc is specified as a three-digit
-c       number ijk, where
+c         Subroutine arguments are output as follows:
 c
-c       j.ne.0  => Perform matrix and CG calculations (matrll/cscg) 
-c       k.ne.0  => Perform starting vector and CG calculations (stvect/cscg)
-c
-c       The continued-fractions calculation is always performed.
-c
-c          Subroutine arguments are output as follows:
-c
-c             al(ndone)    Diagonal of tridiagonal matrix for spectrum
-c             be(ndone)    Off-diagonal of tridiagonal matrix for spectrum
-c             ndone        Number of CG steps taken. Zero for Lanczos
-c                              calculations, and set negative if CG did
-c                              not converge
-c             ierr         Error flag. Meaning of values assigned to ierr
-c                          are defined in 'errmsg.inc'.
-c
-c       Written by DEB, 26-Sep-91 based on programs from DJS 
+c>          @param  al(ndone)    Diagonal of tridiagonal matrix for spectrum
+c>          @param  be(ndone)    Off-diagonal of tridiagonal matrix for spectrum
+c>          @param  ndone        Number of CG steps taken. Zero for Lanczos
+c>                             calculations, and set negative if CG did
+c>                             not converge
+c>          @param  ierr         Error flag. Meaning of values assigned to ierr
+c>                         are defined in 'errmsg.inc'.
+c>
+c>      Written by DEB, 26-Sep-91 based on programs from DJS 
 c
 c       Uses :
 c               pmatrl.f     Liouville matrix calculation (pruning version)

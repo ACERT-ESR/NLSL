@@ -3,18 +3,18 @@ c----------------------------------------------------------------------
 c                    =========================
 c                      subroutine LMNLS
 c                    =========================
-c     (L)evenberg-(M)arquardt (N)onlinear (L)east (S)quares
-c
-c This is a modification of the original lmder subroutine from the 
-c MINPACK subroutine library. It uses a Levenberg-Marquardt nonlinear
-c least-squares algorithm modified to carry out a local optimization
-c constrained to lie within a "trust region" defined by a step bound
-c delta using scaling of the variables.
-c
-c For a description of the trust region approach for least squares 
-c problems, see J.E. Dennis and R.B. Schnabel, Numerical Methods for
-c Unconstrained Optimization and Nonlinear Equations, Prentice-Hall,
-c Englewood Cliffs, NJ (1983), sections 6.4, 7.1, and 10.2.
+c> @brief (L)evenberg-(M)arquardt (N)onlinear (L)east (S)quares
+c> ============================================================
+c> This is a modification of the original lmder subroutine from the 
+c> MINPACK subroutine library. It uses a Levenberg-Marquardt nonlinear
+c> least-squares algorithm modified to carry out a local optimization
+c> constrained to lie within a "trust region" defined by a step bound
+c> delta using scaling of the variables.
+c> @details
+c> For a description of the trust region approach for least squares 
+c> problems, see J.E. Dennis and R.B. Schnabel, Numerical Methods for
+c> Unconstrained Optimization and Nonlinear Equations, Prentice-Hall,
+c> Englewood Cliffs, NJ (1983), sections 6.4, 7.1, and 10.2.
 c----------------------------------------------------------------------
       subroutine lmnls(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
      *                 maxfev,maxitr,diag,scale,factor,nprint,
@@ -31,170 +31,170 @@ c----------------------------------------------------------------------
 c
 c----------------------------------------------------------------------
 c
-c     The purpose of LMDER is to minimize the sum of the squares of
-c     m nonlinear functions in n variables by a modification of
-c     the Levenberg-Marquardt algorithm. The user must provide a
-c     subroutine which calculates the functions and the Jacobian.
-c
-c     The subroutine statement is
-c
-c       subroutine lmnls(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
-c                        maxfev,maxitr,diag,scale,factor,nprint,info,
-c                        nfev,njev,ipvt,qtf,wa1,wa2,wa3,wa4)
+c> @details
+c>    The purpose of LMDER is to minimize the sum of the squares of
+c>    m nonlinear functions in n variables by a modification of
+c>    the Levenberg-Marquardt algorithm. The user must provide a
+c>    subroutine which calculates the functions and the Jacobian.
+c>
+c>    The subroutine statement is
+c>
+c>      subroutine lmnls(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
+c>                       maxfev,maxitr,diag,scale,factor,nprint,info,
+c>                       nfev,njev,ipvt,qtf,wa1,wa2,wa3,wa4)
 c
 c     where
 c
-c       FCN is the name of the user-supplied subroutine which
-c         calculates the functions and the Jacobian. FCN must
-c         be declared in an external statement in the user
-c         calling program, and should be written as follows:
-c
-c         subroutine fcn(m,n,x,fvec,fjac,ldfjac,iflag)
-c         integer m,n,ldfjac,iflag
-c         double precision x(n),fvec(m),fjac(ldfjac,n)
-c         ----------
-c         If iflag=1 calculate the functions at x and
-c         return this vector in fvec. Do not alter fjac.
-c         If iflag=2 calculate the Jacobian at x and
-c         return this matrix in fjac. Do not alter fvec.
-c         ----------
-c         return
-c         end
-c
-c         The value of IFLAG should not be changed by FCN unless
-c         the user wants to terminate execution of LMDER.
-c         In this case set iflag to a negative integer.
-c
-c       M is a positive integer input variable set to the number
-c         of functions.
-c
-c       N  is a positive integer input variable set to the number
-c          of variables. N must not exceed M.
-c
-c       X is an array of length N. On input X must contain
-c         an initial estimate of the solution vector. On output X
-c         contains the final estimate of the solution vector.
-c
-c       FVEC is an output array of length M which contains
-c         the functions evaluated at the output X.
-c
-c       FJAC is an output M by N array. the upper N by N submatrix
-c         of FJAC contains an upper triangular matrix R with
-c         diagonal elements of nonincreasing magnitude such that
-c
-c                T     T           T
-c               P *(JAC *JAC)*P = R *R,
-c
-c         where P is a permutation matrix and JAC is the final
-c         calculated Jacobian. column j of P is column IPVT(j)
-c         (see below) of the identity matrix. The lower trapezoidal
-c         part of FJAC contains information generated during
-c         the computation of R.
-c
-c       LDFJAC is a positive integer input variable not less than M
-c         which specifies the leading dimension of the array FJAC.
-c
-c       FTOL is a nonnegative input variable. Termination
-c         occurs when both the actual and predicted relative
-c         reductions in the sum of squares are at most FTOL.
-c         Therefore, FTOL measures the relative error desired
-c         in the sum of squares.
-c
-c       XTOL is a nonnegative input variable. Termination
-c         occurs when the relative error between two consecutive
-c         iterates is at most XTOL. Therefore, XTOL measures the
-c         relative error desired in the approximate solution.
-c
-c       GTOL is a nonnegative input variable. Termination
-c         occurs when the cosine of the angle between FVEC and
-c         any column of the Jacobian is at most GTOL in absolute
-c         value. therefore, GTOL measures the orthogonality
-c         desired between the function vector and the columns
-c         of the Jacobian.
-c
-c       MAXFEV is a positive integer input variable. Termination
-c         occurs when the number of calls to FCN with IFLAG=1
-c         has reached MAXFEV.
-c
-c       SCALE is an array of length N containing multiplicative scale
-c         factors for each of the variables in X. If an element of SCALE
-c         is non-positive, it will be reset internally to unity. 
-c         Positive entries in the SCALE array will be retained as 
-c         user-specified scaling factors for the trust-region search 
-c         of the algorithm. The step for the Ith parameter will be scaled 
-c         using the norm of the Ith column of the Jacobian *divided* by
-c         SCALE(I). This produces larger steps along the ith dimension,
-c         at least initialy. The default value for all parameters is unity 
-c         (i.e., the column norms of the Jacobian will be used).
-c          
-c         NB: This convention differs from the original
-c         specifications of LMDER in MINPACK.
-c
-c       FACTOR is a positive input variable used in determining the
-c         initial trust region bound. This bound is set to the product of
-c         FACTOR and the Euclidean norm of DIAG*X if nonzero, or else
-c         to FACTOR itself. In most cases FACTOR should lie in the
-c         interval (.1,100.). 100 is a generally recommended value.
-c
-c       NPRINT is an integer input variable that enables controlled
-c         printing of iterates if it is positive. In this case,
-c         fcn is called with IFLAG=0 at the beginning of the first
-c         iteration and every NPRINT iterations thereafter and
-c         immediately prior to return, with X, FVEC, and FJAC
-c         available for printing. FVEC and FJAC should not be
-c         altered. If NPRINT is not positive, no special calls
-c         of FCN with IFLAG=0 are made.
-c
-c       INFO is an integer output variable. If the user has
-c         terminated execution, INFFO is set to the (negative)
-c         value of IFLAG. See description of FCN. Otherwise,
-c         INFO is set as follows:
-c
-c         INFO=0  Improper input parameters.
-c
-c         INFO=1  Both actual and predicted relative reductions
-c                   in the sum of squares are at most FTOL.
-c
-c         INFO=2  Relative error between two consecutive iterates
-c                   is at most XTOL.
-c
-c         INFO=3  conditions for INFO=1 and INFO=2 both hold.
-c
-c         INFO=4  The cosine of the angle between FVEC and any
-c                   column of the Jacobian is at most GTOL in
-c                   absolute value.
-c
-c         INFO=5  number of calls to FCN with IFLAG=1 has
-c                   reached MAXFEV.
-c
-c         INFO=6  FTOL is too small. No further reduction in
-c                   the sum of squares is possible.
-c
-c         INFO=7  XTOL is too small. No further improvement in
-c                   the approximate solution X is possible.
-c
-c         INFO=8  GTOL is too small. FVEC is orthogonal to the
-c                   columns of the Jacobian to machine precision.
-c
-c       NFEV is an integer output variable set to the number of
-c         calls to FCN with IFLAG=1.
-c
-c       NJEV is an integer output variable set to the number of
-c         calls to NJEV with IFLAG=2.
-c
-c       IPVT is an integer output array of length N. IPVT
-c         defines a permutation matrix p such that JAC*P=Q*R,
-c         where JAC is the final calculated Jacobian, Q is
-c         orthogonal (not stored), and R is upper triangular
-c         with diagonal elements of nonincreasing magnitude.
-c         column j of P is column IPVT(j) of the identity matrix.
-c
-c       QTF is an output array of length N which contains
-c         the first N elements of the vector (Q transpose)*FVEC.
-c
-c       WA1, WA2, and WA3 are work arrays of length N.
-c
-c       WA4 is a work array of length M.
+c>@param FCN is the name of the user-supplied subroutine which
+c>       calculates the functions and the Jacobian. FCN must
+c>       be declared in an external statement in the user
+c>       calling program, and should be written as follows:
+c>>
+c>>      subroutine fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+c>>      integer m,n,ldfjac,iflag
+c>>      double precision x(n),fvec(m),fjac(ldfjac,n)
+c>>      ----------
+c>>      If iflag=1 calculate the functions at x and
+c>>      return this vector in fvec. Do not alter fjac.
+c>>      If iflag=2 calculate the Jacobian at x and
+c>>      return this matrix in fjac. Do not alter fvec.
+c>>      ----------
+c>>      return
+c>>      end
+c>>
+c>       The value of IFLAG should not be changed by FCN unless
+c>       the user wants to terminate execution of LMDER.
+c>       In this case set iflag to a negative integer.
+c>
+c>@param M is a positive integer input variable set to the number
+c>       of functions.
+c>
+c>@param N  is a positive integer input variable set to the number
+c>        of variables. N must not exceed M.
+c>
+c>@param X is an array of length N. On input X must contain
+c>       an initial estimate of the solution vector. On output X
+c>       contains the final estimate of the solution vector.
+c>
+c>@param FVEC is an output array of length M which contains
+c>       the functions evaluated at the output X.
+c>
+c>@param FJAC is an output M by N array. the upper N by N submatrix
+c>       of FJAC contains an upper triangular matrix R with
+c>       diagonal elements of nonincreasing magnitude such that
+c>>
+c>>             T     T           T
+c>>            P *(JAC *JAC)*P = R *R,
+c>>
+c>       where P is a permutation matrix and JAC is the final
+c>       calculated Jacobian. column j of P is column IPVT(j)
+c>       (see below) of the identity matrix. The lower trapezoidal
+c>       part of FJAC contains information generated during
+c>       the computation of R.
+c>
+c>@param LDFJAC is a positive integer input variable not less than M
+c>       which specifies the leading dimension of the array FJAC.
+c>
+c>@param FTOL is a nonnegative input variable. Termination
+c>       occurs when both the actual and predicted relative
+c>       reductions in the sum of squares are at most FTOL.
+c>       Therefore, FTOL measures the relative error desired
+c>       in the sum of squares.
+c>
+c>@param XTOL is a nonnegative input variable. Termination
+c>       occurs when the relative error between two consecutive
+c>       iterates is at most XTOL. Therefore, XTOL measures the
+c>       relative error desired in the approximate solution.
+c>
+c>@param GTOL is a nonnegative input variable. Termination
+c>       occurs when the cosine of the angle between FVEC and
+c>       any column of the Jacobian is at most GTOL in absolute
+c>       value. therefore, GTOL measures the orthogonality
+c>       desired between the function vector and the columns
+c>       of the Jacobian.
+c>
+c>@param MAXFEV is a positive integer input variable. Termination
+c>       occurs when the number of calls to FCN with IFLAG=1
+c>       has reached MAXFEV.
+c>
+c>@param SCALE is an array of length N containing multiplicative scale
+c>       factors for each of the variables in X. If an element of SCALE
+c>       is non-positive, it will be reset internally to unity. 
+c>       Positive entries in the SCALE array will be retained as 
+c>       user-specified scaling factors for the trust-region search 
+c>       of the algorithm. The step for the Ith parameter will be scaled 
+c>       using the norm of the Ith column of the Jacobian *divided* by
+c>       SCALE(I). This produces larger steps along the ith dimension,
+c>       at least initialy. The default value for all parameters is unity 
+c>       (i.e., the column norms of the Jacobian will be used).
+c>>      NB: This convention differs from the original
+c>>      specifications of LMDER in MINPACK.
+c>
+c>@param FACTOR is a positive input variable used in determining the
+c>       initial trust region bound. This bound is set to the product of
+c>       FACTOR and the Euclidean norm of DIAG*X if nonzero, or else
+c>       to FACTOR itself. In most cases FACTOR should lie in the
+c>       interval (.1,100.). 100 is a generally recommended value.
+c>
+c>@param NPRINT is an integer input variable that enables controlled
+c>       printing of iterates if it is positive. In this case,
+c>       fcn is called with IFLAG=0 at the beginning of the first
+c>       iteration and every NPRINT iterations thereafter and
+c>       immediately prior to return, with X, FVEC, and FJAC
+c>       available for printing. FVEC and FJAC should not be
+c>       altered. If NPRINT is not positive, no special calls
+c>       of FCN with IFLAG=0 are made.
+c>
+c>@param INFO @parblock is an integer output variable. If the user has
+c>       terminated execution, INFFO is set to the (negative)
+c>       value of IFLAG. See description of FCN. Otherwise,
+c>       INFO is set as follows:
+c>
+c>       INFO=0  Improper input parameters.
+c>
+c>       INFO=1  Both actual and predicted relative reductions
+c>                 in the sum of squares are at most FTOL.
+c>
+c>       INFO=2  Relative error between two consecutive iterates
+c>                 is at most XTOL.
+c>
+c>       INFO=3  conditions for INFO=1 and INFO=2 both hold.
+c>
+c>       INFO=4  The cosine of the angle between FVEC and any
+c>                 column of the Jacobian is at most GTOL in
+c>                 absolute value.
+c>
+c>       INFO=5  number of calls to FCN with IFLAG=1 has
+c>                 reached MAXFEV.
+c>
+c>       INFO=6  FTOL is too small. No further reduction in
+c>                 the sum of squares is possible.
+c>
+c>       INFO=7  XTOL is too small. No further improvement in
+c>                 the approximate solution X is possible.
+c>
+c>       INFO=8  GTOL is too small. FVEC is orthogonal to the
+c>                 columns of the Jacobian to machine precision.
+c>       @endparblock
+c>@param NFEV is an integer output variable set to the number of
+c>       calls to FCN with IFLAG=1.
+c>
+c>@param NJEV is an integer output variable set to the number of
+c>       calls to NJEV with IFLAG=2.
+c>
+c>@param IPVT is an integer output array of length N. IPVT
+c>       defines a permutation matrix p such that JAC*P=Q*R,
+c>       where JAC is the final calculated Jacobian, Q is
+c>       orthogonal (not stored), and R is upper triangular
+c>       with diagonal elements of nonincreasing magnitude.
+c>       column j of P is column IPVT(j) of the identity matrix.
+c>
+c>@param QTF is an output array of length N which contains
+c>       the first N elements of the vector (Q transpose)*FVEC.
+c>
+c>@param WA1, WA2, and WA3 are work arrays of length N.
+c>
+c>@param WA4 is a work array of length M.
 c
 c     Subprograms called
 c

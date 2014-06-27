@@ -1,55 +1,61 @@
 c NLSL Version 1.5 beta 11/23/95
 c----------------------------------------------------------------------
+c> @file 
+c> This seems to be the central hub, which is called by the L-M
+c> optimization, and which calls the functions that generate the
+c> simulated spectrum
 c                         =======================
 c                            subroutine LFUN
 c                         =======================
 c
-c Subroutine for interfacing EPRLL spectral calculations with the MINPACK 
-c version of the Levenberg-Marquardt nonlinear least squares algorithm 
-c for fitting experimental spectra. The function performed
-c function determined by the IFLAG argument. 
-c MOMDLS subroutine to calculate a spectrum or series of spectra, each
-c of which consists of one or more spectral components, or "sites". 
-c
-c IFLAG=0 (Printing of iterates)
-c  
-c IFLAG=1 (Evaluation of residuals function)
-c
-c   For a function evaluation, this routine takes the input vector X
-c   of search parameters, loads them into the fparm parameter arrays in 
-c   /parcom/ (using additional indices available in /parcom/) and then 
-c   performs spectral calculations by calling the MOMDLS subroutine.
-c
-c   The experimental data to which the calculations are to be compared
-c   is contained in the common block /expdat/. LFUN optionally shifts
-c   the calculated spectra to minimize the squared differences between
-c   calculation and data, and then automatically determines a least-
-c   squares scale factor (or set of scale factors for multiple sites/spectra)
-c   which are returned in the vector sfac in common /mspctr/. The 
-c   The unscaled spectra are returned in the matrix spectr in common
-c   /mspctr/. Each column of spectr corresponds to a single site;
-c   multiple spectra are stored sequentially in the columns of spectr.
-c
-c   The residuals (differences between calculation and data after shifting
-c   and scaling) are scaled by the standard deviation of the estimated 
-c   noise in each experimental spectrum, and returned to MINPACK through 
-c   the fvec argument.
-c
-c IFLAG=2 (Jacobian evaluation)
-c
-c   For evaluation of the Jacobian, the routine uses the forward-differences
-c   approximation to calculate the partial derivative of the spectrum with
-c   respect to each of the parameters being varied. The routine assumes
-c   that the individual spectra calculated at the point in parameter space
-c   where the Jacobian is being evaluated are contained in in the spectr
-c   matrix, and the appropriate scaling factors in the sfac array (both
-c   in common /mspctr/ ). The Jacobian matrix is returned in the fjac
-c   argument.
-c
-c   IFLAG=3
-c     Fit is terminating. Output most recent set of parameter values and
-c     exit.
-c
+c> @brief Subroutine for interfacing EPRLL spectral calculations with the MINPACK 
+c>  version of the Levenberg-Marquardt nonlinear least squares algorithm 
+c>  for fitting experimental spectra. The function performed
+c>  function determined by the IFLAG argument. 
+c>  MOMDLS subroutine to calculate a spectrum or series of spectra, each
+c>  of which consists of one or more spectral components, or "sites". 
+c> 
+c> @param iflag
+c> @parblock
+c> > IFLAG=0 (Printing of iterates)
+c> >  
+c> > IFLAG=1 (Evaluation of residuals function)
+c> > 
+c> >   For a function evaluation, this routine takes the input vector X
+c> >   of search parameters, loads them into the fparm parameter arrays in 
+c> >   /parcom/ (using additional indices available in /parcom/) and then 
+c> >   performs spectral calculations by calling the MOMDLS subroutine.
+c> > 
+c> >   The experimental data to which the calculations are to be compared
+c> >   is contained in the common block /expdat/. LFUN optionally shifts
+c> >   the calculated spectra to minimize the squared differences between
+c> >   calculation and data, and then automatically determines a least-
+c> >   squares scale factor (or set of scale factors for multiple sites/spectra)
+c> >   which are returned in the vector sfac in common /mspctr/. The 
+c> >   The unscaled spectra are returned in the matrix spectr in common
+c> >   /mspctr/. Each column of spectr corresponds to a single site;
+c> >   multiple spectra are stored sequentially in the columns of spectr.
+c> > 
+c> >   The residuals (differences between calculation and data after shifting
+c> >   and scaling) are scaled by the standard deviation of the estimated 
+c> >   noise in each experimental spectrum, and returned to MINPACK through 
+c> >   the fvec argument.
+c> > 
+c> > IFLAG=2 (Jacobian evaluation)
+c> > 
+c> >   For evaluation of the Jacobian, the routine uses the forward-differences
+c> >   approximation to calculate the partial derivative of the spectrum with
+c> >   respect to each of the parameters being varied. The routine assumes
+c> >   that the individual spectra calculated at the point in parameter space
+c> >   where the Jacobian is being evaluated are contained in in the spectr
+c> >   matrix, and the appropriate scaling factors in the sfac array (both
+c> >   in common /mspctr/ ). The Jacobian matrix is returned in the fjac
+c> >   argument.
+c> > 
+c> >   IFLAG=3
+c> >     Fit is terminating. Output most recent set of parameter values and
+c> >     exit.
+c> @endparblock
 c Uses:
 c    setspc
 c    sshift
@@ -58,8 +64,8 @@ c    momdls
 c    fstplt   (X-Windows interface)
 c
 c---------------------------------------------------------------------- 
-c
       subroutine lfun( m,n,x,fvec,fjac,ldfjac,iflag )
+c
       implicit none
       integer m,n,iflag,ldfjac,ixbp
 c
@@ -599,10 +605,10 @@ c                    =========================
 c                      subroutine HLTCHK
 c                    =========================
 c
-c     Check whether a user halt (control-C) or other error 
-c     has occurred during the spectral calculation and set the
-c     iflag error flag for LMNLS accordingly. Returns .true.
-c     for fatal errors or user halts, and .false. otherwise.
+c> @brief   Check whether a user halt (control-C) or other error 
+c>    has occurred during the spectral calculation and set the
+c>    iflag error flag for LMNLS accordingly. Returns .true.
+c>    for fatal errors or user halts, and .false. otherwise.
 c
 c----------------------------------------------------------------------
       function hltchk(ierr,isite,ispec,iflag)

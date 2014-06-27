@@ -3,31 +3,31 @@ c----------------------------------------------------------------------
 c                    =========================
 c                      subroutine SETPRM
 c                    =========================
-c   This file contains two routines that set a given parameter,
-c   specified by an index into the fparm or iparm array, given the
-c   parameter value and a site/spectrum index. The secondary index
-c   is interpreted according to whether or not the parameter belongs to
-c   a set of parameters that must be the same for all components of a
-c   given spectrum. This set of "spectral parameters" includes
-c
-c        PHASE   (spectral phase angle)
-c        PSI     (director tilt angle)
-c        B0      (spectrometer field)
-c        LB      (spectral line broadening)
-c        RANGE   (spectral range)
-c
-c   and is identified by the logical function spcpar(index) coded 
-c   in this file. These parameters are kept arrays separate from the
-c   fparm arrays in which the site parameters are kept.
-c
-c   The index ixsite is interpreted as referring to a spectrum for
-c   spectral parameters; otherwise, the index refers to a component
-c   within a given spectrum. 
-c   
-c   Whenever a parameter is changed, if recalculation of a spectrum
-c   with the new parameter value would require recalculation of the
-c   tridiagonal matrix, a flag is set for the given sites/spectra
-c   affected by that parameter.
+c>@brief  This file contains two routines that set a given parameter,
+c>  specified by an index into the fparm or iparm array, given the
+c>  parameter value and a site/spectrum index. The secondary index
+c>  is interpreted according to whether or not the parameter belongs to
+c>  a set of parameters that must be the same for all components of a
+c>  given spectrum. This set of "spectral parameters" includes
+c>
+c>           PHASE   (spectral phase angle)
+c>           PSI     (director tilt angle)
+c>           B0      (spectrometer field)
+c>           LB      (spectral line broadening)
+c>           RANGE   (spectral range)
+c>
+c>  and is identified by the logical function spcpar(index) coded 
+c>  in this file. These parameters are kept arrays separate from the
+c>  fparm arrays in which the site parameters are kept.
+c>
+c>  The index ixsite is interpreted as referring to a spectrum for
+c>  spectral parameters; otherwise, the index refers to a component
+c>  within a given spectrum. 
+c>  
+c>  Whenever a parameter is changed, if recalculation of a spectrum
+c>  with the new parameter value would require recalculation of the
+c>  tridiagonal matrix, a flag is set for the given sites/spectra
+c>  affected by that parameter.
 c
 c----------------------------------------------------------------------
       subroutine setprm(ixparm,ixsite,fval)
@@ -131,10 +131,10 @@ c                    =========================
 c                      subroutine SETIPR
 c                    =========================
 c
-c  Analogous routine to setprm for integer parameters
-c  There are only two user-settable integer spectrum parameters: nfield,
-c  and ideriv. These are normally determined by the input data file, but
-c  are needed when calculations are to performed without data or fitting.
+c>@brief Analogous routine to setprm for integer parameters
+c> There are only two user-settable integer spectrum parameters: nfield,
+c> and ideriv. These are normally determined by the input data file, but
+c> are needed when calculations are to performed without data or fitting.
 c
 c----------------------------------------------------------------------
       subroutine setipr(ixparm,ixsite,ival)
@@ -234,21 +234,21 @@ c                    =========================
 c                         function SPCPAR
 c                    =========================
 c
-c     Returns .true. if the index argument corresponds to a floating
-c     point or integer parameter that cannot change for an individual spectrum,
-c     regardless of the number of sites for which the calculation is made.
-c     These include:
-c
-c        PHASE   (spectral phase angle)
-c        PSI     (director tilt angle)
-c        LB      (spectral line broadening)
-c        B0      (spectrometer field)
-c        FIELDI  (initial field of spectrum)
-c        DFLD    (field step per point in spectrum)
-c        RANGE   (field range of spectrum)
-c
-c        NFIELD  (number of points in spectrum)
-c        IDERIV  (0th/1st derivative flag for spectrum)
+c>@brief Returns .true. if the index argument corresponds to a floating
+c> point or integer parameter that cannot change for an individual spectrum,
+c> regardless of the number of sites for which the calculation is made.
+c> These include:
+c>
+c>       PHASE   (spectral phase angle)
+c>       PSI     (director tilt angle)
+c>       LB      (spectral line broadening)
+c>       B0      (spectrometer field)
+c>       FIELDI  (initial field of spectrum)
+c>       DFLD    (field step per point in spectrum)
+c>       RANGE   (field range of spectrum)
+c>
+c>       NFIELD  (number of points in spectrum)
+c>       IDERIV  (0th/1st derivative flag for spectrum)
 c
 c
 c      Includes:
@@ -316,10 +316,10 @@ c------------------------------------------------------------------------
 c                    =========================
 c                         function GETPRM
 c                    =========================
-c   Given a parameter index and a site/spectrum index, this function
-c   returns the value of the parameter from the fparm array (for
-c   site parameters) or from the spectral parameter arrays for spectrum
-c   parameters. 
+c>@brief Given a parameter index and a site/spectrum index, this function
+c> returns the value of the parameter from the fparm array (for
+c> site parameters) or from the spectral parameter arrays for spectrum
+c> parameters. 
 c------------------------------------------------------------------------
 c
 

@@ -1,15 +1,23 @@
 c NLSL Version 1.5 beta 11/25/95
 c----------------------------------------------------------------------
-c             I/O UTILITY ROUTINES FOR NLS COMMAND INTERPRETER
-c
-c  Contains the subroutines:
-c       getlin  -- issue a prompt and retreive a line from command stream
-c       gettkn  -- return a token from the given line
-c       touppr  -- converts a string to uppercase
-c       ftoken  -- returns a real number
-c       itoken  -- returns an integer number
-c       indtkn  -- returns an index (parenthesized number)
-c----------------------------------------------------------------------
+c> @file strutl.f
+c>             I/O UTILITY ROUTINES FOR NLS COMMAND INTERPRETER
+c>
+c>  Contains the subroutines:
+c>
+c>       getlin  -- issue a prompt and retreive a line from command stream
+c>
+c>       gettkn  -- return a token from the given line
+c>
+c>       touppr  -- converts a string to uppercase
+c>
+c>       ftoken  -- returns a real number
+c>
+c>       itoken  -- returns an integer number
+c>
+c>       indtkn  -- returns an index (parenthesized number)
+c>
+c>----------------------------------------------------------------------
 
 
 c----------------------------------------------------------------------
@@ -18,6 +26,7 @@ c                       function GETLIN
 c                    =========================
 c----------------------------------------------------------------------
       function getlin( line )
+c> @brief issue a prompt and retreive a line from command stream
       implicit none
       logical getlin
 c
@@ -47,12 +56,14 @@ c                         ===================
 c                          subroutine GETTKN
 c                         ===================
 c 
-c  Written for free-form input of parameters for slow-motional 
-c  calculations.  Returns a token consisting of nonseparator
-c  characters (separators are space, tab, and ',') with all control
-c  characters filtered out. 
-c  Special cases:  '(', ')', '=', '*', and end-of-line, which are
-c  returned as single-character tokens.
+c> @brief
+c>  Written for free-form input of parameters for slow-motional 
+c>  calculations.  Returns a token consisting of nonseparator
+c>  characters (separators are space, tab, and ',') with all control
+c> @details
+c>  characters filtered out. 
+c>  Special cases:  '(', ')', '=', '*', and end-of-line, which are
+c>  returned as single-character tokens.
 c
 c ------------------------------------------------------------------------
 c

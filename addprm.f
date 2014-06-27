@@ -4,37 +4,39 @@ c                    =========================
 c                       subroutine ADDPRM
 c                    =========================
 c
-c Add a parameter to list of parameters being varied for nonlinear
-c least-squares. Also maintain the lists of 
-c    (1) ixst    : secondary parameter index (for multiple sites/spectra)
-c    (2) ibnd    : boundary flag for variable parameter
-c    (3) prmin   : minimum for variable parameter
-c    (4) prmax   : maximum for variable parameter
-c    (5) prscl   : desired accuracy for given parameter
-c    (6) xfdstp  : Size of forward-differences step
-c    (7) tag     : Name of the parameter (character*9)
-c    (8) ixx     : index of each element in the fparm array into the x vector
-c  
-c The values of these parameters for the given variable parameter
-c are passed to ADDPRM:
-c      subroutine parameter     kept in list
-c            ix2                   ixst
-c            ibd                   ibnd
-c            prmn                  prmin
-c            prmx                  prmax
-c            prsc                  prscl
-c            step                  xfdstp
-c            ident                 tag
-c
-c Notes: 
-c
-c  1) Each addition to the list is included in sort order with respect to
-c     the index ix. This is an artifact of the original implementation
-c     of the program, and no longer required.
-c
-c  2) If ix2 = -1, the parameter specified by ix is to be varied individually
-c     for EACH existing site/spectrum
-c     If ix2 =  0, the parameter is to be varied for ALL sites/spectra at once
+c>@brief Add a parameter to list of parameters being varied for nonlinear
+c> least-squares. Also maintain the lists of 
+c>
+c> 1. ixst    : secondary parameter index (for multiple sites/spectra)
+c> 2. ibnd    : boundary flag for variable parameter
+c> 3. prmin   : minimum for variable parameter
+c> 4. prmax   : maximum for variable parameter
+c> 5. prscl   : desired accuracy for given parameter
+c> 6. xfdstp  : Size of forward-differences step
+c> 7. tag     : Name of the parameter (character*9)
+c> 8. ixx     : index of each element in the fparm array into the x vector
+c>  
+c> The values of these parameters for the given variable parameter
+c> are passed to ADDPRM:
+c>      subroutine parameter |kept in list
+c>      ---------------------|------------
+c>      ix2                  |ixst
+c>      ibd                  |ibnd
+c>      prmn                 |prmin
+c>      prmx                 |prmax
+c>      prsc                 |prscl
+c>      step                 |xfdstp
+c>      ident                |tag
+c> 
+c> Notes: 
+c> 
+c>  - Each addition to the list is included in sort order with respect to
+c>     the index ix. This is an artifact of the original implementation
+c>     of the program, and no longer required.
+c> 
+c>  - If ix2 = -1, the parameter specified by ix is to be varied individually
+c>     for EACH existing site/spectrum
+c>     If ix2 =  0, the parameter is to be varied for ALL sites/spectra at once
 c 
 c     Includes:  
 c        nlsdim.inc

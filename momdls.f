@@ -6,33 +6,33 @@ c                       ==================
 c                        subroutine:MOMDLS
 c                       ==================
 c
-c       Subroutine version of EPRLL family of programs.
-c       This routine is intended for use with nonlinear least-squares
-c       applications. The routine calculates a MOMD spectrum by
-c       averaging spectra for a specified number of orientation using
-c       the parameters passed in the fparm and iparm arrays. Spectra
-c       are calculated using the Conjugate Gradients version of the Lanczos
-c       algorithm.
-c
-c       If the parameter specifying the number of MOMD orientations
-c       is not greater than 1, or if there is no potential defined, 
-c       a single spectral calculation is carried out.
+c>@brief Subroutine version of EPRLL family of programs.
+c> This routine is intended for use with nonlinear least-squares
+c> applications. The routine calculates a MOMD spectrum by
+c> averaging spectra for a specified number of orientation using
+c> the parameters passed in the fparm and iparm arrays. Spectra
+c> are calculated using the Conjugate Gradients version of the Lanczos
+c> algorithm.
+c>
+c> If the parameter specifying the number of MOMD orientations
+c> is not greater than 1, or if there is no potential defined, 
+c> a single spectral calculation is carried out.
 c
 c          Subroutine arguments are exactly output as follows:
 c
-c             al(mxdim)    Diagonal of tridiagonal matrix for spectrum
-c             be(mxdim)    Off-diagonal of tridiagonal matrix for spectrum
-c
-c             cgerr          Residual error in CG solution vector
-c
-c             ntotal         Number of CG steps taken (total number for
-c                            all orientations in MOMD calculations)
-c
-c             ierr           Error flag
+c>@param al(mxdim)    Diagonal of tridiagonal matrix for spectrum
+c>@param be(mxdim)    Off-diagonal of tridiagonal matrix for spectrum
+c>
+c>@param cgerr          Residual error in CG solution vector
+c>
+c>@param ntotal         Number of CG steps taken (total number for
+c> all orientations in MOMD calculations)
+c>
+c>@param ierr           Error flag
 c                            Return values are defined in 'errmsg.f'
 c
 c
-c       Written by DEB, 26-Sep-91 based on programs from DJS 
+c>@author Written by DEB, 26-Sep-91 based on programs from DJS 
 c
 c       Includes :
 c               nlsdim.inc
