@@ -1,4 +1,4 @@
-c Version 1.4 10/10/94
+c       NLSPMC VERSION 2/5/99
 c*********************************************************************
 c
 c       This complex double precision function returns the dot
@@ -40,44 +40,40 @@ c       written by DJS 26-AUG-87
 c
 c*********************************************************************
 c
-      function zdotu(x,y,ndim)
-      implicit none
+      function zdotu2(x,y,ndim)
 c
-      double complex zdotu
+      complex*16 zdotu2
 c
-      include 'nlsdim.inc'
+      include 'limits.inc'
       include 'rndoff.inc'
 c
       integer ndim
       double precision x,y
-      dimension x(2,MXDIM),y(2,MXDIM)
+      dimension x(2,mxdim),y(2,mxdim)
 c
       integer ir
       double precision accx,accy,accr,acci,scale
 c
-      double precision ZERO
-      parameter (ZERO=0.0D0)
-c
 c######################################################################
 c
-      accx=ZERO
-      accy=ZERO
-      accr=ZERO
-      acci=ZERO
+      accx=0.0D0
+      accy=0.0D0
+      accr=0.0D0
+      acci=0.0D0
 c
-      do ir=1,ndim
-         accx=accx+x(1,ir)*x(1,ir)+x(2,ir)*x(2,ir)
-         accy=accy+y(1,ir)*y(1,ir)+y(2,ir)*y(2,ir) 
-         accr=accr+x(1,ir)*y(1,ir)-x(2,ir)*y(2,ir)
-         acci=acci+x(1,ir)*y(2,ir)+x(2,ir)*y(1,ir)
-      end do
+      do 10 ir=1,ndim
+        accx=accx+x(1,ir)*x(1,ir)+x(2,ir)*x(2,ir)
+        accy=accy+y(1,ir)*y(1,ir)+y(2,ir)*y(2,ir) 
+        accr=accr+x(1,ir)*y(1,ir)-x(2,ir)*y(2,ir)
+        acci=acci+x(1,ir)*y(2,ir)+x(2,ir)*y(1,ir)
+ 10   continue
 c
       scale=sqrt(accx*accy)
 c
-      if (dabs(accr)/scale.lt.RNDOFF) accr=ZERO
-      if (dabs(acci)/scale.lt.RNDOFF) acci=ZERO
+      if (dabs(accr)/scale.lt.rndoff) accr=0.0D0
+      if (dabs(acci)/scale.lt.rndoff) acci=0.0D0
 c
-      zdotu=dcmplx(accr,acci)
+      zdotu2=dcmplx(accr,acci)
 c
       return
       end

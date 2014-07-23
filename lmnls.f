@@ -1,4 +1,4 @@
-c  NLSL Version 1.5 beta 11/25/95
+c NLSPMC Version 1.0 2/5/99
 c----------------------------------------------------------------------
 c                    =========================
 c                      subroutine LMNLS
@@ -15,18 +15,25 @@ c For a description of the trust region approach for least squares
 c problems, see J.E. Dennis and R.B. Schnabel, Numerical Methods for
 c Unconstrained Optimization and Nonlinear Equations, Prentice-Hall,
 c Englewood Cliffs, NJ (1983), sections 6.4, 7.1, and 10.2.
+c
+c Modified to use limits on the variables as set in the calling 
+c program.  x when called is the physical real parameter, convert it
+c to an infinite range parameter for real range defined by prmin,
+c prmax.  Convert back to physical parameters on call to simulation
+c program.  
+c 
 c----------------------------------------------------------------------
       subroutine lmnls(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
-     *                 maxfev,maxitr,diag,scale,factor,nprint,
-     *                 info,nfev,njev,ipvt,qtf,gnvec,gradf,
+     *                 maxfev,maxitr,diag,scale,factor,nprint,itrace,
+     *                 jacobi,info,nfev,njev,ipvt,qtf,gnvec,gradf,
      *                 wa1,wa2,wa3,wa4)
-      include 'rndoff.inc'
-      integer m,n,ldfjac,maxfev,maxitr,nprint,info,istep,nfev,njev
+      integer m,n,ldfjac,maxfev,maxitr,nprint,info,istep,nfev,njev,
+     *        itrace,jacobi
       integer ipvt(n)
       double precision ftol,xtol,gtol,factor
-      double precision x(n),fvec(m),fjac(ldfjac,njcol),diag(njcol),
-     *       scale(njcol),qtf(njcol),gnvec(njcol),gradf(njcol),
-     *       wa1(njcol),wa2(njcol),wa3(njcol),wa4(m)
+      double precision x(n),fvec(m),fjac(ldfjac,n),diag(n),scale(n),
+     *                 qtf(n),gnvec(n),gradf(n),wa1(n),wa2(n),wa3(n),
+     *                 wa4(m)
       external fcn
 c
 c----------------------------------------------------------------------
@@ -122,10 +129,9 @@ c         is non-positive, it will be reset internally to unity.
 c         Positive entries in the SCALE array will be retained as 
 c         user-specified scaling factors for the trust-region search 
 c         of the algorithm. The step for the Ith parameter will be scaled 
-c         using the norm of the Ith column of the Jacobian *divided* by
-c         SCALE(I). This produces larger steps along the ith dimension,
-c         at least initialy. The default value for all parameters is unity 
-c         (i.e., the column norms of the Jacobian will be used).
+c         by SCALE(I) times the norm of the Ith column of the Jacobian. 
+c         The default value for all parameters is unity (i.e., the
+c         column norms of the Jacobian will be used).
 c          
 c         NB: This convention differs from the original
 c         specifications of LMDER in MINPACK.
@@ -208,37 +214,27 @@ c     Argonne National Laboratory. MINPACK Project. March 1980.
 c     Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More
 c
 c----------------------------------------------------------------------
+      integer i,iflag,j,l,ld
 c
-c
-      integer i,iflag,j,l
-      double precision actred,delta,dirder,epsmch,fnorm1,gnorm,par,
-     *                 pnorm,prered,ratio,sum,temp,temp1,temp2,xnorm
-      PARAMETER (EPSMCH=RNDOFF)
-      double precision enorm
-c
-      double precision ONE,P1,P5,P25,P75,P0001,ZERO
-c
-c ----added for EPR NLS -----
-c   (also note that fnorm and iter have been moved to common /iterat/)
-      include 'nlsdim.inc'
-      include 'parcom.inc'
-      include 'iterat.inc'
-      include 'stdio.inc'
-c
-      character*1 trstr
-      logical grdclc
-c
-      integer itrim
-      external itrim
-c ---------------------------
-      data ONE,P1,P5,P25,P75,P0001,ZERO
+      double precision actred,delta,dirder,epsmch,fnorm1,gnorm,
+     *                 one,par,pnorm,prered,p1,p5,p25,p75,p0001,ratio,
+     *                 sum,temp,temp1,temp2,xnorm,zero
+      double precision dpmpar,enorm
+      data one,p1,p5,p25,p75,p0001,zero
      *     /1.0d0,1.0d-1,5.0d-1,2.5d-1,7.5d-1,1.0d-4,0.0d0/
 c
-c######################################################################
+c ----added for EPR NLS
+      include 'limits.inc'
+      include 'parms.inc'
+c      include 'iterat.inc'
 c
 c     epsmch is the machine precision.
 c
+      epsmch=dpmpar(1)
 c
+c on entry, convert physical xxx into infinite range lmnls variables.
+c
+      call mapxxx(x,n,-1)
       info=0
       iflag=0
       nfev=0
@@ -248,133 +244,145 @@ c----------------------------------------------------------------------
 c     Check the input parameters for errors.
 c----------------------------------------------------------------------
       if (n.le.0 .or. m.lt.n .or. ldfjac.lt.m
-     *    .or. ftol.lt.ZERO .or. xtol.lt.ZERO .or. gtol.lt.ZERO
-     *    .or. maxfev.le.0 .or.maxitr.le.0 .or. factor.le.ZERO) 
+     *    .or. ftol.lt.zero .or. xtol.lt.zero .or. gtol.lt.zero
+     *    .or. maxfev.le.0 .or.maxitr.le.0 .or. factor.le.zero) 
      *    go to 300
 c
 c**********************************************************************
-c
-c----------------------------------------------------------------------
-c     Initialize Levenberg-Marquardt parameter and iteration counter
-c----------------------------------------------------------------------
-      par=ZERO
-      iter=1
 c
 c----------------------------------------------------------------------
 c     Evaluate the function at the starting point
 c     and calculate its norm.
 c----------------------------------------------------------------------
       iflag=1
-      call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+      call mapxxx(x,n,1)	! map to physical variables
+      call fcn(m,n,x,fvec,fjac,ldfjac,iflag)	! pfun
+      if (ihltcmd.ne.0) return
+      call mapxxx(x,n,-1)	! map to lmnls variables
       nfev=1
+c      seteval=.true.	! got eigenvalues. - not used anymore.
       if (iflag.lt.0) go to 300
       fnorm=enorm(m,fvec)
+c
+c----------------------------------------------------------------------
+c     Initialize Levenberg-Marquardt parameter and iteration counter
+c----------------------------------------------------------------------
+      par=zero
+      iter=1
 c
 c----------------------------------------------------------------------
 c ********* Beginning of the outer loop *******************************
 c----------------------------------------------------------------------
 c
    30 continue
-c
 c----------------------------------------------------------------------
 c        Calculate the Jacobian matrix (iflag=2)
+c        and signal fcn to output it if necessary (iflag=3) 
 c----------------------------------------------------------------------
          iflag=2
+         if (jacobi.ne.0) iflag=3
+         call mapxxx(x,n,1)	! map to physical variables
          call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
-         njev=njev+1
-         nfev=nfev+n*njev
-         if (iflag.lt.0) go to 300
+         if (ihltcmd.ne.0) return
+         call mapxxx(x,n,-1)	! map to lmnls variables
 c
+c       call ftest1(fjac(1,1),16384,'in lmnls, fjac(1)',17)
+c       call ftest1(fjac(1,2),16384,'in lmnls, fjac(2)',17)
+         njev=njev+1
+         nfev=nfev+n
+         if (iflag.lt.0) go to 300
 c----------------------------------------------------------------------
 c        If requested, call fcn to enable printing of iterates
 c----------------------------------------------------------------------
          if (nprint.gt.0) then
            iflag=0
-           if (mod(iter-1,nprint).eq.0)
-     *        call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+           if (mod(iter-1,nprint).eq.0)then
+              call mapxxx(x,n,1)	! map to physical variables
+              call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+              if (ihltcmd.ne.0) return
+              call mapxxx(x,n,-1)	! map to lmnls variables
+           end if
            if (iflag.lt.0) go to 300
          end if
-c
 c----------------------------------------------------------------------
 c        Compute the QR factorization of the Jacobian
 c----------------------------------------------------------------------
-
-         call qrfac(m,njcol,fjac,ldfjac,.true.,ipvt,n,wa1,wa2,wa3)
-c
+         call qrfac(m,n,fjac,ldfjac,.true.,ipvt,n,wa1,wa2,wa3)
+c ***** wa2 here is large?
 c----------------------------------------------------------------------
 c        On the first iteration, set each non-positive element of the
 c        SCALE scaling array according to the norms of the columns of 
 c        the initial Jacobian
 c----------------------------------------------------------------------
          if (iter.eq.1) then
-             do j=1, n
-               if (scale(j).le.ZERO) then
+             do 50 j=1, n
+               if (scale(j).le.zero) then
                   diag(j)=wa2(j)
                else
                   diag(j)=wa2(j)/scale(j)
                end if
-               if (diag(j).eq.ZERO) diag(j)=ONE
-            end do
+               if (diag(j).eq.zero) diag(j)=one
+   50          continue
 c
             if (itrace.ne.0) then
-               write(itrace,1000) (tag(j)(:itrim(tag(j))),j=1,n)
+               write(itrace,1000) (tag(j),j=1,n)
                write(itrace,1001) (wa2(j),j=1,n)
                write(itrace,1002) (diag(j),j=1,n)
             end if
 c
 c----------------------------------------------------------------------
 c        On the first iteration, calculate the norm of the scaled x
-c        and initialize the trust region bound delta
+c        and initialize the step bound delta
 c----------------------------------------------------------------------
-           do j=1, n
+           do 70 j=1, n
              wa3(j)=diag(j)*x(j)
-          end do
-          xnorm=enorm(n,wa3)
-          delta=factor*xnorm
-          if (delta.eq.ZERO) delta=factor
-          if (itrace.ne.0) write(itrace,1003) xnorm,delta,factor
-       end if
+   70        continue
+           xnorm=enorm(n,wa3)
+           delta=factor*xnorm
+           if (delta.eq.zero) delta=factor
+           if (itrace.ne.0) write(itrace,1003) xnorm,delta,factor
+         end if
 c
 c----------------------------------------------------------------------
-c        Form (Q transpose)*fvec and store the first njcol components in
+c        Form (Q transpose)*fvec and store the first n components in
 c        QtF.
 c----------------------------------------------------------------------
-         do i=1, m
-            wa4(i)=fvec(i)
-        end do
+         do 90 i=1, m
+           wa4(i)=fvec(i)
+   90      continue
+         do 130 j=1, n
 c
-        do j=1, njcol
-           if (fjac(j,j).ne.ZERO) then
-              sum=ZERO
-              do i=j, m
-                 sum=sum + fjac(i,j)*wa4(i)
-              end do
+           if (fjac(j,j).ne.zero) then
+              sum=zero
+              do 100 i=j, m
+                sum=sum + fjac(i,j)*wa4(i)
+  100           continue
               temp=-sum/fjac(j,j)
-              do i=j, m
+              do 110 i=j, m
                 wa4(i)=wa4(i) + fjac(i,j)*temp
-             end do
-          end if
+  110           continue
+            end if
 c
-          fjac(j,j)=wa1(j)
-          qtf(j)=wa4(j)
-       end do
+            fjac(j,j)=wa1(j)
+            qtf(j)=wa4(j)
+  130       continue
 c
 c----------------------------------------------------------------------
 c        Compute the norm of the scaled gradient.
 c----------------------------------------------------------------------
-         gnorm=ZERO
-         if (fnorm.ne.ZERO) then
-            do j=1, n
-               l=ipvt(j)
-               if (wa2(l).ne.ZERO) then
-                  sum=ZERO
-                  do i=1, j
-                     sum=sum + fjac(i,j)*(qtf(i)/fnorm)
-                  end do
-                  gnorm=dmax1(gnorm,dabs(sum/wa2(l)))
-               end if
-            end do
-         end if
+         gnorm=zero
+         if (fnorm.ne.zero) then
+           do 160 j=1, n
+             l=ipvt(j)
+             if (wa2(l).ne.zero) then
+               sum=zero
+               do 140 i=1, j
+                 sum=sum + fjac(i,j)*(qtf(i)/fnorm)
+  140            continue
+              gnorm=dmax1(gnorm,dabs(sum/wa2(l)))
+            end if
+  160       continue
+          end if
 c
 c----------------------------------------------------------------------
 c        Test for convergence of the gradient norm
@@ -385,99 +393,107 @@ c
 c----------------------------------------------------------------------
 c        Rescale diag array
 c----------------------------------------------------------------------
-           do j=1,n
-               if (scale(j).gt.ZERO) then
+           do 180 j=1,n
+               if (scale(j).le.zero) then
+                  temp=wa2(j)
+               else
                   temp=wa2(j)/scale(j)
-                  diag(j)=dmax1(diag(j),temp)
                end if
-            end do
+                 diag(j)=dmax1(diag(j),temp)
+  180        continue
+c
 c
 c----------------------------------------------------------------------
 c  ******** Beginning of the inner loop ******************************
 c----------------------------------------------------------------------
-        istep=0
-        grdclc=.false.
+	istep=1
   200   continue
-c
 c----------------------------------------------------------------------
 c           Determine the Levenberg-Marquardt parameter.
 c----------------------------------------------------------------------
             call lmpar(n,fjac,ldfjac,ipvt,diag,qtf,delta,par,wa1,wa2,
      *                 wa3,wa4,gnvec,gradf)
-c
-            grdclc=grdclc.or.(par.ne.ZERO)
 c----------------------------------------------------------------------
 c           Store the direction p and X + p. Calculate the norm of p.
 c----------------------------------------------------------------------
-            do j=1, n
+c
+            do 210 j=1, n
                wa1(j)=-wa1(j)
                wa2(j)=x(j) + wa1(j)
                wa3(j)=diag(j)*wa1(j)
-            end do
+ 210        continue
             pnorm=enorm(n,wa3)
+c
+            if (itrace.ne.0 .and. istep.eq.1) then
+               write(itrace,1004) iter,fnorm,(tag(j),j=1,n)
+               write(itrace,1005) (x(j),j=1,n)
+               write(itrace,1006) (diag(j),j=1,n)
+               if (par.ne.zero) write(itrace,1007) (gradf(j),j=1,n)
+               write(itrace,1008) (-gnvec(j),j=1,n)
+            end if
 c
 c----------------------------------------------------------------------
 c        On the first iteration, adjust the initial trust region bound
 c        to the size of the initial step.
 c----------------------------------------------------------------------
-            trstr=' '
             if (iter.eq.1) then
-               if (delta.gt.pnorm) then
-                  trstr='*'
-               else
-                  trstr='s'
-               end if
-               delta=dmin1(delta,pnorm)
-           end if
-c
-           if (istep.eq.0 .and. itrace.ne.0) then
-              write (itrace,1012) iter,(tag(j),j=1,n)
-              write (itrace,1013) fnorm,(x(j),j=1,n)
-           end if
+              if (itrace.ne.0) then
+                 write(itrace,1010) pnorm
+                 if (delta.gt.pnorm) write (itrace,1011) 
+              end if
+              delta=dmin1(delta,pnorm)
+            end if
 c
 c----------------------------------------------------------------------
 c           Evaluate the function at x + p and calculate its norm.
 c----------------------------------------------------------------------
             iflag=1
+            call mapxxx(wa2,n,1)	! map to physical variables
             call fcn(m,n,wa2,wa4,fjac,ldfjac,iflag)
+            if (ihltcmd.ne.0) return
+            call mapxxx(wa2,n,-1)	! map to lmnls variables
             nfev=nfev+1
             if (iflag.lt.0) go to 300
             fnorm1=enorm(m,wa4)
+c
+            if (itrace.ne.0) write (itrace,1012) istep,par,
+     #                                           delta,fnorm1*fnorm1
             istep=istep+1
 c
 c----------------------------------------------------------------------
 c           Compute the scaled actual reduction.
 c----------------------------------------------------------------------
-            actred=-ONE
-            if (P1*fnorm1.lt.fnorm) actred=ONE-(fnorm1/fnorm)**2
+            actred=-one
+            if (p1*fnorm1.lt.fnorm) actred=one - (fnorm1/fnorm)**2
 c
 c----------------------------------------------------------------------
 c           Compute the scaled predicted reduction and
 c           the scaled directional derivative.
 c----------------------------------------------------------------------
-            do j=1,n
-               wa3(j)=ZERO
+            do 230 j=1,n
+               wa3(j)=zero
                l=ipvt(j)
                temp=wa1(l)
-               do i=1, j
+               do 220 i=1, j
                   wa3(i)=wa3(i) + fjac(i,j)*temp
-               end do
-            end do
+  220             continue
+  230          continue
             temp1=enorm(n,wa3)/fnorm
             temp2=(dsqrt(par)*pnorm)/fnorm
-            prered=temp1**2 + temp2**2/P5
+            prered=temp1**2 + temp2**2/p5
             dirder=-(temp1**2 + temp2**2)
 c
 c----------------------------------------------------------------------
 c           Compute the ratio of the actual to the predicted
 c           reduction.
 c----------------------------------------------------------------------
-            ratio=ZERO
-            if (prered.ne.ZERO) ratio=actred/prered
+            ratio=zero
+            if (prered.ne.zero) ratio=actred/prered
 c
 c----------------------------------------------------------------------
 c           Update the step bound.
 c----------------------------------------------------------------------
+            if (ratio.le.p25) then
 c
 c----------------------------------------------------------------------
 c             If actual reduction is too much smaller than the predicted
@@ -486,13 +502,13 @@ c             the function is not well-approximated by a quadratic
 c             equation. Reduce the size of the trust region by a
 c             factor of 0.1 to 0.5 and increase the L-M parameter.
 c----------------------------------------------------------------------
-            if (ratio.le.P25) then
-              if (actred.ge.ZERO) temp=P5
-              if (actred.lt.ZERO) temp=P5*dirder/(dirder + P5*actred)
-              if (P1*fnorm1.ge.fnorm .or. temp.lt.P1) temp=P1
-              if (delta.gt.pnorm/P1) then
-                 trstr='x'
-                 delta=pnorm/P1
+c
+              if (actred.ge.zero) temp=p5
+              if (actred.lt.zero) temp=p5*dirder/(dirder + p5*actred)
+              if (p1*fnorm1.ge.fnorm .or. temp.lt.p1) temp=p1
+	      if (p1*delta.gt.pnorm) then
+                 if (itrace.ne.0) write(itrace,1013) one/p1,pnorm/p1
+                 delta=pnorm/p1
               endif
               delta=delta*temp
               par=par/temp
@@ -502,73 +518,63 @@ c
 c----------------------------------------------------------------------
 c             If ratio of actual to predicted reduction is close to 1,
 c             the quadratic model is a good approximation to the function,
-c             and we can try increasing the trust region to twice the
-c             last step size in order to check whether a better solution
-c             is available. Otherwise, the size of the trust region
-c             is left unchanged.
+c             and we can try increasing the trust region by a factor of
+c             two to see if a better solution is available. Otherwise, 
+c             the size of the step bound is left unchanged.
 c----------------------------------------------------------------------
-              if (par.eq.ZERO .or. ratio.ge.P75) then
-                 delta=pnorm/P5
-                 par=P5*par
-                 temp=ONE/P5
+c
+              if (par.eq.zero .or. ratio.ge.p75) then
+                delta=pnorm/p5
+                par=p5*par
+                temp=one/p5
               else
-                 temp=ONE
+                 temp=one
               end if
             end if
 c
-            if (itrace.ne.0) write (itrace,1014) istep,par,ratio,
-     #                       ONE/temp,trstr,fnorm1,(wa2(j)-x(j),j=1,n)
+            if (itrace.ne.0) write (itrace,1014) ratio,temp
+            if (itrace.ne.0) write (itrace,1015) (wa2(j)-x(j),j=1,n)
 c
 c----------------------------------------------------------------------
 c           Test for successful iteration.
 c----------------------------------------------------------------------
-            if (ratio.ge.P0001) then
-c
+            if (ratio.ge.p0001) then
 c----------------------------------------------------------------------
 c           Successful iteration. Update X, FVEC, and their norms.
 c----------------------------------------------------------------------
-               do j=1, n
-                  x(j)=wa2(j)
-                  wa2(j)=diag(j)*x(j)
-               end do
-c
-               do i=1, m
-                  fvec(i)=wa4(i)
-               end do
-               xnorm=enorm(n,wa2)
-               fnorm=fnorm1
-               iter=iter+1
-               if (itrace.ne.0) then
-                  write(itrace,1006) (diag(j),j=1,n)
-                  if (grdclc) write(itrace,1007) (gradf(j),j=1,n)
-                  write(itrace,1008) (gnvec(j),j=1,n)
-                  write (itrace,1015) delta
-               end if
-c
+              do 270 j=1, n
+                x(j)=wa2(j)
+                wa2(j)=diag(j)*x(j)
+  270           continue
+              do 280 i=1, m
+                fvec(i)=wa4(i)
+  280           continue
+              xnorm=enorm(n,wa2)
+              fnorm=fnorm1
+              iter=iter+1
             end if
 c----------------------------------------------------------------------
 c           Tests for convergence.
 c----------------------------------------------------------------------
             info=0
             if (dabs(actred).le.ftol .and. prered.le.ftol
-     *          .and. P5*ratio.le.ONE) info=1
+     *          .and. p5*ratio.le.one) info=1
             if (delta.le.xtol*xnorm) info=info + 2
             if (info.ne.0) go to 300
-c
 c----------------------------------------------------------------------
 c           Tests for termination and stringent tolerances.
 c----------------------------------------------------------------------
             if (nfev.ge.maxfev) info=5
             if (iter.ge.maxitr) info=6
             if (dabs(actred).le.epsmch .and. prered.le.epsmch
-     *          .and. P5*ratio.le.ONE) info=7
+     *          .and. p5*ratio.le.one) info=7
             if (delta.le.epsmch*xnorm) info=8
             if (gnorm.le.epsmch) info=9
             if (info.ne.0) go to 300
 c----------------------------------------------------------------------
 c           End of the inner loop. Repeat if iteration unsuccessful.
 c----------------------------------------------------------------------
-            if (ratio.lt.P0001) go to 200
+            if (ratio.lt.p0001) go to 200
 c----------------------------------------------------------------------
 c        End of the outer loop.
 c----------------------------------------------------------------------
@@ -577,28 +583,41 @@ c----------------------------------------------------------------------
 c----------------------------------------------------------------------
 c     Termination, either normal or user-imposed.
 c----------------------------------------------------------------------
-      if (iflag.lt.0) info=10
-      iflag=3
-      if (info.gt.4) iflag=-iflag
-      if (info.ne.0.and.info.ne.10.and.nprint.gt.0) 
-     #     call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+      if (iflag.lt.0) then
+         info=10
+         nprint=0
+      end if
+      iflag=0
+      call mapxxx(x,n,1)	! map to physical variables
+      if (nprint.gt.0) call fcn(m,n,x,fvec,fjac,ldfjac,iflag)
       return
 c
 c ##### format statements for trace printout ########################
 c
- 1000 format(/10x,41('=')/10x,
-     #      'TRACE OF LEVENBERG-MARQUARDT MINIMIZATION'/
-     #     10x,41('=')//'INITIAL SCALING:'/13x,10(1x,a9,2x))
+ 
+ 1000 format(65('#')/10x,'TRACE OF LEVENBERG-MARQUARDT MINIMIZATION',
+     #     /65('#')//
+     #       'INITIAL VALUES:'/16x,10(3x,a6,3x))
  1001 format('Col norms of J:',10(2x,g10.4)/)
  1002 format(9x,'Scale:',10(2x,g10.4))
- 1003 format(/10x,'Scaled X norm: ',g11.5/6x,'Trust region (TR):',
-     #     g11.5,'  =(Xnorm*',g9.3,')')
- 1006 format(79('-')/t26,'Scale:',10(1x,g10.4))
- 1007 format(t23,'Gradient:',10(1x,g10.4))
- 1008 format(t21,'G-N vector:',10(1x,g10.4))
- 1012 format(/'##### Iteration',i3,1x,59('#')/
-     #'Stp LMpar Ratio Trscl  Fnorm    ',12(2x,a9))
- 1013 format(79('-')/'  0',t22,g11.5,12g11.4)
- 1014 format(i3,2f6.2,f5.2,a1,g11.5,sp,12g11.4)
- 1015 format(t23,'Final TR:    ',g10.4)
+ 1003 format(/10x,'Scaled X norm: ',g11.5/5x,'Trust region bound:',
+     #     g11.5,'  =(',g9.3,'*Xnorm)')
+ 1004 format(/65('#')/'Iteration',i3,': Chi-Sq=',g11.5//12x,
+     #     10(3x,a6,3x))
+ 1005 format(7x,'Xvec:',10(2x,g10.4))
+ 1006 format(6x,'Scale:',10(2x,g10.4))
+ 1007 format(3x,'Gradient:',10(2x,g10.4))
+ 1008 format(1x,'G-N vector:',10(2x,g10.4))
+ 1010 format(/3x,'Initial step size=',g10.4)
+ 1011 format(3x,'(TR bound has been reduced to the initial ',
+     #     'step size)'/)
+ 1012 format(5x,65('-')/5x,'Step',i3,'; LMpar=',g10.4,' TR bound=',
+     #     g10.4,'; Chi-Sq=',g12.5)
+ 1013 format(5x,'(TR bound reduced to ',f4.1,'*step length =',g11.5,')')
+ 1014 format(5x,'Actual/predicted Chi-Sq reduction=',g10.4,
+     #     '; TR scaled by ',f4.1/5x,65('-'))
+ 1015 format(12x,10(2x,g10.4))
+ 2000 format(/6x,'*** Jacobian calculation : ',i3,' ***'/6x,
+     #     'trans(J)*fvec',15x,'trans(J)*J'/)
+ 2001 format(6x,g12.5,5x,6(g12.5,1x))
       end

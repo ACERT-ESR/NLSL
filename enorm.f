@@ -1,3 +1,4 @@
+c NLSPMC Version 1.0 2/5/99
       function enorm(n,x)
       implicit none
       integer n
@@ -52,50 +53,58 @@ c     **********
       agiant = rgiant/floatn
       do 90 i = 1, n
          xabs = dabs(x(i))
-
-         if (xabs .ge. agiant) then
+         if (xabs .gt. rdwarf .and. xabs .lt. agiant) go to 70
+            if (xabs .le. rdwarf) go to 30
 c
-c     ----- Sum for large components --------
+c              sum for large components.
 c
-            if (xabs .gt. x1max) then
-               s1 = one + s1*(x1max/xabs)**2
-               x1max = xabs
-            else
-               s1 = s1 + (xabs/x1max)**2
-            end if
-
-            else if (xabs .le. rdwarf) then
+               if (xabs .le. x1max) go to 10
+                  s1 = one + s1*(x1max/xabs)**2
+                  x1max = xabs
+                  go to 20
+   10          continue
+                  s1 = s1 + (xabs/x1max)**2
+   20          continue
+               go to 60
+   30       continue
 c
-c     -----  Sum for small components -------
+c              Sum for small components.
 c
-               if (xabs .gt. x3max) then
+               if (xabs .le. x3max) go to 40
                   s3 = one + s3*(x3max/xabs)**2
                   x3max = xabs
-               else
+                  go to 50
+   40          continue
                   if (xabs .ne. zero) s3 = s3 + (xabs/x3max)**2
-               end if
+   50          continue
+   60       continue
+            go to 80
+   70    continue
 c
-            else
-c
-c     ----- Sum for intermediate components ------
+c           Sum for intermediate components.
 c
             s2 = s2 + xabs**2
-         end if
- 90   continue
+   80    continue
+   90    continue
 c
-c     ----- Calculation of norm ------
+c     Calculation of norm.
 c
-      if (s1 .ne. zero) then
+      if (s1 .eq. zero) go to 100
          enorm = x1max*dsqrt(s1+(s2/x1max)/x1max)
-      else
-         if (s2 .ne. zero) then
+         go to 130
+  100 continue
+         if (s2 .eq. zero) go to 110
             if (s2 .ge. x3max)
      *         enorm = dsqrt(s2*(one+(x3max/s2)*(x3max*s3)))
             if (s2 .lt. x3max)
      *         enorm = dsqrt(x3max*((s2/x3max)+(x3max*s3)))
-         else
+            go to 120
+  110    continue
             enorm = x3max*dsqrt(s3)
-         end if
-      end if
+  120    continue
+  130 continue
       return
+c
+c     Last card of function enorm.
+c
       end

@@ -1,4 +1,4 @@
-c NLSL Version 1.5 beta 11/25/95
+c NLSPMC Version 1.0 2/5/99
 c----------------------------------------------------------------------
 c             I/O UTILITY ROUTINES FOR NLS COMMAND INTERPRETER
 c
@@ -22,11 +22,12 @@ c----------------------------------------------------------------------
       logical getlin
 c
       include 'stdio.inc'
+      include 'limits.inc'
 c
       integer ioerr
-      character*80 line
+      character*(LINELG) line
 c
-      call wpoll
+c      call wpoll
 c
       if(lucmd.eq.luttyi) call lprmpt
       read (lucmd,1001,iostat=ioerr) line
@@ -58,12 +59,11 @@ c ------------------------------------------------------------------------
 c
       subroutine gettkn(line,token,lth)
       implicit none
+      include 'limits.inc'
       integer lth
 c
-      integer LINLTH
-      parameter (LINLTH=80)
 c
-      character line*80,token*30,chr*1
+      character line*(LINELG),token*(WORDLG),chr*1
 c
       integer i,j,ichr,ichar
 c
@@ -93,10 +93,10 @@ c     -------------------------
          go to 3
       end if
 c
-      if (issepr(chr).and. i.lt.LINLTH) goto 2
+      if (issepr(chr).and. i.lt.LINELG) goto 2
 c
       
-      if (i.ge.LINLTH) then
+      if (i.ge.LINELG) then
          lth=0
          token=' '
          return
@@ -147,9 +147,10 @@ c  (Oh for the string functions of C..)
 c----------------------------------------------------------------------
       subroutine ungett(token,lth,line)
       implicit none
-      character line*80,tmplin*80,token*30
+      include 'limits.inc'
+      character line*(LINELG),tmplin*(LINELG),token*(WORDLG)
       integer lth
-      if (lth.gt.0.and.lth.lt.80) then
+      if (lth.gt.0.and.lth.lt.LINELG) then
         tmplin=line
         line=token(:lth) // tmplin
       end if
@@ -165,7 +166,8 @@ c----------------------------------------------------------------------
 
       subroutine touppr(string,lth)
       implicit none
-      character string*30,chr
+      include 'limits.inc'
+      character string*(WORDLG),chr
       integer i,ich,ichar,lth
 c
 c *** Function definition
@@ -190,7 +192,8 @@ c  Decodes a token into a floating point number
 c----------------------------------------------------------------------
       function ftoken( token,lth,val )
       implicit none
-      character token*30,tkn*30,tmptkn*30,chr*1
+      include 'limits.inc'
+      character token*(WORDLG),tkn*(WORDLG),tmptkn*(WORDLG),chr*1
       integer i,lth,idot,ibrk
       double precision val
       logical ftoken
@@ -257,7 +260,8 @@ c                    =========================
 c----------------------------------------------------------------------
       function itoken( token,lth,ival )
       implicit none
-      character*30 token
+      include 'limits.inc'
+      character*(WORDLG) token
       integer lth,ival
       logical itoken
 c
@@ -305,23 +309,25 @@ c
 
 c----------------------------------------------------------------------
 c                    =========================
-c                      function INDTKN
+c                      subroutine INDTKN
 c                    =========================
 c
 c     Looks for a secondary index specified by the series of tokens
-c     '(' <n> { ')' } or '(' '*' { ')' }. Returns n if found, -1 if 
-c     '*' was specified, and 0 if no index was specified
+c     '(' <n,m> { ')' } or '(' '*,*' { ')' }.  The information is 
+c     returned in the variables spectid and compid.  In the case of 
+c     no parameters or *, zeros are returned meaning all sites or 
+c     spectra.  Return -1 on error.  
+c     
 c----------------------------------------------------------------------
-      function indtkn(line)
+      subroutine indtkn(line,spectid,compid)
       implicit none
-      integer indtkn
-      character line*80,token*30
-c
+      include 'limits.inc'
       include 'stdio.inc'
+      include 'miscel.inc'
 c
-      integer ival,lth
+      character line*(LINELG),token*(WORDLG)
+      integer ival,lth,spectid,compid
       logical wldcrd
-c
       logical itoken
       external itoken
 c
@@ -332,7 +338,12 @@ c
 c----------------------------------------------------------------------
 c     Look for parenthesis indicating a second index will be specified
 c----------------------------------------------------------------------
-      if (token.eq.'(') then
+      if ( token .ne. '(' ) then		! got ()?
+        spectid=0	! no
+        compid=0
+        call ungett(token,lth,line)	! restore last token to line
+        return
+      else	! yes, parse the info
          call gettkn(line,token,lth)
 c
 c----------------------------------------------------------------------
@@ -340,45 +351,59 @@ c     Check for a valid index: '*' or an integer in range
 c----------------------------------------------------------------------
          wldcrd=token.eq.'*'
 c
-c                                   *** Empty '()': index is 0
+c                                   *** Empty '()': indices are 0
          if (token.eq.')') then
-            indtkn=0
+            spectid=0
+	    compid=0
+            return
          else
-c                                   *** Wildcard: return -1
+c                                   *** Wildcard: return 0
             if (wldcrd) then
-               indtkn=-1
+               spectid=0
             else
 c                                   *** Check for legal number
 c 
                if (itoken(token,lth,ival)) then
-                  indtkn=ival
+                  spectid=ival
                else
 c                                            *** Illegal index
 c
                   write(luttyo,1000) token(:lth)
-                  indtkn=0
+                  spectid=-1
+                  compid=-1
+                  return
                end if
             end if
+c now go for second index:
             call gettkn(line,token,lth)
+            wldcrd=token.eq.'*'
+            if (wldcrd) then
+              compid=0		! second entry is *
+	      call gettkn(line,token,lth)
+	      if (token.eq.')') return
+	      call ungett(token,lth,line)
+	      return	! if not ), put it back and return
+	    else
+              if (itoken(token,lth,ival)) then
+                compid=ival
+                call gettkn(line,token,lth)
+	        if (token.eq.')') return
+	        call ungett(token,lth,line)
+                return  ! if not ), put it back and return
+              else
+                if (token.eq.')') then
+                  compid=0
+	          return
+	        else
+	          write(luttyo,1000) token(:lth)
+                  spectid=-1
+                  compid=-1
+                  return
+                end if
+              end if
+            end if
          end if
-c
-c----------------------------------------------------------------------
-c      Check for a closing parenthesis (actually, this is optional)
-c----------------------------------------------------------------------
-         if (token.eq.')') call gettkn(line,token,lth)
-c
-c----------------------------------------------------------------------
-c     No '(' found: index is 0
-c----------------------------------------------------------------------
-      else
-         indtkn=0
       end if
-c
-c----------------------------------------------------------------------
-c    Restore last token taken from the line
-c----------------------------------------------------------------------
-      call ungett(token,lth,line)
-      return
 c
  1000 format('*** Illegal index: ''',a,''' ***')
       end

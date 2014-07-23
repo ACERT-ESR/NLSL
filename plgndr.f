@@ -1,4 +1,4 @@
-c Version 1.4 10/10/94
+c       VERSION 1.0     2/5/99
 c*********************************************************************
 c
 c                   ASSOCIATED LEGENDRE FUNCTIONS

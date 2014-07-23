@@ -1,9 +1,9 @@
 c----------------------------------------------------------------------
 c                    =========================
-c                      include file PRMEQV
+c                      include file PARMEQU
 c                    =========================
 c   Defines equivalence of arrays fepr and iepr with common block 
-c   /eprprm/.
+c   /eprprm/ contained in sims.inc
 c
 c   fepr    is a vector corresponding to all the user-settable floating
 c           point EPRLL parameters
@@ -15,4 +15,4 @@ c   this file
 c----------------------------------------------------------------------
       double precision fepr(NFPRM)
       integer iepr(NIPRM)
-      equivalence (fepr(1),phase),(iepr(1),in2)
+      equivalence (fepr(1),gib),(iepr(1),in2)

@@ -1,4 +1,4 @@
-c VC        NLS VERSION 20 May 1992
+C            NLSPMC VERSION 1.0	   2/5/99
 c**********************************************************************
 c
 c             complex double precision vector scale and add
@@ -20,28 +20,27 @@ c       Uses:
 c
 c**********************************************************************
 c
-      subroutine zaxpy(x,y,scale,ndim)
+      subroutine zaxpy2(x,y,scale,ndim)
 c
-      include 'nlsdim.inc'
-c*djs      include 'rndoff.inc'
+      include 'limits.inc'
+      include 'rndoff.inc'
 c
       integer ndim
-      double complex scale
+      complex*16 scale
 c
-      double complex x,y
-      dimension x(MXDIM),y(MXDIM)
+      complex*16 x,y
+      dimension x(mxdim),y(mxdim)
 c
       integer iel
-c
-c*djs      double complex CZERO
-c*djs      parameter (CZERO=(0.0D0,0.0D0))
+      complex*16 czero
+      parameter (czero=(0.0D0,0.0D0))
 c
 c######################################################################
 c
-      do iel=1,ndim
+      do 10 iel=1,ndim
         y(iel)=scale*x(iel)+y(iel)
-c*djs        if (abs(y(iel)).lt.rndoff) y(iel)=CZERO
-      end do
+c*djs        if (abs(y(iel)).lt.rndoff) y(iel)=czero
+ 10   continue
 c
       return
       end

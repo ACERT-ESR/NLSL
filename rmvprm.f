@@ -1,4 +1,4 @@
-c  Version 1.3  11/23/93
+c  VERSION 1.0  (NLSPMC version)   2/5/99
 c----------------------------------------------------------------------
 c                    =========================
 c                       subroutine RMVPRM
@@ -6,111 +6,90 @@ c                    =========================
 c
 c Remove a parameter from the list of parameters being varied for nonlinear
 c least-squares. Also maintain the lists of 
-c    (1) ixst    : secondary parameter index (for multiple sites/spectra)
-c    (2) ibnd    : boundary flag for variable parameter
-c    (3) prmin   : minimum for variable parameter
-c    (4) prmax   : maximum for variable parameter
-c    (5) prscl   : desired accuracy for given parameter
-c    (6) xfdstp  : Size of forward-differences step
-c    (7) tag     : Name of the parameter (character*9)
-c    (8) ixx     : index of each element in the fparm array into the x vector
+c    (1) ibnd    : boundary flag for variable parameter
+c    (2) prmin   : minimum for variable parameter
+c    (3) prmax   : maximum for variable parameter
+c    (4) prscl   : desired accuracy for given parameter
+c    (5) xfdstp  : Size of forward-differences step
+c    (6) tag     : Name of the parameter (character*6)
+c    (7) ixx     : index of each element in the fparm array into the x vector
 c
-c Notes:
+c ixr identifies variable, with axis identification,
+c ident is the the location in xxx of the variable to be removed.
+c Note the xxx array itself is set elsewhere on calling LM routine
 c
-c ix2= -1 means remove all occurrences of the parmeter in the variable list
-c ix2=  0 means remove the parameter only if it applies for all sites
+c Includes:
+c
+c      limits.inc
+c      parms.inc
+c      simparm.inc
+c      stdio.inc
+c      miscel.inc
+c
+c Spectrum and site information is checked against current variable 
+c parameter specification.
 c
 c----------------------------------------------------------------------
-      subroutine rmvprm(ix,ix2,ident)
+      subroutine rmvprm(ident)
       implicit none
-      integer ix,ix2
-      logical match
-      character ident*30,tmptag*9
+      integer varid,ident,icomp,ispec
 c
-      include 'nlsdim.inc'
-      include 'parcom.inc'
-      include 'eprprm.inc'
+      include 'limits.inc'
+      include 'parms.inc'
+      include 'simparm.inc'
       include 'stdio.inc'
+      include 'miscel.inc'
 c
-      integer i,ixa,j,j1,l
-c
-      integer itrim
-      logical tcheck
-      external itrim,tcheck
+      integer j,j1
+      character*6 idparm
 c
 c######################################################################
 c
-      match = .false.
-      ixa=abs(mod(ix,100)) 
-      if (nprm.eq.0) go to 5
-c
-      if (ix2.le.0) then
-         tmptag=ident
-      else
-         write (tmptag,1000) ident(:itrim(ident)),ix2
+      if (nprm.eq.0) then
+        write (luttyo,1000) 
+ 1000   format('*** No parameters are being varied ***')
+	return	! if no variable parameters, return
       end if
 c
-c----------------------------------------------------------------------
-c Loop through the list of parameters being varied (it's in sort order)
-c----------------------------------------------------------------------
-      do i=1,nprm
-         if (ixpr(i).gt.ixa) go to 5
-         if (ixpr(i).eq.ixa) then
-            if (ixst(i).gt.ix2.and. ix2.gt.0) go to 5
-            if (ixst(i).eq.ix2 .or. ix2.eq.-1) then
+      idparm=tag(ident)		! get ascii parameter name
+      write (luttyo,1001) idparm,nprm-1
+ 1001 format('*** Parameter ''',a,''' fixed: ',
+     #i3,' variable parameters remaining ***')
 c
+c  Delete it and move up elements below it in the list.
+c  (Note that move loop will not execute if we are removing last element;
+c  i.e. if ident=nprm)
 c------------------------------------------------------------------------
-c  Parameter found: first, make sure it matches the specified symmetry.
-c  If it does, delete it and move up any elements below it in the list.
-c------------------------------------------------------------------------
-               if ( .not.tcheck(ix,ix2,ident,0) ) go to 5
 c
-               match=.true.
-               if (ixst(i).le.0) then
-                  do l=1,MXSITE
-                     ixx(ixpr(i),l)=0
-                  end do
-               else
-                  ixx(ixpr(i),ixst(i))=0
-               end if
-c
-               do j=i,nprm-1
-                  j1=j+1
-                  ixpr(j)=ixpr(j1)
-                  ixst(j)=ixst(j1)
-                  prmin(j)=prmin(j1)
-                  prmax(j)=prmax(j1)
-                  prscl(j)=prscl(j1)
-                  xfdstp(j)=xfdstp(j1)
-                  ibnd(j)=ibnd(j1)
-                  tag(j)=tag(j1) 
-c
-                  if (ixst(j).le.0) then
-                     do l=1,MXSITE
-                        ixx(ixpr(j),l)=j
-                     end do
-                  else
-                     ixx(ixpr(j),ixst(j))=j
-                  end if
-               end do
-c
-               nprm=nprm-1
-               write (luttyo,1002) tmptag(:itrim(tmptag)),nprm
-c
+      varid=ixpr(ident)		! identity of the variable
+      do 1 j=ident,nprm-1
+        j1=j+1
+        ixpr(j)=ixpr(j1)
+        prmin(j)=prmin(j1)
+        prmax(j)=prmax(j1)
+        prscl(j)=prscl(j1)
+        xfdstp(j)=xfdstp(j1)
+        ibnd(j)=ibnd(j1)
+        tag(j)=tag(j1) 
+ 1      continue
+        do 2 icomp=1,ncomps
+          do 2 ispec=1,nspectra
+c zero ixx pointer for parameter being fixed
+            if (ixx(varid,ispec,icomp).eq.ident) then
+              ixx(varid,ispec,icomp)=0 
             end if
-         end if
+ 2      continue
+c decrement ixx pointer for moved parms
+        do 3 j=1,nprm-1
+          do 3 icomp=1,ncomps
+            do 3 ispec=1,nspectra
+              if (ixx(ixpr(j),ispec,icomp).gt.ident) 
+     #         ixx(ixpr(j),ispec,icomp)=ixx(ixpr(j),ispec,icomp)-1
+ 3      continue
 c
-      end do
-c
- 5    if (.not.match) write (luttyo,1001) tmptag(:itrim(tmptag))
+      nprm=nprm-1
       return
 c
 c #### format statements ###########################################
 c
- 1000 format(a,'(',i1,')')
- 1001 format('*** Parameter ''',a,''' is not being varied ***')
- 1002 format('*** Parameter ''',a,''' fixed: ',
-     #i3,' variable parameters ***')
       end
-
-

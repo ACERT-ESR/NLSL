@@ -1,6 +1,6 @@
-c NLSL Version 1.5
+c NLSPMC Version 1.0 2/5/99
 c----------------------------------------------------------------------
-c This file contains two copies of subroutine CCRINT named CCRIN1 and
+c This file contains two copies of subroutine named CCRINT and CCRIN1
 c for use with double integration problems (e.g. integration over
 c the polar angles in rigid limit EPR calculation programs)
 c----------------------------------------------------------------------
@@ -10,18 +10,18 @@ c                      subroutine CCRINT
 c                    ======================
 c
 c  Clenshaw-Curtis-Romberg integration method according to algorithm
-c  of O'Hara and Smith [Computer J. 12 (1969) 179-82]
+c  of O'Hara and Smith (Computer J. 12 (1969) 179-82)
 c  Adapted from G. Bruno thesis, Cornell Univ. (see p. 554 Bruno thesis)
 c  Code rearranged clarified, and re-commented by D. Budil, 1/16/90
 c
-c  The function to be integrated is supplied as a double precision function 
-c  whose name is passed to the program (external function f)  
+c  The function to be integrated is supplied as a double precision
+c  function whose name is passed to the program (external function f)  
 c
 c   Parameters:
 c       bndlow          Lower bound of integration
 c       bndhi           Upper bound of integration
 c       epsiln          Tolerance (absolute) for convergence of integral
-c                       Relative tolerance ratio is taken to be epsiln/100
+c			Relative tolerance ratio is taken to be epsiln/100
 c       small           Smallest permissible step, as fraction of (x range)/4
 c
 c   Returns:
@@ -31,8 +31,8 @@ c----------------------------------------------------------------------
         subroutine ccrint(bndlow,bndhi,epsiln,small,sum,neval,f,id)
         external f
 
-        integer id, neval, nstack 
-        double precision b1(30), b2(30), b3(30), b4(30), p(30)
+	integer id, neval, nstack 
+	double precision b1(30), b2(30), b3(30), b4(30), p(30)
         double precision bndlow, bndhi, acl7, ainsc, ccerr, 
      #         cnc1, cnc2, cnc3, cnc4, c7l1, c7l2, c7l3, c7l4,
      #         c8r1, c8r2, c8r3, c8r4, 
@@ -57,7 +57,7 @@ c Coefficients for 8 point Romberg formula
 c 868/2835, 1744/2835, 1408/2835, 4096/2835
 c ======================================================================
 
-        data c8r1 /0.3061728395061728d0 /
+	data c8r1 /0.3061728395061728d0 /
      #       c8r2 /0.6151675485008818d0 /
      #       c8r3 /0.4966490299823633d0 /
      #       c8r4 /1.444797178130511d0  /
@@ -67,12 +67,12 @@ c Coefficients for 7 point Clenshaw-Curtis formula
 c 36/315, 656/315, 576/315, 320/315
 c ======================================================================
 
-        data c7l1 /0.1142857142857143d0 /
+	data c7l1 /0.1142857142857143d0 /
      #       c7l2 /2.082539682539683d0  /
      #       c7l3 /1.828571428571429d0  /
      #       c7l4 /1.015873015873016d0  /
 
-        data rt3  /1.732050807568877d0 /
+	data rt3  /1.732050807568877d0 /
 
 c ======================================================================
 c Set initial domain to be the entire domain from lower to upper bound
@@ -80,7 +80,7 @@ c ======================================================================
 
         id = 1
         h  = (bndhi-bndlow)*0.25d0
-        x0 = bndlow
+	x0 = bndlow
         x2 = x0+h
         x4 = x2+h
         x6 = x4+h
@@ -182,7 +182,7 @@ c ======================================================================
 
 9       continue
 
-        if (nstack.le.0) return
+	if (nstack.le.0) return
 
         h =  p(nstack)
         t0 = t8
@@ -208,9 +208,9 @@ c ======================================================================
  10     nstack=nstack+1
         if(nstack.gt.30) then
           id=-1
-          write(*,*)'CCRINT: more than 30 subdomain divisions'
+          write(6,*)'CCRINT: more than 30 subdomain divisions'
           return
-        endif
+	endif
 
         b1(nstack) = t5
         b2(nstack) = t6
@@ -239,8 +239,8 @@ c ======================================================================
         subroutine ccrin1(bndlow,bndhi,epsiln,small,sum,neval,f,id)
         external f
 
-        integer id, neval, nstack 
-        double precision b1(30), b2(30), b3(30), b4(30), p(30)
+	integer id, neval, nstack 
+	double precision b1(30), b2(30), b3(30), b4(30), p(30)
         double precision bndlow, bndhi, acl7, ainsc, ccerr, 
      #         cnc1, cnc2, cnc3, cnc4, c7l1, c7l2, c7l3, c7l4,
      #         c8r1, c8r2, c8r3, c8r4, 
@@ -265,7 +265,7 @@ c Coefficients for 8 point Romberg formula
 c 868/2835, 1744/2835, 1408/2835, 4096/2835
 c ======================================================================
 
-        data c8r1 /0.3061728395061728d0 /
+	data c8r1 /0.3061728395061728d0 /
      #       c8r2 /0.6151675485008818d0 /
      #       c8r3 /0.4966490299823633d0 /
      #       c8r4 /1.444797178130511d0  /
@@ -275,12 +275,12 @@ c Coefficients for 7 point Clenshaw-Curtis formula
 c 36/315, 656/315, 576/315, 320/315
 c ======================================================================
 
-        data c7l1 /0.1142857142857143d0 /
+	data c7l1 /0.1142857142857143d0 /
      #       c7l2 /2.082539682539683d0  /
      #       c7l3 /1.828571428571429d0  /
      #       c7l4 /1.015873015873016d0  /
 
-        data rt3  /1.732050807568877d0 /
+	data rt3  /1.732050807568877d0 /
 
 c ======================================================================
 c Set initial domain to be the entire domain from lower to upper bound
@@ -288,7 +288,7 @@ c ======================================================================
 
         id = 1
         h  = (bndhi-bndlow)*0.25d0
-        x0 = bndlow
+	x0 = bndlow
         x2 = x0+h
         x4 = x2+h
         x6 = x4+h
@@ -391,7 +391,7 @@ c ======================================================================
 
 9       continue
 
-        if (nstack.le.0) return
+	if (nstack.le.0) return
 
         h =  p(nstack)
         t0 = t8
@@ -417,9 +417,9 @@ c ======================================================================
  10     nstack=nstack+1
         if(nstack.gt.30) then
           id=-1
-          write(*,*)'CCRIN1: more than 30 subdomain divisions'
+          write(6,*)'CCRINT: more than 30 subdomain divisions'
           return
-        endif
+	endif
 
         b1(nstack) = t5
         b2(nstack) = t6

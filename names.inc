@@ -1,4 +1,3 @@
-c Version 1.4
 c----------------------------------------------------------------------
 c                   =========================
 c                      common block NLSNAM
@@ -10,20 +9,24 @@ c
 c      prname : <fileid>.PAR   Parameter file (formatted)
 c      lgname : <fileid>.LOG   Log file for fitting results
 c      trname : <fileid>.TRC   Trace of NLS steps
+c      dbname : <fileid>.DEB   Debugging aids
+c      dtname : <dataid>.SPC   Input Data file
+c      nsname : <dataid>.NSP   2D splined Data file (used in NLSP fit)
+c      ftname : <dataid>.FIT   NLSP FIT
+c      ixname : <index fileid> Specified in basid command
 c
-c      dtname : <dataid>.DAT   Datafile
-c      spname : <dataid>.SPC   Splined experimental spectrum + fit
-c
-c NOTE: Files nlsdim.inc AND stdio.inc must be included BEFORE this file 
+c NOTE: Files nlsdim.inc must be included BEFORE this file 
 c in the source code
 c----------------------------------------------------------------------
 c
-      character*30 prname,lgname,spname,dtname,trname,inlist
+      character*(NAMELG) prname,lgname,dtname,ftname,nsname,trname,
+     #             dbname,ixname
       integer lthfnm,lthdnm
 c
       common /nlsnam/ lthfnm,lthdnm,prname,lgname,trname,dtname,
-     #                spname
+     #                ftname,nsname,ixname,dbname
 c
       integer nfiles
-      character*30 files
-      common /filcom/ nfiles,files(MXFILE)
+      character*(NAMELG) files
+      common /filcom/ nfiles,files(MXSPEC)
+c

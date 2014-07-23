@@ -1,150 +1,132 @@
-      subroutine mnbrak(ax,bx,cx,fa,fb,fc,func,iflag,bound)
+c  VERSION 1.0  (NLSPMC version)   2/5/99
+c----------------------------------------------------------------------
+c                         =======================
+c                            subroutine MNBRAK
+c                         =======================
+c
+c   Modified from the routine in NUMERICAL RECIPES to restrict the search
+c   region according to the user-specified range.  The error flag (ierr=1)
+c   is returned if it does not find the bracket for the minimum.  Note
+c   that the region for the parabolic extrapolation to be valid is reduced
+c   (glimit=10.0).
+c
+c   Error flag of negative value means the function "func" failed.
+c   
+c   Given a function func, and given distinct initial points ax and bx,
+c   routine searches in the downhill direction (defined by the function as
+c   evaluated at the initial points) and returns new points ax, bx, cx
+c   that bracket a minimum of the function.  Also returned are the function
+c   values at the three points, fa, fb, and fc.
+c----------------------------------------------------------------------
+c
+      subroutine mnbrak(ax,bx,cx,fa,fb,fc,func,smin,smax,ierr)
+c
       implicit none
-      double precision ax,bx,cx,fa,fb,fc,func,bound
-      integer iflag
+c
+      include 'limits.inc'
+      include 'parms.inc'
+c      include 'iterat.inc'
+c
+      double precision ax,bx,cx,fa,fb,fc,smin,smax,func
       external func
 c
-      double precision dum,fu,plim,r,q,u,ulim
+      integer ierr,idir,i
+      double precision dum,fu,r,q,u,ulim,bnd
 c
-      double precision GLIMIT,GOLD,TINY
-      parameter (GOLD=1.618034D0,GLIMIT=100.0D0,TINY=1.0D-20)
-c
-      include 'errmsg.inc'
-c
-c  -- Evaluate function at points a and b
-c
-      fa=func(ax,iflag)
-      if (iflag.lt.0) return
-c
-      fb=func(bx,iflag)
-      if (iflag.lt.0) return
+      double precision glimit,gold,tiny
+      parameter (gold=1.618034d0,glimit=10.,tiny=1.d-20)
 c
 c  -- Rearrange the two points so that a to b is always "downhill"
-c     Set parameter search boundary along this direction
 c
+
+      bnd=smax
+      idir=1
+c
+      fa=func(ax,ierr)
+      if (ierr.lt.0 .or. ihltcmd.ne.0) return
+c loop on sites
+c      do 101 i=1,ncomps
+c        seteval(i)=.true.	! got eigenvalues
+c 101    continue
+      fb=func(bx,ierr)
+      if (ierr.lt.0 .or. ihltcmd.ne.0) return
       if(fb.gt.fa)then
+         bnd=smin
+         idir=-1
          dum=ax
          ax=bx
          bx=dum
          dum=fb
          fb=fa
          fa=dum
-         plim=bx+sign(bound,bx-ax)
-      else
-         plim=ax+sign(bound,bx-ax)
-      end if
+      endif
 c
-c     Choose a third point using golden ratio
+      cx=bx+gold*(bx-ax)
 c
-      cx=bx+GOLD*(bx-ax)
+      if ( idir*(cx-bnd).gt.0.)            cx=bnd
 c
-      fc=func(cx,iflag)
-      if (iflag.lt.0) return
+      fc=func(cx,ierr)
+      if (ierr.lt.0 .or. ihltcmd.ne.0) return
 c
-c==================================================
-c     Main loop: do while f(B) > f(C)
-c                (if f(B) < f(C), we're done!)
-c==================================================
-c
- 1    if (fb.ge.fc) then
-c
-c        ----------------------------------------------------
-c        Check that the point with the lowest function value
-c        does not go beyond the initial step bound
-c        ----------------------------------------------------
-         if ((cx-ax)*(plim-cx).le.0.) then
-            iflag=NOMIN
-            return
-         end if
-c
-c        -----------------------------------------------
-c        Take parabolic step based on three known points
-c        -----------------------------------------------
+1     if(fb.ge.fc)then
          r=(bx-ax)*(fb-fc)
          q=(bx-cx)*(fb-fa)
-         u=bx-((bx-cx)*q-(bx-ax)*r)/(2.*sign(max(abs(q-r),TINY),q-r))
-c
-c        ---------------------------------------------------------------
-c        Choose a limit that is the smaller of the parabolic step limit
-c        and the step bound from the initial point (ax)
-c        ----------------------------------------------------------------
-         ulim=bx+GLIMIT*(cx-bx)
-         if ((ulim-ax)*(plim-ulim).lt.0.) ulim=plim
-c
-c        --------------------------------
-c        Step is between B and C: try it
-c        --------------------------------
+         u=bx-((bx-cx)*q-(bx-ax)*r)/(2.*sign(max(abs(q-r),tiny),q-r))
+         if ( idir*(u-bnd).gt.0.)          u=bnd
+         ulim=bx+glimit*(cx-bx)
+         if ( idir*(ulim-bnd).gt.0.)       ulim=bnd
          if((bx-u)*(u-cx).gt.0.)then
-            fu=func(u,iflag)
-            if (iflag.lt.0) return
-c
-c           ---------------------------------------
-c           U is a minimum: bracket is B,U,C (exit)
-c           ---------------------------------------
+c                                    ** parabolic u between b and c
+            fu=func(u,ierr)
+            if (ierr.lt.0 .or. ihltcmd.ne.0) return
             if(fu.lt.fc)then
+c                                      * minimum between b and c
                ax=bx
                fa=fb
                bx=u
                fb=fu
-               go to 1
-c
-c           -----------------------------------
-c           f(U)>f(B): bracket is A,B,U (exit)
-c           -----------------------------------
+               ierr=0
+               return
             else if(fu.gt.fb)then
+c                                      * minimum between a and u
                cx=u
                fc=fu
-               go to 1
+               ierr=0
+               return
             endif
-c
-c           ------------------------------------------------------
-c           Have f(A) > f(B) > f(U) > f(C). Try stepping further.
-c           ------------------------------------------------------
-            u=cx+GOLD*(cx-bx)
-            fu=func(u,iflag)
-            if (iflag.lt.0) return
-c
-c        ------------------------------------------------
-c        Step is between C and its allowed limit: try it
-c        ------------------------------------------------
+c                                      * default magnification
+            if (cx.eq.bnd) go to 99
+            u=cx+gold*(cx-bx)
+            if ( idir*(u-bnd).gt.0.)       u=bnd
+            fu=func(u,ierr)
+            if (ierr.lt.0 .or. ihltcmd.ne.0) return
          else if((cx-u)*(u-ulim).gt.0.)then
-            fu=func(u,iflag)
-            if (iflag.lt.0) return
-c
-c           -------------------------------------------------------
-c           Have f(A) > f(B) > f(C) > f(U): reset upper bound to B 
-c           -------------------------------------------------------
+c                                    ** parabolic u between c and ulim
+            if (cx.eq.bnd) go to 99
+            fu=func(u,ierr)
+            if (ierr.lt.0 .or. ihltcmd.ne.0) return
             if(fu.lt.fc)then
                bx=cx
                cx=u
-               u=cx+GOLD*(cx-bx)
+               u=cx+gold*(cx-bx)
+               if ( idir*(u-bnd).gt.0.)    u=bnd
                fb=fc
                fc=fu
-               fu=func(u,iflag)
-               if (iflag.lt.0) return
+               fu=func(u,ierr)
+               if (ierr.lt.0 .or. ihltcmd.ne.0) return
             endif
-c
-c        -----------------------------------------------------------
-c        Step went beyond the limiting value: try function at limit 
-c        -----------------------------------------------------------
          else if((u-ulim)*(ulim-cx).ge.0.)then
+            if (cx.eq.bnd) go to 99
             u=ulim
-            fu=func(u,iflag)
-            if (iflag.lt.0) return
-c
-c        ------------------------------------------------------------
-c        Reject parabolic step and use golden section magnification
-c        ------------------------------------------------------------
+            fu=func(u,ierr)
+            if (ierr.lt.0 .or. ihltcmd.ne.0) return
          else
-            u=cx+GOLD*(cx-bx)
-            if ((u-ulim)*(ulim-cx).ge.0.) u=ulim
-            fu=func(u,iflag)
-            if (iflag.lt.0) return
+            if (cx.eq.bnd) go to 99
+            u=cx+gold*(cx-bx)
+            if ( idir*(u-bnd).gt.0.)       u=bnd
+            fu=func(u,ierr)
+            if (ierr.lt.0 .or. ihltcmd.ne.0) return
          endif
-c
-c        ---------------------------------
-c        Discard oldest point and continue
-c        ---------------------------------
          ax=bx
          bx=cx
          cx=u
@@ -153,7 +135,8 @@ c        ---------------------------------
          fc=fu
          go to 1
       endif
-c
-      iflag=0
+      ierr=0
+      return
+ 99   ierr=1
       return
       end

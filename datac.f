@@ -1,4 +1,4 @@
-c NLSL Version 1.5 beta 11/25/95
+c  VERSION 1.0  (NLSPMC version)   2/5/99
 c----------------------------------------------------------------------
 c                    =========================
 c                       subroutine DATAC
@@ -7,51 +7,66 @@ c
 c Interprets a "data" command from the given line. The format of
 c the command is as follows:
 c
-c data <dataid> { format <iform> bcmode <ibc> nspline <n> deriv <idrv> }
+c data <dataid> { ascii|binary scale|noscale shift|noshift store}
+c
+c ** Special Caution necessary for NLSPMC **
+c   The order of <dataid> in the fit of series spectra SHOULD
+c   match the order of parameters specified in series command.
+c
 c   dataid : base name for datafile and associated output files:
-c            <dataid>.DAT -- datafile
-c            <dataid>.SPC -- fit spectrum
-c   iform  : input format 
-c               0 = ASCII 2-column format (default)
-c               1 = PC-Genplot binary
-c   ibc    : baseline correction mode 
-c               0 = no baseline correction (default)
-c               1 = subtract constant to give zero integral
-c               n = fit a line to the n points at each end of
-c                   of the spectrum
-c   n      : number of splined points, or 0 for no spline
-c            (default=zero)
-c   idrv   : derivative mode
-c               0 = 0th derivative (absorption) mode
-c               1 = 1st derivative mode (default)
+c            <dataid>.SPC -- datafile
+c            <dataid>.FIT -- fit spectrum
+c   ascii|binary : specifies the format of the datafile
+c            default (ascii)
+c   scale|noscale : specifies that NLSPMC program should scale the
+c            corresponding spectrum to fit.  The flag idepnd are
+c            set according to the choice.  Refer comments in sscale.f.
+c            default (scale)
+c   shift|noshift : specifies that NLSPMC program should shift the
+c            corresponding spectrum to fit.  The flag sishft is
+c            set according to the choice.  Refer comments in pfunnew.f
+c            before calling xshft.  default (shift)
+c   store|nostore :  specifies that the actual data (may have been 
+c            spline-smoothened) be stored in the file <datid>.nsp
+c            in 2D plotting format.
 c
 c----------------------------------------------------------------------
       subroutine datac( line )
       implicit none
       character line*80,token*30
 c
-      include 'nlsdim.inc'
-      include 'expdat.inc'
-      include 'lmcom.inc'
-      include 'parcom.inc'
-      include 'nlsnam.inc'
-      include 'mspctr.inc'
+      include 'limits.inc'
+      include 'datas.inc'
+      include 'lmcomm.inc'
+      include 'parms.inc'
+      include 'names.inc'
+      include 'wkspcm.inc'
       include 'stdio.inc'
-      include 'rndoff.inc'
 c
-      integer NKEYWD
-      parameter (NKEYWD=9)
+      integer nkeywd
+      parameter (nkeywd=8)
 c
-      integer i,iret,ispc,ival,ix,ixs,j,lth,ncmts,normlz
-      character*80 comment(MXCMT)
+      integer i,iret,ispc,ival,ix,ixcw,j,lth,iform,istore,lu,
+     #        isp,ispi,mpts,mptscw
+      double precision  inif2,res2,inif1,res1,amin,amax,scfac,tog
 c
+      character*8 keywrd(nkeywd)
+      data keywrd /'ASCII','BINARY','SCALE','NOSCALE',
+     #             'SHIFT','NOSHIFT','STORE','NOSTORE'/
+c
+      character*20 wndoid(MXSPEC)
       logical itoken
-      integer getdat,itrim,newwindow
-      external itoken,itrim,getdat,newwindow
+      integer getd2d
+      external itoken,getd2d
 c
-      character*8 keywrd(NKEYWD)
-      data keywrd /'ASCII','BINARY','BCMODE','DERIV','NSPLINE',
-     #             'NOSHIFT','SHIFT','NORM','NONORM'/
+c----------------------------------------------------------------------
+c  Check if the series parameters are properly set
+c----------------------------------------------------------------------
+      
+      if (nsparm.lt.9) then
+         write(luttyo,1100)nsparm
+         return
+      end if
 c
 c----------------------------------------------------------------------
 c  Get the name of the datafile
@@ -65,7 +80,7 @@ c  then reset the data buffer
 c----------------------------------------------------------------------
       if (lth.eq.0.or.nspc.ge.nser) then
          nspc=0
-         ndatot=0
+         nptot=0
          write(luttyo,1020)
          if (lth.eq.0) return
       end if
@@ -73,204 +88,198 @@ c
       nspc=nspc+1
       dataid(nspc)=token
 c
-c     -----------------------------------------------------
-c      Force normalization for multisite-multispectrum fits
-c     -----------------------------------------------------
-      if (nsite.gt.1.and.nser.gt.1) normflg=1
+c ....initialization of default values
 c
-c     --------------------
-c      Look for a keyword 
-c     --------------------
+      iform=0
+      ndata(nspc)=snpt1(nspc)*snpt2(nspc)
+      idepnd(nspc)=0
+      idepnd(nspc+1)=0
+      sishft(nspc)=1
+      istore=0
+c
+c----------------------------------------------------------------------
+c     Look for a keyword
+c----------------------------------------------------------------------
  5    call gettkn(line,token,lth)
+c
       if (lth.ne.0) then
          lth=min(lth,8)
          call touppr(token,lth)
-         do i=1,NKEYWD
+         do 6 i=1,nkeywd
             if (token(:lth).eq.keywrd(i)(:lth)) go to 7
-         end do
+ 6       continue 
 c
          write (luttyo,1000) token(:lth)
          go to 5
 c
 c----------------------------------------------------------------------
-c  Keyword found: assign appropriate value using next token
+c     Keyword found: assign appropriate value using next token
 c----------------------------------------------------------------------
 c
-c        ---------------------------------------------------
-c         The BCMODE, DERIV, and NSPLINE keywords require an 
-c         integer argument
-c        -------------------------------------------------------
- 7       if (i.ge.3 .and. i.le.5) then
-c
-            call gettkn(line,token,lth)
-c                                            *** No value given
-            if (lth.eq.0) then
-               write(luttyo,1003) keywrd(i)(:itrim(keywrd(i)))
-               return
-            end if
-c
-            if (itoken(token,lth,ival)) then 
-c                                         *** BCMODE keyword
-               if (i.eq.3) then
-                  bcmode=ival
-c                                         *** DERIV keyword
-               else if (i.eq.4) then
-                  drmode=ival
-c                                         *** NSPLINE keyword
-               else if (i.eq.5) then
-                  nspline=ival
-               end if
-c                                         *** Illegal integer token!
-            else
-               write(luttyo,1010) token(:lth)
-            end if
-c
-c----------------------------------------------------------------------
 c --- Non-argument keywords: 
-c     ASCII, BINARY, SHIFT, NOSHIFT, NORM, NONORM
-c----------------------------------------------------------------------
+c     ASCII, BINARY, SCALE, NOSCALE, SHIFT, NOSHIFT
 c
-         else
 c                                         *** ASCII keyword
-            if (i.eq.1) then
-               inform=0
+ 7       if (i.eq.1) then
+            iform=0
 c                                         *** BINARY keyword
-            else if (i.eq.2) then
-               inform=1
-c                                         *** NOSHIFT keyword
-            else if (i.eq.6) then
-               shftflg=0
+         else if (i.eq.2) then
+            iform=1
+            write (luttyo,1030)
+            iform=0
+c                                         *** SCALE keyword
+         else if (i.eq.3) then
+            idepnd(nspc)=0
+c                                         *** NOSCALE keyword
+         else if (i.eq.4) then
+            idepnd(nspc)=1
 c                                         *** SHIFT keyword
-            else if (i.eq.7) then
-               shftflg=1
-c                                         *** NORM keyword
-            else if (i.eq.8) then
-               normflg=1
-c                                         *** NONORM keyword
-            else if (i.eq.9) then
-               normflg=0
-            end if
+         else if (i.eq.5) then
+            sishft(nspc)=1
+c                                         *** NOSHIFT keyword
+         else if (i.eq.6) then
+            sishft(nspc)=0
+c                                         *** STORE keyword
+         else if (i.eq.7) then
+            istore=1
+c                                         *** NOSTORE keyword
+         else if (i.eq.8) then
+            istore=0
          end if
+c
          go to 5
 c
 c----------------------------------------------------------------------
-c     No more tokens on the line: read in datafile
+c     Read in datafile (end of data command)
 c----------------------------------------------------------------------
       else
-         iform(nspc)=inform
-         ibase(nspc)=bcmode
-         ishft(nspc)=shftflg
-         npts(nspc)=nspline
-         idrv(nspc)=drmode
-         nrmlz(nspc)=normflg
-c     
+c
          call setdat( dataid(nspc) )
 c
-c        -----------------------------------------------------
-c         Check whether an acceptable number of spline points
-c         has been specified and modify if necessary 
-c        -----------------------------------------------------
-
-         if ( npts(nspc).ne.0 .and.
-     #       (npts(nspc).lt.4 .or. npts(nspc).gt.MXSPT)
-     #      ) then
-            npts(nspc)=max(4,npts(nspc))
-            npts(nspc)=min(MXSPT,npts(nspc))
-            write(luttyo,1040) npts(nspc)
-         end if
+c    --- Check whether there is enough storage for the new data
 c
-c        -------------------------------------------------------
-c         Check whether there is enough storage for the new data
-c        --------------------------------------------------------
-         ix=ndatot+1
-         if ( (npts(nspc).eq.0 .and. ix+MXSPT.gt.MXPT)
-     #      .or.(npts(nspc).gt.0 .and. ix+npts(nspc).gt.MXPT) ) then
-            write(luttyo,1050) MXPT
+         ix=nptot+1
+         ixcw=nptotcw+1
+         if ( (nptot+ndata(nspc)).gt.MXPT ) then
+            write(luttyo,1050) MXPT	    
             nspc=nspc-1
             return
          end if
 c
-         iret=getdat(dtname,iform(nspc),ibase(nspc),npts(nspc),
-     #          idrv(nspc),nrmlz(nspc),luout,comment,ncmts,data(ix),
-     #          sbi(nspc),sdb(nspc),rmsn(nspc),spltmp,spltmp(1,2),
-     #          spltmp(1,3) )
+         lu=0
 c
-c                                        *** Error opening/reading datafile
+         iret=getd2d (dtname,iform,snpt1(nspc),snpt2(nspc),lu,
+     #           siexp(nspc),sicomb(nspc),sstept1(nspc),sstept2(nspc),
+     #           sratio(nspc),data(ix),cwdata(ixcw),rwsp,cwsp1,cwsp2,
+     #           cwsp3,c2wsp1,c2wsp2)
+c
          if (iret.ne.0) then
-            write(luttyo,1060) dtname(:lthdnm)
+c                               *** Error opening/reading datafile
+            if (iret.eq.-1) write(luttyo,1060) dtname(:lthdnm)
+            if (iret.eq.-2) write(luttyo,1070) dtname(:lthdnm)
+            if (iret.eq.-3) write(luttyo,1080) dtname(:lthdnm)
+            if (iret.eq.-4) write(luttyo,1090) dtname(:lthdnm)
             nspc=nspc-1
             return
          end if
 c
-c        -------------------------------------------------------------
-c         Find smallest power of 2 greater than or equal to the number
-c         of data points (for Fourier-Transform applications)
-c        -------------------------------------------------------------
-         nft(nspc)=1
- 9       nft(nspc)=nft(nspc)*2
-         if (nft(nspc).lt.npts(nspc)) go to 9
+         if (istore.eq.1) then
+c                               *** store the splined datafile
+c	    tog=dble(snpt1(nspc)-1)/dble(snpt1(nspc))
+c            inif1=-5.0d2*tog/sstept1(nspc)
+c            res1=-2.0d0*inif1/dble(snpt1(nspc)-1)
+c	    inif1=-5.0d2/sstept1(nspc)
+c	    tog=dble(snpt2(nspc)-1)/dble(snpt2(nspc))
+c            inif2=-5.0d2*tog/sstept2(nspc)
+c            res2=-2.0d0*inif2/dble(snpt2(nspc)-1)
+c	    inif2=-5.0d2/sstept2(nspc)
+            amin=0.0d0
+            amax=0.0d0
+            do 45 j=ix,ix+ndata(nspc)-1
+               if ( data(j).gt.amax ) amax=data(j)
+c               if ( data(j).lt.amin ) amin=data(j)
+ 45         continue
+c            call wrfit( data(ix),snpt1(nspc),snpt2(nspc),
+c     #            inif2,res2,inif1,res1,amin,amax,nsname,lthdnm )
+            call wrfit( data(ix),nspc,amin,amax,nsname )
+c
+         end if
 c
          ixsp(nspc)=ix
-         shft(nspc)=0.0D0
-         slb(nspc)=0.0D0
-         srng(nspc)=sdb(nspc)*(npts(nspc)-1)
-         if (ishft(nspc).ne.0) ishglb=1
+         ixspcw(nspc)=ixcw
+         sshft(nspc)=0.0d0
+         wndoid(nspc)=dataid(nspc)
+         wndoid(nspc)(10:10)=char(0)
+         nptot=nptot+ndata(nspc)
+         nptotcw=nptotcw+snpt2(nspc)
 c
-         write (wndoid(nspc),1070) nspc,
-     #        dataid(nspc)(:itrim(dataid(nspc))),char(0)
-         if (rmsn(nspc).le.RNDOFF) rmsn(nspc)=1.0d0
-         ndatot=ndatot+npts(nspc)
+c----------------------------------------------------------------------
+c        Scale the series spectra within reasonable range (smax=1000)
+c----------------------------------------------------------------------
+c if we have all the data sets:
+         if (nspc.eq.nser) then
 c
-c        -----------------------------------
-c         If nspc > nwin create a new window
-c        -----------------------------------
-c         if (nspc.gt.nwin) then
-c            nwin = newwindow( wndoid )
-c
-c
-c    ------------------------------------------------------------------
-c    Call getwindows and plot files when the last datafile is read in
-c      nser = number of spectra in the series
-c      wndoid = character array of window I.D.'s
-c               defined as character*20 wndoid(mxspc) in expdat.inc
-c    ------------------------------------------------------------------
-          if (nspc.eq.nser) then
-              call getwndws( nspc, wndoid )
+            isp=1
+ 100        if (uniflg) then
 
-c           ------------------------------------------
-c            Set fvec array to equal the data array 
-c           (calculated spectrum=0) and plot the data  
-c           -------------------------------------------
-            do ispc=1,nspc
-               do i=1,npts(ispc)
-                  j=ixsp(ispc)+i-1
-                  fvec(j)=data(j)
-               end do
+               ispi=isp
+               ix=ixsp(isp)
+               ixcw=ixspcw(isp)
+               mpts=ndata(isp)
+               mptscw=snpt1(isp)
+c                              * search next independent spectra
+ 50            isp=isp+1
+               if (idepnd(isp).eq.1) then
+                  mpts=mpts+ndata(isp)
+                  mptscw=mptscw+snpt1(isp)
+                  go to 50
+               end if
+            else
+               ispi=1
+               isp=nspc+1
+               ix=1
+               mpts=nptot
+               ixcw=1
+               mptscw=nptotcw
+            end if
+c                              * obtain scale factor
+            amax=0.0d0
+            do 52 j=ispi,isp-1
+ 52            if (sratio(j).gt.amax) amax=sratio(j)
+            scfac=1.0d3/amax
+            do 54 j=ispi,isp-1
+ 54            sratio(j)=scfac
+c                              * scale the spectra
+            do 56 j=ix,ix+mpts-1
+ 56            data(j)=data(j)*scfac
+            do 58 j=ixcw,ixcw+mptscw-1
+ 58            cwdata(j)=cwdata(j)*scfac
 c
-               ixs=ixsp(ispc)
-               sfac(1,ispc)=1.0d0
-c               call pltwin( data(ixs),fvec(ixs),spectr(ixs,1),
-c     *                    sfac(1,ispc),MXPT,npts(ispc),nsite,ispc )
-            call fstplt( data(ixsp(ispc)), fvec(ixsp(ispc)), 
-     #           sbi(ispc), sdb(ispc), npts(ispc), ispc )
+            if (isp.gt.nspc) then
+                dataOK=.true.
+                return
+             end if
 c
-            end do
+            go to 100
 c
          end if
 c
+c######################################################################
+c
       end if
+c
       return
 c
 c #### format statements ########################################
 c
  1000 format('*** Unrecognized DATA keyword: ''',a,''' ***')
- 1003 format('*** No value given for ''',a,''' ***')
- 1010 format('*** Integer value expected: ''',a,''' ***')
  1020 format('*** Data buffer has been reset *** ')
- 1040 format('*** Number of splined points reset to ',i4,' ***')
+ 1030 format('*** Binary format for input data is not supported ***')
  1050 format('*** Maximum number of data points (',i4,') exceeded ***')
- 1060 format(/13x,'*** Error opening or reading datafile ''',a,
-     #       ''' ***'/)
- 1070 format(i2,': ',a,a1)
+ 1060 format(13x,'*** Error opening or reading datafile ''',a,
+     #       ''' ***')
+ 1070 format(13x,'*** Too many data points in datafile ''',a,''' ***')
+ 1080 format(13x,'*** Data pts outside input range in ''',a,''' ***')
+ 1090 format(13x,'*** Can not extract cw-equivalent spectrum ***')
+ 1100 format('*** Series parameters not properly set ***',i3)
       end
-

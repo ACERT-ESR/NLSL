@@ -1,4 +1,4 @@
-c NLSL Version 1.3.2
+c       NLSPMC VERSION 1.0   2/5/99
 c**********************************************************************
 c
 c               (S)parse (C)omplex (M)atrix (V)ector (M)ultiply
@@ -25,8 +25,7 @@ c       give the the location of the first imaginary and real
 c       elements of each row of Z within zmat, and izmat gives
 c       the column index corresponding to each element in zmat.
 c
-c       The matrix-vector multiply will not be performed if the 
-c       user-halt flags defined in stdio.inc have been set 
+c
 c
 c       Calling parameters:
 c       ------------------
@@ -85,13 +84,13 @@ c**********************************************************************
 c
       subroutine scmvm(x,y,ndim)
 c
-      include 'nlsdim.inc'
+      include 'limits.inc'
       include 'rndoff.inc'
       include 'eprmat.inc'
 c
       integer ndim
       double precision x,y    
-      dimension x(2,MXDIM),y(2,MXDIM)
+      dimension x(2,mxdim),y(2,mxdim)
 c
       integer j,k,m,n,n1
       double precision accr,acci
@@ -102,16 +101,16 @@ c----------------------------------------------------------------------
 c     do diagonal elements first 
 c----------------------------------------------------------------------
 c
-      do n=1,ndim 
+      do 100 n=1,ndim 
         y(1,n)=zdiag(1,n)*x(1,n)-zdiag(2,n)*x(2,n)
         y(2,n)=zdiag(1,n)*x(2,n)+zdiag(2,n)*x(1,n)
-      end do
+ 100  continue
 c
 c----------------------------------------------------------------------
 c     loop over rows (columns) of matrix for off-diagonal elements
 c----------------------------------------------------------------------
 c
-      do n=1,ndim
+      do 200 n=1,ndim
         n1=n+1
 c
         accr=0.0D0
@@ -120,26 +119,26 @@ c
 c       imaginary matrix elements
 c
         if (jzmat(n) .ne. jzmat(n1) ) then
-           do j=jzmat(n),jzmat(n1)-1
-              m=izmat(j)
-              acci=acci+zmat(j)*x(1,m)
-              y(2,m)=y(2,m)+zmat(j)*x(1,n) 
-              accr=accr-zmat(j)*x(2,m)
-              y(1,m)=y(1,m)-zmat(j)*x(2,n)
-           end do
+           do 210 j=jzmat(n),jzmat(n1)-1
+             m=izmat(j)
+             acci=acci+zmat(j)*x(1,m)
+             y(2,m)=y(2,m)+zmat(j)*x(1,n) 
+             accr=accr-zmat(j)*x(2,m)
+             y(1,m)=y(1,m)-zmat(j)*x(2,n)
+ 210       continue 
         endif
 c
 c       real matrix elements
 c
         if (kzmat(n) .ne. kzmat(n1)) then
-           do k=kzmat(n),kzmat(n1)-1
-              j = mxel-k+1
-              m=izmat(j)
-              accr=accr+zmat(j)*x(1,m)
-              y(1,m)=y(1,m)+zmat(j)*x(1,n)          
-              acci=acci+zmat(j)*x(2,m)
-              y(2,m)=y(2,m)+zmat(j)*x(2,n)
-           end do
+          do 220 k=kzmat(n),kzmat(n1)-1
+            j = mxel-k+1
+            m=izmat(j)
+            accr=accr+zmat(j)*x(1,m)
+            y(1,m)=y(1,m)+zmat(j)*x(1,n)          
+            acci=acci+zmat(j)*x(2,m)
+            y(2,m)=y(2,m)+zmat(j)*x(2,n)
+ 220      continue
         endif
 c
         y(1,n)=y(1,n)+accr
@@ -147,7 +146,7 @@ c*djs        if (abs(y(1,n)).lt.rndoff) y(1,n)=0.0D0
         y(2,n)=y(2,n)+acci
 c*djs        if (abs(y(2,n)).lt.rndoff) y(2,n)=0.0D0
 c
-      end do
+ 200  continue
 c
       return
       end

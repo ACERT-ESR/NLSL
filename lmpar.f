@@ -1,10 +1,10 @@
+c NLSPMC Version 1.0 2/5/99
       subroutine lmpar(n,r,ldr,ipvt,diag,qtf,delta,par,x,sdiag,wa1,
      *                 wa2,gnvec,gradf)
-      include 'rndoff.inc'
       integer n,ldr
       integer ipvt(n)
-      double precision delta,par
-      double precision r(ldr,n),diag(n),qtf(n),x(n),sdiag(n),wa1(n),
+      real*8 delta,par
+      real*8 r(ldr,n),diag(n),qtf(n),x(n),sdiag(n),wa1(n),
      *                 wa2(n),gnvec(n), gradf(n)
 c     **********
 c
@@ -93,14 +93,13 @@ c       gnvec is an output array of length n which contains the
 c         Gauss-Newton vector corresponding to the input matrix R.
 c
 c       gradf is an output array of length n which contains the
-c         gradient (steepest descent) vector. This is only calculated
-c         if the L-M parameter, par, is nonzero.
+c         gradient (steepest descent) vector
 c
 c       wa1 and wa2 are work arrays of length n.
 c
 c     Subprograms called
 c
-c       MINPACK-supplied ... enorm,qrsolv
+c       MINPACK-supplied ... dpmpar,enorm,qrsolv
 c
 c       Fortran-supplied ... dabs,dmax1,dmin1,dsqrt
 c
@@ -109,15 +108,14 @@ c     Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More
 c
 c     **********
       integer i,iter,j,jm1,jp1,k,l,nsing
-      double precision dxnorm,dwarf,fp,gnorm,parc,parl,paru,sum,temp
-      double precision enorm
-c
-      double precision P1,P001,ZERO
-      data P1,P001,ZERO /1.0d-1,1.0d-3,0.0d0/
+      real*8 dxnorm,dwarf,fp,gnorm,parc,parl,paru,p1,p001,
+     *                 sum,temp,zero
+      real*8 dpmpar,enorm
+      data p1,p001,zero /1.0d-1,1.0d-3,0.0d0/
 c
 c     dwarf is the smallest positive magnitude.
-      PARAMETER (DWARF=DBL_MIN)
 c
+      dwarf = dpmpar(2)
 c
 c----------------------------------------------------------------------
 c     Compute and store in x the Gauss-Newton direction. If the 
@@ -128,72 +126,72 @@ c     The Gauss-Newton direction is the solution of the problem given
 c     above for par=0. The solution to the above least-squares problem
 c     in this case is equivalent to finding the vector
 c
-c           +       T -1 T         +
-c     x = -J f  = -P R  Q f (i.e. J  is the pseudoinverse of the Jacobian)
+c           +        -1 T         +
+c     x = -J f  = - R  Q f (i.e. J  is the pseudoinverse of the Jacobian)
 c
 c     See exercise 24 in chapter 6 of Dennis and Schnabel.
 c----------------------------------------------------------------------
       nsing = n
-      do j = 1, n
+      do 10 j = 1, n
          wa1(j) = qtf(j)
-         if (r(j,j) .eq. ZERO .and. nsing .eq. n) nsing = j - 1
-         if (nsing .lt. n) wa1(j) = ZERO
-      end do
+         if (r(j,j) .eq. zero .and. nsing .eq. n) nsing = j - 1
+         if (nsing .lt. n) wa1(j) = zero
+   10    continue
 c
       if (nsing .ge. 1) then
-         do k = 1, nsing
+         do 40 k = 1, nsing
             j = nsing - k + 1
             wa1(j) = wa1(j)/r(j,j)
             temp = wa1(j)
             jm1 = j - 1
-            if (jm1 .ge. 1) then
-               do i = 1, jm1
-                  wa1(i) = wa1(i) - r(i,j)*temp
-               end do
-            end if
-         end do
+         if (jm1 .ge. 1) then
+            do 20 i = 1, jm1
+               wa1(i) = wa1(i) - r(i,j)*temp
+ 20         continue
+         end if
+ 40   continue
       end if
 c
-      do j = 1, n
+      do 60 j = 1, n
          l = ipvt(j)
          x(l) = wa1(j)
-         gnvec(l)= -x(l)
-      end do
+         gnvec(l)=x(l)
+   60    continue
 c
 c----------------------------------------------------------------------
 c     Initialize the iteration counter. If the (scaled) Gauss-Newton 
 c     step size is within 10% of the trust-region bound, terminate the 
-c     search (par will be returned as ZERO).
+c     search (par will be returned as zero).
 c----------------------------------------------------------------------
       iter = 0
-      do j = 1, n
+      do 70 j = 1, n
          wa2(j) = diag(j)*x(j)
-      end do
+   70    continue
       dxnorm = enorm(n,wa2)
       fp = dxnorm - delta
-      if (fp .le. P1*delta) go to 220
+      if (fp .le. p1*delta) go to 220
 c
 c----------------------------------------------------------------------
-c     If the Jacobian is not rank deficient, the scaled Gauss-Newton
-c     step provides a lower bound, parl, for the zero of the function.
-c     Otherwise set this bound to zero.
+c     If the Jacobian is not rank deficient, the Gauss-Newton
+c     step provides a lower bound, parl, for the zero of
+c     the function. Otherwise set this bound to zero.
 c----------------------------------------------------------------------
-      parl = ZERO
+      parl = zero
       if (nsing .ge. n) then
-         do j = 1, n
+         do 80 j = 1, n
             l = ipvt(j)
             wa1(j) = diag(l)*(wa2(l)/dxnorm)
-         end do
-         do j = 1, n
-            sum = ZERO
+ 80      continue
+         do 110 j = 1, n
+            sum = zero
             jm1 = j - 1
             if (jm1 .ge. 1) then
-               do i = 1, jm1
+               do 90 i = 1, jm1
                   sum = sum + r(i,j)*wa1(i)
-               end do
+ 90            continue
             end if
             wa1(j) = (wa1(j) - sum)/r(j,j)
-         end do
+ 110     continue
          temp = enorm(n,wa1)
          parl = ((fp/delta)/temp)/temp
       end if
@@ -207,18 +205,18 @@ c     Grad(f) = J f = P R Q f
 c
 c     This provides an upper bound, paru, for the zero of the function.
 c----------------------------------------------------------------------
-      do j = 1, n
-         sum = ZERO
-         do i = 1, j
+      do 140 j = 1, n
+         sum = zero
+         do 130 i = 1, j
             sum = sum + r(i,j)*qtf(i)
-         end do
+  130       continue
          l = ipvt(j)
          wa1(j) = sum/diag(l)
-         gradf(l) = wa1(j)
-      end do
+         gradf(j) = wa1(j)
+  140    continue
       gnorm = enorm(n,wa1)
       paru = gnorm/delta
-      if (paru .eq. ZERO) paru = dwarf/dmin1(delta,P1)
+      if (paru .eq. zero) paru = dwarf/dmin1(delta,p1)
 c
 c----------------------------------------------------------------------
 c     If the input par lies outside of the interval (parl,paru),
@@ -226,7 +224,7 @@ c     set par to the closer endpoint.
 c----------------------------------------------------------------------
       par = dmax1(par,parl)
       par = dmin1(par,paru)
-      if (par .eq. ZERO) par = gnorm/dxnorm
+      if (par .eq. zero) par = gnorm/dxnorm
 c
 c----------------------------------------------------------------------
 c     *** Beginning of an iteration.
@@ -237,15 +235,15 @@ c
 c----------------------------------------------------------------------
 c        Evaluate the function at the current value of par.
 c----------------------------------------------------------------------
-         if (par .eq. ZERO) par = dmax1(dwarf,P001*paru)
+         if (par .eq. zero) par = dmax1(dwarf,p001*paru)
          temp = dsqrt(par)
-         do j = 1, n
+         do 160 j = 1, n
             wa1(j) = temp*diag(j)
-         end do
+  160       continue
          call qrsolv(n,r,ldr,ipvt,wa1,qtf,x,sdiag,wa2)
-         do j = 1, n
+         do 170 j = 1, n
             wa2(j) = diag(j)*x(j)
-         end do
+  170       continue
          dxnorm = enorm(n,wa2)
          temp = fp
          fp = dxnorm - delta
@@ -255,35 +253,35 @@ c        If the function is small enough, accept the current value
 c        of par. Also test for the exceptional cases where parl
 c        is zero or the number of iterations has reached 10.
 c----------------------------------------------------------------------
-         if (dabs(fp) .le. P1*delta
-     *       .or. parl .eq. ZERO .and. fp .le. temp
-     *            .and. temp .lt. ZERO .or. iter .eq. 10) go to 220
+         if (dabs(fp) .le. p1*delta
+     *       .or. parl .eq. zero .and. fp .le. temp
+     *            .and. temp .lt. zero .or. iter .eq. 10) go to 220
 c
 c----------------------------------------------------------------------
 c        Compute the Newton correction.
 c----------------------------------------------------------------------
-         do j = 1, n
+         do 180 j = 1, n
             l = ipvt(j)
             wa1(j) = diag(l)*(wa2(l)/dxnorm)
-         end do
-         do j = 1, n
+  180       continue
+         do 210 j = 1, n
             wa1(j) = wa1(j)/sdiag(j)
             temp = wa1(j)
             jp1 = j + 1
             if (n .ge. jp1) then
-               do i = jp1, n
+               do 190 i = jp1, n
                   wa1(i) = wa1(i) - r(i,j)*temp
-               end do
+ 190           continue
             end if
-         end do
+  210       continue
          temp = enorm(n,wa1)
          parc = ((fp/delta)/temp)/temp
 c
 c----------------------------------------------------------------------
 c        Depending on the sign of the function, update parl or paru.
 c----------------------------------------------------------------------
-         if (fp .gt. ZERO) parl = dmax1(parl,par)
-         if (fp .lt. ZERO) paru = dmin1(paru,par)
+         if (fp .gt. zero) parl = dmax1(parl,par)
+         if (fp .lt. zero) paru = dmin1(paru,par)
 c
 c----------------------------------------------------------------------
 c        Compute an improved estimate for par.
@@ -299,7 +297,7 @@ c
 c----------------------------------------------------------------------
 c     Termination.
 c----------------------------------------------------------------------
-      if (iter .eq. 0) par = ZERO
+      if (iter .eq. 0) par = zero
 c
       return
       end

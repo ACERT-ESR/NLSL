@@ -1,4 +1,4 @@
-c  Version 1.4 10/10/94
+c  VERSION 1.0     2/5/99
 c*********************************************************************
 c
 c               MODIFIED BESSEL FUNCTIONS OF THE FIRST
@@ -12,11 +12,6 @@ c       recurrence scheme taken from "Numerical Recipes", W. H. Press,
 c       B. P. Flannery, S. A. Teulosky and W. T. Vetterling, 1st ed.,
 c       Cambridge Univ. Press, 1986.
 c
-c       The differs from the standalone version in the addition of
-c       the parameter ierr. It is used to report non-convergence of
-c       Bessel function evaluations instead of halting when such
-c       errors occur.   
-c       
 c       written by DJS 10-SEP-87
 c       Bug in small-argument Taylor series expansion fixed by DEB OCT-92
 c
@@ -30,9 +25,9 @@ c               bessi1.f
 c
 c*********************************************************************
 c
-      function bessi(n,z,ierr)
+      function bessi(n,z)
       implicit none
-      integer n,ierr
+      integer n
       double precision bessi,z
 c
       include 'rndoff.inc'
@@ -41,8 +36,8 @@ c
       external bessi0,bessi1
 c
       integer iacc
-      double precision BIGNO,BIGNI,ONE
-      parameter (iacc=40,BIGNO=1.0D10,BIGNI=1.0D-10,ONE=1.0D0)
+      double precision bigno,bigni
+      parameter (iacc=40,bigno=1.0D10,bigni=1.0D-10)
 c
       integer i,m,mmax
       double precision x,phase,twobyx,bi,bip,bim
@@ -50,8 +45,6 @@ c
       intrinsic abs
 c
 c#####################################################################
-c
-      ierr=0
 c
 c---------------------------------------------------------------------
 c       get proper phase factor if argument is negative with the
@@ -65,18 +58,18 @@ c
       x=abs(z)
 c
       if ((z.lt.0.0D0).and.(mod(m,2).eq.1)) then
-        phase=-ONE
+        phase=-1.0D0
       else
-        phase=ONE
+        phase=1.0D0
       end if
 c
 c---------------------------------------------------------------------
 c       return proper values if argument is zero
 c---------------------------------------------------------------------
 c       
-      if (x.lt.RNDOFF) then
+      if (x.lt.rndoff) then
         if (m.eq.0) then
-          bessi=ONE
+          bessi=1.0D0
         else
           bessi=0.0D0
         end if
@@ -89,30 +82,27 @@ c       downward recurrence if n>1.
 c---------------------------------------------------------------------
 c
       if (m.eq.0) then
-        bessi=phase*bessi0(x,ierr)
-        if (ierr.ne.0) return
+        bessi=phase*bessi0(x)
       else if (m.eq.1) then
-        bessi=phase*bessi1(x,ierr)
-        if (ierr.ne.0) return
+        bessi=phase*bessi1(x)
       else
         bessi=0.0D0
         twobyx=2.0D0/x
         bip=0.0D0
-        bi=ONE
+        bi=1.0D0
         mmax=2*((m+int(sqrt(dble(iacc*m)))))
-        do i=mmax,1,-1
+        do 10 i=mmax,1,-1
           bim=bip+dble(i)*twobyx*bi
           bip=bi
           bi=bim
-          if (abs(bi).gt.BIGNO) then
-            bessi=bessi*BIGNI
-            bi=bi*BIGNI
-            bip=bip*BIGNI
+          if (abs(bi).gt.bigno) then
+            bessi=bessi*bigni
+            bi=bi*bigni
+            bip=bip*bigni
           end if
           if (i.eq.m) bessi=bip
-        end do
-        bessi=phase*bessi*bessi0(x,ierr)/bi
-        if (ierr.ne.0) return
+ 10     continue
+        bessi=phase*bessi*bessi0(x)/bi
       end if
 c
       return
@@ -140,26 +130,24 @@ c       Uses:
 c
 c*********************************************************************
 c
-      double precision function bessi0(z,ierr)
-      implicit none
+      double precision function bessi0(z)
 c
       include 'rndoff.inc'
       include 'pidef.inc'
 c
       double precision z
-      integer ierr
 c
       integer i,j
       double precision x,y,smax,temp1,temp2,temp3,sum
 c
-      integer NMAX
-      parameter (NMAX=40)
+      integer nmax
+      parameter (nmax=40)
 c
       double precision tser
-      dimension tser(NMAX)
+      dimension tser(nmax)
 c
-      double precision CUTOFF,ONE
-      parameter (CUTOFF=20.0D0,ONE=1.0D0)
+      double precision cutoff
+      parameter (cutoff=20.0D0)
 c
 c######################################################################
 c
@@ -168,32 +156,32 @@ c
 c------------------------------------------------------------
 c     Set function value to unity if argument is too small
 c------------------------------------------------------------
-      if (y.lt.RNDOFF) then
-        bessi0=ONE
+      if (y.lt.rndoff) then
+        bessi0=1.0D0
 c
 c-------------------------------------------------------------
 c     Taylor series expansion for small to moderate arguments
 c-------------------------------------------------------------
-      else if (y.le.CUTOFF) then
+      else if (y.le.cutoff) then
         x=y*y*0.25D0
-        temp1=ONE
-        smax=ONE
+        temp1=1.0D0
+        smax=1.0D0
         i=1
  10     temp1=(temp1/dble(i))*(x/dble(i))
-          if (i.gt.NMAX) then
-            ierr=-1
-            return
+          if (i.gt.nmax) then
+            write(*,1000)
+            stop
           end if
           tser(i)=temp1
           i=i+1
           if (temp1.gt.smax) smax=temp1
-          if (temp1/smax.gt.RNDOFF) go to 10
+          if (temp1/smax.gt.rndoff) go to 10
 c
         bessi0=0.0D0
-        do j=i-1,1,-1
-           bessi0=bessi0+tser(j)
-        end do
-        bessi0=bessi0+ONE
+        do 20 j=i-1,1,-1
+          bessi0=bessi0+tser(j)
+ 20       continue
+        bessi0=bessi0+1.0D0
 c
 c----------------------------------------------
 c     Asymptotic expansion for large arguments
@@ -201,22 +189,24 @@ c----------------------------------------------
       else
         x=0.125D0/y
         sum=0.0D0
-        temp3=ONE
-        smax=ONE
+        temp3=1.0D0
+        smax=1.0D0
         i=1
  30     temp1=dble(2*i-1)
           temp2=(x*temp1)*(temp1/dble(i))
-          if (temp2.gt.ONE) go to 40
+          if (temp2.gt.1.0D0) go to 40
           temp3=temp3*temp2
           if (temp3.gt.smax) smax=temp3
-          if (temp3/smax.lt.RNDOFF) go to 40
+          if (temp3/smax.lt.rndoff) go to 40
             sum=sum+temp3
             i=i+1
             go to 30
- 40     bessi0=dexp(y)*((sum+ONE)/dsqrt(y*(PI+PI)))
+ 40     bessi0=dexp(y)*((sum+1.0D0)/dsqrt(y*(pi+pi)))
       end if
 c
       return
+c
+ 1000 format('bessi0: Taylor series did not converge')
       end
 
 c*********************************************************************
@@ -241,87 +231,88 @@ c       Uses:
 c
 c*********************************************************************
 c
-      double precision function bessi1(z,ierr)
-      implicit none
+      double precision function bessi1(z)
 c
       include 'rndoff.inc'
       include 'pidef.inc'
 c
       double precision z
-      integer ierr
 c
       integer i,j
       double precision x,y,smax,temp1,temp2,temp3,phase,sum
 c
-      integer NMAX
-      parameter (NMAX=40)
+      integer nmax
+      parameter (nmax=40)
 c
       double precision series
-      dimension series(NMAX)
+      dimension series(nmax)
 c
-      double precision CUTOFF,ONE
-      parameter (CUTOFF=20.0D0,ONE=1.0D0)
+      double precision cutoff
+      parameter (cutoff=20.0D0)
 c
 c#####################################################################
 c
       if (z.gt.0.0D0) then
-        phase=ONE
+        phase=1.0D0
         y=z
       else
-        phase=-ONE
+        phase=-1.0D0
         y=-z
       end if
 c
 c----------------------------------------------------------------------
 c     set answer to zero if argument is too small, otherwise
 c----------------------------------------------------------------------
-      if (y.lt.RNDOFF) then
+      if (y.lt.rndoff) then
         bessi1=0.0D0
 c
 c----------------------------------------------------------------------
 c     Use Taylor series expansion for small to moderate arguments or
 c----------------------------------------------------------------------
-      else if (y.le.CUTOFF) then
-         x=y*y*0.25D0
-         temp1=ONE
-         smax=ONE
-         i=1
- 10      temp1=(temp1/dble(i))*(x/dble(i+1))
-         if (i.gt.NMAX) then
-            ierr=-1
-            return
-         end if
-         series(i)=temp1
-         i=i+1
-         if (temp1.gt.smax) smax=temp1
-         if (temp1/smax.gt.RNDOFF) go to 10
-         bessi1=0.0D0
-         do j=i-1,1,-1
+      else if (y.le.cutoff) then
+        x=y*y*0.25D0
+        temp1=1.0D0
+        smax=1.0D0
+        i=1
+ 10     temp1=(temp1/dble(i))*(x/dble(i+1))
+          if (i.gt.nmax) then
+            write(*,1000)
+            stop
+          end if
+          series(i)=temp1
+          i=i+1
+          if (temp1.gt.smax) smax=temp1
+          if (temp1/smax.gt.rndoff) go to 10
+          bessi1=0.0D0
+          do 20 j=i-1,1,-1
             bessi1=bessi1+series(j)
-         end do
-         bessi1=phase*y*0.5D0*(bessi1+ONE)
-c     
+ 20         continue
+          bessi1=phase*y*0.5D0*(bessi1+1.0D0)
+c
 c----------------------------------------------------------------------
 c     asymptotic expansion for large arguments
 c----------------------------------------------------------------------
       else
-         x=0.125D0/y
-         sum=3.0D0*x
-         temp3=sum
-         smax=ONE
-         i=2
- 30      temp1=dble(2*i-1)
-         temp1=temp1*temp1-4.0D0
-         temp2=(x*temp1)/dble(i)
-         if (temp2.gt.ONE) go to 40
-         temp3=temp3*temp2
-         if (temp3.gt.smax) smax=temp3
-         if (temp3/smax.lt.RNDOFF) go to 40
-         sum=sum+temp3
-         i=i+1
-         go to 30
- 40      bessi1=dexp(y)*(ONE-sum)/dsqrt(y*(PI+PI))
+        x=0.125D0/y
+        sum=3.0D0*x
+        temp3=sum
+        smax=1.0D0
+        i=2
+ 30     temp1=dble(2*i-1)
+        temp1=temp1*temp1-4.0D0
+        temp2=(x*temp1)/dble(i)
+        if (temp2.gt.1.0D0) go to 40
+        temp3=temp3*temp2
+        if (temp3.gt.smax) smax=temp3
+        if (temp3/smax.lt.rndoff) go to 40
+        sum=sum+temp3
+        i=i+1
+        go to 30
+ 40     bessi1=dexp(y)*(1.0D0-sum)/dsqrt(y*(pi+pi))
       end if
 c
       return
+c
+c----------------------------------------------------------------------
+ 1000 format('bessi0: Taylor series did not converge')
       end

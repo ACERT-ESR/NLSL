@@ -1,16 +1,22 @@
-c Version 1.2
+c NLSPMC VERSION (VERSION 1.0)  2/5/99
 c----------------------------------------------------------------------
 c                  =========================
-c                      subroutine HELPC
+c                      subroutine helpc
 c                  =========================
+c
+c     Main program for a nonlinear least-squares fit using an 
+c     EPRP-family slow-motional calculation. The options in running
+c     this program are too numerous to detail here. Read the manual...
+c     or better yet, wait until the movie comes out.  DB 
+c
 c----------------------------------------------------------------------
       subroutine helpc(line)
       implicit none
 c
       include 'stdio.inc'
 c
-      character hlptxt*132,line*80, cat1*30, cat2*30, hlpcat*30
-      integer ioerr,ibar,iblk,lth1,lth2,nlines,LINES
+      character hlptxt*132,line*80, cat1*40, cat2*40, hlpcat*40
+      integer ibar,iblk,lth1,lth2,nlines,LINES
       logical found1,found2,kywrd1,kywrd2,match1,noncmd
       parameter(LINES=23)
 c
@@ -18,12 +24,8 @@ c
       call gettkn( line, cat2, lth2 )
       if (lth1.ne.0) call touppr(cat1,lth1) 
       if (lth2.ne.0) call touppr(cat2,lth2) 
-      open (ludisk,file='/home/daveb/bin/nlshlp.txt',
-     #     status='old',access='sequential',iostat=ioerr)
-      if (ioerr.ne.0) then
-         write (luttyo,1002)
-         return
-      end if
+      open (ludisk,file='/afs/msc/home/freed/sanghyuk/bin/nlshlp.txt',
+     #     status='old',access='sequential',err=10)
 c
       found1=.false.
       found2=.false.
@@ -31,12 +33,7 @@ c
 c
 c  Search through lines in the help text file
 c
- 1    read (ludisk,'(a)',end=4,iostat=ioerr) hlptxt
-      if (ioerr.ne.0) then
-         write (luttyo,1003) hlpcat(:ibar),hlptxt(:iblk)
-         close(ludisk)
-         return      
-      end if
+ 1    read (ludisk,'(a)',end=10,err=11) hlptxt
       ibar=1
  2    if (hlptxt(ibar:ibar).ne.'|'.and.ibar.lt.132) then
          ibar=ibar+1
@@ -95,11 +92,17 @@ c
       end if
       go to 1
 c
- 4    if ((lth1.ne.0 .and. .not.found1) .or. 
+ 10   if ((lth1.ne.0 .and. .not.found1) .or. 
      #    (lth2.ne.0 .and. .not.found2)) 
      #     write (luttyo,1001) cat1(:lth1),cat2(:lth2)
 c
       close(ludisk)
+      write (luttyo,*)
+      return
+c
+ 11   write (luttyo,1003) hlpcat(:ibar),hlptxt(:iblk)
+      close(ludisk)
+      write (luttyo,*)
       return
 c
  1000 format(a,t22,a)
@@ -118,7 +121,6 @@ c
       character dummy*1
       parameter(MXLINES=20)
 c
-      if (luttyo.ne.luttyo) return
       if (nlines.eq.0) write (luttyo,1001)
       nlines=nlines+1
       if (nlines.gt.MXLINES) then
@@ -128,5 +130,5 @@ c
       end if
       return
  1000 format('...press <RETURN> to continue...') 
- 1001 format(/15x,' *** NLSL on-line help ***'/)
+ 1001 format(/15x,' *** NLSPMC on-line help ***')
       end

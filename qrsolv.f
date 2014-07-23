@@ -1,7 +1,8 @@
+c NLSPMC Version 1.0 2/5/99
       subroutine qrsolv(n,r,ldr,ipvt,diag,qtb,x,sdiag,wa)
       integer n,ldr
       integer ipvt(n)
-      double precision r(ldr,n),diag(n),qtb(n),x(n),sdiag(n),wa(n)
+      real*8 r(ldr,n),diag(n),qtb(n),x(n),sdiag(n),wa(n)
 c     **********
 c
 c     subroutine qrsolv
@@ -80,7 +81,7 @@ c     Burton S. Garbow, Kenneth E. Hillstrom, Jorge J. More
 c
 c     **********
       integer i,j,jp1,k,kp1,l,nsing
-      double precision cos,cotan,p5,p25,qtbpj,sin,sum,tan,temp,zero
+      real*8 cos,cotan,p5,p25,qtbpj,sin,sum,tan,temp,zero
       data p5,p25,zero /5.0d-1,2.5d-1,0.0d0/
 c
 c----------------------------------------------------------------------

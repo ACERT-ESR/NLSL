@@ -1,4 +1,4 @@
-c  VERSION 1.3  (NLS version)   1/13/93
+c  VERSION 1.0  (NLSPMC version)   2/5/99
 c**********************************************************************
 c                         ====================
 c                           subroutine ANXLK
@@ -25,8 +25,9 @@ c
 c       written by DEB 8-JUL-92
 c
 c       Includes:
-c               rndoff.inc
+c               nlsdim.inc
 c               eprprm.inc
+c               rndoff.inc
 c
 c       Uses:
 c               w3j.f
@@ -36,8 +37,9 @@ c
       subroutine anxlk(rp,rm,rz)
       implicit none
 c
+      include 'limits.inc'
+      include 'simparm.inc'
       include 'rndoff.inc'
-      include 'eprprm.inc'
 c
       double precision rp,rm,rz
 c
@@ -51,11 +53,11 @@ c
 c######################################################################
 c
 c
-      do lx=1,5
-        do kx=1,5
+      do 20 lx=1,5
+        do 10 kx=1,5
           xlk(lx,kx)=0.0D0
-        end do
-      end do
+  10    continue
+  20  continue
 c
 c----------------------------------------------------------------------
 c     exit if no potential

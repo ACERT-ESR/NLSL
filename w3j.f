@@ -1,4 +1,4 @@
-c       VERSION 1.1     1/12/93
+c       VERSION 1.0     2/5/99
 c**********************************************************************
 c
 c                    ===================
@@ -224,7 +224,21 @@ c                        5735 South Ellis Avenue
 c                        Chicago, Illinois 60637
 c                           December 9, 1988
 c
-c                   modified by DJS 5/7/90, DEB 1/10/93
+c                   modified by DJS 5/7/90, DEB 5/20/92, DEB 1/10/93
+c
+c     MODIFIED 5/20/92 by DEB: added scaling to prevent overflows
+c       at high values of mxlval
+c       The scale factor should be the maximum of (machep,cubmax)
+c       where "machep" is the machine precision and  "cubmax" is
+c       the inverse cube root of the largest number that can be
+c       represented on a given machine. In absence of other information,
+c       set scale to unity. 
+c
+c     Basic vector coupling coefficient package for calculating 3n-j
+c     symbols.  All the entries are fortran functions; formally:
+c
+c     bincof()                        generate binomial coefficients in bincom
+c     wig3j(a,b,c,alpha,beta,gamma)   calculate a 3-j symbol
 c----------------------------------------------------------------------
 
       subroutine bincof()
@@ -237,12 +251,16 @@ c --- common BINCOM ------------------------
       parameter (nbncf=nb*(nb+1)+1)
 c
       integer bncfx
-      double precision bncf
-      common /bincom/bncf(nbncf),bncfx(nb)
+      double precision bncf,scale,scal3,scal15
+      common /bincom/bncf(nbncf),bncfx(nb),scale,scal3,scal15
 c ------------------------------------------
 c
       integer i,j,ij
       double precision bncf0,temp
+c
+      scale=1.0D-25
+      scal3=(1.0D0/scale)**3
+      scal15=dsqrt(scal3)
 c
       ij=1
       do 20 i=0,nb-1
@@ -250,13 +268,13 @@ c
         if (i.ne.0) then
           bncf0=0.0d0
           do 10 j=1,i
-          temp=bncf(ij-i)
-          bncf(ij)=bncf0+temp
-          bncf0=temp
-          ij=ij+1
+            temp=bncf(ij-i)
+            bncf(ij)=bncf0+temp
+            bncf0=temp
+            ij=ij+1
  10       continue
         end if
-        bncf(ij)=1.0d0
+        bncf(ij)=scale
         ij=ij+1
  20   continue
 c
@@ -289,6 +307,8 @@ c----------------------------------------------------------------------
       function wig3j(j1,j2,j3,m1,m2,m3)
       double precision wig3j
       integer j1,j2,j3,m1,m2,m3
+      logical notset
+      data notset / .true. /
 c
       include 'maxl.inc'
 c
@@ -298,17 +318,15 @@ c --- common BINCOM ------------------------
       parameter (nbncf=nb*(nb+1)+1)
 c
       integer bncfx
-      double precision bncf
-      common /bincom/bncf(nbncf),bncfx(nb)
+      double precision bncf,scale,scal3,scal15
+      common /bincom/bncf(nbncf),bncfx(nb),scale,scal3,scal15
 c ------------------------------------------
-      integer i,j,k,l,m,n,p,q,z,zmin,zmax,bp,bnj,bmk
-      double precision sum
-      logical notset
-      data notset / .true. /
 c
 c......................................................................
 c
 c
+      integer i,j,k,l,m,n,p,q,z,zmin,zmax,bp,bnj,bmk
+      double precision sum
 c
       if (notset) then
          call bincof
@@ -337,7 +355,7 @@ c
 c
       sum=0.0d0
         do 30 z=zmin,zmax
-        sum=-sum+bncf(bp+z)*bncf(bnj+z)*bncf(bmk+z)
+        sum=-sum+bncf(bp+z)*bncf(bnj+z)*bncf(bmk+z)*scal3
  30     continue
 c
       if (sum.ne.0.0d0) then
@@ -351,7 +369,7 @@ c
      &          sqrt(bncf(bncfx(q+1)+1))  
       endif
 c
-      wig3j=sum
+      wig3j=sum/scal15
       return
 c
 c######################################################################

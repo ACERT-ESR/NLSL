@@ -1,174 +1,156 @@
 ########################################################################
 #
 #	     ====================================================
-#	     Make descriptor file for NLSL and related programs
+#	     Make descriptor file for NLSPC and related programs
 #	     ====================================================
 #
+#  VERSION FOR RUNNING UNDER windows 2000
+#
 ########################################################################
+#
+.SUFFIXES: .f .inc .o .c
 
-.SUFFIXES:
-.SUFFIXES: .f .inc .o .c 
-.PRECIOUS: .f .inc .h .c
-
-########################################################################
-
+# See: https://computing.llnl.gov/tutorials/openMP/
+#F77=gfortran -std=legacy
 F77=gfortran
+#FFLAGS = -c -O2 -g
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
-LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64
+#LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64  -llapack -lblas
+LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64 
 
-#CC = gcc 
-#LIBS = dfor.lib
-#LIBS2  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib 
+CC = cl
+LIBS = dfor.lib
+#LIBS2  = C:\PROGRA~1\MPIPro\LIB\MPIPro.lib sstatd.lib sstats.lib smathd.lib smaths.lib sf90mp.lib
 
-# gcc on i386 Linux
- CC = gcc
-#F77 = g77
-#FFLAGS = -c -O9 -fomit-frame-pointer -ffast-math -malign-double\
-	-funroll-loops -march=i586
-#FFLAGS = -c -g
- CFLAGS = -c -O2 -DADD_UNDERSCORE
- FLINK = gfortran
- LIB = -L/usr/X11R6/lib
-########################################################################
+LIBS2  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib
 
 #	
 #-----------------------------------------------------------------------
 #			Definitions
 #-----------------------------------------------------------------------
 #
+NLSPI = limits.inc names.inc parms.inc stdio.inc miscel.inc 
+NLSPI2 = parmequ.inc simparm.inc
+CMDI = $(NLSPI) $(NLSPI2) lpnam.inc names.inc basis.inc datas.inc 
+CMDI2 = $(CMDI) lmcomm.inc parms.inc rndoff.inc basis.inc
+VCH = vchange.o
 
-
-SPCI = nlsdim.inc eprprm.inc expdat.inc parcom.inc tridag.inc basis.inc pidef.inc
-BASI = nlsdim.inc eprprm.inc parcom.inc basis.inc stdio.inc
-LETI = nlsdim.inc eprprm.inc expdat.inc prmeqv.inc parcom.inc lpnam.inc
-NLSI = nlsdim.inc eprprm.inc expdat.inc lmcom.inc stdio.inc parcom.inc
-PRMI = nlsdim.inc eprprm.inc lmcom.inc parcom.inc lpnam.inc
-FUNI = nlsdim.inc eprprm.inc expdat.inc tridag.inc parcom.inc iterat.inc
-FNI2 = basis.inc pidef.inc stdio.inc prmeqv.inc mspctr.inc ftwork.inc 
-FITI = nlsnam.inc eprmat.inc errmsg.inc mspctr.inc iterat.inc
-MATI = nlsdim.inc eprprm.inc eprmat.inc rndoff.inc
-CHKI = maxl.inc nlsdim.inc eprprm.inc rndoff.inc prmeqv.inc errmsg.inc
-DATI = nlsdim.inc expdat.inc mspctr.inc nlsnam.inc stdio.inc parcom.inc 
-SCLI = nlsdim.inc expdat.inc lmcom.inc parcom.inc mspctr.inc iterat.inc 
-CGO  = cscg.o zaypx.o cgltri.o zdotu.o zaxpy.o scmvm.o tdsqz.o tdchek.o
-EPO1 = momdls.o eprls.o matrll.o cd2km.o anxlk.o w3j.o stvect.o cfs.o $(CGO)
-EPO2 = pstvec.o pmatrl.o ccrints.o fz.o bessel.o plgndr.o ipar.o
-NLSB = lbasix.o setmts.o 
-NLSC1 = datac.o fitc.o letc.o addprm.o rmvprm.o statc.o tensym.o writec.o
-NLSC2 = convtc.o helpc.o srchc.o setprm.o assgnc.o basisc.o shiftc.o scalec.o
-NLSC3 = covrpt.o stats.o confc.o series.o sitec.o varyc.o fixc.o parc.o
-NLSC = $(NLSC1) $(NLSC2) $(NLSC3)
-NLSD = setnm.o getdat.o genio.o fmomnt.o correl.o ftfuns.o gconvl.o
-NLSH = sshift.o sscale.o lgrint.o mnbrak.o brent.o l1pfun.o qrutil.o writr.o
-NLSF = fitl.o lfun.o lcheck.o setspc.o $(NLSH) $(EPO1) $(EPO2) ordrpr.o
-NLSL = lmnls.o enorm.o qrfac.o lmpar.o qrsolv.o covar.o
-NLSN = dchex.o daxpy.o dcopy.o ddot.o drotg.o
-NLSP = pltx.o 
-NLSS = strutl.o lprmpt.o catch.o ipfind.o nlstxt.o  
-NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
-       $(NLSW)
+LETI = limits.inc simparm.inc datas.inc parms.inc lpnam.inc
+NLSI = limits.inc simparm.inc datas.inc lmcomm.inc stdio.inc parms.inc
+FUNI = limits.inc simparm.inc datas.inc parms.inc 
+MATI = limits.inc simparm.inc basis.inc eprmat.inc stvcom.inc
+# CMDI = $(NLSI) lmcomm.inc parms.inc lpnam.inc
+DATI = limits.inc datas.inc names.inc stdio.inc parms.inc 
+CGO  = cscg.o zaypx.o zdotu2.o zaxpy2.o scmvm.o znormu.o
+EVCG = csval.o compev.o lump.o comgap.o isoev.o inverr.o cmtqli.o csvec.o
+EPO1 = sim2d.o evcgf.o cd2km.o anxlk.o w3j.o ipar.o fbasis.o
+EPO2 = matrxo.o matrxd.o stveco.o stvecd.o ccrints.o fz.o bessel.o plgndr.o
+EPO3 = spcalc.o convft.o fft.o switch.o zgemm.o zgemv.o lsame.o xerbla.o
+NEWSTF = spectra.o comps.o vchange.o
+NLSC = cmds.o datac.o letcmc.o addprm.o rmvprm.o srchc.o tensym.o convtc.o
+NLSS = strutl.o lprmpt.o helpc.o ipfind.o
+NLSD = setnm.o getd2d.o wrfit.o
+NLSH = xshft.o sscale.o mnbrak.o brent.o p1pfun.o
+NLSF = fitp.o pfunnew.o pcheck.o $(NLSH) $(EPO1) $(EPO2) $(EPO3) $(EVCG) $(CGO)
+NLSB = lmnls.o enorm.o dpmpar.o qrfac.o lmpar.o qrsolv.o covar.o mapxxx.o
+NLSO = nlspmc.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSB) nlsinit.o ordrpr.o
 
 #-----------------------------------------------------------------------
 #		Object files
 #-----------------------------------------------------------------------
 
-all             : nlsl
-clean           :
-			rm -f *.o nlsl
-addprm.o	: addprm.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc\
-                  lmcom.inc stdio.inc rndoff.inc prmeqv.inc
-assgnc.o	: assgnc.f $(BASI)
-bessel.o	: bessel.f rndoff.inc
-basisc.o	: basisc.f $(BASI)
-catch.o         : catch.c fortrancall.h
-cd2km.o         : cd2km.f
-cgltri.o	: cgltri.f nlsdim.inc rndoff.inc
-confc.o		: confc.f iterat.inc stdio.inc
-convlv.o	: convlv.f nlsdim.inc
-convtc.o	: convtc.f nlsdim.inc eprprm.inc stdio.inc lpnam.inc parcom.inc
-covrpt.o	: covrpt.f nlsdim.inc eprprm.inc expdat.inc parcom.inc\
-		  lmcom.inc lpnam.inc mspctr.inc iterat.inc rndoff.inc\
-		  stdio.inc
-cscg.o		: cscg.f nlsdim.inc eprmat.inc rndoff.inc 
-cslnzs.o 	: cslnzs.f nlsdim.inc eprmat.inc
-datac.o		: datac.f $(DATI) mspctr.inc lmcom.inc rndoff.inc
-eprls.o		: eprls.f $(MATI) ftwork.inc tridag.inc pidef.inc
-fitc.o		: fitc.f nlsdim.inc lmcom.inc parcom.inc stdio.inc iterat.inc
-fitl.o  	: fitl.f $(NLSI) $(FITI) rndoff.inc timer.inc
-fixc.o		: fixc.f nlsdim.inc eprprm.inc prmeqv.inc parcom.inc lpnam.inc stdio.inc
-ftfuns.o	: ftfuns.f
-fz.o		: fz.f eprprm.inc
-gconvl.o	: gconvl.f nlsdim.inc eprprm.inc ftwork.inc pidef.inc
-genio.o         : genio.c fortrancall.h
-getids.o	: getids.f nlsdim.inc stdio.inc nlsnam.inc
-getdat.o	: getdat.f nlsdim.inc stdio.inc
+addprm.o	: addprm.f $(CMDI)
+anxlk.o		: anxlk.f limits.inc simparm.inc rndoff.inc
+bessel.o	: bessel.f rndoff.inc pidef.inc
+brent.o		: brent.f limits.inc stdio.inc parms.inc
+cmds.o		: cmds.f $(CMDI2) 
+cd2km.o		: cd2km.f rndoff.inc pidef.inc
+cmtqli.o	: cmtqli.f limits.inc rndoff.inc
+comgap.o	: comgap.f limits.inc
+compev.o	: compev.f limits.inc simparm.inc
+comps.o		: comps.f $(CMDI2)
+convft.o	: convft.f limits.inc simparm.inc wkspcm.inc physcn.inc
+convtc.o	: convtc.f limits.inc simparm.inc parms.inc stdio.inc lpnam.inc
+cscg.o 		: cscg.f limits.inc parms.inc stdio.inc rndoff.inc
+csval.o		: csval.f limits.inc stdio.inc simparm.inc rndoff.inc
+csvec.o		: csvec.f limits.inc rndoff.inc
+datac.o		: datac.f $(DATI) lmcomm.inc wkspcm.inc
+evcgf.o		: evcgf.f limits.inc stdio.inc simparm.inc parms.inc basis.inc wkspcm.inc
+fbasis.o	: fbasis.f limits.inc simparm.inc basis.inc stdio.inc
+fft.o		: fft.f
+fitp.o  	: fitp.f $(NLSI) names.inc tdspec.inc lmtxt.inc parms.inc
+ftest.o		: ftest.f
+fz.o		: fz.f limits.inc simparm.inc
+getd2d.o	: getd2d.f limits.inc stdio.inc
 helpc.o		: helpc.f stdio.inc
-ipfind.o	: ipfind.f $(BASI) eprprm.inc parcom.inc lpnam.inc
-lbasix.o        : lbasix.f nlsdim.inc eprprm.inc mtsdef.inc stdio.inc
-lcheck.o	: lcheck.f $(CHKI) prmeqv.inc
-letc.o		: $(LETI) stdio.inc
-lfun.o		: lfun.f $(FUNI) $(FNI2) 
-lgrint.o	: lgrint.f
-lmnls.o		: lmnls.f iterat.inc
-lprmpt.o        : lprmpt.c fortrancall.h
-l1pfun.o	: l1pfun.f nlsdim.inc expdat.inc parcom.inc
-matrll.o	: matrll.f $(MATI) maxl.inc physcn.inc
-mnbrak.o	: mnbrak.f errmsg.inc
-momdls.o	: momdls.f $(MATI) pidef.inc stdio.inc dfunc.inc
-nlsl.o		: nlsl.f $(NLSI) parcom.inc tridag.inc basis.inc iterat.inc
-nlstxt.o	: nlstxt.f nlsdim.inc eprprm.inc lpnam.inc errmsg.inc
-ordrpr.o	: ordrpr.f rndoff.inc dfunc.inc pidef.inc
-parc.o		: parc.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc stdio.inc\
-                  rndoff.inc symdef.inc mtsdef.inc
-pltx.o		: pltx.c fortrancall.h
-pmatrl.o	: pmatrl.f $(MATI) maxl.inc physcn.inc
-pstvec.o 	: pstvec.f nlsdim.inc eprprm.inc errmsg.inc rndoff.inc
-rdpar.o		: rdpar.f eprprm.inc stdio.inc
-rms.o		: rms.f nlsdim.inc mspctr.inc parcom.inc rndoff.inc
-scalec.o        : scalec.f $(SCLI) stdio.inc
-scmvm.o 	: scmvm.f nlsdim.inc rndoff.inc eprmat.inc eprprm.inc stdio.inc
-series.o	: series.f nlsdim.inc eprprm.inc expdat.inc mspctr.inc parcom.inc stdio.inc
-setmts.o	: setmts.f nlsdim.inc eprprm.inc maxl.inc rndoff.inc mtsdef.inc
-setnm.o		: setnm.f nlsdim.inc nlsnam.inc
-setprm.o	: setprm.f $(BASI) $(PRMI) iterat.inc stdio.inc symdef.inc
-setspc.o	: setspc.f $(SPCI) iterat.inc
-shiftc.o	: shiftc.f nlsdim.inc expdat.inc parcom.inc stdio.inc
-sitec.o		: sitec.f nlsdim.inc expdat.inc parcom.inc tridag.inc basis.inc stdio.inc
-srchc.o 	: srchc.f nlsdim.inc eprprm.inc lmcom.inc parcom.inc\
-                  iterat.inc errmsg.inc lpnam.inc stdio.inc expdat.inc
-sscale.o	: sscale.f nlsdim.inc
-statc.o		: statc.f $(BASI) nlsdim.inc eprprm.inc expdat.inc parcom.inc\
-                  lmcom.inc mtsdef.inc
-stats.o		: stats.f
+inverr.o	: inverr.f limits.inc simparm.inc
+ipar.o		: ipar.f
+ipfind.o	: ipfind.f limits.inc simparm.inc parms.inc lpnam.inc
+isoev.o		: isoev.f limits.inc simparm.inc
+letcmc.o	: letcmc.f $(VCH) $(LETI) stdio.inc
+lmnls.o		: lmnls.f mapxxx.f limits.inc parms.inc parms.inc
+lump.o		: lump.f limits.inc simparm.inc
+mapxxx.o	: mapxxx.f parms.inc
+matrxo.o	: matrxo.f $(MATI) maxl.inc rndoff.inc physcn.inc
+matrxd.o	: matrxd.f $(MATI) maxl.inc rndoff.inc physcn.inc
+mnbrak.o	: mnbrak.f limits.inc parms.inc
+nlsinit.o 	: nlsinit.f $(DATI) parms.inc simparm.inc parmequ.inc lmcomm.inc
+# nlspmc.o	: nlspmc.f $(NLSI) parmequ.inc names.inc parms.inc
+nlspmc.o	: nlspmc.f $(NLSPI) $(NLSPI2)
+ordrpr.o	: ordrpr.f rndoff.inc
+p1pfun.o	: p1pfun.f limits.inc parms.inc datas.inc lmcomm.inc
+pcheck.o	: pcheck.f $(NLSI) names.inc maxl.inc rndoff.inc
+pfunnew.o	: pfunnew.f $(VCH) $(FUNI) lpnam.inc tdspec.inc wkspcm.inc stdio.inc parms.inc
+rmvprm.o	: rmvprm.f limits.inc parms.inc simparm.inc stdio.inc
+scmvm.o 	: scmvm.f limits.inc rndoff.inc eprmat.inc
+scspec.o	: scspec.f stdio.inc
+setnm.o		: setnm.f limits.inc names.inc
+sim2d.o		: sim2d.f $(MATI) parmequ.inc parms.inc egvcom.inc stdio.inc
+spcalc.o	: spcalc.f limits.inc simparm.inc stvcom.inc wkspcm.inc physcn.inc
+spectra.o	: spectra.f $(NLSPI) $(NLSPI2) lpnam.inc
+srchc.o		: srchc.f $(VCH) limits.inc simparm.inc parms.inc lpnam.inc stdio.inc
+sscale.o	: sscale.f limits.inc datas.inc
 strutl.o	: strutl.f stdio.inc
-stvect.o 	: stvect.f nlsdim.inc eprprm.inc errmsg.inc rndoff.inc
-tdchek.o        : tdchek.f $(BASI) tridag.inc errmsg.inc mtsdef.inc
-tdqz.o		: tdsqz.f nlsdim.inc expdat.inc tridag.inc
-varyc.o		: varyc.f nlsdim.inc eprprm.inc prmeqv.inc parcom.inc lpnam.inc stdio.inc
-writr.o		: writr.f nlsdim.inc expdat.inc lmcom.inc parcom.inc stdio.inc\
-                  tridag.inc mspctr.inc iterat.inc
-writec.o	: writec.f nlsdim.inc expdat.inc parcom.inc lmcom.inc mspctr.inc stdio.inc
-w3j.o		: w3j.f maxl.inc bincom.inc stdio.inc
-zaxpy.o 	: zaxpy.f nlsdim.inc rndoff.inc
-zaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
-znormu.o	: znormu.f nlsdim.inc rndoff.inc
-zscsw.o		: zscsw.f nlsdim.inc rndoff.inc
-zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
+stveco.o 	: stveco.f limits.inc simparm.inc basis.inc stvcom.inc rndoff.inc
+stvecd.o 	: stvecd.f limits.inc simparm.inc basis.inc stvcom.inc wkspcm.inc
+tensym.o	: tensym.f limits.inc simparm.inc parms.inc lpnam.inc stdio.inc
+tstjac.o	: tstjac.f stdio.inc
+vchange.o	: vchange.f rndoff.inc
+w3j.o		: w3j.f maxl.inc
+whris.o		: whris.f
+wrfit.o		: wrfit.f limits.inc datas.inc stdio.inc
+xshft.o		: xshft.f
+zaypx.o 	: zaypx.f limits.inc rndoff.inc
+zaxpy2.o 	: zaxpy2.f limits.inc rndoff.inc
+znormu.o	: znormu.f limits.inc rndoff.inc
+zscsw.o		: zscsw.f limits.inc rndoff.inc
+zdotu2.o		: zdotu2.f limits.inc rndoff.inc
+
+lsame.o         : lsame.f
+zgemm.o         : zgemm.f
+zgemv.o         : zgemv.f
+xerbla.o        : xerbla.f
 
 #-----------------------------------------------------------------------
 #		Executable files
 #-----------------------------------------------------------------------
 
-nlsl	: $(NLSO) 
-	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
+
+#nlspmc	: $(NLSO) $(NEWSTF) ftest.o
+#	$(F77) /exe:nlspmc $(NLSO) $(NEWSTF) ftest.o $(LIBS2) $(LIBS)
+
+nlspmc	: $(NLSO) $(NEWSTF) ftest.o
+	$(F77) -fopenmp $(LOADFLG) $(NEWSTF) ftest.o -o $@ $(NLSO) $(LIB) $(LIB2) -lc
 
 #-----------------------------------------------------------------------
 #			Default actions
 #-----------------------------------------------------------------------
 
 .c.o   :
-	$(CC) $(CFLAGS) $*.c
+	cc $(CFLAGS) $*.c
 
 .f.o   :
 	$(F77) $(FFLAGS) $*.f
 
+.inc.o :
+	$(F77) $(FFLAGS) $*.f

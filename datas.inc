@@ -1,55 +1,69 @@
-c NLSL Version 1.5.1 beta 11/25/95
 c----------------------------------------------------------------------
 c                         ====================
-c                          common block EXPDAT
+c                          common block DATAS
 c                         ====================
 c     Experimental data used for least-squares fitting and associated
-c     parameters. 
+c     parameters.  It also keeps the variable in series option.
 c
-c     NOTE: File 'nlsdim.inc' should be included before this file
+c     NOTE: File 'limits.inc' should be included before this file
 c           in the program source code.
 c
-c     data  : Experimental data points
-c     rmsn  : Noise level for each spectrum
-c     sbi   : Starting fields for each spectrum
-c     sdb   : Field step size for each spectrum
-c     srng  : Field range for each spectrum
-c     sb0   : Resonance field (for average g-value) for each spectrum
-c     sphs  : Microwave phase for each spectrum
-c     spsi  : Director tilt for each spectrum
-c     scale : Scale factor for each spectrum (calculated during fit)
-c     iform : Input format of each datafile
-c     ibase : Baseline correction method for each datafile
-c     nrmlz : "Normalized" flag for each spectrum (0=no)
-c     npts  : Number of data points in each spectrum
-c     nft   : Smallest power of 2 larger than npts
-c     idrv  : Flag=1 if data are in 1st derivative form
-c     ixsp  : Starting index of each spectrum in data array
-c     nspc  : Number of spectra
-c     nwin  : Number of open windows
-c     ndatot: Total number of points (all spectra)
-c     ishglb: Flag=1 if shifting enabled for all spectra
-c     dataid: Identification string for each datafile
-c     wndoid: Identification string for each window
-c     written: Flags whether current calculation has been written to disk
+c  ** User-specified parameters **
+c
+c    *Set by data command
+c     data           : Experimental data array
+c     idepnd         : Dependency flag for scale factor (sfac)
+c     sishft         : shift flag
+c
+c    *Set by series command
+c     siexp          : Experimental type (0=FID, 1=COSY, 2=SECSY, 3=ELDOR
+c                                         4=Echo-ELDOR, 5=Stim. SECSY)
+c     sicomb         : Spectral combination
+c     snpt1,snpt2    : Number of data points in t1 & t2
+c     sinit1,sstept1 : Initial and step values in t1 (ns)
+c     sinit2,sstept2 : Initial and step values in t2 (ns)
+c     stfix          : Fixed time (mixing time in ELDOR)
+c     datwgt         : Weight for this data set (1=standard weight)
+c
+c  ** parameters calculated during fit **
+c
+c     cwdata         : cw-equivalent spectra extracted from 2D data array
+c     cwsim          : cw-equivalent spectra simulated
+c     cwsimtot       : sum simulated cw-equivalent spectra over sites
+c     sfac           : Scale factor for each spectrum in series option
+c     sshft          : Field offset (shift spectrum)
+c     ndata          : Number of data points in each spectrum
+c     ixsp           : Starting index of each spectrum in data array
+c     ixspcw         : Starting index for cw-eq. spectrum in cwdata array
+c     nspc           : Number of spectra
+c     nptot          : Total number of points (all spectra)
+c     nptotcw        : Total number of cw data points (all spectra)
+c     dataid         : Identification string for each data file
+c     sratio         : scaling ratio for each independent experimental
+c                      spectrum to have same maximum intensity
+c     stfft1	     : specify if fft is to be zero filled in t1
+c     stfft2	     : same in t2.
 c
 c----------------------------------------------------------------------
-      double precision data,rmsn,sbi,sdb,sb0,sphs,spsi,shft,slb,spltmp,
-     #                 srng,tmpshft
-      integer iform,ibase,npts,nft,nrmlz,ishft,idrv,ixsp,nspc,nwin,
-     #        ndatot,ishglb,inform,bcmode,drmode,nspline,shftflg,
-     #        normflg,written
-c
-      character*30 dataid
-      character*20 wndoid
-c
-      common /expdat/ data(MXPT),spltmp(MXINP,3),rmsn(MXSPC),
-     #                sbi(MXSPC),sdb(MXSPC),srng(MXSPC),shft(MXSPC),
-     #                sb0(MXSPC),sphs(MXSPC),spsi(MXSPC),slb(MXSPC),
-     #                tmpshft(MXSPC),
-     #                iform(MXSPC),ibase(MXSPC),nft(MXSPC),
-     #                npts(MXSPC),ishft(MXSPC),idrv(MXSPC),ixsp(MXSPC),
-     #                nrmlz(MXSPC),nspc,nwin,ndatot,ishglb,
-     #                dataid(MXSPC),wndoid(MXSPC),inform,bcmode,drmode,
-     #                nspline,shftflg,normflg,written
+      character dataid*30
+      integer siexp,sicomb,snpt1,snpt2,ndata,ixsp,ixspcw,idepnd,
+     #        sishft,nspc,nptot,nptotcw
+c    #        ,ssfft1,ssfft2
+
+      double precision data,cwdata,cwsim,cwsimtot,sinit1,sstept1,
+     #             sinit2,sstept2,stfix,datwgt,sfac,sshft,sratio
+      complex*16 ccwsim,ccwsimtot
+c 
+      common /expdat/ data(mxpt),cwdata(mxnpt*MXSPEC),
+     #	    cwsim(mxnpt*MXSPEC,MXSITE),cwsimtot(mxnpt*MXSPEC),
+     #	    ccwsim(mxnpt*MXSPEC,MXSITE),ccwsimtot(mxnpt*MXSPEC),
+     #      sinit1(MXSPEC),sstept1(MXSPEC),sinit2(MXSPEC),
+     #      sstept2(MXSPEC),stfix(MXSPEC),datwgt(MXSPEC),sfac(MXSPEC),
+     #	    sshft(MXSPEC),sratio(MXSPEC),
+     #      siexp(MXSPEC),sicomb(MXSPEC),snpt1(MXSPEC),snpt2(MXSPEC),
+     #      ndata(MXSPEC),ixsp(MXSPEC),ixspcw(MXSPEC),idepnd(MXSPEC+1),
+     #      sishft(MXSPEC),nspc,nptot,nptotcw,dataid(MXSPEC)
+
+c     #	    ssfft1(MXSPEC),ssfft2(MXSPEC),
+
 c

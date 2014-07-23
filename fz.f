@@ -1,4 +1,4 @@
-c NLS VERSION
+c NLSMC VERSION 1.0   2/5/99
 c**********************************************************************
 c               
 c       This double precision function evaluates the integrand of 
@@ -18,6 +18,7 @@ c
 c       written by DJS 10-SEP-87
 c
 c       Includes:
+c               nlsdim.inc
 c               eprprm.inc
 c
 c       Uses:
@@ -27,49 +28,50 @@ c
 c**********************************************************************
 c
       double precision function fz(z)
-      implicit NONE
 c
       double precision z
 c
-      include 'eprprm.inc'
+      include 'limits.inc'
+      include 'simparm.inc'
 c
-      integer lr,kr,iberr
-      common/ifzdat/lr,kr,iberr
+      integer lr,kr
+      common/ifzdat/lr,kr
 c
       double precision a,b
-      integer k,ierr
+      integer k
 c
-      double precision DSQ24,DSQ360
-      parameter (DSQ24=4.89897948556635619639d0,
-     #           DSQ360=18.97366596101027599199d0)
+      double precision dsq24,dsq360
+      parameter (dsq24=4.89897948556635619639,
+     #           dsq360=18.97366596101027599199)
 c
       double precision bessi,plgndr
       external bessi,plgndr
 c
 c######################################################################
 c
-      iberr=0
-c
       if((lptmx.eq.2).and.(kptmx.eq.0)) then
-         if(kr.eq.0) then
-            fz=dexp(0.5D0*cpot(2,1)*plgndr(2,0,z))*
-     #           plgndr(lr,kr,z)
-         else
-            fz=0.0D0
-         end if
+        if(kr.eq.0) then
+          fz=dexp(0.5D0*cpot(2,1)*plgndr(2,0,z))*
+     #         plgndr(lr,kr,z)
+        else
+          fz=0.0D0
+        end if
       else 
-         a=0.5D0*(cpot(2,1)*plgndr(2,0,z)
-     #        +cpot(3,1)*plgndr(4,0,z))
-         if (kptmx.ne.0) then
-            b=cpot(2,2)*plgndr(2,2,z)/DSQ24
-     #       +cpot(3,2)*plgndr(4,2,z)/DSQ360
-         else
-            b=0.0D0
-         end if
-         k=kr/2
-         fz=bessi(k,b,ierr)*dexp(a)*plgndr(lr,kr,z)
-         if (ierr.ne.0) iberr=-1
+        a=0.5D0*(cpot(2,1)*plgndr(2,0,z)
+     #           +cpot(3,1)*plgndr(4,0,z))
+        if (kptmx.ne.0) then
+          b=cpot(2,2)*plgndr(2,2,z)/dsq24
+     #     +cpot(3,2)*plgndr(4,2,z)/dsq360
+        else
+          b=0.0D0
+        end if
+        k=kr/2
+        fz=bessi(k,b)*dexp(a)*plgndr(lr,kr,z)
       end if
+c
+c----------------------------------------------------------------------
+c     return to caller
+c----------------------------------------------------------------------
 c
       return
       end

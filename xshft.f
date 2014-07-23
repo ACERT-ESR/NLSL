@@ -1,4 +1,111 @@
-c NLSL Version 1.4 10/10/94 
+c----------------------------------------------------------------------
+c                      ==================
+c                    VERSION 1.0 NLSPMC 2/5/99
+c                        function XSHFT
+c                      ==================
+c
+c   Given two arrays containing spectral data (presumably experimental)
+c   and a calculated spectrum, both with evenly spaced x-values with 
+c   equal delta-x's, this function returns the amount by which the spectum
+c   array must be shifted for maximum overlap with the data array, in
+c   units of delta-x. This is accomplished by finding the maximum of
+c   the correlation function of the two arrays using fast Fourier 
+c   transform methods as described by Press et al. (Numerical Recipes).
+c
+c   Inputs:
+c     data     Data array
+c     spctr    Array that is to be shifted to match data array
+c     npt      Number of points in data and spctr 
+c              NOTE: For the FFT, this must be a power of two.
+c              This routine does not check for this condition.
+c     ans      Contains correlation function (should be dimensioned
+c              as complex*16 or twice the size of data array)
+c     fft      Work array dimensioned as complex*16(npt)
+c
+c     Shift is calculated by finding the maximum in the array containing
+c     the correlation function and then doing a parabolic interpolation
+c     with the two neighbor points if possible.
+c
+c     Function returns shift in units of delta-x (which need never
+c     be specified). Note that a POSITIVE shift means that the data
+c     lag the calculated spectrum; i.e. the calculation appears shifted 
+c     to the LEFT of the data.
+c 
+c     Uses:
+c       twofft   (from Numerical Recipes)
+c       four1    (from Numerical Recipes)
+c       realft   (from Numerical Recipes)
+c   
+c----------------------------------------------------------------------
+      subroutine xshft(data,spctr,npt,ans,fft,shift,ovlap)
+      implicit none
+      integer npt
+      double precision data(npt),spctr(npt),ans(2*npt),fft(2*npt)
+c
+      integer i,ixmx,ii,ir,no2
+      double precision a,b,c,ansr,amax,halfn,ovlap,tmp,xfrac,shift
+c
+c
+c  Following code is from subroutine CORREL in Numerical Recipes, Press et al.
+c
+c  ----
+	call twofft(data,spctr,fft,ans,npt)
+        no2=npt/2
+        halfn=float(no2)
+        do 11 i=1,no2+1
+          ii=i+i	
+          ir=ii-1
+          ansr=ans(ir)
+          ans(ir)=(fft(ir)*ansr+fft(ii)*ans(ii))/halfn
+          ans(ii)=(fft(ii)*ansr-fft(ir)*ans(ii))/halfn
+   11     continue
+        ans(2)=ans(npt+1)
+        call realft(ans,no2,-1)
+c ---
+c
+c  Note that correlation function is stored from ans(1) to ans(no2)
+c  for zero and positive correlations, and from ans(npt) down to 
+c  ans(no2+1) for negative correlations. Rearrange the ans array 
+c  and find the maximum value. (Do not allow negative overlaps!)
+c
+        amax=0.0d0
+c set a default value for ixmx in case routine below fails....
+	ixmx=no2
+c
+        do 12 i=1,no2
+          tmp=ans(i)
+          if (tmp.gt. amax) then
+            ixmx=i+no2
+            amax=tmp
+          end if
+          ans(i)=ans(no2+i)
+          if (ans(i).gt. amax) then
+            ixmx=i
+            amax=ans(i)
+          end if
+          ans(no2+i)=tmp
+ 12    	  continue
+      shift=float(ixmx-1)-halfn
+c
+c--------------------------------------------------------------------------
+c  Find ordinate and abcissa for extremum of a parabola through ixmx and 
+c  2 neighbor pts.
+c--------------------------------------------------------------------------
+      if (ixmx.gt.1 .and. ixmx.lt.npt) then
+         a = ans(ixmx)
+         b = 0.5d0*(ans(ixmx+1)-ans(ixmx-1))
+         c = 0.5d0*(ans(ixmx+1)+ans(ixmx-1))-a
+         xfrac= -b/(2.0d0*c)
+         shift=shift+xfrac
+         ovlap = a + b*xfrac + c*xfrac*xfrac
+      else
+         ovlap=ans(ixmx)
+      end if
+c
+      return
+      end
+
+
 c----------------------------------------------------------------------
 c                    ======================
 c                      subroutine TWOFFT
@@ -9,23 +116,21 @@ c----------------------------------------------------------------------
       implicit none
       integer j,n,n2
       double precision data1(n),data2(n)
-      double complex fft1(n),fft2(n),h1,h2,c1,c2
+      complex*16 fft1(n),fft2(n),h1,h2,c1,c2
 c
-      intrinsic dcmplx,dreal,dimag,dconjg
-c
-      double precision ZERO
-      parameter(ZERO=0.0d0)
+      double precision zero
+      parameter(zero=0.0d0)
 c
 c......................................................................
 c
-      c1=dcmplx(0.5d0,ZERO)
-      c2=dcmplx(ZERO,-0.5d0)
+      c1=dcmplx(0.5d0,zero)
+      c2=dcmplx(zero,-0.5d0)
       do 11 j=1,n
         fft1(j)=dcmplx(data1(j),data2(j))
 11    continue
       call four1(fft1,n,1)
-      fft2(1)=dcmplx(dimag(fft1(1)),ZERO)
-      fft1(1)=dcmplx(dreal(fft1(1)),ZERO)
+      fft2(1)=dcmplx(dimag(fft1(1)),zero)
+      fft1(1)=dcmplx(dreal(fft1(1)),zero)
       n2=n+2
       do 12 j=2,n/2+1
         h1=c1*(fft1(j)+dconjg(fft1(n2-j)))
