@@ -85,6 +85,9 @@ c     #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5),
      #         nort,nstep,nfld,ideriv,iwflg,igflg,iaflg,irflg,jkmn,jmmn,
      #         ndim,itype,ipt,itm,itd,ipsi0,lband,kband,ldelta,
      #         kdelta,lptmx,kptmx,neltot,nelv,nelre,nelim,ncgstp
+
+        double precision, pointer, save :: fepr(:)
+        integer, pointer, save :: iepr(:)
 c
 c *** The following constants identify the position of several
 c     important parameters within the fepr (and fparm) arrays.
@@ -129,7 +132,11 @@ c
       subroutine select_site(isite)
       implicit none
       integer :: isite
+	  
       current_site = isite
+      fepr => fparm(:,isite)
+      iepr => iparm(:,isite)
+
       phase => fparm(IPHASE,isite)
       gib0 => fparm(IGIB0,isite)
       gib2 => fparm(IGIB2,isite)
@@ -201,4 +208,6 @@ c
 
       end subroutine select_site
 
+	  
+	  
       end module eprprm
