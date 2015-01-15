@@ -56,6 +56,11 @@ contains
       print ("('Via passed pointers for site', i3, &
                ', indexes', i3, ' and', i3, ':', i5, f7.1)"),&
                jjj, kiarb, kfarb, iarb, farb
+      farb = farb * 1.5
+      iarb = iarb + 100
+      print ("('after manipulation: for site', i3, &
+               ', indexes', i3, ' and', i3, ':', i5, f7.1)"),&
+               jjj, kiarb, kfarb, iarb, farb
    end subroutine arbsub
 
 end program testmods

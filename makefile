@@ -169,7 +169,7 @@ nlsl	: $(NLSO)
 #			Default actions
 #-----------------------------------------------------------------------
 
-testmods: nlsdim.o parcom.o eprprm.o
+testmods: nlsdim.o parcom.o eprprm.o testmods.f90
 	$(F77) -g testmods.f90 nlsdim.o parcom.o eprprm.o -o testmods
 
 .c.o   :
