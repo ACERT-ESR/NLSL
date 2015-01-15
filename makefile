@@ -7,8 +7,8 @@
 ########################################################################
 
 .SUFFIXES:
-.SUFFIXES: .f .inc .o .c 
-.PRECIOUS: .f .inc .h .c
+.SUFFIXES: .f90 .f .inc .o .c 
+.PRECIOUS: .f90 .f .inc .h .c
 
 ########################################################################
 
@@ -154,6 +154,9 @@ zaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
 znormu.o	: znormu.f nlsdim.inc rndoff.inc
 zscsw.o		: zscsw.f nlsdim.inc rndoff.inc
 zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
+nlsdim.o	: nlsdim.f90
+parcom.o	: parcom.f90
+eprprm.o	: eprprm.f90
 
 #-----------------------------------------------------------------------
 #		Executable files
@@ -166,9 +169,14 @@ nlsl	: $(NLSO)
 #			Default actions
 #-----------------------------------------------------------------------
 
+testmods: nlsdim.o parcom.o eprprm.o
+	$(F77) -g testmods.f90 nlsdim.o parcom.o eprprm.o -o testmods
+
 .c.o   :
 	$(CC) $(CFLAGS) $*.c
 
 .f.o   :
 	$(F77) $(FFLAGS) $*.f
 
+.f90.o   :
+	$(F77) $(FFLAGS) -ffixed-form $*.f90
