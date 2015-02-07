@@ -1,7 +1,7 @@
-c NLS Version 1.5.1 beta 2/3/96
+c NLS Version 1.9.0 beta 2/4/15
 c*********************************************************************
 c                    =========================
-c                      include file NLSDIM
+c                          module NLSDIM
 c                    =========================
 c
 c  Defines array dimensioning parameters for NLS programs
@@ -35,9 +35,6 @@ c
 
       module nlsdim
       implicit none
-
-c      integer MXSTEP,MXDIM,MXDIM1,MXEL,MXSPC,MXSPT,MXPT,MXVAR,MXJCOL,
-c     #        MXTDG,MXTV,MXCMT,MXSITE,MXSPH,MXFILE,MXINP,MXTDM,MXMTS
 c
       integer, parameter :: MXSTEP=2000,
      #           MXDIM=45000,MXDIM1=MXDIM+1,
@@ -57,7 +54,6 @@ c
      #           MXTV=MXJCOL+4*MXSITE,
      #           MXMTS=13
 c
-c      integer NFPRM,NVPRM,NIPRM,NALIAS,NSYMTR,NSYMBL
       integer, parameter :: NFPRM=43,
      #           NVPRM=35,
      #           NIPRM=24,

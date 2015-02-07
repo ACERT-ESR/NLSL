@@ -6,9 +6,10 @@
 #
 ########################################################################
 
-.SUFFIXES:
-.SUFFIXES: .f90 .f .inc .o .c 
-.PRECIOUS: .f90 .f .inc .h .c
+#Suffixes are now replaced by pattern rules
+#.SUFFIXES: .f90 .f .inc .o .c 
+.PRECIOUS: .f90 .mod .f .inc .h .c
+.PHONY: all clean
 
 ########################################################################
 
@@ -74,7 +75,7 @@ NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
 
 all             : nlsl
 clean           :
-			rm -f *.o nlsl
+			rm -f *.o *.mod nlsl testmods
 addprm.o	: addprm.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc\
                   lmcom.inc stdio.inc rndoff.inc prmeqv.inc
 assgnc.o	: assgnc.f $(BASI)
@@ -154,29 +155,33 @@ zaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
 znormu.o	: znormu.f nlsdim.inc rndoff.inc
 zscsw.o		: zscsw.f nlsdim.inc rndoff.inc
 zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
-nlsdim.o	: nlsdim.f90
-parcom.o	: parcom.f90
-eprprm.o	: eprprm.f90
+nlsdim.o nlsdim.mod: nlsdim.f90
+parcom.o parcom.mod: parcom.f90 nlsdim.mod
+eprprm.o eprprm.mod: eprprm.f90 parcom.mod nlsdim.mod
+errmsg.o errmsg.mod: errmsg.f90
+lpnam.o lpnam.mod: lpnam.f90 nlsdim.mod
+testmods.o: testmods.f90 eprprm.mod parcom.mod nlsdim.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
 #		Executable files
 #-----------------------------------------------------------------------
 
-nlsl	: $(NLSO) 
+nlsl: $(NLSO) 
 	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
+
+testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o
+	$(FLINK) -o $@ -g testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o
 
 #-----------------------------------------------------------------------
 #			Default actions
 #-----------------------------------------------------------------------
 
-testmods: nlsdim.o parcom.o eprprm.o testmods.f90
-	$(F77) -g testmods.f90 nlsdim.o parcom.o eprprm.o -o testmods
-
-.c.o   :
+%.o : %.c
 	$(CC) $(CFLAGS) $*.c
 
-.f.o   :
+%.o : %.f
 	$(F77) $(FFLAGS) $*.f
 
-.f90.o   :
+%.o %.mod : %.f90
+	rm -f $*.mod
 	$(F77) $(FFLAGS) -ffixed-form $*.f90

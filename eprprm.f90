@@ -1,30 +1,32 @@
-c Version 1.5.1 beta 2/3/96
+c Version 1.9.0 beta 2/6/15
 c----------------------------------------------------------------------
 c                    =========================
-c                       common block EPRPRM
+c                          module EPRPRM
 c                    =========================
 c
-c       Variable and common block definition for NLSL fitting of
+c   Definitions of variables and pointer-aliases for NLSL fitting of
 c  experimental spectra using LBLL-family slow-motional calculations.
 c
+c  This module supersedes various F77 common blocks and equivalences,
+c  in particular those that were in the files eprprm.inc and prmeqv.inc.
 c
-c IMPORTANT NOTES: 
 c
-c   The order in which the parameters appear in /eprprm/ is critical to 
-c   the proper functioning of the NLSL program. If this common block is
+c IMPORTANT NOTES (mostly taken from version 1.5.1 beta, 2/3/96): 
+c
+c   The order in which the parameters appear in fparm and iparm is critical 
+c   to the proper functioning of the NLSL program. If the parameter order is
 c   to be changed, the following rules must be observed:
 c
-c   (1) To permit alias names to be used for the g,A, and diffusion
+c   (1) To permit alias names to be used for the g, A, and diffusion
 c       tensors, the parameters gxx,gyy,gzz,axx,ayy,azz,dx,dy,dz,wxx,wyy,wzz
-c       should appear contiguously in that order in the common block.
+c       should appear contiguously in that order in fparm.
 c
 c   (2) The parameters igsph,iasph,irsph,iwsph should appear contiguously
-c       in that order in the common block. (See function tcheck in file
-c       sphten)
+c       in that order in iparm. (See function tcheck in file tensym.f90.)
 c
-c   (3) The order in which the parameters appear in /eprprm/ must
-c       be consistent with the names defined in the block data section
-c       of file "ipfind.f"
+c   (3) The order in which the parameters appear in module eprprm must
+c       be consistent with the order of names defined in module lpnam.
+c       This enables function ipfind to work properly, among other things.
 c
 c   (4) The residence times tl,tkxy,tkzz have been replaced with the
 c       parameters pml, pmxy, pmzz. This is to facilitate fitting using
@@ -46,25 +48,11 @@ c       added
 c
 c***********************************************************************
 c
-
-        module eprprm
-        use parcom
-        implicit none
-
-c        double precision gxx,gyy,gzz,axx,ayy,azz,wxx,wyy,wzz,dx,dy,dz,
-c     #         pml,pmxy,pmzz,djf,djfprp,oss,psi,ald,bed,gad,alm,bem,gam,
-c     #         c20,c22,c40,c42,c44,gib0,gib2,lb,b0,gamman,cgtol,shiftr,
-c     #         shifti,range,fldi,dfld,a0,g0,w0,expl,expkxy,expkzz,phase,
-c     #         dc20
+      module eprprm
+      use parcom
+      implicit none
 c
-c        double precision faa,fgm,fam,fwm,fgd,fad,fwd,cpot,xlk
-c
-c        integer in2,ipdf,ist,ml,mxy,mzz,lemx,lomx,kmn,kmx,mmn,mmx,ipnmx,
-c     #          nort,igflg,iaflg,iwflg,irflg,nstep,ideriv,itype,ndim,
-c     #          nfld,jkmn,jmmn,ipt,itm,itd,ipsi0,lband,kband,ldelta,
-c     #          kdelta,lptmx,kptmx,neltot,nelv,nelre,nelim,ncgstp
-c
-        double precision, pointer, save :: phase,gib0,gib2,
+      double precision, pointer, save :: phase,gib0,gib2,
      #         wxx,wyy,wzz,
      #         gxx,gyy,gzz,
      #         axx,ayy,azz,
@@ -73,32 +61,29 @@ c
      #         djf,djfprp,oss,
      #         psi,ald,bed,gad,alm,bem,gam,
      #         c20,c22,c40,c42,c44,lb,dc20,b0,gamman,
-     #         cgtol,shiftr,shifti,range,fldi,dfld,
-     #         a0,g0,w0,expl,expkxy,expkzz,faa(:),fgm(:),fwm(:),
-     #         fam(:,:),fgd(:,:),fad(:,:),fwd(:,:),cpot(:,:),xlk(:,:)
+     #         cgtol,shiftr,shifti,range,fldi,dfld
+c
+c     The following are not declared with the pointer attribute,
+c     as they are not special names that are used to point into
+c     another array, like the variables above
+c
+      double precision, save ::
+     #         a0,g0,w0,expl,expkxy,expkzz,faa(5),fgm(5),fwm(5),
+     #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5)
 
-c     #         a0,g0,w0,expl,expkxy,expkzz,faa(5),fgm(5),fwm(5),
-c     #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5),
-
-        integer, pointer, save :: in2,ipdf,ist,
+      integer, pointer, save :: in2,ipdf,ist,
      #         ml,mxy,mzz,lemx,lomx,kmn,kmx,mmn,mmx,ipnmx,
      #         nort,nstep,nfld,ideriv,iwflg,igflg,iaflg,irflg,jkmn,jmmn,
      #         ndim,itype,ipt,itm,itd,ipsi0,lband,kband,ldelta,
      #         kdelta,lptmx,kptmx,neltot,nelv,nelre,nelim,ncgstp
 
-        double precision, pointer, save :: fepr(:)
-        integer, pointer, save :: iepr(:)
+      double precision, pointer, save :: fepr(:)
+      integer, pointer, save :: iepr(:)
 c
 c *** The following constants identify the position of several
 c     important parameters within the fepr (and fparm) arrays.
 c     THESE CONSTANTS *MUST* BE REDEFINED IF THE PARAMETER ORDER 
 c     IN EPRPRM IS CHANGED!!!
-c
-c      integer IPHASE,IGIB0,IGIB2,IGXX,IGZZ,IAXX,IAZZ,IWXX,IWZZ,
-c     #        IDX,IDZ,IPML,IPMXY,IPMZZ,IDJF,IDJFPRP,IOSS,IPSI,IALD,IBED,
-c     #        IGAD,IALM,IGAM,IC20,IC44,ILB,IB0,IGAMAN,IML,ILEMX,IIPDF,
-c     #        IIST,IIN2,IIGFLG,IIAFLG,IIWFLG,IIRFLG,INORT,INSTEP,ISHIFT,
-c     #        ICGTOL,IFLDI,IDFLD,INFLD,IIDERV,INDIM,IDC20,IRANGE
 c
       integer, parameter :: IPHASE=1,IGIB0=2,IGIB2=3,
      #         IWXX=4,IWZZ=6,IGXX=7,IGZZ=9,
@@ -107,12 +92,14 @@ c
      #         IDJF=19,IDJFPRP=20,IOSS=21,IPSI=22,IALD=23,IBED=24,
      #         IGAD=25,IALM=26,IGAM=28,IC20=29,IC44=33,ILB=34,IDC20=35,
      #         IB0=36,IGAMAN=37,ICGTOL=38,ISHIFT=39,IRANGE=41,IFLDI=42,
-     #         IDFLD=43,
-     #         IIN2=1,IIPDF=2,IIST=3,IML=4,ILEMX=7,INORT=14,INSTEP=15,
+     #         IDFLD=43
+c
+      integer, parameter :: IIN2=1,IIPDF=2,IIST=3,IML=4,
+     #         ILEMX=7,INORT=14,INSTEP=15,
      #         INFLD=16,IIDERV=17,IIWFLG=18,IIGFLG=19,IIAFLG=20,
      #         IIRFLG=21,INDIM=24
 
-c     The following constants were absent from the original list.
+c     The following constants were absent from the original lists.
 c     They are now included for consistency.  
       integer, parameter :: IWYY=5,IGYY=8,IAYY=11,IDY=14,
      #         IBEM=27,IC22=30,IC40=31,IC42=32,ISHIFTI=40,
@@ -120,7 +107,7 @@ c     They are now included for consistency.
      #         ILOMX=8,IKMN=9,IKMX=10,IMMN=11,IMMX=12,IIPNMX=13,
      #         IJKMN=22,IJMMN=23
 
-c     In the original list, IGAMAN, ISHIFT, IIDERV had odd spellings.
+c     In the original lists, IGAMAN, ISHIFT, IIDERV had odd spellings.
 c     The following extra constants conform to the typical pattern.
       integer, parameter :: IGAMMAN=IGAMAN,ISHIFTR=ISHIFT,
      #         IIDERIV=IIDERV
@@ -207,7 +194,5 @@ c
       ndim => iparm(INDIM,isite)
 
       end subroutine select_site
-
-	  
 	  
       end module eprprm
