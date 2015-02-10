@@ -3,7 +3,10 @@
       use eprprm
       use errmsg
       use lpnam
+      use stdio	
       implicit none
+
+      integer, external :: ipfind, isfind
 
 ! Build instructions for the initial version of this program:
 ! gfortran -g -ffixed-form -c nlsdim.f90
@@ -16,8 +19,9 @@
 ! ifort /debug /fixed /c eprprm.f90
 ! ifort /debug /o testmods testmods.f90 nlsdim.obj parcom.obj eprprm.obj
 
-      integer :: i, j, itest, iitest, iftest, info
+      integer :: i, j, itest, iitest, iftest, info, isel, ltok, lnam
       double precision :: ftest
+      character*6 :: token='      '
 
       print *, 'Initializing fparm and iparm...'
       do j = 1, MXSITE
@@ -35,8 +39,8 @@
       do j = 1, MXSITE
          print ("('Spot testing values for site', i3 ,'...')"), j
          call select_site(j)
-         iitest = immn
-         iftest = ipmzz
+         iitest = IMMN
+         iftest = IPMZZ
          itest = mmn
          ftest = pmzz
          print ("('The expected values for site', i3,                    &
@@ -46,18 +50,41 @@
      &            ', indexes', i3, ' and', i3, ':', i5, f7.1)"),         &
      &            j, iitest, iftest, itest, ftest
          ! now try some tests from within a subroutine
-         call arbsub(j,immn,ipmzz,mmn,pmzz)
+         call arbsub(j,IMMN,IPMZZ,mmn,pmzz)
          print ("('From array pointers for site', i3,                    &
      &            ', indexes', i3, ' and', i3, ':', i5, f7.1)"),         &
      &            j, iitest, iftest, iepr(iitest), fepr(iftest)
       end do
 
       print *
-      print *, 'Starting spot checks of name arrays...'
-      print ("('The name associated with immn =', i3, ' is ', a6)"),     &
-     &         immn, iprnam(immn)
-      print ("('The name associated with ipmzz=', i3, ' is ', a6)"),     &
-     &         ipmzz, parnam(ipmzz)
+      print *, 'Starting spot checks of lpnam name arrays...'
+      isel = IMMN
+      token = iprnam(isel)
+      ltok = itrim(token)
+      lnam = ipfind(token,ltok)
+      print ("('The iprnam associated with index', i3, ' is ', a4)"),    &
+     &         isel, token(:ltok)
+      print ("('When given token ', a4, ', ipfind returns ', i3,         &
+     &         ', equating to index ', i3)"),                            &
+     &         token(:ltok), lnam, lnam-100
+      isel = IPMZZ
+      token = parnam(isel)
+      ltok = itrim(token)
+      lnam = ipfind(token,ltok)
+      print ("('The parnam associated with index', i3, ' is ', a4)"),    &
+     &         isel, token(:ltok)
+      print ("('When given token ', a4, ', ipfind returns ', i3,         &
+     &         ', equating to index ', i3)"),                            &
+     &         token(:ltok), lnam, lnam
+      isel = 4
+      token = symbol(4)
+      ltok = itrim(token)
+      lnam = isfind(token,ltok)
+      print ("('The symbol associated with index', i3, ' is ', a4)"),    &
+     &         isel, token(:ltok)
+      print ("('When given token ', a4, ', isfind returns ', i3,         &
+     &         ', equating to index ', i3)"),                            &
+     &         token(:ltok), lnam, lnam
 
       print *
       print *, 'Starting spot checks of error message arrays...'

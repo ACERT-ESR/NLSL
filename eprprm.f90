@@ -1,10 +1,10 @@
-c Version 1.9.0 beta 2/6/15
+c NLSL Version 1.9.0 beta 2/6/15
 c----------------------------------------------------------------------
 c                    =========================
 c                          module EPRPRM
 c                    =========================
 c
-c   Definitions of variables and pointer-aliases for NLSL fitting of
+c  Definitions of variables and pointer-aliases for NLSL fitting of
 c  experimental spectra using LBLL-family slow-motional calculations.
 c
 c  This module supersedes various F77 common blocks and equivalences,

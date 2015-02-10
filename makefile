@@ -160,7 +160,12 @@ parcom.o parcom.mod: parcom.f90 nlsdim.mod
 eprprm.o eprprm.mod: eprprm.f90 parcom.mod nlsdim.mod
 errmsg.o errmsg.mod: errmsg.f90
 lpnam.o lpnam.mod: lpnam.f90 nlsdim.mod
-testmods.o: testmods.f90 eprprm.mod parcom.mod nlsdim.mod errmsg.mod lpnam.mod
+expdat.o expdat.mod: expdat.f90 nlsdim.mod
+basis.o basis.mod: basis.f90 nlsdim.mod
+stdio.o stdio.mod: stdio.f90
+ipsfind.o: ipsfind.f90 nlsdim.mod parcom.mod eprprm.mod lpnam.mod expdat.mod basis.mod stdio.mod
+strutil.o: strutil.f90 stdio.mod
+testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
 #		Executable files
@@ -169,8 +174,9 @@ testmods.o: testmods.f90 eprprm.mod parcom.mod nlsdim.mod errmsg.mod lpnam.mod
 nlsl: $(NLSO) 
 	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
 
-testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o
-	$(FLINK) -o $@ -g testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o
+testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutil.o stdio.o lprmpt.o pltx.o
+	$(FLINK) -o $@ -g testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o stdio.o
+
 
 #-----------------------------------------------------------------------
 #			Default actions
