@@ -151,7 +151,7 @@ writr.o		: writr.f nlsdim.inc expdat.inc lmcom.inc parcom.inc stdio.inc\
 writec.o	: writec.f nlsdim.inc expdat.inc parcom.inc lmcom.inc mspctr.inc stdio.inc
 w3j.o		: w3j.f maxl.inc bincom.inc stdio.inc
 zaxpy.o 	: zaxpy.f nlsdim.inc rndoff.inc
-zaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
+qzaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
 znormu.o	: znormu.f nlsdim.inc rndoff.inc
 zscsw.o		: zscsw.f nlsdim.inc rndoff.inc
 zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
@@ -164,7 +164,8 @@ expdat.o expdat.mod: expdat.f90 nlsdim.mod
 basis.o basis.mod: basis.f90 nlsdim.mod
 stdio.o stdio.mod: stdio.f90
 ipsfind.o: ipsfind.f90 nlsdim.mod parcom.mod eprprm.mod lpnam.mod expdat.mod basis.mod stdio.mod
-strutil.o: strutil.f90 stdio.mod
+strutl1.o: strutl1.f90 stdio.mod
+strutl2.o: strutl2.f90
 testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
@@ -174,8 +175,9 @@ testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 nlsl: $(NLSO) 
 	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
 
-testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutil.o stdio.o lprmpt.o pltx.o
-	$(FLINK) -o $@ -g testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o stdio.o
+# no tests yet for strutl1, lprmpt, pltx, symdef, maxl, bincom; compile them anyway
+testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o strutl1.o lprmpt.o pltx.o symdef.o maxl.o bincom.o
+	$(FLINK) -o $@ -g testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
 
 
 #-----------------------------------------------------------------------

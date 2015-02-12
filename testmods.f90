@@ -1,12 +1,13 @@
+! NLSL Version 1.9.0 beta 2/12/15
+!
       program testmods
 
       use eprprm
       use errmsg
       use lpnam
-      use stdio	
       implicit none
 
-      integer, external :: ipfind, isfind
+      integer, external :: ipfind, isfind, itrim
 
 ! Build instructions for the initial version of this program:
 ! gfortran -g -ffixed-form -c nlsdim.f90

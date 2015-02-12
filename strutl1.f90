@@ -1,6 +1,6 @@
 c NLSL Version 1.9.0 beta 2/9/15
 c----------------------------------------------------------------------
-c> @file strutil.f90
+c> @file strutl1.f90
 c>             I/O UTILITY ROUTINES FOR NLS COMMAND INTERPRETER
 c>
 c>  Contains four functions and two subroutines:
@@ -18,8 +18,8 @@ c>
 c>       indtkn  -- returns an index, i.e., a parenthesized number *
 c>
 c>   * Note: two of these routines use module stdio. Subroutine touppr
-c>     and function itrim were moved into module stdio because they have
-c>     more general I/O utility.
+c>     and function itrim were moved into strutl2.f90 because they have
+c>     more general utility and a different set of dependencies.
 c>----------------------------------------------------------------------
 
 

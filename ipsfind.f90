@@ -40,10 +40,10 @@ c----------------------------------------------------------------------
       use lpnam
 
       implicit none
-      integer ipfind,lth
-      character token*30
+      integer :: ipfind,lth
+      character :: token*30
 c
-      integer i
+      integer :: i
 c
 c----------------------------------------------------------------------
 c     Search the list of floating point parameter names
@@ -114,10 +114,11 @@ c
       use stdio
       implicit none
 c
-      integer isfind,lth
-      character token*30,tmpstr*30
+      integer :: isfind,lth
+      character :: token*30,tmpstr*30
 c
-      integer i,nlth
+      integer :: i,nlth
+      integer, external :: itrim
 c
 c----------------------------------------------------------------------
 c     Search the list of datafile names

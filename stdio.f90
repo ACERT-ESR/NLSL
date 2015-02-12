@@ -1,4 +1,4 @@
-c NLSL Version 1.9.0 beta 2/10/15
+c NLSL Version 1.9.0 beta 2/11/15
 c*********************************************************************
 c
 c       STDIO: declarations of standard I/O parameters 
@@ -21,13 +21,6 @@ c
 c               2) The appropriate values for these parameters are
 c                  highly operating system and compiler dependent.
 c
-c               3) Fortran 90/95 does not have intrinsic functions for
-c                  converting a string to uppercase, or for finding the
-c                  index of the first blank character in a string.
-c                  Therefore, subroutine touppr and function itrim are
-c                  being supplied in this I/O-related module. They were
-c                  previously included in the strutl.f collection.
-c
 c*********************************************************************
 c
       module stdio
@@ -38,55 +31,5 @@ c
 c
       integer, save :: lucmd, luecho, luout, hltcomd, hltfit, itrace
       logical :: warn
-c
-      contains
-c
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine TOUPPR
-c                    =========================
-c
-c Converts string argument to uppercase
-c----------------------------------------------------------------------
-c
-      subroutine touppr(string,lth)
-      implicit none
-      character(len=*) :: string
-      character(len=1) :: chr
-      integer :: i, ich, ichar, lth
-c
-      do i=1,lth
-         chr=string(i:i)
-         ich=iachar(chr)
-         if (ich.ge.97 .and. ich.le.122) string(i:i)=achar(ich-32)
-      end do
-      return
-      end subroutine touppr
-c
-c----------------------------------------------------------------------
-c                    =========================
-c                         function ITRIM
-c                    =========================
-c
-c   Returns position of first blank in a string
-c----------------------------------------------------------------------
-c
-      function itrim( string )
-      implicit none
-      integer :: itrim, j, lth
-      character(len=*) :: string
-      lth=len(string)
-      do j=1,lth
-         if (string(j:j).eq.' ') then
-            itrim=j-1
-            return
-         end if
-      end do
-c
-c     If here: no blanks in string, return full length
-c     This differs from F77 index() intrinsic, which would return 0 
-      itrim=lth
-      return
-      end function itrim
 c
       end module stdio

@@ -48,7 +48,7 @@ c----------------------------------------------------------------------
 
       integer, parameter :: FATAL=16,NEPERR=26,NMNERR=12
 c
-      integer, parameter ::  ZEROIN2=1,POSB0=2,
+      integer, parameter :: ZEROIN2=1,POSB0=2,
      #            BADHIFLD=3,BADJMP=4,BADAV=5,BADDJ=6,
      #            LEMXHI=7,BSSADJ=8,NSTEPHI=9,CGTOLHI=10,SHIFTHI=11,
      #            NOCONVRG=12,NOALPHAM=13,NOALPHAD=14,BADBESS=15,
