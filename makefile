@@ -177,6 +177,8 @@ eprmat.o eprmat.mod: eprmat.f90 nlsdim.mod
 ftwork.o ftwork.mod: ftwork.f90 nlsdim.mod
 iterat.o iterat.mod: iterat.f90
 mspctr.o mspctr.mod: mspctr.f90 nlsdim.mod
+mtsdef.o mtsdef.mod: mtsdef.f90
+nlsnam.o nlsnam.mod: nlsnam.f90 nlsdim.mod stdio.mod
 testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
@@ -190,7 +192,7 @@ clean:
 	$(RM) *.o *.mod nlsl testmods
 
 TESTS = testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
-EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o mspctr.o
+EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o mspctr.o mtsdef.o nlsnam.o
 # no tests yet for $(EXTRAS)... compile them anyway
 
 testmods: $(TESTS) $(EXTRAS)
