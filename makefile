@@ -13,23 +13,28 @@
 
 ########################################################################
 
-F77=gfortran
+RM = rm -f
+
+F77 = gfortran
+F90 = $(F77)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
-LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64
+#Note, compiler bug in gfortran<4.8: -mcmodel=medium causes spurious warnings
+#Message says, "Warning: ignoring incorrect section type for .lbss"
 
-#CC = gcc 
+CC = gcc
+CFLAGS = -c -O2 -DADD_UNDERSCORE
+
+FLINK = gfortran
+LIBS = -L/usr/X11R6/lib -lX11 -lc
+
 #LIBS = dfor.lib
-#LIBS2  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib 
+#LIBS  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib 
 
-# gcc on i386 Linux
- CC = gcc
 #F77 = g77
 #FFLAGS = -c -O9 -fomit-frame-pointer -ffast-math -malign-double\
 	-funroll-loops -march=i586
 #FFLAGS = -c -g
- CFLAGS = -c -O2 -DADD_UNDERSCORE
- FLINK = gfortran
- LIB = -L/usr/X11R6/lib
+
 ########################################################################
 
 #	
@@ -75,7 +80,7 @@ NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
 
 all             : nlsl
 clean           :
-			rm -f *.o *.mod nlsl testmods
+
 addprm.o	: addprm.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc\
                   lmcom.inc stdio.inc rndoff.inc prmeqv.inc
 assgnc.o	: assgnc.f $(BASI)
@@ -166,6 +171,12 @@ stdio.o stdio.mod: stdio.f90
 ipsfind.o: ipsfind.f90 nlsdim.mod parcom.mod eprprm.mod lpnam.mod expdat.mod basis.mod stdio.mod
 strutl1.o: strutl1.f90 stdio.mod
 strutl2.o: strutl2.f90
+maxl.o maxl.mod: maxl.f90
+bincom.o bincom.mod: bincom.f90 maxl.mod
+eprmat.o eprmat.mod: eprmat.f90 nlsdim.mod
+ftwork.o ftwork.mod: ftwork.f90 nlsdim.mod
+iterat.o iterat.mod: iterat.f90
+mspctr.o mspctr.mod: mspctr.f90 nlsdim.mod
 testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
@@ -173,12 +184,20 @@ testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 #-----------------------------------------------------------------------
 
 nlsl: $(NLSO) 
-	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
+	$(FLINK) -o $@ $(NLSO) $(LIBS)
 
-# no tests yet for strutl1, lprmpt, pltx, symdef, maxl, bincom; compile them anyway
-testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o strutl1.o lprmpt.o pltx.o symdef.o maxl.o bincom.o
-	$(FLINK) -o $@ -g testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
+clean:
+	$(RM) *.o *.mod nlsl testmods
 
+TESTS = testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
+EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o mspctr.o
+# no tests yet for $(EXTRAS)... compile them anyway
+
+testmods: $(TESTS) $(EXTRAS)
+	$(FLINK) -o $@ $(TESTS)
+
+testclean:
+	$(RM) $(TESTS) $(EXTRAS) *.mod testmods
 
 #-----------------------------------------------------------------------
 #			Default actions
@@ -192,4 +211,4 @@ testmods: testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expda
 
 %.o %.mod : %.f90
 	rm -f $*.mod
-	$(F77) $(FFLAGS) -ffixed-form $*.f90
+	$(F90) $(FFLAGS) -ffixed-form $*.f90
