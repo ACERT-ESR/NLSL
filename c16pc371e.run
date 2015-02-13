@@ -1,0 +1,42 @@
+echo off
+echo ****************************************************************
+echo Parameters for 16PC in cos-7 cells at 37 deg. C (1st expt.)
+echo ****************************************************************
+log c16pc371e.log
+sites 2
+c basis vb-av30 site 2
+let b0=3320
+let gxx,gyy,gzz = 2.0084, 2.0060, 2.0020
+let in2,axx,ayy,azz = 2 5.2 5.2 33.2
+let nort=23
+let rpll(1)=9
+let rprp(1)=8.21131
+let rpll(2)=9.5
+let rprp(2)=9
+let c20(1)=0.86071
+let c22(1)=-0.67687
+let c20(2)=2.04448
+let c22(2)=1.00135
+let oss(2)=8.938
+let gib0(1)=1.5
+let gib2(1)=-0.5
+let gib0(2)=2.0
+let gib2(2)=-0.5
+let lemx,lomx,kmx,mmx,ipnmx=8,7,4,4,2
+c let lemx(2),lomx(2),kmx(2),mmx(2),ipnmx(2)=4,3,2,2,2
+let nstep,cgtol,shiftr=300,1e-4,1.0
+data c16pc371e nspline 400 ascii shift
+fit maxitr 10 maxfun 200
+vary rprp(1) rpll(1) c20(1) c22(1) oss(2)
+fit
+fix rprp(1) rpll(1) c20(1) c22(1) oss(2)
+vary rprp(2) rpll(2) c20(2) c22(2)
+fit
+fix rprp(2) rpll(2) c20(2) c22(2)
+vary gib0(1) 
+vary gib0(2) 
+fit
+fit
+fit
+fit
+write jf_output.spc
