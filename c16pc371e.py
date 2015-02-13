@@ -15,6 +15,7 @@ fields = data[:,0]
 experimental = data[:,1]
 fit = data[:,2]
 normalization = sum(cumsum(experimental))
+normalization = 1
 fig = figure(figsize = (9,6))
 fig.add_axes([0.1,0.1,0.6,0.8]) # l b w h
 if data.shape[1] > 3:
@@ -30,7 +31,7 @@ legend(bbox_to_anchor=(1.05,0,0.5,1), # bounding box l b w h
         borderaxespad=0.)
 ax.set_ylim(ylims)
 rms = mean((fit/normalization-experimental/normalization)**2)
-ax.text(0.75, 0.75, 'rms = %0.2f'%rms,
+ax.text(0.75, 0.75, 'rms = %0.2g'%rms,
         horizontalalignment='left',
         verticalalignment='top',
         transform=ax.transAxes)
