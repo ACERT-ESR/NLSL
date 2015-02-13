@@ -13,7 +13,15 @@
 ########################################################################
 
 F77=gfortran
+UNAME := $(shell uname)
+$(info $$UNAME is [${UNAME}])
+ifneq (,$(findstring MINGW32_NT,$(UNAME)))
+$(info in windows)
+FFLAGS = -c -O2 -g -fopenmp -std=gnu
+else
+$(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
+endif
 LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64
 
 #CC = gcc 
