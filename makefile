@@ -176,9 +176,16 @@ bincom.o bincom.mod: bincom.f90 maxl.mod
 eprmat.o eprmat.mod: eprmat.f90 nlsdim.mod
 ftwork.o ftwork.mod: ftwork.f90 nlsdim.mod
 iterat.o iterat.mod: iterat.f90
+lmcom.o lmcom.mod: lmcom.f90 nlsdim.mod
 mspctr.o mspctr.mod: mspctr.f90 nlsdim.mod
 mtsdef.o mtsdef.mod: mtsdef.f90
 nlsnam.o nlsnam.mod: nlsnam.f90 nlsdim.mod stdio.mod
+parsav.o parsav.mod: parcom.f90 nlsdim.mod
+physcn.o physcn.mod: physcn.f90
+pidef.o pidef.mod: pidef.f90
+rnddbl.o rnddbl.mod: rnddbl.f90
+timer.o timer.mod: timer.f90
+tridag.o tridag.mod: tridag.f90 nlsdim.mod
 testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
@@ -192,7 +199,7 @@ clean:
 	$(RM) *.o *.mod nlsl testmods
 
 TESTS = testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
-EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o mspctr.o mtsdef.o nlsnam.o
+EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o lmcom.o mspctr.o mtsdef.o nlsnam.o parsav.o physcn.o pidef.o rndoff.o timer.o tridag.o
 # no tests yet for $(EXTRAS)... compile them anyway
 
 testmods: $(TESTS) $(EXTRAS)
