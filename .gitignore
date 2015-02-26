@@ -85,3 +85,7 @@ zaxpy.o
 zaypx.o
 zdotu.o
 test_result.png
+c16pc371e.log
+c16pc371e.spc
+nlsl.exe
+pltx_dummy.o
