@@ -87,9 +87,15 @@ endif
 #		Object files
 #-----------------------------------------------------------------------
 
+ifeq ($(OS),"windows")
+all : nlsl.exe
+clean :
+	del *.o nlsl.exe
+else
 all             : nlsl
 clean           :
 			rm -f *.o nlsl
+endif
 addprm.o	: addprm.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc\
                   lmcom.inc stdio.inc rndoff.inc prmeqv.inc
 assgnc.o	: assgnc.f $(BASI)
@@ -175,10 +181,11 @@ zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
 #		Executable files
 #-----------------------------------------------------------------------
 
-nlsl	: $(NLSO) 
 ifeq ($(OS),"windows")
-	$(FLINK) -o $@ $(NLSO) 
+nlsl.exe	: $(NLSO) 
+	$(FLINK) -o nlsl $(NLSO) 
 else
+nlsl	: $(NLSO) 
 	$(FLINK) -o $@ $(NLSO)
 endif
 
