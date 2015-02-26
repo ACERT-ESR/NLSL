@@ -16,9 +16,11 @@ F77=gfortran
 UNAME := $(shell uname)
 $(info $$UNAME is [${UNAME}])
 ifneq (,$(findstring MINGW32_NT,$(UNAME)))
+OS := "windows"
 $(info in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu
 else
+OS := "linux"
 $(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
 endif
@@ -73,8 +75,13 @@ NLSL = lmnls.o enorm.o qrfac.o lmpar.o qrsolv.o covar.o
 NLSN = dchex.o daxpy.o dcopy.o ddot.o drotg.o
 NLSP = pltx.o 
 NLSS = strutl.o lprmpt.o catch.o ipfind.o nlstxt.o  
+ifeq ($(OS),"windows")
+NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSN) $(NLSB)\
+       $(NLSW)
+else
 NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
        $(NLSW)
+endif
 
 #-----------------------------------------------------------------------
 #		Object files
@@ -168,7 +175,11 @@ zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
 #-----------------------------------------------------------------------
 
 nlsl	: $(NLSO) 
-	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
+ifeq ($(OS),"windows")
+	$(FLINK) -o $@ $(NLSO) 
+else
+	$(FLINK) -o $@ $(NLSO)
+endif
 
 #-----------------------------------------------------------------------
 #			Default actions
