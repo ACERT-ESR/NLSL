@@ -76,7 +76,7 @@ NLSN = dchex.o daxpy.o dcopy.o ddot.o drotg.o
 NLSP = pltx.o 
 NLSS = strutl.o lprmpt.o catch.o ipfind.o nlstxt.o  
 ifeq ($(OS),"windows")
-NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSN) $(NLSB)\
+NLSO = nlsl.o pltx_dummy.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSN) $(NLSB)\
        $(NLSW)
 else
 NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
@@ -136,6 +136,7 @@ ordrpr.o	: ordrpr.f rndoff.inc dfunc.inc pidef.inc
 parc.o		: parc.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc stdio.inc\
                   rndoff.inc symdef.inc mtsdef.inc
 pltx.o		: pltx.c fortrancall.h
+pltx_dummy.o		: pltx_dummy.c fortrancall.h
 pmatrl.o	: pmatrl.f $(MATI) maxl.inc physcn.inc
 pstvec.o 	: pstvec.f nlsdim.inc eprprm.inc errmsg.inc rndoff.inc
 rdpar.o		: rdpar.f eprprm.inc stdio.inc
