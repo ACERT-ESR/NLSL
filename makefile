@@ -90,7 +90,8 @@ endif
 ifeq ($(OS),"windows")
 all : nlsl.exe
 clean :
-	del *.o nlsl.exe
+#	del *.o nlsl.exe
+	rm *.o nlsl.exe
 else
 all             : nlsl
 clean           :
