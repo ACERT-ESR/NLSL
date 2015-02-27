@@ -16,9 +16,11 @@ F77=gfortran
 UNAME := $(shell uname)
 $(info $$UNAME is [${UNAME}])
 ifneq (,$(findstring MINGW32_NT,$(UNAME)))
+OS := "windows"
 $(info in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu
 else
+OS := "linux"
 $(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
 endif
@@ -73,16 +75,28 @@ NLSL = lmnls.o enorm.o qrfac.o lmpar.o qrsolv.o covar.o
 NLSN = dchex.o daxpy.o dcopy.o ddot.o drotg.o
 NLSP = pltx.o 
 NLSS = strutl.o lprmpt.o catch.o ipfind.o nlstxt.o  
+ifeq ($(OS),"windows")
+NLSO = nlsl.o pltx_dummy.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSN) $(NLSB)\
+       $(NLSW)
+else
 NLSO = nlsl.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
        $(NLSW)
+endif
 
 #-----------------------------------------------------------------------
 #		Object files
 #-----------------------------------------------------------------------
 
+ifeq ($(OS),"windows")
+all : nlsl.exe
+clean :
+#	del *.o nlsl.exe
+	rm *.o nlsl.exe
+else
 all             : nlsl
 clean           :
 			rm -f *.o nlsl
+endif
 addprm.o	: addprm.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc\
                   lmcom.inc stdio.inc rndoff.inc prmeqv.inc
 assgnc.o	: assgnc.f $(BASI)
@@ -129,6 +143,7 @@ ordrpr.o	: ordrpr.f rndoff.inc dfunc.inc pidef.inc
 parc.o		: parc.f nlsdim.inc eprprm.inc expdat.inc parcom.inc lpnam.inc stdio.inc\
                   rndoff.inc symdef.inc mtsdef.inc
 pltx.o		: pltx.c fortrancall.h
+pltx_dummy.o		: pltx_dummy.c fortrancall.h
 pmatrl.o	: pmatrl.f $(MATI) maxl.inc physcn.inc
 pstvec.o 	: pstvec.f nlsdim.inc eprprm.inc errmsg.inc rndoff.inc
 rdpar.o		: rdpar.f eprprm.inc stdio.inc
@@ -167,8 +182,13 @@ zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
 #		Executable files
 #-----------------------------------------------------------------------
 
+ifeq ($(OS),"windows")
+nlsl.exe	: $(NLSO) 
+	$(FLINK) -o nlsl $(NLSO) 
+else
 nlsl	: $(NLSO) 
 	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
+endif
 
 #-----------------------------------------------------------------------
 #			Default actions

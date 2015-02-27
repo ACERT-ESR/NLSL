@@ -1,5 +1,6 @@
 #!/usr/bin/python
 from pylab import *
+from subprocess import Popen, PIPE, STDOUT
 import os
 def read_column_data(filename):
     fp = open(filename,'r')
@@ -7,9 +8,22 @@ def read_column_data(filename):
     for j in fp.readlines():
         data.append(j.split())
     data = array(data,dtype = double)
+    fp.close()
     return data
 os.system('make') # check that everything is up to date
-#os.system('./nlsl < c16pc371e.run') # actually run nlsl
+#cmd = './nlsl < c16pc371e.run'
+#print "about to run '"+cmd+"'"
+#os.system(cmd) # actually run nlsl
+print "about to run nlsl"
+#proc = Popen(['nlsl'],stdout = PIPE, stdin = PIPE, stderr = STDOUT)
+if os.name == 'posix':
+    proc = Popen(['./nlsl'],stdin = PIPE, stderr = STDOUT)
+else:
+    proc = Popen(['nlsl'],stdin = PIPE, stderr = STDOUT)
+fp = open('c16pc371e.run')
+output = proc.communicate(input = fp.read())
+fp.close()
+print "output was:",output
 data = read_column_data('c16pc371e.spc')
 fields = data[:,0]
 experimental = data[:,1]
