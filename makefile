@@ -186,7 +186,7 @@ nlsl.exe	: $(NLSO)
 	$(FLINK) -o nlsl $(NLSO) 
 else
 nlsl	: $(NLSO) 
-	$(FLINK) -o $@ $(NLSO)
+	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
 endif
 
 #-----------------------------------------------------------------------

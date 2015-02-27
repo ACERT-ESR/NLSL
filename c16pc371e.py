@@ -16,7 +16,10 @@ os.system('make') # check that everything is up to date
 #os.system(cmd) # actually run nlsl
 print "about to run nlsl"
 #proc = Popen(['nlsl'],stdout = PIPE, stdin = PIPE, stderr = STDOUT)
-proc = Popen(['nlsl'],stdin = PIPE, stderr = STDOUT)
+if os.name == 'posix':
+    proc = Popen(['./nlsl'],stdin = PIPE, stderr = STDOUT)
+else:
+    proc = Popen(['nlsl'],stdin = PIPE, stderr = STDOUT)
 fp = open('c16pc371e.run')
 output = proc.communicate(input = fp.read())
 fp.close()

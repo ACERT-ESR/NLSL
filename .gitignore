@@ -1,5 +1,6 @@
 addprm.o
 anxlk.o
+pltx.o
 assgnc.o
 basisc.o
 bessel.o
