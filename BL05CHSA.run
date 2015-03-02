@@ -1,0 +1,48 @@
+fix all
+
+
+echo off
+echo ****************************************************************
+echo Parameters for BL05CHSA.dat
+echo ****************************************************************
+log BL05CHSA.log
+sites 1
+
+let b0=3389.95
+let gxx,gyy,gzz = 2.0089, 2.0058, 2.0022
+let in2,axx,ayy,azz = 2 5.4 5.4 33.5
+let nort=25
+
+let rpll=10.6163
+let rprp=7.5759
+
+let c20=2.131
+let c22=-1.303
+
+let gib0=0.8
+let gib2=0.1
+let betad = 0
+
+let lemx,lomx,kmx,mmx,ipnmx=8,5,4,4,2
+let nstep,cgtol,shiftr=300,1e-4,1.0
+
+
+data BL05CHSA.dat nspline 400 ascii shift
+fit maxitr 10 maxfun 300
+
+vary rprp(1), rpll(1)
+c vary rprp(2), rpll(2)
+fit 
+
+fix all 
+
+vary c20(1), c22(1)
+c vary c20(2), c22(2)
+c vary betad
+fit 
+fix all 
+
+vary gib0 gib2
+c vary betad 
+fit
+fix all

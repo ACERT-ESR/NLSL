@@ -11,7 +11,7 @@ def read_column_data(filename):
     fp.close()
     return data
 os.system('make') # check that everything is up to date
-#cmd = './nlsl < c16pc371e.run'
+#cmd = './nlsl < BL05CHSA.run'
 #print "about to run '"+cmd+"'"
 #os.system(cmd) # actually run nlsl
 print "about to run nlsl"
@@ -20,11 +20,11 @@ if os.name == 'posix':
     proc = Popen(['./nlsl'],stdin = PIPE, stderr = STDOUT)
 else:
     proc = Popen(['nlsl'],stdin = PIPE, stderr = STDOUT)
-fp = open('c16pc371e.run')
+fp = open('BL05CHSA.run')
 output = proc.communicate(input = fp.read())
 fp.close()
 print "output was:",output
-data = read_column_data('c16pc371e.spc')
+data = read_column_data('BL05CHSA.spc')
 fields = data[:,0]
 experimental = data[:,1]
 fit = data[:,2]
