@@ -80,8 +80,8 @@ c
       double precision, pointer, save :: fepr(:)
       integer, pointer, save :: iepr(:)
 c
-c *** The following constants identify the position of several
-c     important parameters within the fepr (and fparm) arrays.
+c *** The following constants identify the position of many of the
+c     parameters within the fepr/iepr (and fparm/iparm) arrays.
 c     THESE CONSTANTS *MUST* BE REDEFINED IF THE PARAMETER ORDER 
 c     IN EPRPRM IS CHANGED!!!
 c

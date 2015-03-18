@@ -51,15 +51,19 @@ c     #        output
 c      logical mtxclc
 c      character*9 tag
 c
-      double precision, target, save :: fparm(NFPRM,MXSITE),
-     #                prmax(MXVAR),prmin(MXVAR),
+      double precision, target, save :: fparm(NFPRM,MXSITE)
+c
+      double precision, save :: prmax(MXVAR),prmin(MXVAR),
      #                prscl(MXVAR),xfdstp(MXVAR),xerr(MXJCOL),
      #                serval(MXSPC),ctol,ptol,pftol,pstep,pbound,
      #                srange
-      integer, target, save :: iparm(NIPRM,MXSITE),ixx(NFPRM,MXSITE),
+      integer, target, save :: iparm(NIPRM,MXSITE)
+c
+      integer, save :: ixx(NFPRM,MXSITE),
      #                ibnd(MXVAR),ixpr(MXVAR),ixst(MXVAR),
      #                iser,nser,nsite,nprm,njcol,nshift,noneg,itridg,
-     #                iitrfl,jacobi,ixp1p,ixs1p,mxpitr,output,mtxclc,
-     #                tag(MXJCOL)
+     #                iitrfl,jacobi,ixp1p,ixs1p,mxpitr,output
+      logical, save :: mtxclc
+      character*9, save :: tag(MXJCOL)
 c
       end module parcom
