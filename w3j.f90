@@ -231,16 +231,7 @@ c----------------------------------------------------------------------
       subroutine bincof()
 c
       use maxl
-c
-c --- common BINCOM ------------------------
-      integer nb,nbncf
-      parameter (nb=2*(mxlval+8)+2)
-      parameter (nbncf=nb*(nb+1)+1)
-c
-      integer bncfx
-      double precision bncf
-      common /bincom/bncf(nbncf),bncfx(nb)
-c ------------------------------------------
+      use bincom
 c
       integer i,j,ij
       double precision bncf0,temp
@@ -290,19 +281,10 @@ c----------------------------------------------------------------------
       function wig3j(j1,j2,j3,m1,m2,m3)
 c
       use maxl
+      use bincom
 c
       double precision wig3j
       integer j1,j2,j3,m1,m2,m3
-c
-c --- common BINCOM ------------------------
-      integer nb,nbncf
-      parameter (nb=2*(mxlval+8)+2)
-      parameter (nbncf=nb*(nb+1)+1)
-c
-      integer bncfx
-      double precision bncf
-      common /bincom/bncf(nbncf),bncfx(nb)
-c ------------------------------------------
       integer i,j,k,l,m,n,p,q,z,zmin,zmax,bp,bnj,bmk
       double precision sum
       logical notset

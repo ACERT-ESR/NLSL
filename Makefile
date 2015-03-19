@@ -157,7 +157,7 @@ varyc.o		: varyc.f90 nlsdim.mod eprprm.mod parcom.mod lpnam.mod stdio.mod
 writr.o		: writr.f90 nlsdim.mod expdat.mod lmcom.mod parcom.mod stdio.mod\
                   tridag.mod mspctr.mod iterat.mod
 writec.o	: writec.f90 nlsdim.mod expdat.mod parcom.mod lmcom.mod mspctr.mod stdio.mod
-w3j.o		: w3j.f90 maxl.mod stdio.mod
+w3j.o		: w3j.f90 maxl.mod stdio.mod bincom.mod
 zaxpy.o 	: zaxpy.f90 nlsdim.mod rnddbl.mod
 qzaypx.o 	: zaypx.f90 nlsdim.mod rnddbl.mod
 znormu.o	: znormu.f90 nlsdim.mod rnddbl.mod
