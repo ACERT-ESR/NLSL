@@ -72,9 +72,8 @@ NLSF = fitl.o lfun.o lcheck.o setspc.o $(NLSH) $(EPO1) $(EPO2) ordrpr.o
 NLSL = lmnls.o enorm.o qrfac.o lmpar.o qrsolv.o covar.o
 NLSN = dchex.o daxpy.o dcopy.o ddot.o drotg.o
 NLSP = pltx.o 
-NLSS = strutl1.o strutl2.o lprmpt.o catch.o ipsfind.o
-NLSO = nlsl.o $(MOD1) $(MOD2) $(MOD3) $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB)\
-       $(NLSW)
+NLSS = strutl1.o strutl2.o lprmpt.o catch.o ipsfind.o 
+NLSO = nlsl.o $(MOD1) $(MOD2) $(MOD3) $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSL) $(NLSP) $(NLSN) $(NLSB) $(NLSW)
 
 #-----------------------------------------------------------------------
 #		Object files
@@ -125,7 +124,7 @@ matrll.o	: matrll.f90 $(MATI) maxl.mod physcn.mod
 mnbrak.o	: mnbrak.f90 errmsg.mod
 momdls.o	: momdls.f90 $(MATI) pidef.mod stdio.mod dfunc.mod
 nlsl.o		: nlsl.f90 $(NLSI) basis.mod iterat.mod mspctr.mod tridag.mod
-nlstxt.o	: nlstxt.f90 nlsdim.mod eprprm.mod lpnam.mod errmsg.mod
+#nlstxt.o	: nlstxt.f90 nlsdim.mod eprprm.mod lpnam.mod errmsg.mod
 ordrpr.o	: ordrpr.f90 rnddbl.mod dfunc.mod pidef.mod
 parc.o		: parc.f90 nlsdim.mod eprprm.mod expdat.mod parcom.mod lpnam.mod stdio.mod\
                   rnddbl.mod symdef.mod mtsdef.mod
@@ -216,9 +215,6 @@ testclean:
 %.o : %.c
 	$(CC) $(CFLAGS) $*.c
 
-%.o : %.f90
-	$(F77) $(FFLAGS) $*.f90
-
 %.o %.mod : %.f90
-	rm -f $*.mod
+	if [ -a $*.mod ] ; then rm -f $*.mod ; fi
 	$(F90) $(FFLAGS) -ffixed-form $*.f90

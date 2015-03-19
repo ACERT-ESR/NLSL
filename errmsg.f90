@@ -8,7 +8,7 @@ c Contains text for error messages and definitions of symbols used
 c to define error message numbers. Errors after ZEROB0=16 are defined
 c as fatal, and will cause the calculation to halt.
 c
-c This module replaces errmsg.f and the second half of nlstxt.f.
+c This module replaces errmsg.inc and the second half of nlstxt.f.
 c
 c For eprerr, the definitions of the symbols are as follows:
 c
