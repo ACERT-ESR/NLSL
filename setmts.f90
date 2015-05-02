@@ -8,9 +8,9 @@ c  Given a set of slow-motional EPR parameters, check the MTS indices
 c  and adjust them accordingly.
 c
 c  Inputs
-c    fparmtemp   Array of floating-point EPR parameters appearing in the
+c    fparmi   Array of floating-point EPR parameters appearing in the
 c            order defined in /eprprm/ 
-c    iparmtemp   Array of integer EPR parameters appearing in the
+c    iparmi   Array of integer EPR parameters appearing in the
 c            order defined in /eprprm/ 
 c
 c  Output
@@ -19,10 +19,10 @@ c              Information is packed as documented in mtsdef.inc
 c
 c  Returns 0 for successful completion
 c          8 if lemx exceeded limit for calculations w/potential
-c          9 if mts parameters were changed from those in iparmtemp array
+c          9 if mts parameters were changed from those in iparmi array
 c
 c----------------------------------------------------------------------
-      function setmts(fparmtemp,iparmtemp,mts)
+      function setmts(fparmi,iparmi,mts)
 c
       use nlsdim
       use eprprm
@@ -32,8 +32,8 @@ c
       use rnddbl
 c
       implicit none
-      double precision fparmtemp(NFPRM)
-      integer setmts,iparmtemp(NIPRM),mts(MXMTS)
+      double precision fparmi(NFPRM)
+      integer setmts,iparmi(NIPRM),mts(MXMTS)
 c
       integer i
       logical knon0p,changed
@@ -48,44 +48,44 @@ c     check basis set parameters
 c----------------------------------------------------------------------
 c
       setmts=0
-      knon0p = abs(fparmtemp(IC20+1)).gt.RNDOFF .or.
-     #         abs(fparmtemp(IC20+2)).gt.RNDOFF .or.
-     #         abs(fparmtemp(IC20+3)).gt.RNDOFF .or.
-     #         abs(fparmtemp(IC20+4)).gt.RNDOFF
+      knon0p = abs(fparmi(IC20+1)).gt.RNDOFF .or.
+     #         abs(fparmi(IC20+2)).gt.RNDOFF .or.
+     #         abs(fparmi(IC20+3)).gt.RNDOFF .or.
+     #         abs(fparmi(IC20+4)).gt.RNDOFF
 c
       do i=1,NTRC
-         mts(i)=iparmtemp(ILEMX+i-1)
+         mts(i)=iparmi(ILEMX+i-1)
       end do
 c
       mts(NIPSI0)=0 
-      if ( (abs(fparmtemp(IPSI)).gt.RNDOFF .and.
-     #     abs(fparmtemp(IPSI)-1.8D2).gt.RNDOFF) 
-     #    .or. iparmtemp(INORT).gt.1) mts(NIPSI0)=1
-      mts(NIN2)=iparmtemp(IIN2)
+      if ( (abs(fparmi(IPSI)).gt.RNDOFF .and.
+     #     abs(fparmi(IPSI)-1.8D2).gt.RNDOFF) 
+     #    .or. iparmi(INORT).gt.1) mts(NIPSI0)=1
+      mts(NIN2)=iparmi(IIN2)
 c
 c    --- Allow antisymmetric K combinations if any tensor has
 c        imaginary elements (nonzero alm, gam, ald, or gad)
 c
       mts(NJKMN)=1
-      if (abs(fparmtemp(IALM)).ge.RNDOFF .or.
-     #    abs(fparmtemp(IGAM)).ge.RNDOFF .or.
-     #    abs(fparmtemp(IALD)).ge.RNDOFF .or.
-     #    abs(fparmtemp(IGAD)).ge.RNDOFF) mts(NJKMN)=-1
+      if (abs(fparmi(IALM)).ge.RNDOFF .or.
+     #    abs(fparmi(IGAM)).ge.RNDOFF .or.
+     #    abs(fparmi(IALD)).ge.RNDOFF .or.
+     #    abs(fparmi(IGAD)).ge.RNDOFF) mts(NJKMN)=-1
 c
 c    --- Allow antisymmetric M combinations if there is a nonzero
 c        nuclear Zeeman interaction
 c
-      if (abs(fparmtemp(IGAMAN)).ge.RNDOFF .and.
-     #    iparmtemp(IIN2).gt.0) then
+      if (abs(fparmi(IGAMAN)).ge.RNDOFF .and.
+     #    iparmi(IIN2).gt.0) then
          mts(NJMMN)=-1
       else
          mts(NJMMN)=1
       end if
 
 c
-      if((iparmtemp(ILEMX).gt.MXLVAL).and.(ipt.ne.0)) then
+      if((iparmi(ILEMX).gt.MXLVAL).and.(ipt.ne.0)) then
          setmts=LEMXHI
-         iparmtemp(ILEMX)=MXLVAL
+         iparmi(ILEMX)=MXLVAL
       endif
 c
       if (mts(NLEMX).gt.MXLVAL) mts(NLEMX)=MXLVAL
@@ -95,7 +95,7 @@ c
       if (mts(NKMX).gt.mts(NLEMX)) mts(NKMX)=mts(NLEMX)
       if (mts(NMMX).gt.mts(NLEMX)) mts(NMMX)=mts(NLEMX)
       if (ipar(mts(NKMX)).ne.1) mts(NKMX)=mts(NKMX)-1
-      if (mts(NIPNMX).gt.in2) mts(NIPNMX)=iparmtemp(IIN2)
+      if (mts(NIPNMX).gt.in2) mts(NIPNMX)=iparmi(IIN2)
       if (mts(NIPSI0).eq.0.and.mts(NMMX).gt.mts(NIPNMX) )
      #    mts(NMMX)=mts(NIPNMX)
       if (mts(NJKMN).eq.1) mts(NKMN)=max(mts(NKMN),0)
@@ -109,7 +109,7 @@ c
 c
       changed=.false.
       do i=1,NTRC
-         changed = changed .or.(mts(i).ne.iparmtemp(ILEMX+i-1)) 
+         changed = changed .or.(mts(i).ne.iparmi(ILEMX+i-1)) 
       end do
 c
       if (changed) then
@@ -134,9 +134,9 @@ c  (2)   In addition, if the magnetic and linewidth tensors are axial,
 c        and there is no diffusion tilt or K.ne.0 potential terms,
 c        only even L values and no K values are needed
 c----------------------------------------------------------------------
-      if( isaxial(fparmtemp(IGXX),iparmtemp(IIGFLG)) .and.
-     #    isaxial(fparmtemp(IAXX),iparmtemp(IIAFLG)) .and.
-     #    isaxial(fparmtemp(IWXX),iparmtemp(IIWFLG)) .and.
+      if( isaxial(fparmi(IGXX),iparmi(IIGFLG)) .and.
+     #    isaxial(fparmi(IAXX),iparmi(IIAFLG)) .and.
+     #    isaxial(fparmi(IWXX),iparmi(IIWFLG)) .and.
      #     (mts(NKDEL).eq.2).and.(.not.knon0p)) then
          mts(NLDEL)=2
          mts(NKMX)=0

@@ -126,7 +126,9 @@ c
 c
  11   continue
 c
-      pause 'Brent exceed maximum iterations.'
+      print *, 'Brent exceed maximum iterations.'
+      print *, '[execution paused, press enter to continue]'
+      read (*,*)
 c
  3    xmin=x
       brent=fx

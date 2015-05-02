@@ -2,19 +2,22 @@ c Version 1.5.1 beta 2/3/96
 c----------------------------------------------------------------------
 c     This file contains various functions for making statistical
 c     inferences from the residuals and curvature matrix returned
-c     by the least-squares procedure.
+c     by the least-squares procedure. (Subroutines marked with *)
 c
 c       chi       Returns chi-squared for given confidence, degrees freedom
 c       pchi      Chi-squared probability function
 c       residx    Returns residual index of fit vs. data
 c       corrl     Returns correlation coefficient of fit vs. data
 c       gammq     Incomplete gamma function
-c       gcf       Continued-fraction approximation to incomplete gamma fn
-c       gser      Series approximation of incomplete gamma function
+c     * gcf       Continued-fraction approximation to incomplete gamma fn
+c     * gser      Series approximation of incomplete gamma function
 c       gammln    Returns ln( gamma )
-c       zbrac     Bracketing routine for Brent root-finder
+c     * zbrac     Bracketing routine for Brent root-finder
 c       zbrent    Brent's method for finding root of function pchi
-c       
+c
+c     Auxiliary functions:   betai, betacf, alphat, alphaf, ts, fs
+c     Auxiliary subroutine:  pausex
+c
 c----------------------------------------------------------------------
 c                    =========================
 c                         function CHI
@@ -175,7 +178,9 @@ c
       double precision betacf,gammln
       external betacf,gammln
 c
-      if (x.lt.ZERO .or. x.gt.ONE) pause 'bad argument X in BETAI'
+      if (x.lt.ZERO .or. x.gt.ONE) then
+         call pausex('bad argument X in BETAI')
+      end if
       if (x.eq.ZERO .or. x.eq.ONE) then
          bt=ZERO
       else
@@ -355,7 +360,7 @@ c
       DOUBLE PRECISION a,gammq,x
 CU    USES gcf,gser
       DOUBLE PRECISION gammcf,gamser,gln
-      if(x.lt.0..or.a.le.0.)pause 'bad arguments in gammq'
+      if(x.lt.0..or.a.le.0.) call pausex('bad arguments in gammq')
       if(x.lt.a+1.)then
         call gser(gamser,a,x,gln)
         gammq=1.-gamser
@@ -400,7 +405,7 @@ C     USES gammln
         h=h*del
         if(abs(del-1.).lt.EPS)goto 1
 11    continue
-      pause 'a too large, ITMAX too small in gcf'
+      call pausex('a too large, ITMAX too small in gcf')
 1     gammcf=exp(-x+a*log(x)-gln)*h
       return
       END
@@ -424,7 +429,7 @@ C     USES gammln
       DOUBLE PRECISION ap,del,sum,gammln
       gln=gammln(a)
       if(x.le.0.)then
-        if(x.lt.0.)pause 'x < 0 in gser'
+        if(x.lt.0.) call pausex('x < 0 in gser')
         gamser=0.
         return
       endif
@@ -437,7 +442,7 @@ C     USES gammln
         sum=sum+del
         if(abs(del).lt.abs(sum)*EPS)goto 1
 11    continue
-      pause 'a too large, ITMAX too small in gser'
+      call pausex('a too large, ITMAX too small in gser')
 1     gamser=sum*exp(-x+a*log(x)-gln)
       return
       END
@@ -485,7 +490,8 @@ c
       INTEGER j
       DOUBLE PRECISION f1,f2
       LOGICAL succes
-      if(x1.eq.x2)pause 'you have to guess an initial range in zbrac'
+      if (x1.eq.x2)
+     *  call pausex('you have to guess an initial range in zbrac')
       f1=func(x1)
       f2=func(x2)
       succes=.true.
@@ -514,8 +520,8 @@ c
       b=x2
       fa=func(a)
       fb=func(b)
-      if((fa.gt.0..and.fb.gt.0.).or.(fa.lt.0..and.fb.lt.0.))pause
-     *'root must be bracketed for zbrent'
+      if((fa.gt.0..and.fb.gt.0.).or.(fa.lt.0..and.fb.lt.0.))
+     *  call pausex('root must be bracketed for zbrent')
       c=b
       fc=fb
       do 11 iter=1,ITMAX
@@ -572,9 +578,15 @@ c
         endif
         fb=func(b)
 11    continue
-      pause 'zbrent exceeding maximum iterations'
+      call pausex('zbrent exceeding maximum iterations')
       zbrent=b
       return
       END
 
-
+      subroutine pausex(mesg)
+      character*(*) mesg
+      print *, mesg
+      print *, '[execution paused, press enter to continue]'
+      read (*,*)
+      return
+      end

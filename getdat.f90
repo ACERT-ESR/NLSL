@@ -489,8 +489,11 @@ c----------------------------------------------------------------------
       integer i,klo,khi,n,ns
       double precision xa(n),ya(n),y2a(n),y(ns),x,x0,dx,h,a,b
 c
-      if (x0 .lt. xa(1) .or. x0+dx*(ns-1) .gt. xa(n)) 
-     &    pause 'SPLNAY: Bad interpolated X range.'
+      if (x0 .lt. xa(1) .or. x0+dx*(ns-1) .gt. xa(n)) then
+        print *, 'SPLNAY: Bad interpolated X range.'
+        print *, '[execution paused, press enter to continue]'
+        read (*,*)
+      end if
       x=x0-dx
       klo=1
       khi=2
@@ -502,7 +505,11 @@ c
         goto 2
         endif
         h=xa(khi)-xa(klo)
-        if (h .eq. 0.0D0) pause 'SPLNAY: Bad XA input.'
+        if (h .eq. 0.0D0) then
+          print *, 'SPLNAY: Bad XA input.'
+          print *, '[execution paused, press enter to continue]'
+          read (*,*)
+        end if
         a=(xa(khi)-x)/h
         b=(x-xa(klo))/h
         y(i)=a*ya(klo) + b*ya(khi) +

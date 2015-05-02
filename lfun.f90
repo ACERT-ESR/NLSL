@@ -461,7 +461,11 @@ c
                        ixbp=1
                      endif
 c
-                     call momdls( fparm(1,isi),iparm(1,isi),icalc,
+c                    ------------------------------------------------
+c                     After momdls, all eprprm parameters will point
+c                     to the current site through select_site(isi)
+c                    ------------------------------------------------
+                     call momdls( fparm(1,isi),iparm(1,isi),isi,icalc,
      #                    alpha(ixt),beta(ixt),ibasis(1,ixbp),ixb,
      #                    work,wspec,nft(isp),ltd(isi,isp),ierr )
 c
@@ -602,7 +606,7 @@ c
 
 c----------------------------------------------------------------------
 c                    =========================
-c                      subroutine HLTCHK
+c                         function HLTCHK
 c                    =========================
 c
 c> @brief   Check whether a user halt (control-C) or other error 

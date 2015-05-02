@@ -47,7 +47,7 @@ c               eprls.f
 c
 c*********************************************************************
 c
-      subroutine momdls( fparmtemp,iparmtemp,icalc,al,be,bss,iprune,
+      subroutine momdls( fparmi,iparmi,isi,icalc,al,be,bss,iprune,
      #                   spectr,work,nft,ntotal,ierr )
 c
       use eprprm
@@ -62,11 +62,11 @@ c      use prmeqv
       use dfunc
 c
       implicit none
-      integer bss(5,MXDIM),iparmtemp(NIPRM),ntotal,icalc,ierr,iprune,
-     #        nft
-c     double precision fparmtemp(NFPRM),spectr(iparmtemp(INFLD)),
-c    #                 work(iparmtemp(INFLD)),cgerr
-      double precision fparmtemp(NFPRM),spectr(*),
+      integer bss(5,MXDIM),iparmi(NIPRM),ntotal,icalc,ierr,iprune,
+     #        nft,isi
+c     double precision fparmi(NFPRM),spectr(iparmi(INFLD)),
+c    #                 work(iparmi(INFLD)),cgerr
+      double precision fparmi(NFPRM),spectr(*),
      #                 work(*),cgerr
       double complex al(ntotal),be(ntotal)
 c
@@ -86,15 +86,18 @@ c
 c
 c     ----------------------------------------------
 c     Load values from parameter array into /eprprm/
+c     *** This is now done by select_site(isi) ***
 c     ----------------------------------------------
 c
-      do i=1,NFPRM
-         fepr(i)=fparmtemp(i)
-      end do
+      call select_site(isi)
 c
-      do i=1,NIPRM
-         iepr(i)=iparmtemp(i)
-      end do
+c      do i=1,NFPRM
+c         fepr(i)=fparmi(i)
+c      end do
+c
+c      do i=1,NIPRM
+c         iepr(i)=iparmi(i)
+c      end do
 c
       if (init) then
 c                                     *** Fatal error in parameters

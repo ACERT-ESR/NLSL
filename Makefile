@@ -152,7 +152,7 @@ strutl1.o	: strutl1.f90 stdio.mod
 strutl2.o	: strutl2.f90
 stvect.o 	: stvect.f90 nlsdim.mod eprprm.mod errmsg.mod rnddbl.mod
 tdchek.o        : tdchek.f90 $(BASI) tridag.mod errmsg.mod mtsdef.mod
-tdqz.o		: tdsqz.f90 nlsdim.mod expdat.mod tridag.mod
+tdqz.o		: tdsqz.f90 nlsdim.mod expdat.mod tridag.mod stdio.mod
 varyc.o		: varyc.f90 nlsdim.mod eprprm.mod parcom.mod lpnam.mod stdio.mod
 writr.o		: writr.f90 nlsdim.mod expdat.mod lmcom.mod parcom.mod stdio.mod\
                   tridag.mod mspctr.mod iterat.mod

@@ -122,6 +122,8 @@ c
             return
          endif
       end do
-      pause 'LGRINT: too many iterations'
+      print *, 'LGRINT: too many iterations'
+      print *, '[execution paused, press enter to continue]'
+      read (*,*)
       return
       end
