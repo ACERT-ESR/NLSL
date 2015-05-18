@@ -506,7 +506,9 @@ c----------------------------------------
 c
 c------------------------------------------------------
 c  -- Set initial values for NLS convergence criteria
+c  -- First, call the routine to initalize F90 pointers
 c------------------------------------------------------
+      call lmcom_init
       xtol=1.0d-4
       ftol=1.0d-4
       gtol=1.0d-6
