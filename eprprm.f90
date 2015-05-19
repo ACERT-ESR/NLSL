@@ -52,6 +52,9 @@ c
       use parcom
       implicit none
 c
+      double precision, pointer, save :: fepr(:)
+      integer, pointer, save :: iepr(:)
+
       double precision, pointer, save :: phase,gib0,gib2,
      #         wxx,wyy,wzz,
      #         gxx,gyy,gzz,
@@ -62,6 +65,11 @@ c
      #         psi,ald,bed,gad,alm,bem,gam,
      #         c20,c22,c40,c42,c44,lb,dc20,b0,gamman,
      #         cgtol,shiftr,shifti,range,fldi,dfld
+
+      integer, pointer, save :: in2,ipdf,ist,
+     #         ml,mxy,mzz,lemx,lomx,kmn,kmx,mmn,mmx,ipnmx,
+     #         nort,nstep,nfld,ideriv,iwflg,igflg,iaflg,irflg,jkmn,jmmn,
+     #         ndim
 c
 c     The following are not declared with the pointer attribute,
 c     as they are not special names that are used to point into
@@ -71,14 +79,10 @@ c
      #         a0,g0,w0,expl,expkxy,expkzz,faa(5),fgm(5),fwm(5),
      #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5)
 
-      integer, pointer, save :: in2,ipdf,ist,
-     #         ml,mxy,mzz,lemx,lomx,kmn,kmx,mmn,mmx,ipnmx,
-     #         nort,nstep,nfld,ideriv,iwflg,igflg,iaflg,irflg,jkmn,jmmn,
-     #         ndim,itype,ipt,itm,itd,ipsi0,lband,kband,ldelta,
+      integer, save ::
+     #         itype,ipt,itm,itd,ipsi0,lband,kband,ldelta,
      #         kdelta,lptmx,kptmx,neltot,nelv,nelre,nelim,ncgstp
 
-      double precision, pointer, save :: fepr(:)
-      integer, pointer, save :: iepr(:)
 c
 c *** The following constants identify the position of many of the
 c     parameters within the fepr/iepr (and fparm/iparm) arrays.
