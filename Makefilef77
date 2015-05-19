@@ -6,15 +6,17 @@
 #
 ########################################################################
 
-.SUFFIXES:
-.SUFFIXES: .f .inc .o .c 
-.PRECIOUS: .f .inc .h .c
+#Suffixes are now replaced by pattern rules
+#.SUFFIXES: .f90 .f .inc .o .c 
+.PRECIOUS: .f90 .mod .f .inc .h .c
+.PHONY: all clean
 
 ########################################################################
 
-F77=gfortran
-UNAME := $(shell uname)
-$(info $$UNAME is [${UNAME}])
+RM = rm -f
+
+F77 = gfortran
+F90 = $(F77)
 ifneq (,$(findstring MINGW32_NT,$(UNAME)))
 OS := "windows"
 $(info in windows)
@@ -24,21 +26,24 @@ OS := "linux"
 $(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
 endif
-LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64
 
-#CC = gcc 
+#Note, compiler bug in gfortran<4.8: -mcmodel=medium causes spurious warnings
+#Message says, "Warning: ignoring incorrect section type for .lbss"
+
+CC = gcc
+CFLAGS = -c -O2 -DADD_UNDERSCORE
+
+FLINK = gfortran
+LIBS = -L/usr/X11R6/lib -lX11 -lc
+
 #LIBS = dfor.lib
-#LIBS2  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib 
+#LIBS  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib 
 
-# gcc on i386 Linux
- CC = gcc
 #F77 = g77
 #FFLAGS = -c -O9 -fomit-frame-pointer -ffast-math -malign-double\
 	-funroll-loops -march=i586
 #FFLAGS = -c -g
- CFLAGS = -c -O2 -DADD_UNDERSCORE
- FLINK = gfortran
- LIB = -L/usr/X11R6/lib
+
 ########################################################################
 
 #	
@@ -173,30 +178,68 @@ writr.o		: writr.f nlsdim.inc expdat.inc lmcom.inc parcom.inc stdio.inc\
 writec.o	: writec.f nlsdim.inc expdat.inc parcom.inc lmcom.inc mspctr.inc stdio.inc
 w3j.o		: w3j.f maxl.inc bincom.inc stdio.inc
 zaxpy.o 	: zaxpy.f nlsdim.inc rndoff.inc
-zaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
+qzaypx.o 	: zaypx.f nlsdim.inc rndoff.inc
 znormu.o	: znormu.f nlsdim.inc rndoff.inc
 zscsw.o		: zscsw.f nlsdim.inc rndoff.inc
 zdotu.o		: zdotu.f nlsdim.inc rndoff.inc
+nlsdim.o nlsdim.mod: nlsdim.f90
+parcom.o parcom.mod: parcom.f90 nlsdim.mod
+eprprm.o eprprm.mod: eprprm.f90 parcom.mod nlsdim.mod
+errmsg.o errmsg.mod: errmsg.f90
+lpnam.o lpnam.mod: lpnam.f90 nlsdim.mod
+expdat.o expdat.mod: expdat.f90 nlsdim.mod
+basis.o basis.mod: basis.f90 nlsdim.mod
+stdio.o stdio.mod: stdio.f90
+ipsfind.o: ipsfind.f90 nlsdim.mod parcom.mod eprprm.mod lpnam.mod expdat.mod basis.mod stdio.mod
+strutl1.o: strutl1.f90 stdio.mod
+strutl2.o: strutl2.f90
+maxl.o maxl.mod: maxl.f90
+bincom.o bincom.mod: bincom.f90 maxl.mod
+eprmat.o eprmat.mod: eprmat.f90 nlsdim.mod
+ftwork.o ftwork.mod: ftwork.f90 nlsdim.mod
+iterat.o iterat.mod: iterat.f90
+lmcom.o lmcom.mod: lmcom.f90 nlsdim.mod
+mspctr.o mspctr.mod: mspctr.f90 nlsdim.mod
+mtsdef.o mtsdef.mod: mtsdef.f90
+nlsnam.o nlsnam.mod: nlsnam.f90 nlsdim.mod stdio.mod
+parsav.o parsav.mod: parcom.f90 nlsdim.mod
+physcn.o physcn.mod: physcn.f90
+pidef.o pidef.mod: pidef.f90
+rnddbl.o rnddbl.mod: rnddbl.f90
+timer.o timer.mod: timer.f90
+tridag.o tridag.mod: tridag.f90 nlsdim.mod
+testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 
 #-----------------------------------------------------------------------
 #		Executable files
 #-----------------------------------------------------------------------
 
-ifeq ($(OS),"windows")
-nlsl.exe	: $(NLSO) 
-	$(FLINK) -o nlsl $(NLSO) 
-else
-nlsl	: $(NLSO) 
-	$(FLINK) -o $@ $(NLSO) $(LIB) -lX11 -lc
-endif
+nlsl: $(NLSO) 
+	$(FLINK) -o $@ $(NLSO) $(LIBS)
+
+clean:
+	$(RM) *.o *.mod nlsl testmods
+
+TESTS = testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
+EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o lmcom.o mspctr.o mtsdef.o nlsnam.o parsav.o physcn.o pidef.o rndoff.o timer.o tridag.o
+# no tests yet for $(EXTRAS)... compile them anyway
+
+testmods: $(TESTS) $(EXTRAS)
+	$(FLINK) -o $@ $(TESTS)
+
+testclean:
+	$(RM) $(TESTS) $(EXTRAS) *.mod testmods
 
 #-----------------------------------------------------------------------
 #			Default actions
 #-----------------------------------------------------------------------
 
-.c.o   :
+%.o : %.c
 	$(CC) $(CFLAGS) $*.c
 
-.f.o   :
+%.o : %.f
 	$(F77) $(FFLAGS) $*.f
 
+%.o %.mod : %.f90
+	rm -f $*.mod
+	$(F90) $(FFLAGS) -ffixed-form $*.f90
