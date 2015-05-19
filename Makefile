@@ -7,7 +7,6 @@
 ########################################################################
 
 #Suffixes are now replaced by pattern rules
-#.SUFFIXES: .f90 .f .inc .o .c 
 .PRECIOUS: .f90 .mod .f .inc .h .c
 .PHONY: all clean
 
@@ -17,6 +16,8 @@ RM = rm -f
 
 F77 = gfortran
 F90 = $(F77)
+UNAME := $(shell uname)
+$(info $$UNAME is [${UNAME}])
 ifneq (,$(findstring MINGW32_NT,$(UNAME)))
 OS := "windows"
 $(info in windows)
@@ -25,10 +26,9 @@ else
 OS := "linux"
 $(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
-endif
-
 #Note, compiler bug in gfortran<4.8: -mcmodel=medium causes spurious warnings
 #Message says, "Warning: ignoring incorrect section type for .lbss"
+endif
 
 CC = gcc
 CFLAGS = -c -O2 -DADD_UNDERSCORE
@@ -214,8 +214,13 @@ testmods.o: testmods.f90 nlsdim.mod parcom.mod eprprm.mod errmsg.mod lpnam.mod
 #		Executable files
 #-----------------------------------------------------------------------
 
+ifeq ($(OS),"windows")
+nlsl.exe: $(NLSO) 
+	$(FLINK) -o nlsl $(NLSO) 
+else
 nlsl: $(NLSO) 
 	$(FLINK) -o $@ $(NLSO) $(LIBS)
+endif
 
 clean:
 	$(RM) *.o *.mod nlsl testmods
