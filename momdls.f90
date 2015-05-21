@@ -47,7 +47,7 @@ c               eprls.f
 c
 c*********************************************************************
 c
-      subroutine momdls( fparmi,iparmi,isi,icalc,al,be,bss,iprune,
+      subroutine momdls( fparmi,iparmi,icalc,al,be,bss,iprune,
      #                   spectr,work,nft,ntotal,ierr )
 c
       use eprprm
@@ -86,18 +86,18 @@ c
 c
 c     ----------------------------------------------
 c     Load values from parameter array into /eprprm/
-c     *** This is now done by select_site(isi) ***
 c     ----------------------------------------------
 c
-      call select_site(isi)
+c     *** In the future this could be done by select_site(isi) ***
+c      call select_site(isi)
 c
-c      do i=1,NFPRM
-c         fepr(i)=fparmi(i)
-c      end do
-c
-c      do i=1,NIPRM
-c         iepr(i)=iparmi(i)
-c      end do
+      do i=1,NFPRM
+         fepr(i)=fparmi(i)
+      end do
+
+      do i=1,NIPRM
+         iepr(i)=iparmi(i)
+      end do
 c
       if (init) then
 c                                     *** Fatal error in parameters

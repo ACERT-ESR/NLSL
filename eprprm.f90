@@ -52,8 +52,8 @@ c
       use parcom
       implicit none
 c
-      double precision, pointer, save :: fepr(:)
-      integer, pointer, save :: iepr(:)
+      double precision, target, save :: fepr(NFPRM)
+      integer, target, save :: iepr(NIPRM)
 
       double precision, pointer, save :: phase,gib0,gib2,
      #         wxx,wyy,wzz,
@@ -116,87 +116,103 @@ c     The following extra constants conform to the typical pattern.
       integer, parameter :: IGAMMAN=IGAMAN,ISHIFTR=ISHIFT,
      #         IIDERIV=IIDERV
 c
-      integer, save :: current_site
+c      integer, save :: current_site
 
       contains
 
-      subroutine select_site(isite)
+c      subroutine select_site(isite)
+c      implicit none
+c
+c      Possible future subroutine...
+c      Instead of copying a column of fparm into fepr, or copying a
+c      column of iparm into iepr, it may be possible to make fepr
+c      and iepr into pointers to the heads of the relevant columns.
+c      Currently, though, fepr and iepr are treated as temp arrays
+c      whose values can change, so making them into pointers would
+c      have undesirable effects on global arrays fparm and iparm. 
+c
+c      integer :: isite
+c      current_site = isite
+c              ------------------------------------------------
+c              After call momdls, all eprprm parameters point
+c              to the current site via call select_site(isi)
+c              ------------------------------------------------
+c      fepr => fparm(:,isite)
+c      iepr => iparm(:,isite)
+c      end subroutine select_site
+
+      subroutine prm_ptr_init
       implicit none
-      integer :: isite
-	  
-      current_site = isite
-      fepr => fparm(:,isite)
-      iepr => iparm(:,isite)
 
-      phase => fparm(IPHASE,isite)
-      gib0 => fparm(IGIB0,isite)
-      gib2 => fparm(IGIB2,isite)
-      wxx => fparm(IWXX,isite)
-      wyy => fparm(IWYY,isite)
-      wzz => fparm(IWZZ,isite)
-      gxx => fparm(IGXX,isite)
-      gyy => fparm(IGYY,isite)
-      gzz => fparm(IGZZ,isite)
-      axx => fparm(IAXX,isite)
-      ayy => fparm(IAYY,isite)
-      azz => fparm(IAZZ,isite)
-      dx => fparm(IDX,isite)
-      dy => fparm(IDY,isite)
-      dz => fparm(IDZ,isite)
-      pml => fparm(IPML,isite)
-      pmxy => fparm(IPMXY,isite)
-      pmzz => fparm(IPMZZ,isite)
-      djf => fparm(IDJF,isite)
-      djfprp => fparm(IDJFPRP,isite)
-      oss => fparm(IOSS,isite)
-      psi => fparm(IPSI,isite)
-      ald => fparm(IALD,isite)
-      bed => fparm(IBED,isite)
-      gad => fparm(IGAD,isite)
-      alm => fparm(IALM,isite)
-      bem => fparm(IBEM,isite)
-      gam => fparm(IGAM,isite)
-      c20 => fparm(IC20,isite)
-      c22 => fparm(IC22,isite)
-      c40 => fparm(IC40,isite)
-      c42 => fparm(IC42,isite)
-      c44 => fparm(IC44,isite)
-      lb => fparm(ILB,isite)
-      dc20 => fparm(IDC20,isite)
-      b0 => fparm(IB0,isite)
-      gamman => fparm(IGAMMAN,isite)
-      cgtol => fparm(ICGTOL,isite)
-      shiftr => fparm(ISHIFTR,isite)
-      shifti => fparm(ISHIFTI,isite)
-      range => fparm(IRANGE,isite)
-      fldi  => fparm(IFLDI,isite)
-      dfld => fparm(IDFLD,isite)
+      phase => fepr(IPHASE)
+      gib0 => fepr(IGIB0)
+      gib2 => fepr(IGIB2)
+      wxx => fepr(IWXX)
+      wyy => fepr(IWYY)
+      wzz => fepr(IWZZ)
+      gxx => fepr(IGXX)
+      gyy => fepr(IGYY)
+      gzz => fepr(IGZZ)
+      axx => fepr(IAXX)
+      ayy => fepr(IAYY)
+      azz => fepr(IAZZ)
+      dx => fepr(IDX)
+      dy => fepr(IDY)
+      dz => fepr(IDZ)
+      pml => fepr(IPML)
+      pmxy => fepr(IPMXY)
+      pmzz => fepr(IPMZZ)
+      djf => fepr(IDJF)
+      djfprp => fepr(IDJFPRP)
+      oss => fepr(IOSS)
+      psi => fepr(IPSI)
+      ald => fepr(IALD)
+      bed => fepr(IBED)
+      gad => fepr(IGAD)
+      alm => fepr(IALM)
+      bem => fepr(IBEM)
+      gam => fepr(IGAM)
+      c20 => fepr(IC20)
+      c22 => fepr(IC22)
+      c40 => fepr(IC40)
+      c42 => fepr(IC42)
+      c44 => fepr(IC44)
+      lb => fepr(ILB)
+      dc20 => fepr(IDC20)
+      b0 => fepr(IB0)
+      gamman => fepr(IGAMMAN)
+      cgtol => fepr(ICGTOL)
+      shiftr => fepr(ISHIFTR)
+      shifti => fepr(ISHIFTI)
+      range => fepr(IRANGE)
+      fldi  => fepr(IFLDI)
+      dfld => fepr(IDFLD)
 
-      in2 => iparm(IIN2,isite)
-      ipdf => iparm(IIPDF,isite)
-      ist => iparm(IIST,isite)
-      ml => iparm(IML,isite)
-      mxy => iparm(IMXY,isite)
-      mzz => iparm(IMZZ,isite)
-      lemx => iparm(ILEMX,isite)
-      lomx => iparm(ILOMX,isite)
-      kmn => iparm(IKMN,isite)
-      kmx => iparm(IKMX,isite)
-      mmn => iparm(IMMN,isite)
-      mmx => iparm(IMMX,isite)
-      ipnmx => iparm(IIPNMX,isite)
-      nort => iparm(INORT,isite)
-      nstep => iparm(INSTEP,isite)
-      nfld => iparm(INFLD,isite)
-      ideriv => iparm(IIDERV,isite)
-      iwflg => iparm(IIWFLG,isite)
-      igflg => iparm(IIGFLG,isite)
-      iaflg => iparm(IIAFLG,isite)
-      irflg => iparm(IIRFLG,isite)
-      jkmn => iparm(IJKMN,isite)
-      jmmn => iparm(IJMMN,isite)
-      ndim => iparm(INDIM,isite)
+      in2 => iepr(IIN2)
+      ipdf => iepr(IIPDF)
+      ist => iepr(IIST)
+      ml => iepr(IML)
+      mxy => iepr(IMXY)
+      mzz => iepr(IMZZ)
+      lemx => iepr(ILEMX)
+      lomx => iepr(ILOMX)
+      kmn => iepr(IKMN)
+      kmx => iepr(IKMX)
+      mmn => iepr(IMMN)
+      mmx => iepr(IMMX)
+      ipnmx => iepr(IIPNMX)
+      nort => iepr(INORT)
+      nstep => iepr(INSTEP)
+      nfld => iepr(INFLD)
+      ideriv => iepr(IIDERV)
+      iwflg => iepr(IIWFLG)
+      igflg => iepr(IIGFLG)
+      iaflg => iepr(IIAFLG)
+      irflg => iepr(IIRFLG)
+      jkmn => iepr(IJKMN)
+      jmmn => iepr(IJMMN)
+      ndim => iepr(INDIM)
 
-      end subroutine select_site
+      end subroutine prm_ptr_init
 	  
       end module eprprm

@@ -222,11 +222,7 @@ c              ---------------------------------
 c              Calculate an individual spectrum
 c              ---------------------------------
 c
-c              ------------------------------------------------
-c              After momdls, all eprprm parameters will point
-c              to the current site through select_site(isi)
-c              ------------------------------------------------
-               call momdls( fparm(1,isi),iparm(1,isi),isi,icalc,
+               call momdls( fparm(1,isi),iparm(1,isi),icalc,
      #              alpha(ixt),beta(ixt),ibasis(1,ixbp),ixb,
      #              spectr(ixs,isi),wspec,nft(ise),ltd(isi,ise),
      #              ierr )
@@ -274,13 +270,9 @@ c
                           ixbp=1
                         endif
 c
-c                       ------------------------------------------------
-c                        After momdls, all eprprm parameters will point
-c                        to the current site through select_site(isi)
-c                       ------------------------------------------------
-                        call momdls( fparm(1,isi),iparm(1,isi),isi,
-     #                       icalc,alpha(ixt),beta(ixt),ibasis(1,ixbp),
-     #                       ixb,spectr(ixs,isi),wspec,nft(ise),
+                        call momdls( fparm(1,isi),iparm(1,isi),icalc,
+     #                       alpha(ixt),beta(ixt),ibasis(1,ixbp),ixb,
+     #                       spectr(ixs,isi),wspec,nft(ise),
      #                       ltd(isi,ise),ierr )
 c
                         if (hltchk(ierr,isi,ise,iflag)) return
@@ -469,11 +461,7 @@ c
                        ixbp=1
                      endif
 c
-c                    ------------------------------------------------
-c                     After momdls, all eprprm parameters will point
-c                     to the current site through select_site(isi)
-c                    ------------------------------------------------
-                     call momdls( fparm(1,isi),iparm(1,isi),isi,icalc,
+                     call momdls( fparm(1,isi),iparm(1,isi),icalc,
      #                    alpha(ixt),beta(ixt),ibasis(1,ixbp),ixb,
      #                    work,wspec,nft(isp),ltd(isi,isp),ierr )
 c

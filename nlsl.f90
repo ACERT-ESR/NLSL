@@ -442,6 +442,12 @@ c
             sfac(j,i)=1.0d0
          end do
 c
+c----------------------------------------------------------
+c     Initialize pointers to serve as meaningful aliases
+c     for the various parameters stored in lengthy arrays
+c----------------------------------------------------------
+      call prm_ptr_init
+c
 c--------------------------------------------------
 c  Put in defaults for often-forgotten parameters
 c--------------------------------------------------
