@@ -61,6 +61,7 @@ c
 c Check for ^C during command input from indirect files.
 c If detected, close all files and return to tty mode
 c
+c The following line is the start of the main loop
  25   if (hltcmd.ne.0 .and. nfiles.gt.0) then
          do 26 i=1,nfiles
             close(ludisk+i)
