@@ -1,83 +1,25 @@
 c Version 1.5.1b 11/6/95
-c----------------------------------------------------------------------
-c                  =========================
-c                        program NLSL
-c                  =========================
-c
-c     Main program for a nonlinear least-squares fit using an 
-c     EPRLL-family slow-motional calculation. The options in running
-c     this program are too numerous to detail here. Read the manual...
-c     or better yet, wait until the movie comes  out.  DB 
-c
-c     Updated by DC and DEB to include graphical interface by
-c     calls in this program, subroutine GETDAT, and subroutine LFUN.
-c
-c
-c     Modules needed:      Additional modules needed by NLSINIT:
-c        nlsdim.mod           basis.mod
-c        nlsnam.mod           iterat.mod
-c        eprprm.mod           mspct.mod
-c        expdat.mod           tridag.mod
-c        lmcom.mod
-c        parcom.mod
-c        symdef.mod
-c        stdio.mod
-c
-c######################################################################
-c
-      program nlsl
-c
-      use nlsdim
-      use nlsnam
-      use eprprm
-      use expdat
-      use lmcom
-      use parcom
-      use symdef
+      subroutine procline(line)
+c> @brief
+c>  processes the command line for the main nlsl program
+c> @details
+c>  it's separated out to facilitate wrapping with python
+c>
+c>
+c>
       use stdio
-c
+      use nlsnam
+      use symdef
       implicit none
-c
-      integer i,iflg,ioerr,j,lth
+      character(80), intent(in) :: line
+      character fileID*30,token*30,scratch*30
       logical fexist
-      character line*80,token*30,scratch*30,fileID*30,chr1*1
-c
-      logical getlin
-      external getlin
-c
-      write (luttyo,1000)
-      write (luttyo,1010)
-c
-c    ----------------------
-c    Initialize NLS system
-c    ----------------------
-c
-      call nlsinit
-c
-c----------------------------------------------------------------------
-c     Get next command from input stream (skip comments)
-c----------------------------------------------------------------------
-c
-c Check for ^C during command input from indirect files.
-c If detected, close all files and return to tty mode
-c
-c The following line is the start of the main loop
- 25   if (hltcmd.ne.0 .and. nfiles.gt.0) then
-         do 26 i=1,nfiles
-            close(ludisk+i)
- 26      continue
-         nfiles=0
-         lucmd=luttyi
-         call uncatchc( hltcmd )
-      end if
-c
-      if (getlin(line)) then
-c
+      integer ioerr,lth
 c######################################################################
 c
          call gettkn(line,token,lth)
          call touppr(token,lth)
-         if (lth.eq.0 .or. token.eq.'C' .or. token.eq.'/*') go to 25
+         if (lth.eq.0 .or. token.eq.'C' .or. token.eq.'/*') return
 c
 c----------------------------------------------------------------------
          if (token.eq.'ASSIGN') then
@@ -211,7 +153,8 @@ c----------------------------------------------------------------------
 c           QUIT command (alias EXIT)
 c----------------------------------------------------------------------
          else if (token.eq.'QUIT'.or.token.eq.'EXIT') then
-            goto 9999
+             exitprog = .true.
+             return
 c
 c----------------------------------------------------------------------
 c           READ command (alias CALL)
@@ -327,6 +270,90 @@ c----------------------------------------------------------------------
             write(luttyo,1040) token(:lth)
          end if
 c
+c## format statements ###############################################
+c
+ 1020 format('*** File name must be specified ***'/)
+ 1021 format('*** Log file is not open ***')
+ 1022 format('*** Error',i3,' opening file ',a,' ***')
+ 1030 format('*** Error opening or reading file ''',a,''' ***'/)
+ 1040 format('*** Unknown command : ''',a,''' ***')
+ 1050 format('*** Cannot open ''',a,''': more than',i2,
+     #       ' read files ***')
+ 1060 format(a)
+      end
+c----------------------------------------------------------------------
+c                  =========================
+c                        program NLSL
+c                  =========================
+c
+c     Main program for a nonlinear least-squares fit using an 
+c     EPRLL-family slow-motional calculation. The options in running
+c     this program are too numerous to detail here. Read the manual...
+c     or better yet, wait until the movie comes  out.  DB 
+c
+c     Updated by DC and DEB to include graphical interface by
+c     calls in this program, subroutine GETDAT, and subroutine LFUN.
+c
+c
+c     Modules needed:      Additional modules needed by NLSINIT:
+c        nlsdim.mod           basis.mod
+c        nlsnam.mod           iterat.mod
+c        eprprm.mod           mspct.mod
+c        expdat.mod           tridag.mod
+c        lmcom.mod
+c        parcom.mod
+c        symdef.mod
+c        stdio.mod
+c
+c######################################################################
+c
+      program nlsl
+c
+      use nlsdim
+      use nlsnam
+      use eprprm
+      use expdat
+      use lmcom
+      use parcom
+      use symdef
+      use stdio
+c
+      implicit none
+c
+      integer i,j
+      character line*80
+c
+      logical getlin
+      external getlin
+c
+      write (luttyo,1000)
+      write (luttyo,1010)
+c
+c    ----------------------
+c    Initialize NLS system
+c    ----------------------
+c
+      call nlsinit
+c
+c----------------------------------------------------------------------
+c     Get next command from input stream (skip comments)
+c----------------------------------------------------------------------
+c
+c Check for ^C during command input from indirect files.
+c If detected, close all files and return to tty mode
+c
+c The following line is the start of the main loop
+ 25   if (hltcmd.ne.0 .and. nfiles.gt.0) then
+         do 26 i=1,nfiles
+            close(ludisk+i)
+ 26      continue
+         nfiles=0
+         lucmd=luttyi
+         call uncatchc( hltcmd )
+      end if
+c
+      if (getlin(line)) then
+          call procline(line)
 c----------------------------------------------------------------------
 c    No more lines (getlin returned .false.)
 c    Close current input unit; if there are no open files, stop program
@@ -353,7 +380,6 @@ c----------------------------------------------------------------------
 c       Exit program
 c----------------------------------------------------------------------
 c
- 9999 continue
 c
 c
 c     -----------------------------------
@@ -371,14 +397,6 @@ c
      #26x,'Mod 05/18/96'/
      #15x,'Recompiled by Zhichun Liang, 12/13/07'/
      #25x,'---------------',//)
- 1020 format('*** File name must be specified ***'/)
- 1021 format('*** Log file is not open ***')
- 1022 format('*** Error',i3,' opening file ',a,' ***')
- 1030 format('*** Error opening or reading file ''',a,''' ***'/)
- 1040 format('*** Unknown command : ''',a,''' ***')
- 1050 format('*** Cannot open ''',a,''': more than',i2,
-     #       ' read files ***')
- 1060 format(a)
       end
 
 
@@ -414,6 +432,7 @@ c
 c----------------------------------------------------------------------
 c    Initializations
 c----------------------------------------------------------------------
+      exitprog=.false.
       nfiles=0
       lucmd=luttyi
       luout=luttyo

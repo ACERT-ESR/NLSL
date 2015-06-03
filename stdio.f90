@@ -11,6 +11,7 @@ c                       luttyo : logical unit for terminal output
 c                       lulog  : logical unit for log file
 c                       lutrc  : logical unit for trace file
 c                       ludisk : logical unit for other disk files
+c                       exitprog : flag to exit the program
 c                       
 c                       NOTE: The units that will be used for additional
 c                       disk input depend on the mxfile parameter defined
@@ -30,6 +31,6 @@ c
      #                      lutrc=7, ludisk=8
 c
       integer, save :: lucmd, luecho, luout, hltcmd, hltfit, itrace
-      logical, save :: warn
+      logical, save :: warn, exitprog
 c
       end module stdio
