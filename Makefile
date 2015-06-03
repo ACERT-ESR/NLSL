@@ -94,13 +94,14 @@ endif
 
 ifeq ($(OS),"windows")
 all : nlsl.exe
-clean :
-#	del *.o nlsl.exe
-	rm *.o nlsl.exe
+clean:
+	echo "running clean for windows"
+	$(RM) *.o *.mod nlsl.exe
 else
 all             : nlsl
 clean           :
-			rm -f *.o nlsl
+	echo "running clean for linux"
+	$(RM) *.o *.mod nlsl
 endif
 addprm.o	: addprm.f90 nlsdim.mod eprprm.mod expdat.mod parcom.mod lpnam.mod\
                   lmcom.mod stdio.mod rnddbl.mod
@@ -219,8 +220,6 @@ nlsl: $(NLSO)
 	$(FLINK) -o $@ $(NLSO) $(LIBS)
 endif
 
-clean:
-	$(RM) *.o *.mod nlsl testmods
 
 TESTS = testmods.o eprprm.o parcom.o nlsdim.o errmsg.o lpnam.o ipsfind.o expdat.o basis.o strutl2.o
 EXTRAS = strutl1.o symdef.o maxl.o bincom.o dfunc.o eprmat.o ftwork.o iterat.o lmcom.o mspctr.o mtsdef.o nlsnam.o parsav.o physcn.o pidef.o rnddbl.o timer.o tridag.o
