@@ -1,8 +1,13 @@
 *.o
 *.mod
+.*.swp
+*.egg-info/
+*.pyd
+build/
 test_result.png
 c16pc371e.log
 c16pc371e.spc
 nlsl.exe
 BL05CHSA.log
 BL05CHSA.spc
+pynlslmodule.c

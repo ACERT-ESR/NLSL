@@ -1,0 +1,298 @@
+running develop
+running build_scripts
+running egg_info
+running build_src
+build_src
+building extension "pynlsl" sources
+f2py options: []
+f2py: pynlsl.pyf
+Reading fortran codes...
+	Reading file 'pynlsl.pyf' (format:free)
+Post-processing...
+	Block: pynlsl
+			Block: procline
+In: pynlsl.pyf:pynlsl:unknown_interface:procline
+get_useparameters: no module nlsnam info used by procline
+In: pynlsl.pyf:pynlsl:unknown_interface:procline
+get_useparameters: no module stdio info used by procline
+In: pynlsl.pyf:pynlsl:unknown_interface:procline
+get_useparameters: no module symdef info used by procline
+			Block: nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module expdat info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module eprprm info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module parcom info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module basis info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module stdio info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module iterat info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module tridag info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module mspctr info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module nlsnam info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module lmcom info used by nlsinit
+In: pynlsl.pyf:pynlsl:unknown_interface:nlsinit
+get_useparameters: no module nlsdim info used by nlsinit
+Post-processing (stage 2)...
+Building modules...
+	Building module "pynlsl"...
+		Constructing wrapper function "procline"...
+		  procline(line)
+		Constructing wrapper function "nlsinit"...
+		  nlsinit()
+	Wrote C/API module "pynlsl" to file ".\pynlslmodule.c"
+  adding 'build\src.win32-2.7\fortranobject.c' to sources.
+  adding 'build\src.win32-2.7' to include_dirs.
+ - nothing done with h_files = ['fortrancall.h']
+build_src: building npy-pkg config files
+writing requirements to NLSL.egg-info\requires.txt
+writing NLSL.egg-info\PKG-INFO
+writing top-level names to NLSL.egg-info\top_level.txt
+writing dependency_links to NLSL.egg-info\dependency_links.txt
+package init file 'nlsl\__init__.py' not found (or not a regular file)
+reading manifest file 'NLSL.egg-info\SOURCES.txt'
+writing manifest file 'NLSL.egg-info\SOURCES.txt'
+running build_ext
+Cannot build msvcr library: "msvcr90d.dll" not found
+customize Mingw32CCompiler
+customize Mingw32CCompiler using build_ext
+customize GnuFCompiler
+Could not locate executable g77
+Could not locate executable f77
+customize IntelVisualFCompiler
+Could not locate executable ifort
+Could not locate executable ifl
+customize AbsoftFCompiler
+Could not locate executable f90
+customize CompaqVisualFCompiler
+Could not locate executable DF
+customize IntelItaniumVisualFCompiler
+Could not locate executable efl
+customize Gnu95FCompiler
+Found executable c:\MinGW32-xy\bin\gfortran.exe
+Found executable c:\MinGW32-xy\bin\gfortran.exe
+customize Gnu95FCompiler
+customize Gnu95FCompiler using build_ext
+building 'pynlsl' extension
+compiling C sources
+C compiler: gcc -O2 -Wall -Wstrict-prototypes
+
+compile options: '-DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c'
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c lprmpt.c -o build\temp.win32-2.7\Release\lprmpt.o
+Found executable c:\MinGW32-xy\bin\gcc.exe
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c catch.c -o build\temp.win32-2.7\Release\catch.o
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c pltx_dummy.c -o build\temp.win32-2.7\Release\pltx_dummy.o
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c genio.c -o build\temp.win32-2.7\Release\genio.o
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c pynlslmodule.c -o build\temp.win32-2.7\Release\pynlslmodule.o
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c nlslmodule.c -o build\temp.win32-2.7\Release\nlslmodule.o
+gcc -O2 -Wall -Wstrict-prototypes -DADD_UNDERSCORE -DNPY_MINGW_USE_CUSTOM_MSVCR -D__MSVCRT_VERSION__=0x0900 -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c build\src.win32-2.7\fortranobject.c -o build\temp.win32-2.7\Release\build\src.win32-2.7\fortranobject.o
+compiling Fortran 90 module sources
+Fortran f77 compiler: c:\MinGW32-xy\bin\gfortran.exe -Wall -ffixed-form -fno-second-underscore -O3 -funroll-loops
+Fortran f90 compiler: c:\MinGW32-xy\bin\gfortran.exe -Wall -fno-second-underscore -O3 -funroll-loops
+Fortran fix compiler: c:\MinGW32-xy\bin\gfortran.exe -Wall -ffixed-form -fno-second-underscore -Wall -fno-second-underscore -O3 -funroll-loops
+compile options: '-DADD_UNDERSCORE -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c'
+extra options: '-Jbuild\temp.win32-2.7\Release\ -Ibuild\temp.win32-2.7\Release\'
+gfortran.exe:fix: basis.f90
+gfortran.exe:fix: bincom.f90
+gfortran.exe:fix: dfunc.f90
+gfortran.exe:fix: eprmat.f90
+gfortran.exe:fix: eprprm.f90
+gfortran.exe:fix: errmsg.f90
+gfortran.exe:fix: expdat.f90
+gfortran.exe:fix: ftwork.f90
+gfortran.exe:fix: iterat.f90
+gfortran.exe:fix: lmcom.f90
+gfortran.exe:fix: lpnam.f90
+gfortran.exe:fix: maxl.f90
+gfortran.exe:fix: mspctr.f90
+gfortran.exe:fix: mtsdef.f90
+gfortran.exe:fix: nlsdim.f90
+gfortran.exe:fix: nlsnam.f90
+gfortran.exe:fix: parcom.f90
+gfortran.exe:fix: parsav.f90
+gfortran.exe:fix: physcn.f90
+gfortran.exe:fix: pidef.f90
+gfortran.exe:fix: rnddbl.f90
+gfortran.exe:fix: stdio.f90
+gfortran.exe:fix: symdef.f90
+gfortran.exe:fix: timer.f90
+gfortran.exe:fix: tridag.f90
+compiling Fortran sources
+Fortran f77 compiler: c:\MinGW32-xy\bin\gfortran.exe -Wall -ffixed-form -fno-second-underscore -O3 -funroll-loops
+Fortran f90 compiler: c:\MinGW32-xy\bin\gfortran.exe -Wall -fno-second-underscore -O3 -funroll-loops
+Fortran fix compiler: c:\MinGW32-xy\bin\gfortran.exe -Wall -ffixed-form -fno-second-underscore -Wall -fno-second-underscore -O3 -funroll-loops
+compile options: '-DADD_UNDERSCORE -Ibuild\src.win32-2.7 -Ic:\Python27\lib\site-packages\numpy\core\include -Ic:\Python27\include -Ic:\Python27\PC -c'
+extra options: '-Jbuild\temp.win32-2.7\Release\ -Ibuild\temp.win32-2.7\Release\'
+gfortran.exe:fix: addprm.f90
+gfortran.exe:fix: anxlk.f90
+gfortran.exe:fix: assgnc.f90
+gfortran.exe:fix: basisc.f90
+gfortran.exe:fix: bessel.f90
+gfortran.exe:fix: brent.f90
+gfortran.exe:fix: caldlm.f90
+gfortran.exe:fix: ccrints.f90
+gfortran.exe:fix: cd2km.f90
+gfortran.exe:fix: cfs.f90
+gfortran.exe:fix: cgltri.f90
+gfortran.exe:fix: confc.f90
+gfortran.exe:fix: convtc.f90
+gfortran.exe:fix: correl.f90
+gfortran.exe:fix: covar.f90
+gfortran.exe:fix: covrpt.f90
+gfortran.exe:fix: cscg.f90
+gfortran.exe:fix: datac.f90
+gfortran.exe:fix: daxpy.f90
+gfortran.exe:fix: dchex.f90
+gfortran.exe:fix: dcopy.f90
+gfortran.exe:fix: ddot.f90
+gfortran.exe:fix: drotg.f90
+gfortran.exe:fix: enorm.f90
+gfortran.exe:fix: eprls.f90
+gfortran.exe:fix: fitc.f90
+gfortran.exe:fix: fitl.f90
+gfortran.exe:fix: fixc.f90
+gfortran.exe:fix: fmomnt.f90
+gfortran.exe:fix: ftfuns.f90
+gfortran.exe:fix: fz.f90
+gfortran.exe:fix: gconvl.f90
+gfortran.exe:fix: getdat.f90
+gfortran.exe:fix: helpc.f90
+gfortran.exe:fix: ipar.f90
+gfortran.exe:fix: ipsfind.f90
+gfortran.exe:fix: l1pfun.f90
+gfortran.exe:fix: lbasix.f90
+gfortran.exe:fix: lcheck.f90
+gfortran.exe:fix: letc.f90
+gfortran.exe:fix: lfun.f90
+gfortran.exe:fix: lgrint.f90
+gfortran.exe:fix: lmnls.f90
+gfortran.exe:fix: lmpar.f90
+gfortran.exe:fix: matrll.f90
+gfortran.exe:fix: mnbrak.f90
+gfortran.exe:fix: momdls.f90
+gfortran.exe:fix: nlsl.f90
+gfortran.exe:fix: ordrpr.f90
+gfortran.exe:fix: parc.f90
+gfortran.exe:fix: plgndr.f90
+gfortran.exe:fix: pmatrl.f90
+gfortran.exe:fix: pstvec.f90
+gfortran.exe:fix: qrfac.f90
+gfortran.exe:fix: qrsolv.f90
+gfortran.exe:fix: qrutil.f90
+gfortran.exe:fix: rmvprm.f90
+gfortran.exe:fix: scalec.f90
+gfortran.exe:fix: scmvm.f90
+gfortran.exe:fix: series.f90
+gfortran.exe:fix: setmts.f90
+gfortran.exe:fix: setnm.f90
+gfortran.exe:fix: setprm.f90
+gfortran.exe:fix: setspc.f90
+gfortran.exe:fix: shiftc.f90
+gfortran.exe:fix: sitec.f90
+gfortran.exe:fix: srchc.f90
+gfortran.exe:fix: sscale.f90
+gfortran.exe:fix: sshift.f90
+gfortran.exe:fix: statc.f90
+gfortran.exe:fix: stats.f90
+gfortran.exe:fix: strutl1.f90
+gfortran.exe:fix: strutl2.f90
+gfortran.exe:fix: stvect.f90
+gfortran.exe:fix: tdchek.f90
+gfortran.exe:fix: tdsqz.f90
+gfortran.exe:fix: tensym.f90
+gfortran.exe:fix: varyc.f90
+gfortran.exe:fix: w3j.f90
+gfortran.exe:fix: writec.f90
+gfortran.exe:fix: writr.f90
+gfortran.exe:fix: zaxpy.f90
+gfortran.exe:fix: zaypx.f90
+gfortran.exe:fix: zdotu.f90
+c:\MinGW32-xy\bin\gfortran.exe -Wall -Wall -shared build\temp.win32-2.7\Release\pynlslmodule.o build\temp.win32-2.7\Release\catch.o build\temp.win32-2.7\Release\genio.o build\temp.win32-2.7\Release\lprmpt.o build\temp.win32-2.7\Release\nlslmodule.o build\temp.win32-2.7\Release\pltx_dummy.o build\temp.win32-2.7\Release\build\src.win32-2.7\fortranobject.o build\temp.win32-2.7\Release\basis.o build\temp.win32-2.7\Release\bincom.o build\temp.win32-2.7\Release\dfunc.o build\temp.win32-2.7\Release\eprmat.o build\temp.win32-2.7\Release\eprprm.o build\temp.win32-2.7\Release\errmsg.o build\temp.win32-2.7\Release\expdat.o build\temp.win32-2.7\Release\ftwork.o build\temp.win32-2.7\Release\iterat.o build\temp.win32-2.7\Release\lmcom.o build\temp.win32-2.7\Release\lpnam.o build\temp.win32-2.7\Release\maxl.o build\temp.win32-2.7\Release\mspctr.o build\temp.win32-2.7\Release\mtsdef.o build\temp.win32-2.7\Release\nlsdim.o build\temp.win32-2.7\Release\nlsnam.o build\temp.win32-2.7\Release\parcom.o build\temp.win32-2.7\Release\parsav.o build\temp.win32-2.7\Release\physcn.o build\temp.win32-2.7\Release\pidef.o build\temp.win32-2.7\Release\rnddbl.o build\temp.win32-2.7\Release\stdio.o build\temp.win32-2.7\Release\symdef.o build\temp.win32-2.7\Release\timer.o build\temp.win32-2.7\Release\tridag.o build\temp.win32-2.7\Release\addprm.o build\temp.win32-2.7\Release\anxlk.o build\temp.win32-2.7\Release\assgnc.o build\temp.win32-2.7\Release\basisc.o build\temp.win32-2.7\Release\bessel.o build\temp.win32-2.7\Release\brent.o build\temp.win32-2.7\Release\caldlm.o build\temp.win32-2.7\Release\ccrints.o build\temp.win32-2.7\Release\cd2km.o build\temp.win32-2.7\Release\cfs.o build\temp.win32-2.7\Release\cgltri.o build\temp.win32-2.7\Release\confc.o build\temp.win32-2.7\Release\convtc.o build\temp.win32-2.7\Release\correl.o build\temp.win32-2.7\Release\covar.o build\temp.win32-2.7\Release\covrpt.o build\temp.win32-2.7\Release\cscg.o build\temp.win32-2.7\Release\datac.o build\temp.win32-2.7\Release\daxpy.o build\temp.win32-2.7\Release\dchex.o build\temp.win32-2.7\Release\dcopy.o build\temp.win32-2.7\Release\ddot.o build\temp.win32-2.7\Release\drotg.o build\temp.win32-2.7\Release\enorm.o build\temp.win32-2.7\Release\eprls.o build\temp.win32-2.7\Release\fitc.o build\temp.win32-2.7\Release\fitl.o build\temp.win32-2.7\Release\fixc.o build\temp.win32-2.7\Release\fmomnt.o build\temp.win32-2.7\Release\ftfuns.o build\temp.win32-2.7\Release\fz.o build\temp.win32-2.7\Release\gconvl.o build\temp.win32-2.7\Release\getdat.o build\temp.win32-2.7\Release\helpc.o build\temp.win32-2.7\Release\ipar.o build\temp.win32-2.7\Release\ipsfind.o build\temp.win32-2.7\Release\l1pfun.o build\temp.win32-2.7\Release\lbasix.o build\temp.win32-2.7\Release\lcheck.o build\temp.win32-2.7\Release\letc.o build\temp.win32-2.7\Release\lfun.o build\temp.win32-2.7\Release\lgrint.o build\temp.win32-2.7\Release\lmnls.o build\temp.win32-2.7\Release\lmpar.o build\temp.win32-2.7\Release\matrll.o build\temp.win32-2.7\Release\mnbrak.o build\temp.win32-2.7\Release\momdls.o build\temp.win32-2.7\Release\nlsl.o build\temp.win32-2.7\Release\ordrpr.o build\temp.win32-2.7\Release\parc.o build\temp.win32-2.7\Release\plgndr.o build\temp.win32-2.7\Release\pmatrl.o build\temp.win32-2.7\Release\pstvec.o build\temp.win32-2.7\Release\qrfac.o build\temp.win32-2.7\Release\qrsolv.o build\temp.win32-2.7\Release\qrutil.o build\temp.win32-2.7\Release\rmvprm.o build\temp.win32-2.7\Release\scalec.o build\temp.win32-2.7\Release\scmvm.o build\temp.win32-2.7\Release\series.o build\temp.win32-2.7\Release\setmts.o build\temp.win32-2.7\Release\setnm.o build\temp.win32-2.7\Release\setprm.o build\temp.win32-2.7\Release\setspc.o build\temp.win32-2.7\Release\shiftc.o build\temp.win32-2.7\Release\sitec.o build\temp.win32-2.7\Release\srchc.o build\temp.win32-2.7\Release\sscale.o build\temp.win32-2.7\Release\sshift.o build\temp.win32-2.7\Release\statc.o build\temp.win32-2.7\Release\stats.o build\temp.win32-2.7\Release\strutl1.o build\temp.win32-2.7\Release\strutl2.o build\temp.win32-2.7\Release\stvect.o build\temp.win32-2.7\Release\tdchek.o build\temp.win32-2.7\Release\tdsqz.o build\temp.win32-2.7\Release\tensym.o build\temp.win32-2.7\Release\varyc.o build\temp.win32-2.7\Release\w3j.o build\temp.win32-2.7\Release\writec.o build\temp.win32-2.7\Release\writr.o build\temp.win32-2.7\Release\zaxpy.o build\temp.win32-2.7\Release\zaypx.o build\temp.win32-2.7\Release\zdotu.o -Lc:\mingw32-xy\lib\gcc\mingw32\4.8.1 -Lc:\Python27\libs -Lc:\Python27\PCbuild -lpython27 -lgfortran -o pynlsl.pyd
+Creating c:\python27\lib\site-packages\NLSL.egg-link (link to .)
+Adding NLSL 0.1.0 to easy-install.pth file
+
+Installed c:\users\franck\nlsl_f90
+Processing dependencies for NLSL==0.1.0
+Searching for tables==3.1.1
+Best match: tables 3.1.1
+Adding tables 3.1.1 to easy-install.pth file
+Installing ptdump-script.py script to c:\Python27\Scripts
+Installing ptdump.exe script to c:\Python27\Scripts
+Installing ptdump.exe.manifest script to c:\Python27\Scripts
+Installing ptrepack-script.py script to c:\Python27\Scripts
+Installing ptrepack.exe script to c:\Python27\Scripts
+Installing ptrepack.exe.manifest script to c:\Python27\Scripts
+Installing pt2to3-script.py script to c:\Python27\Scripts
+Installing pt2to3.exe script to c:\Python27\Scripts
+Installing pt2to3.exe.manifest script to c:\Python27\Scripts
+
+Using c:\python27\lib\site-packages
+Searching for matplotlib==1.3.1
+Best match: matplotlib 1.3.1
+Adding matplotlib 1.3.1 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for scipy==0.14.0
+Best match: scipy 0.14.0
+Adding scipy 0.14.0 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for numpy==1.8.1
+Best match: numpy 1.8.1
+Adding numpy 1.8.1 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for sympy==0.7.5
+Best match: sympy 0.7.5
+Adding sympy 0.7.5 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for numexpr==2.4
+Best match: numexpr 2.4
+Adding numexpr 2.4 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for nose==1.3.3
+Best match: nose 1.3.3
+Adding nose 1.3.3 to easy-install.pth file
+Installing nosetests-script.py script to c:\Python27\Scripts
+Installing nosetests.exe script to c:\Python27\Scripts
+Installing nosetests.exe.manifest script to c:\Python27\Scripts
+Installing nosetests-2.7-script.py script to c:\Python27\Scripts
+Installing nosetests-2.7.exe script to c:\Python27\Scripts
+Installing nosetests-2.7.exe.manifest script to c:\Python27\Scripts
+
+Using c:\python27\lib\site-packages
+Searching for pyparsing==2.0.2
+Best match: pyparsing 2.0.2
+Adding pyparsing 2.0.2 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for tornado==3.2.1
+Best match: tornado 3.2.1
+Adding tornado 3.2.1 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for python-dateutil==2.2
+Best match: python-dateutil 2.2
+Adding python-dateutil 2.2 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for backports.ssl-match-hostname==3.4.0.2
+Best match: backports.ssl-match-hostname 3.4.0.2
+Adding backports.ssl-match-hostname 3.4.0.2 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Searching for six==1.6.1
+Best match: six 1.6.1
+Adding six 1.6.1 to easy-install.pth file
+
+Using c:\python27\lib\site-packages
+Finished processing dependencies for NLSL==0.1.0

@@ -38,9 +38,10 @@ c
       logical snglclc,convrg
 c
       integer getdat,itrim
-      real dtime
+c      real dtime
       double precision enorm,corrl,residx,wtdres
-      external getdat,lfun,enorm,dtime,itrim,corrl,residx,wtdres
+      external getdat,lfun,enorm,itrim,corrl,residx,wtdres
+c      external dtime
 c
 c######################################################################
 c

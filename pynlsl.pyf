@@ -1,0 +1,29 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module pynlsl ! in 
+    interface  ! in :pynlsl
+        subroutine procline(line) ! in :pynlsl:nlsl.f90
+            use nlsnam
+            use stdio
+            use symdef
+            character*80 intent(in) :: line
+        end subroutine procline
+        subroutine nlsinit ! in :pynlsl:nlsl.f90
+            use expdat
+            use eprprm
+            use parcom
+            use basis
+            use stdio
+            use iterat
+            use tridag
+            use mspctr
+            use nlsnam
+            use lmcom
+            use nlsdim
+        end subroutine nlsinit
+    end interface 
+end python module pynlsl
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/
