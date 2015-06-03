@@ -1,0 +1,393 @@
+\hypertarget{stats_8f90}{}\section{stats.\+f90 File Reference}
+\label{stats_8f90}\index{stats.\+f90@{stats.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+double precision function \hyperlink{stats_8f90_a163216734875a714f7f08db24b55d9e0}{chi} (p, nu)
+\item 
+double precision function \hyperlink{stats_8f90_a4a894a5b3901db9276f92820dab3c899}{pchi} (\hyperlink{stats_8f90_a163216734875a714f7f08db24b55d9e0}{chi})
+\item 
+double precision function \hyperlink{stats_8f90_a8d3f75cdf730a509d1baea48869e8bbc}{residx} ()
+\item 
+double precision function \hyperlink{stats_8f90_aaa7b883657df8d40bb317a0bfefc37d4}{corrl} ()
+\item 
+double precision function \hyperlink{stats_8f90_a25505c8d55c4c0260f1bf8b902a7a396}{betai} (a, b, x)
+\item 
+double precision function \hyperlink{stats_8f90_ab2750c0f717bd38fa02dcfeef3294a1d}{betacf} (a, b, x)
+\item 
+double precision function \hyperlink{stats_8f90_aa84bb43e2c162affb0ae9b93b2dcd82f}{alphat} (t)
+\item 
+double precision function \hyperlink{stats_8f90_a8179694b3d279c1adad1b271a335d404}{alphaf} (f)
+\item 
+double precision function \hyperlink{stats_8f90_a1ef996aeeccd84ee84093b2f1856f48b}{ts} (al, nu)
+\item 
+double precision function \hyperlink{stats_8f90_abcbcf4f01866186d891bfa981b752b31}{fs} (al, nu1, nu2)
+\item 
+double precision function \hyperlink{stats_8f90_ad55ab30dadf682da05c50d7ac353da49}{gammq} (a, x)
+\item 
+subroutine \hyperlink{stats_8f90_a8731464d830462d30d9a495bdd4cefff}{gcf} (gammcf, a, x, gln)
+\item 
+subroutine \hyperlink{stats_8f90_af65f37d18d18a0a4730e474b0440ce19}{gser} (gamser, a, x, gln)
+\item 
+double precision function \hyperlink{stats_8f90_ac4a01008c6edb9d708a969364013c3af}{gammln} (xx)
+\item 
+subroutine \hyperlink{stats_8f90_a00fa1aac669f5bf67c67373dd6541597}{zbrac} (func, x1, x2, succes)
+\item 
+double precision function \hyperlink{stats_8f90_a4260bd96222a7d245306380603efa975}{zbrent} (func, x1, x2, tol)
+\item 
+subroutine \hyperlink{stats_8f90_a988d253ea267741b5fb4794021d15e16}{pausex} (mesg)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{stats_8f90_a8179694b3d279c1adad1b271a335d404}{}\index{stats.\+f90@{stats.\+f90}!alphaf@{alphaf}}
+\index{alphaf@{alphaf}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{alphaf}]{\setlength{\rightskip}{0pt plus 5cm}double precision function alphaf (
+\begin{DoxyParamCaption}
+\item[{double precision}]{f}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a8179694b3d279c1adad1b271a335d404}
+
+
+Definition at line 287 of file stats.\+f90.
+
+\hypertarget{stats_8f90_aa84bb43e2c162affb0ae9b93b2dcd82f}{}\index{stats.\+f90@{stats.\+f90}!alphat@{alphat}}
+\index{alphat@{alphat}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{alphat}]{\setlength{\rightskip}{0pt plus 5cm}double precision function alphat (
+\begin{DoxyParamCaption}
+\item[{double precision}]{t}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_aa84bb43e2c162affb0ae9b93b2dcd82f}
+
+
+Definition at line 272 of file stats.\+f90.
+
+\hypertarget{stats_8f90_ab2750c0f717bd38fa02dcfeef3294a1d}{}\index{stats.\+f90@{stats.\+f90}!betacf@{betacf}}
+\index{betacf@{betacf}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{betacf}]{\setlength{\rightskip}{0pt plus 5cm}double precision function betacf (
+\begin{DoxyParamCaption}
+\item[{double precision}]{a, }
+\item[{double precision}]{b, }
+\item[{double precision}]{x}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_ab2750c0f717bd38fa02dcfeef3294a1d}
+
+
+Definition at line 213 of file stats.\+f90.
+
+\hypertarget{stats_8f90_a25505c8d55c4c0260f1bf8b902a7a396}{}\index{stats.\+f90@{stats.\+f90}!betai@{betai}}
+\index{betai@{betai}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{betai}]{\setlength{\rightskip}{0pt plus 5cm}double precision function betai (
+\begin{DoxyParamCaption}
+\item[{double precision}]{a, }
+\item[{double precision}]{b, }
+\item[{double precision}]{x}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a25505c8d55c4c0260f1bf8b902a7a396}
+
+
+Definition at line 172 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=202pt]{stats_8f90_a25505c8d55c4c0260f1bf8b902a7a396_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_a163216734875a714f7f08db24b55d9e0}{}\index{stats.\+f90@{stats.\+f90}!chi@{chi}}
+\index{chi@{chi}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{chi}]{\setlength{\rightskip}{0pt plus 5cm}double precision function chi (
+\begin{DoxyParamCaption}
+\item[{double precision}]{p, }
+\item[{integer}]{nu}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a163216734875a714f7f08db24b55d9e0}
+
+
+Definition at line 37 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{stats_8f90_a163216734875a714f7f08db24b55d9e0_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_aaa7b883657df8d40bb317a0bfefc37d4}{}\index{stats.\+f90@{stats.\+f90}!corrl@{corrl}}
+\index{corrl@{corrl}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{corrl}]{\setlength{\rightskip}{0pt plus 5cm}double precision function corrl (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_aaa7b883657df8d40bb317a0bfefc37d4}
+
+
+Definition at line 120 of file stats.\+f90.
+
+\hypertarget{stats_8f90_abcbcf4f01866186d891bfa981b752b31}{}\index{stats.\+f90@{stats.\+f90}!fs@{fs}}
+\index{fs@{fs}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{fs}]{\setlength{\rightskip}{0pt plus 5cm}double precision function fs (
+\begin{DoxyParamCaption}
+\item[{double precision}]{al, }
+\item[{integer}]{nu1, }
+\item[{integer}]{nu2}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_abcbcf4f01866186d891bfa981b752b31}
+
+
+Definition at line 326 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{stats_8f90_abcbcf4f01866186d891bfa981b752b31_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_ac4a01008c6edb9d708a969364013c3af}{}\index{stats.\+f90@{stats.\+f90}!gammln@{gammln}}
+\index{gammln@{gammln}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{gammln}]{\setlength{\rightskip}{0pt plus 5cm}double precision function gammln (
+\begin{DoxyParamCaption}
+\item[{double precision}]{xx}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_ac4a01008c6edb9d708a969364013c3af}
+
+
+Definition at line 460 of file stats.\+f90.
+
+\hypertarget{stats_8f90_ad55ab30dadf682da05c50d7ac353da49}{}\index{stats.\+f90@{stats.\+f90}!gammq@{gammq}}
+\index{gammq@{gammq}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{gammq}]{\setlength{\rightskip}{0pt plus 5cm}double precision function gammq (
+\begin{DoxyParamCaption}
+\item[{double precision}]{a, }
+\item[{double precision}]{x}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_ad55ab30dadf682da05c50d7ac353da49}
+
+
+Definition at line 359 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=284pt]{stats_8f90_ad55ab30dadf682da05c50d7ac353da49_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_a8731464d830462d30d9a495bdd4cefff}{}\index{stats.\+f90@{stats.\+f90}!gcf@{gcf}}
+\index{gcf@{gcf}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{gcf}]{\setlength{\rightskip}{0pt plus 5cm}subroutine gcf (
+\begin{DoxyParamCaption}
+\item[{double precision}]{gammcf, }
+\item[{double precision}]{a, }
+\item[{double precision}]{x, }
+\item[{double precision}]{gln}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a8731464d830462d30d9a495bdd4cefff}
+
+
+Definition at line 384 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=193pt]{stats_8f90_a8731464d830462d30d9a495bdd4cefff_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=194pt]{stats_8f90_a8731464d830462d30d9a495bdd4cefff_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_af65f37d18d18a0a4730e474b0440ce19}{}\index{stats.\+f90@{stats.\+f90}!gser@{gser}}
+\index{gser@{gser}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{gser}]{\setlength{\rightskip}{0pt plus 5cm}subroutine gser (
+\begin{DoxyParamCaption}
+\item[{double precision}]{gamser, }
+\item[{double precision}]{a, }
+\item[{double precision}]{x, }
+\item[{double precision}]{gln}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_af65f37d18d18a0a4730e474b0440ce19}
+
+
+Definition at line 423 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=199pt]{stats_8f90_af65f37d18d18a0a4730e474b0440ce19_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=200pt]{stats_8f90_af65f37d18d18a0a4730e474b0440ce19_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_a988d253ea267741b5fb4794021d15e16}{}\index{stats.\+f90@{stats.\+f90}!pausex@{pausex}}
+\index{pausex@{pausex}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{pausex}]{\setlength{\rightskip}{0pt plus 5cm}subroutine pausex (
+\begin{DoxyParamCaption}
+\item[{character$\ast$($\ast$)}]{mesg}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a988d253ea267741b5fb4794021d15e16}
+
+
+Definition at line 587 of file stats.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=293pt]{stats_8f90_a988d253ea267741b5fb4794021d15e16_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_a4a894a5b3901db9276f92820dab3c899}{}\index{stats.\+f90@{stats.\+f90}!pchi@{pchi}}
+\index{pchi@{pchi}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{pchi}]{\setlength{\rightskip}{0pt plus 5cm}double precision function pchi (
+\begin{DoxyParamCaption}
+\item[{double precision}]{chi}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a4a894a5b3901db9276f92820dab3c899}
+
+
+Definition at line 68 of file stats.\+f90.
+
+\hypertarget{stats_8f90_a8d3f75cdf730a509d1baea48869e8bbc}{}\index{stats.\+f90@{stats.\+f90}!residx@{residx}}
+\index{residx@{residx}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{residx}]{\setlength{\rightskip}{0pt plus 5cm}double precision function residx (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a8d3f75cdf730a509d1baea48869e8bbc}
+
+
+Definition at line 88 of file stats.\+f90.
+
+\hypertarget{stats_8f90_a1ef996aeeccd84ee84093b2f1856f48b}{}\index{stats.\+f90@{stats.\+f90}!ts@{ts}}
+\index{ts@{ts}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{ts}]{\setlength{\rightskip}{0pt plus 5cm}double precision function ts (
+\begin{DoxyParamCaption}
+\item[{double precision}]{al, }
+\item[{integer}]{nu}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a1ef996aeeccd84ee84093b2f1856f48b}
+
+
+Definition at line 301 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=270pt]{stats_8f90_a1ef996aeeccd84ee84093b2f1856f48b_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_a00fa1aac669f5bf67c67373dd6541597}{}\index{stats.\+f90@{stats.\+f90}!zbrac@{zbrac}}
+\index{zbrac@{zbrac}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{zbrac}]{\setlength{\rightskip}{0pt plus 5cm}subroutine zbrac (
+\begin{DoxyParamCaption}
+\item[{external}]{func, }
+\item[{double precision}]{x1, }
+\item[{double precision}]{x2, }
+\item[{logical}]{succes}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a00fa1aac669f5bf67c67373dd6541597}
+
+
+Definition at line 485 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{stats_8f90_a00fa1aac669f5bf67c67373dd6541597_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=186pt]{stats_8f90_a00fa1aac669f5bf67c67373dd6541597_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{stats_8f90_a4260bd96222a7d245306380603efa975}{}\index{stats.\+f90@{stats.\+f90}!zbrent@{zbrent}}
+\index{zbrent@{zbrent}!stats.\+f90@{stats.\+f90}}
+\subsubsection[{zbrent}]{\setlength{\rightskip}{0pt plus 5cm}double precision function zbrent (
+\begin{DoxyParamCaption}
+\item[{external}]{func, }
+\item[{double precision}]{x1, }
+\item[{double precision}]{x2, }
+\item[{double precision}]{tol}
+\end{DoxyParamCaption}
+)}\label{stats_8f90_a4260bd96222a7d245306380603efa975}
+
+
+Definition at line 512 of file stats.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=208pt]{stats_8f90_a4260bd96222a7d245306380603efa975_cgraph}
+\end{center}
+\end{figure}
+
+

@@ -1,0 +1,25 @@
+var c16pc371e_8py =
+[
+    [ "read_column_data", "c16pc371e_8py.html#a0153b4041400f25a70d09d514ceec33b", null ],
+    [ "ax", "c16pc371e_8py.html#a50bcb2df148263ff04f8c0744e804003", null ],
+    [ "borderaxespad", "c16pc371e_8py.html#a45d364a7197effa2dbb8e025330d0f42", null ],
+    [ "components", "c16pc371e_8py.html#a69f565742b2cf5db40a50acb493b3c5a", null ],
+    [ "data", "c16pc371e_8py.html#a8d2e4e686444b439d91f733861bb40e5", null ],
+    [ "experimental", "c16pc371e_8py.html#a7dfce36e81e50822518ad4c383ed6ff7", null ],
+    [ "fields", "c16pc371e_8py.html#afb22661e72837d4c510bdde35b5fcc8c", null ],
+    [ "fig", "c16pc371e_8py.html#a6bec840746fd359d103d452c6b90d39d", null ],
+    [ "fit", "c16pc371e_8py.html#a49e887cbe117ff5f531bd888281c5231", null ],
+    [ "fp", "c16pc371e_8py.html#a35e97f624cf6abcdeab4ba70fd6a7017", null ],
+    [ "horizontalalignment", "c16pc371e_8py.html#a21bc26586b6d554a8a6d43ceb16feed5", null ],
+    [ "integral_of_spectrum", "c16pc371e_8py.html#a05e96a26ed3b7bca365b95b85998ec9e", null ],
+    [ "loc", "c16pc371e_8py.html#af0eb0394732238c357ee921e5c2ab0d8", null ],
+    [ "max_of_fit", "c16pc371e_8py.html#a2331155ad7c247e67ee3435503d77f56", null ],
+    [ "normalization", "c16pc371e_8py.html#af780649477537ddb25dcd57c713e1bff", null ],
+    [ "output", "c16pc371e_8py.html#a467a6c86928112c80cf8b3a1aa5a2c23", null ],
+    [ "proc", "c16pc371e_8py.html#a13cd41e616bc6905db6e62587846c585", null ],
+    [ "rms", "c16pc371e_8py.html#a451978b863dc650e43490635266ee879", null ],
+    [ "scale_integral", "c16pc371e_8py.html#a3df2592dd167acc286a1cdd08210454a", null ],
+    [ "transform", "c16pc371e_8py.html#a834c9592ce8fabf2087ea344dbe5a60f", null ],
+    [ "verticalalignment", "c16pc371e_8py.html#a4241a9920f00722eb794924e195397e7", null ],
+    [ "ylims", "c16pc371e_8py.html#a118debebcb7f367c579f9df9055e02a8", null ]
+];

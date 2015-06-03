@@ -1,0 +1,287 @@
+\hypertarget{namespaceerrmsg}{}\section{errmsg Module Reference}
+\label{namespaceerrmsg}\index{errmsg@{errmsg}}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a3c20e4760937a2c172186eb1a41b4324}{fatal} =16
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ac85a2d84a76993973b0e1d0b9468a435}{neperr} =26
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ab49203bff19fc0f246e4c5c9a5dc5e6a}{nmnerr} =12
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7cb7b650612732df96fa27b0a1c1c31d}{zeroin2} =1
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a0e019c9f428b5a069f6151d6bfaa86fb}{posb0} =2
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a72b6b178f88a9cad634ba1ecffd4360e}{badhifld} =3
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a00dba98c91084f1c2db700ed723cc987}{badjmp} =4
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a2da9038dd4b007477a8b298e5337073b}{badav} =5
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ac01191556cf33ea462a1142e65170aaf}{baddj} =6
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_afb80692f6c4417a672c393055d791b8b}{lemxhi} =7
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a01466a6a6156a7d918d06c6541bd8157}{bssadj} =8
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_aa8bf55f6853922e424f337d40e4ccd31}{nstephi} =9
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a1fa7038ca8a627e43f072d0c10923c23}{cgtolhi} =10
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a0c6fea2ff2ee922f95397b185f502595}{shifthi} =11
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a60cd5988aab762b581a9c0e94c938532}{noconvrg} =12
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a403ef985efca9149532af584489cb180}{noalpham} =13
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a5c2dd62917a9619ba73df96976e02bf6}{noalphad} =14
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a05eedf7a2d38c8fef6c8bcca5f0cc4cf}{badbess} =15
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a22aeeb76d868c381f92850c74ccea1b2}{zerob0} =16
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7c5ea4a2cc774cbc54767762f93892f1}{zerog} =17
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ab3edf43039b31a84e1639c8c191cf845}{tdgerr} =18
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_acbf97bafa8409486ee37b208d9a2b401}{mtxbig} =19
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_aabe2c315daae78b5d9b83d375633f232}{dimbig} =20
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7322587bbf416b2de4df7805d2cdd7ac}{mtxhlt} =21
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a5feae987491fe8205e57246e1de50dfc}{cghlt} =22
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_afa159d21fd7ab46652f1d9c57f35c203}{tdgbig} =23
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7decbda7b2a8c1fa190b82517dc89439}{nomin} =24
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_aa86f5107fe38dcc547cb18037e7049f4}{zeronfld} =25
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a9f47fe67b90a69b4673e8fa1d69a6859}{zrorange} =26
+\item 
+character $\ast$50, dimension(\hyperlink{namespaceerrmsg_ac85a2d84a76993973b0e1d0b9468a435}{neperr}), save \hyperlink{namespaceerrmsg_aa73f9a54ef743fc885698d80c8898d90}{eprerr} = (/ \textquotesingle{}Zero nuclear spin assumed \textquotesingle{} , \textquotesingle{}Positive B0 assumed \textquotesingle{} , \textquotesingle{}High-\/field approx. may not apply \textquotesingle{} , \textquotesingle{}Nonzero potential with jump/free\+: ipdf set to 0 \textquotesingle{} , \textquotesingle{}Zero potential with aniso. viscos.\+: ipdf set to 0 \textquotesingle{} , \textquotesingle{}Discrete jumps with aniso. viscos.\+: ipdf set 0 \textquotesingle{} , \textquotesingle{}lemx must be 48 or less with potential \textquotesingle{} , \textquotesingle{}Basis set adjusted to (iii,iii,iii,iii,iii,iii,ii)\textquotesingle{} , \textquotesingle{}N\+S\+T\+E\+P too large\+: adjusted to iiiii \textquotesingle{} , \textquotesingle{}C\+G\+T\+O\+L too small\+: adjusted to xxxxxxxxx \textquotesingle{} , \textquotesingle{}S\+H\+I\+F\+T\+R too small\+: adjusted to xxxxxxxxx \textquotesingle{} , \textquotesingle{}C\+G did not converge after iiiii steps \textquotesingle{} , \textquotesingle{}Angle alpham not needed w/ axial g-\/matrix \textquotesingle{} , \textquotesingle{}Angle alphad not needed w/ axial diffusion tensor \textquotesingle{} , \textquotesingle{}Taylor \hyperlink{series_8f90_a8759d6abf2410faf05ee748480168fb7}{series} for Bessel function did not converge\textquotesingle{} , \textquotesingle{}Zero B0 \textquotesingle{} , \textquotesingle{}Zero g-\/tensor element \textquotesingle{} , \textquotesingle{}Error in tridiagonal matrix storage \textquotesingle{} , \textquotesingle{}Too many matrix elements \textquotesingle{} , \textquotesingle{}Matrix dimension too large \textquotesingle{} , \textquotesingle{}User halt during matrix calculation \textquotesingle{} , \textquotesingle{}User halt during C\+G tridiagonalization \textquotesingle{} , \textquotesingle{}Too many tridiagonal matrix elements \textquotesingle{} , \textquotesingle{}Bracketing did not find minimum within step bound \textquotesingle{} , \textquotesingle{}Number of points in spectrum is zero \textquotesingle{} , \textquotesingle{}Field range of spectrum is zero \textquotesingle{} /)
+\item 
+character $\ast$32, dimension(0\+:\hyperlink{namespaceerrmsg_ab49203bff19fc0f246e4c5c9a5dc5e6a}{nmnerr}-\/1), save \hyperlink{namespaceerrmsg_a19c5c8f313e142ee64e6450ce546fcbf}{minerr} = (/ \textquotesingle{}Bad input parameters \textquotesingle{} , \textquotesingle{}Chi-\/squared convergence \textquotesingle{} , \textquotesingle{}X vector convergence \textquotesingle{} , \textquotesingle{}Chi-\/squared/X vector convergence\textquotesingle{} , \textquotesingle{}Gradient convergence \textquotesingle{} , \textquotesingle{}Max function evaluations reached\textquotesingle{} , \textquotesingle{}Max iterations reached \textquotesingle{} , \textquotesingle{}F\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}X\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}Zero Jacobian or G\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}Terminated internally \textquotesingle{} , \textquotesingle{}Single calculation completed \textquotesingle{} /)
+\end{DoxyCompactItemize}
+
+
+\subsection{Variable Documentation}
+\hypertarget{namespaceerrmsg_a2da9038dd4b007477a8b298e5337073b}{}\index{errmsg@{errmsg}!badav@{badav}}
+\index{badav@{badav}!errmsg@{errmsg}}
+\subsubsection[{badav}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::badav =5}\label{namespaceerrmsg_a2da9038dd4b007477a8b298e5337073b}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a05eedf7a2d38c8fef6c8bcca5f0cc4cf}{}\index{errmsg@{errmsg}!badbess@{badbess}}
+\index{badbess@{badbess}!errmsg@{errmsg}}
+\subsubsection[{badbess}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::badbess =15}\label{namespaceerrmsg_a05eedf7a2d38c8fef6c8bcca5f0cc4cf}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_ac01191556cf33ea462a1142e65170aaf}{}\index{errmsg@{errmsg}!baddj@{baddj}}
+\index{baddj@{baddj}!errmsg@{errmsg}}
+\subsubsection[{baddj}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::baddj =6}\label{namespaceerrmsg_ac01191556cf33ea462a1142e65170aaf}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a72b6b178f88a9cad634ba1ecffd4360e}{}\index{errmsg@{errmsg}!badhifld@{badhifld}}
+\index{badhifld@{badhifld}!errmsg@{errmsg}}
+\subsubsection[{badhifld}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::badhifld =3}\label{namespaceerrmsg_a72b6b178f88a9cad634ba1ecffd4360e}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a00dba98c91084f1c2db700ed723cc987}{}\index{errmsg@{errmsg}!badjmp@{badjmp}}
+\index{badjmp@{badjmp}!errmsg@{errmsg}}
+\subsubsection[{badjmp}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::badjmp =4}\label{namespaceerrmsg_a00dba98c91084f1c2db700ed723cc987}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a01466a6a6156a7d918d06c6541bd8157}{}\index{errmsg@{errmsg}!bssadj@{bssadj}}
+\index{bssadj@{bssadj}!errmsg@{errmsg}}
+\subsubsection[{bssadj}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::bssadj =8}\label{namespaceerrmsg_a01466a6a6156a7d918d06c6541bd8157}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a5feae987491fe8205e57246e1de50dfc}{}\index{errmsg@{errmsg}!cghlt@{cghlt}}
+\index{cghlt@{cghlt}!errmsg@{errmsg}}
+\subsubsection[{cghlt}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::cghlt =22}\label{namespaceerrmsg_a5feae987491fe8205e57246e1de50dfc}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a1fa7038ca8a627e43f072d0c10923c23}{}\index{errmsg@{errmsg}!cgtolhi@{cgtolhi}}
+\index{cgtolhi@{cgtolhi}!errmsg@{errmsg}}
+\subsubsection[{cgtolhi}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::cgtolhi =10}\label{namespaceerrmsg_a1fa7038ca8a627e43f072d0c10923c23}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_aabe2c315daae78b5d9b83d375633f232}{}\index{errmsg@{errmsg}!dimbig@{dimbig}}
+\index{dimbig@{dimbig}!errmsg@{errmsg}}
+\subsubsection[{dimbig}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::dimbig =20}\label{namespaceerrmsg_aabe2c315daae78b5d9b83d375633f232}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_aa73f9a54ef743fc885698d80c8898d90}{}\index{errmsg@{errmsg}!eprerr@{eprerr}}
+\index{eprerr@{eprerr}!errmsg@{errmsg}}
+\subsubsection[{eprerr}]{\setlength{\rightskip}{0pt plus 5cm}character$\ast$50, dimension({\bf neperr}), save errmsg\+::eprerr = (/ \textquotesingle{}Zero nuclear spin assumed \textquotesingle{} , \textquotesingle{}Positive B0 assumed \textquotesingle{} , \textquotesingle{}High-\/field approx. may not apply \textquotesingle{} , \textquotesingle{}Nonzero potential with jump/free\+: ipdf set to 0 \textquotesingle{} , \textquotesingle{}Zero potential with aniso. viscos.\+: ipdf set to 0 \textquotesingle{} , \textquotesingle{}Discrete jumps with aniso. viscos.\+: ipdf set 0 \textquotesingle{} , \textquotesingle{}lemx must be 48 or less with potential \textquotesingle{} , \textquotesingle{}Basis set adjusted to (iii,iii,iii,iii,iii,iii,ii)\textquotesingle{} , \textquotesingle{}N\+S\+T\+E\+P too large\+: adjusted to iiiii \textquotesingle{} , \textquotesingle{}C\+G\+T\+O\+L too small\+: adjusted to xxxxxxxxx \textquotesingle{} , \textquotesingle{}S\+H\+I\+F\+T\+R too small\+: adjusted to xxxxxxxxx \textquotesingle{} , \textquotesingle{}C\+G did not converge after iiiii steps \textquotesingle{} , \textquotesingle{}Angle alpham not needed w/ axial g-\/matrix \textquotesingle{} , \textquotesingle{}Angle alphad not needed w/ axial diffusion tensor \textquotesingle{} , \textquotesingle{}Taylor {\bf series} for Bessel function did not converge\textquotesingle{} , \textquotesingle{}Zero B0 \textquotesingle{} , \textquotesingle{}Zero g-\/tensor element \textquotesingle{} , \textquotesingle{}Error in tridiagonal matrix storage \textquotesingle{} , \textquotesingle{}Too many matrix elements \textquotesingle{} , \textquotesingle{}Matrix dimension too large \textquotesingle{} , \textquotesingle{}User halt during matrix calculation \textquotesingle{} , \textquotesingle{}User halt during C\+G tridiagonalization \textquotesingle{} , \textquotesingle{}Too many tridiagonal matrix elements \textquotesingle{} , \textquotesingle{}Bracketing did not find minimum within step bound \textquotesingle{} , \textquotesingle{}Number of points in spectrum is zero \textquotesingle{} , \textquotesingle{}Field range of spectrum is zero \textquotesingle{} /)}\label{namespaceerrmsg_aa73f9a54ef743fc885698d80c8898d90}
+
+
+Definition at line 59 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a3c20e4760937a2c172186eb1a41b4324}{}\index{errmsg@{errmsg}!fatal@{fatal}}
+\index{fatal@{fatal}!errmsg@{errmsg}}
+\subsubsection[{fatal}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::fatal =16}\label{namespaceerrmsg_a3c20e4760937a2c172186eb1a41b4324}
+
+
+Definition at line 49 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_afb80692f6c4417a672c393055d791b8b}{}\index{errmsg@{errmsg}!lemxhi@{lemxhi}}
+\index{lemxhi@{lemxhi}!errmsg@{errmsg}}
+\subsubsection[{lemxhi}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::lemxhi =7}\label{namespaceerrmsg_afb80692f6c4417a672c393055d791b8b}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a19c5c8f313e142ee64e6450ce546fcbf}{}\index{errmsg@{errmsg}!minerr@{minerr}}
+\index{minerr@{minerr}!errmsg@{errmsg}}
+\subsubsection[{minerr}]{\setlength{\rightskip}{0pt plus 5cm}character$\ast$32, dimension(0\+:{\bf nmnerr}-\/1), save errmsg\+::minerr = (/ \textquotesingle{}Bad input parameters \textquotesingle{} , \textquotesingle{}Chi-\/squared convergence \textquotesingle{} , \textquotesingle{}X vector convergence \textquotesingle{} , \textquotesingle{}Chi-\/squared/X vector convergence\textquotesingle{} , \textquotesingle{}Gradient convergence \textquotesingle{} , \textquotesingle{}Max function evaluations reached\textquotesingle{} , \textquotesingle{}Max iterations reached \textquotesingle{} , \textquotesingle{}F\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}X\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}Zero Jacobian or G\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}Terminated internally \textquotesingle{} , \textquotesingle{}Single calculation completed \textquotesingle{} /)}\label{namespaceerrmsg_a19c5c8f313e142ee64e6450ce546fcbf}
+
+
+Definition at line 88 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_acbf97bafa8409486ee37b208d9a2b401}{}\index{errmsg@{errmsg}!mtxbig@{mtxbig}}
+\index{mtxbig@{mtxbig}!errmsg@{errmsg}}
+\subsubsection[{mtxbig}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::mtxbig =19}\label{namespaceerrmsg_acbf97bafa8409486ee37b208d9a2b401}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a7322587bbf416b2de4df7805d2cdd7ac}{}\index{errmsg@{errmsg}!mtxhlt@{mtxhlt}}
+\index{mtxhlt@{mtxhlt}!errmsg@{errmsg}}
+\subsubsection[{mtxhlt}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::mtxhlt =21}\label{namespaceerrmsg_a7322587bbf416b2de4df7805d2cdd7ac}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_ac85a2d84a76993973b0e1d0b9468a435}{}\index{errmsg@{errmsg}!neperr@{neperr}}
+\index{neperr@{neperr}!errmsg@{errmsg}}
+\subsubsection[{neperr}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::neperr =26}\label{namespaceerrmsg_ac85a2d84a76993973b0e1d0b9468a435}
+
+
+Definition at line 49 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_ab49203bff19fc0f246e4c5c9a5dc5e6a}{}\index{errmsg@{errmsg}!nmnerr@{nmnerr}}
+\index{nmnerr@{nmnerr}!errmsg@{errmsg}}
+\subsubsection[{nmnerr}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::nmnerr =12}\label{namespaceerrmsg_ab49203bff19fc0f246e4c5c9a5dc5e6a}
+
+
+Definition at line 49 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a5c2dd62917a9619ba73df96976e02bf6}{}\index{errmsg@{errmsg}!noalphad@{noalphad}}
+\index{noalphad@{noalphad}!errmsg@{errmsg}}
+\subsubsection[{noalphad}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::noalphad =14}\label{namespaceerrmsg_a5c2dd62917a9619ba73df96976e02bf6}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a403ef985efca9149532af584489cb180}{}\index{errmsg@{errmsg}!noalpham@{noalpham}}
+\index{noalpham@{noalpham}!errmsg@{errmsg}}
+\subsubsection[{noalpham}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::noalpham =13}\label{namespaceerrmsg_a403ef985efca9149532af584489cb180}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a60cd5988aab762b581a9c0e94c938532}{}\index{errmsg@{errmsg}!noconvrg@{noconvrg}}
+\index{noconvrg@{noconvrg}!errmsg@{errmsg}}
+\subsubsection[{noconvrg}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::noconvrg =12}\label{namespaceerrmsg_a60cd5988aab762b581a9c0e94c938532}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a7decbda7b2a8c1fa190b82517dc89439}{}\index{errmsg@{errmsg}!nomin@{nomin}}
+\index{nomin@{nomin}!errmsg@{errmsg}}
+\subsubsection[{nomin}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::nomin =24}\label{namespaceerrmsg_a7decbda7b2a8c1fa190b82517dc89439}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_aa8bf55f6853922e424f337d40e4ccd31}{}\index{errmsg@{errmsg}!nstephi@{nstephi}}
+\index{nstephi@{nstephi}!errmsg@{errmsg}}
+\subsubsection[{nstephi}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::nstephi =9}\label{namespaceerrmsg_aa8bf55f6853922e424f337d40e4ccd31}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a0e019c9f428b5a069f6151d6bfaa86fb}{}\index{errmsg@{errmsg}!posb0@{posb0}}
+\index{posb0@{posb0}!errmsg@{errmsg}}
+\subsubsection[{posb0}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::posb0 =2}\label{namespaceerrmsg_a0e019c9f428b5a069f6151d6bfaa86fb}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a0c6fea2ff2ee922f95397b185f502595}{}\index{errmsg@{errmsg}!shifthi@{shifthi}}
+\index{shifthi@{shifthi}!errmsg@{errmsg}}
+\subsubsection[{shifthi}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::shifthi =11}\label{namespaceerrmsg_a0c6fea2ff2ee922f95397b185f502595}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_afa159d21fd7ab46652f1d9c57f35c203}{}\index{errmsg@{errmsg}!tdgbig@{tdgbig}}
+\index{tdgbig@{tdgbig}!errmsg@{errmsg}}
+\subsubsection[{tdgbig}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::tdgbig =23}\label{namespaceerrmsg_afa159d21fd7ab46652f1d9c57f35c203}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_ab3edf43039b31a84e1639c8c191cf845}{}\index{errmsg@{errmsg}!tdgerr@{tdgerr}}
+\index{tdgerr@{tdgerr}!errmsg@{errmsg}}
+\subsubsection[{tdgerr}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::tdgerr =18}\label{namespaceerrmsg_ab3edf43039b31a84e1639c8c191cf845}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a22aeeb76d868c381f92850c74ccea1b2}{}\index{errmsg@{errmsg}!zerob0@{zerob0}}
+\index{zerob0@{zerob0}!errmsg@{errmsg}}
+\subsubsection[{zerob0}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::zerob0 =16}\label{namespaceerrmsg_a22aeeb76d868c381f92850c74ccea1b2}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a7c5ea4a2cc774cbc54767762f93892f1}{}\index{errmsg@{errmsg}!zerog@{zerog}}
+\index{zerog@{zerog}!errmsg@{errmsg}}
+\subsubsection[{zerog}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::zerog =17}\label{namespaceerrmsg_a7c5ea4a2cc774cbc54767762f93892f1}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a7cb7b650612732df96fa27b0a1c1c31d}{}\index{errmsg@{errmsg}!zeroin2@{zeroin2}}
+\index{zeroin2@{zeroin2}!errmsg@{errmsg}}
+\subsubsection[{zeroin2}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::zeroin2 =1}\label{namespaceerrmsg_a7cb7b650612732df96fa27b0a1c1c31d}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_aa86f5107fe38dcc547cb18037e7049f4}{}\index{errmsg@{errmsg}!zeronfld@{zeronfld}}
+\index{zeronfld@{zeronfld}!errmsg@{errmsg}}
+\subsubsection[{zeronfld}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::zeronfld =25}\label{namespaceerrmsg_aa86f5107fe38dcc547cb18037e7049f4}
+
+
+Definition at line 51 of file errmsg.\+f90.
+
+\hypertarget{namespaceerrmsg_a9f47fe67b90a69b4673e8fa1d69a6859}{}\index{errmsg@{errmsg}!zrorange@{zrorange}}
+\index{zrorange@{zrorange}!errmsg@{errmsg}}
+\subsubsection[{zrorange}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter errmsg\+::zrorange =26}\label{namespaceerrmsg_a9f47fe67b90a69b4673e8fa1d69a6859}
+
+
+Definition at line 51 of file errmsg.\+f90.
+

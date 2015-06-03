@@ -1,0 +1,17 @@
+<map id="getlin" name="getlin">
+<area shape="rect" id="node2" href="$pltx_8c.html#ab22bf31828fb3b581a3655ce56ab9bc3" title="wpoll" alt="" coords="111,208,161,235"/>
+<area shape="rect" id="node16" href="$lprmpt_8c.html#a853da25981921035b2ad3dc20755ae30" title="lprmpt" alt="" coords="107,259,165,285"/>
+<area shape="rect" id="node3" href="$pltx_8c.html#ad3f1a01c499cc0f3f5bb2316f5e746db" title="doevnt" alt="" coords="213,208,272,235"/>
+<area shape="rect" id="node4" href="$pltx_8c.html#a141111e642d5f81befc812204887412a" title="calcul" alt="" coords="325,107,381,133"/>
+<area shape="rect" id="node12" href="$pltx_8c.html#a88130bf35d237dabab9614148aa3dfa3" title="drawln" alt="" coords="323,157,382,184"/>
+<area shape="rect" id="node13" href="$pltx_8c.html#ad405c86ebd73a157d4487e4424a754e6" title="calcpt" alt="" coords="324,208,381,235"/>
+<area shape="rect" id="node14" href="$pltx_8c.html#a51dac7c88bf37276eeb721ff1e4043a4" title="setxpts" alt="" coords="320,259,385,285"/>
+<area shape="rect" id="node15" href="$pltx_8c.html#ac09954c5d17d08c8c5fea0d1dd0a9db9" title="getstr" alt="" coords="325,309,380,336"/>
+<area shape="rect" id="node5" href="$pltx_8c.html#a422a31814a7415731e36707f73c4121f" title="findmax" alt="" coords="435,5,502,32"/>
+<area shape="rect" id="node6" href="$pltx_8c.html#aa6614a6fc5066548ab0cdb791113a069" title="findmin" alt="" coords="437,56,500,83"/>
+<area shape="rect" id="node7" href="$pltx_8c.html#ad09dfee00faca367bed656e71623f002" title="pixary" alt="" coords="440,107,497,133"/>
+<area shape="rect" id="node10" href="$pltx_8c.html#aefa16b0f532fe180904f44eafab05208" title="findzero" alt="" coords="435,157,502,184"/>
+<area shape="rect" id="node11" href="$pltx_8c.html#aa6565904a3998c8908015d1a8f6445b3" title="differnce" alt="" coords="433,208,504,235"/>
+<area shape="rect" id="node8" href="$pltx_8c.html#a6747050abff0d477c44e492383218a11" title="xnew" alt="" coords="557,81,609,108"/>
+<area shape="rect" id="node9" href="$pltx_8c.html#a9d46ff9578c5000db70120029a2cb57f" title="xdump" alt="" coords="552,132,613,159"/>
+</map>

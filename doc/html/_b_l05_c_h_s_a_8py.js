@@ -1,0 +1,25 @@
+var _b_l05_c_h_s_a_8py =
+[
+    [ "read_column_data", "_b_l05_c_h_s_a_8py.html#a1a819893783ede39234c56a7286d30bc", null ],
+    [ "ax", "_b_l05_c_h_s_a_8py.html#af2a1d084aae311c4772e173de8ef0a9d", null ],
+    [ "borderaxespad", "_b_l05_c_h_s_a_8py.html#a3fd3e4180173d393a4d5d4f1ec9b6307", null ],
+    [ "components", "_b_l05_c_h_s_a_8py.html#a6e2965b93cd1337bb3ba33f58af818d5", null ],
+    [ "data", "_b_l05_c_h_s_a_8py.html#ad4aff4c0274888557c2d5e9676e0b1c0", null ],
+    [ "experimental", "_b_l05_c_h_s_a_8py.html#a22267f248a50448e8ec8ea567d9cff93", null ],
+    [ "fields", "_b_l05_c_h_s_a_8py.html#ac96edf7f6341a6e26666193e7bfd5ef6", null ],
+    [ "fig", "_b_l05_c_h_s_a_8py.html#ac496d41ec0dcccce7efa61a981b5b0a7", null ],
+    [ "fit", "_b_l05_c_h_s_a_8py.html#a371b841893a6562051410836ac64e8a2", null ],
+    [ "fp", "_b_l05_c_h_s_a_8py.html#a3a4b7cc37a8b2a6d0fcd04d9cb56616c", null ],
+    [ "horizontalalignment", "_b_l05_c_h_s_a_8py.html#aabc5219aecb77a5fd4da7ab9c8c68098", null ],
+    [ "integral_of_spectrum", "_b_l05_c_h_s_a_8py.html#a827312760f5e707d60c4ac26b7ea5060", null ],
+    [ "loc", "_b_l05_c_h_s_a_8py.html#a5107e74d836195459b535f42b45d983d", null ],
+    [ "max_of_fit", "_b_l05_c_h_s_a_8py.html#ae47d721fbc9aa091d7f5ebe40717a9ef", null ],
+    [ "normalization", "_b_l05_c_h_s_a_8py.html#adb6114e66278f9e6e787673c8ad3d0dc", null ],
+    [ "output", "_b_l05_c_h_s_a_8py.html#a048090b16140caac58f50ec58a3a63ce", null ],
+    [ "proc", "_b_l05_c_h_s_a_8py.html#afb6ef627920d8cbf2ce053140030ebf7", null ],
+    [ "rms", "_b_l05_c_h_s_a_8py.html#a107c588f7c1eecf4092b2eb12a1eef08", null ],
+    [ "scale_integral", "_b_l05_c_h_s_a_8py.html#a5c928db19ba6b2f7483c5cb9f0571f3b", null ],
+    [ "transform", "_b_l05_c_h_s_a_8py.html#a7a34eabeefcbdc0884c99c2c91c66b8b", null ],
+    [ "verticalalignment", "_b_l05_c_h_s_a_8py.html#a72a594605b8f05198333359e60604fa6", null ],
+    [ "ylims", "_b_l05_c_h_s_a_8py.html#a7a5c94600d2ea2952192993875a03164", null ]
+];

@@ -1,0 +1,74 @@
+\hypertarget{momdls_8f90}{}\section{momdls.\+f90 File Reference}
+\label{momdls_8f90}\index{momdls.\+f90@{momdls.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{momdls_8f90_ac4a32504f4ecbaad49ecd2d60a79eeb6}{momdls} (fparmi, iparmi, icalc, al, be, bss, iprune, spectr, work, nft, ntotal, ierr)
+\begin{DoxyCompactList}\small\item\em Subroutine version of E\+P\+R\+L\+L family of programs. This routine is intended for use with nonlinear least-\/squares applications. The routine calculates a M\+O\+M\+D spectrum by averaging spectra for a specified number of orientation using the parameters passed in the fparm and iparm arrays. Spectra are calculated using the Conjugate Gradients version of the Lanczos algorithm. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{momdls_8f90_ac4a32504f4ecbaad49ecd2d60a79eeb6}{}\index{momdls.\+f90@{momdls.\+f90}!momdls@{momdls}}
+\index{momdls@{momdls}!momdls.\+f90@{momdls.\+f90}}
+\subsubsection[{momdls}]{\setlength{\rightskip}{0pt plus 5cm}subroutine momdls (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(nfprm)}]{fparmi, }
+\item[{integer, dimension(niprm)}]{iparmi, }
+\item[{integer}]{icalc, }
+\item[{double complex, dimension(ntotal)}]{al, }
+\item[{double complex, dimension(ntotal)}]{be, }
+\item[{integer, dimension(5,mxdim)}]{bss, }
+\item[{integer}]{iprune, }
+\item[{double precision, dimension($\ast$)}]{spectr, }
+\item[{double precision, dimension($\ast$)}]{work, }
+\item[{integer}]{nft, }
+\item[{integer}]{ntotal, }
+\item[{integer}]{ierr}
+\end{DoxyParamCaption}
+)}\label{momdls_8f90_ac4a32504f4ecbaad49ecd2d60a79eeb6}
+
+
+Subroutine version of E\+P\+R\+L\+L family of programs. This routine is intended for use with nonlinear least-\/squares applications. The routine calculates a M\+O\+M\+D spectrum by averaging spectra for a specified number of orientation using the parameters passed in the fparm and iparm arrays. Spectra are calculated using the Conjugate Gradients version of the Lanczos algorithm. 
+
+If the parameter specifying the number of M\+O\+M\+D orientations is not greater than 1, or if there is no potential defined, a single spectral calculation is carried out. 
+\begin{DoxyParams}{Parameters}
+{\em al(mxdim)} & Diagonal of tridiagonal matrix for spectrum \\
+\hline
+{\em be(mxdim)} & Off-\/diagonal of tridiagonal matrix for spectrum\\
+\hline
+{\em cgerr} & Residual error in C\+G solution vector\\
+\hline
+{\em ntotal} & Number of C\+G steps taken (total number for all orientations in M\+O\+M\+D calculations)\\
+\hline
+{\em ierr} & Error flag \\
+\hline
+\end{DoxyParams}
+\begin{DoxyAuthor}{Author}
+Written by D\+E\+B, 26-\/\+Sep-\/91 based on programs from D\+J\+S 
+\end{DoxyAuthor}
+
+
+Definition at line 52 of file momdls.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{momdls_8f90_ac4a32504f4ecbaad49ecd2d60a79eeb6_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{momdls_8f90_ac4a32504f4ecbaad49ecd2d60a79eeb6_icgraph}
+\end{center}
+\end{figure}
+
+

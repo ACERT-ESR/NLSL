@@ -1,0 +1,57 @@
+\hypertarget{c16pc371e_8py}{}\section{c16pc371e.\+py File Reference}
+\label{c16pc371e_8py}\index{c16pc371e.\+py@{c16pc371e.\+py}}
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \hyperlink{namespacec16pc371e}{c16pc371e}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespacec16pc371e_a0153b4041400f25a70d09d514ceec33b}{c16pc371e.\+read\+\_\+column\+\_\+data} (filename)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+tuple \hyperlink{namespacec16pc371e_a13cd41e616bc6905db6e62587846c585}{c16pc371e.\+proc} = Popen(\mbox{[}\textquotesingle{}./\hyperlink{nlsl_8f90_a89bfe89320539cc08d8701d4f2a028a6}{nlsl}\textquotesingle{}\mbox{]},stdin = P\+I\+P\+E, stderr = S\+T\+D\+O\+U\+T)
+\item 
+tuple \hyperlink{namespacec16pc371e_a35e97f624cf6abcdeab4ba70fd6a7017}{c16pc371e.\+fp} = open(\textquotesingle{}c16pc371e.\+run\textquotesingle{})
+\item 
+tuple \hyperlink{namespacec16pc371e_a467a6c86928112c80cf8b3a1aa5a2c23}{c16pc371e.\+output} = proc.\+communicate(input = fp.\+read())
+\item 
+tuple \hyperlink{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{c16pc371e.\+data} = read\+\_\+column\+\_\+data(\textquotesingle{}c16pc371e.\+spc\textquotesingle{})
+\item 
+list \hyperlink{namespacec16pc371e_afb22661e72837d4c510bdde35b5fcc8c}{c16pc371e.\+fields} = data\mbox{[}\+:,0\mbox{]}
+\item 
+list \hyperlink{namespacec16pc371e_a7dfce36e81e50822518ad4c383ed6ff7}{c16pc371e.\+experimental} = data\mbox{[}\+:,1\mbox{]}
+\item 
+list \hyperlink{namespacec16pc371e_a49e887cbe117ff5f531bd888281c5231}{c16pc371e.\+fit} = data\mbox{[}\+:,2\mbox{]}
+\item 
+tuple \hyperlink{namespacec16pc371e_a05e96a26ed3b7bca365b95b85998ec9e}{c16pc371e.\+integral\+\_\+of\+\_\+spectrum} = cumsum(experimental)
+\item 
+tuple \hyperlink{namespacec16pc371e_af780649477537ddb25dcd57c713e1bff}{c16pc371e.\+normalization} = abs(sum(integral\+\_\+of\+\_\+spectrum))
+\item 
+tuple \hyperlink{namespacec16pc371e_a6bec840746fd359d103d452c6b90d39d}{c16pc371e.\+fig} = figure(figsize = (9,6))
+\item 
+list \hyperlink{namespacec16pc371e_a69f565742b2cf5db40a50acb493b3c5a}{c16pc371e.\+components} = data\mbox{[}\+:,3\+:\mbox{]}
+\item 
+tuple \hyperlink{namespacec16pc371e_a2331155ad7c247e67ee3435503d77f56}{c16pc371e.\+max\+\_\+of\+\_\+fit} = max(fit)
+\item 
+tuple \hyperlink{namespacec16pc371e_a50bcb2df148263ff04f8c0744e804003}{c16pc371e.\+ax} = gca()
+\item 
+tuple \hyperlink{namespacec16pc371e_a118debebcb7f367c579f9df9055e02a8}{c16pc371e.\+ylims} = ax.\+get\+\_\+ylim()
+\item 
+tuple \hyperlink{namespacec16pc371e_a3df2592dd167acc286a1cdd08210454a}{c16pc371e.\+scale\+\_\+integral} = max\+\_\+of\+\_\+fit/max(integral\+\_\+of\+\_\+spectrum)
+\item 
+int \hyperlink{namespacec16pc371e_af0eb0394732238c357ee921e5c2ab0d8}{c16pc371e.\+loc} = 2
+\item 
+int \hyperlink{namespacec16pc371e_a45d364a7197effa2dbb8e025330d0f42}{c16pc371e.\+borderaxespad} = 0
+\item 
+tuple \hyperlink{namespacec16pc371e_a451978b863dc650e43490635266ee879}{c16pc371e.\+rms} = mean((fit/normalization-\/experimental/normalization)$\ast$$\ast$2)
+\item 
+string \hyperlink{namespacec16pc371e_a21bc26586b6d554a8a6d43ceb16feed5}{c16pc371e.\+horizontalalignment} = \textquotesingle{}left\textquotesingle{}
+\item 
+string \hyperlink{namespacec16pc371e_a4241a9920f00722eb794924e195397e7}{c16pc371e.\+verticalalignment} = \textquotesingle{}top\textquotesingle{}
+\item 
+\hyperlink{namespacec16pc371e_a834c9592ce8fabf2087ea344dbe5a60f}{c16pc371e.\+transform} = ax.\+trans\+Axes)
+\end{DoxyCompactItemize}

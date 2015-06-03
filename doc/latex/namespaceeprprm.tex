@@ -1,0 +1,1568 @@
+\hypertarget{namespaceeprprm}{}\section{eprprm Module Reference}
+\label{namespaceeprprm}\index{eprprm@{eprprm}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{namespaceeprprm_a08d578359aeab594b88c7c6987f92247}{prm\+\_\+ptr\+\_\+init}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+double precision, dimension(nfprm), target, save \hyperlink{namespaceeprprm_a07ae15d6d34d8266405826664044bb7c}{fepr}
+\item 
+integer, dimension(niprm), target, save \hyperlink{namespaceeprprm_a2ed802de333c566efe4519081a8062a8}{iepr}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a29615427c069f371b1dc06f36a5e3e87}{phase}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a462b5bf9efe84659f1c2d39ba9b97c7e}{gib0}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a9b2c7c36ac53819539d9ad650e473902}{gib2}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_abce7d0f30373297006e6d9bdd267d42b}{wxx}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_aebf10e6b79ad77a88d12e3b64010b1a5}{wyy}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_ae628024fe9921a7ae1888538ad9c5fff}{wzz}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a25e7c94f4a649a87422a743e351a7ea7}{gxx}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a2edbce8cb024857bb4dcfc8a578b421b}{gyy}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_aa66a7218552c94d73835786cf3b190bb}{gzz}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_aaa3734a81153f0f5562333ac84864e49}{axx}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a29f92a59d9e07849d9f977fd5eee660a}{ayy}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_adcc426415a1981e131be4c31084a4522}{azz}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a117c92b4e4d6bb0b1f011613390a5c90}{dx}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_abac70a3ac4acf93dc3497c6a4e2002be}{dy}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_add4efdee3ef8ed3f6c7a2ac01f386d45}{dz}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a6ae1d6eacb896a3091f0445547cfa2fd}{pml}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a86611abe980fe9a4af815110dfabcf03}{pmxy}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_af0776a53068fa03a0596346cf6444058}{pmzz}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a46b49eab985df70d7470c7d12893ed51}{djf}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_aed1600aae18f5e06427947030e28b9f7}{djfprp}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a5b25465fbd4b811373049e1237b46c8b}{oss}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a6b6519ee79a08bad2e65ca626d0da05f}{psi}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_abc7cc8fa4401fc11531ee125fcc4906c}{ald}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a34843c73666362f5441f87f9e90f194f}{bed}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_afafdc042dcab1ece9655a770a1d539d5}{gad}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a13703c365a3472e93e91b30d4e391545}{alm}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_ac6e05da7aea8c1049bfbe7518efb3718}{bem}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a353f9030a047a59f5801870f26604ed0}{gam}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a61010df7a9653ac764d3a63cd86f2c58}{c20}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_ac474b20547c3ae489363e1d88af421ee}{c22}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_af9e8027c85be89b7fe702e790879d4dc}{c40}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a9282392d54d26bb4089be779527779a3}{c42}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a66fdf818e7c7a418d4d4e6990a8d7e6f}{c44}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_afe0f92a6befdf0c77a36e3c2342ad9fd}{lb}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_ab35b2ce4f9a24b5aac533a3bbe24a2da}{dc20}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a629a13197bc80e3af5e6fa75c8ed6ac5}{b0}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a31cc3edbc72bee76606e05fe5237e9f6}{gamman}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_aec25b178310543929a81a557419e6066}{cgtol}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a2c68e0cd38810c3c502a27135aaf5690}{shiftr}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a9ff047dcabc99908185f7e72f01c3d48}{shifti}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a231579a41b3c7fd995ac0598d20d3a45}{range}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a2ffe7346b998b70a5a4805535e14e4a0}{fldi}
+\item 
+double precision, pointer, save \hyperlink{namespaceeprprm_a4bd38beae60831a2b05cc85572c3672c}{dfld}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a6d00781f9c1b0e7cbce6207b1c57cf50}{in2}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a1e17be01336c885da6515899cae5a7ed}{ipdf}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_ab58e211ef16fa6500d1c29217daf43bb}{ist}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_aaeb3f5b0e42b358b3ee74be26733b4d8}{ml}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_ae805f0ee7d78a5230b240a1f35002f99}{mxy}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a83125799daad71e365f81a8f113c16a5}{mzz}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a080678b0daa6a1eb9c559ad6d6fd612c}{lemx}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a786312dd5552184d723c5151f2ac3aae}{lomx}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a676b1fc89038dd161e506b50fb2843b7}{kmn}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a0346dd5f175786eae1d0dd18f2cc97de}{kmx}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a72f5ed8d2a8be8741dc778c793c7ea60}{mmn}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_aada30207c2cdc39eec667cd94639a103}{mmx}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a77ecff6decc2bc0d8cf29e89b309b05a}{ipnmx}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a1dd9abe8921dea412e25e6fbdc197c63}{nort}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_ae03cc13b3aa9f85f67b589f3f4912ad7}{nstep}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_adfd6a1eecf874041ecb41842734e3e4e}{nfld}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_ab9ce629394911de502a28f8caf74bc0f}{ideriv}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a403d74c2cc9c63275be022605edd9154}{iwflg}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a96518ee0a5b885c5c5295a2b899777b2}{igflg}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a388da4f497546a49ff86e25246b6edd3}{iaflg}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a85706144964dff252977da27aedf5980}{irflg}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_abe2ee51f0c6d17c93f4b3c069fe2860f}{jkmn}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_ab037beb1c3e7234aa53f0de2b7cd677f}{jmmn}
+\item 
+integer, pointer, save \hyperlink{namespaceeprprm_a0b9f3a125298e3799bc9572f01ea2f9f}{ndim}
+\item 
+double precision, save \hyperlink{namespaceeprprm_ad39f78e950f2cd0753b0e04d9a2298e5}{a0}
+\item 
+double precision, save \hyperlink{namespaceeprprm_a38a7223f869f6d1e8da642a293f453bd}{g0}
+\item 
+double precision, save \hyperlink{namespaceeprprm_a87c34ea8981ed3859f4693b0c9037e9e}{w0}
+\item 
+double precision, save \hyperlink{namespaceeprprm_a263e507a4f5b9ae978f9ae0b65cd347f}{expl}
+\item 
+double precision, save \hyperlink{namespaceeprprm_a7cc69666db3b620019e12ddecfe6cc1d}{expkxy}
+\item 
+double precision, save \hyperlink{namespaceeprprm_ad664ff7ebea7f4512e0ea31df49b4d39}{expkzz}
+\item 
+double precision, dimension(5), save \hyperlink{namespaceeprprm_a76b05137064378c4b6c974a1a83699c2}{faa}
+\item 
+double precision, dimension(5), save \hyperlink{namespaceeprprm_aa299fb37397e2004e8b75f5d29c3f699}{fgm}
+\item 
+double precision, dimension(5), save \hyperlink{namespaceeprprm_a3bcbbf399e52465c098ffc865b73ac3d}{fwm}
+\item 
+double precision, dimension(2, 5), save \hyperlink{namespaceeprprm_a66ed6d4bb84b6e64d383dcd0443d5644}{fam}
+\item 
+double precision, dimension(2, 5), save \hyperlink{namespaceeprprm_a68ecc0791cbbb50860611eb5bc291713}{fgd}
+\item 
+double precision, dimension(2, 5), save \hyperlink{namespaceeprprm_a099e0d0520a26f87258bdc505825179a}{fad}
+\item 
+double precision, dimension(2, 5), save \hyperlink{namespaceeprprm_a8fbb63e1d467e826b13423da48e8b8ad}{fwd}
+\item 
+double precision, dimension(5, 5), save \hyperlink{namespaceeprprm_a62656585611cf94d77d428ba60ca057d}{cpot}
+\item 
+double precision, dimension(5, 5), save \hyperlink{namespaceeprprm_a2f54a1c1e6e39000e990757e598574db}{xlk}
+\item 
+integer, save \hyperlink{namespaceeprprm_a1d51173ceaac8495c5e8db060d875f17}{itype}
+\item 
+integer, save \hyperlink{namespaceeprprm_a22578647f8972b8b80f5a0349e6e6230}{ipt}
+\item 
+integer, save \hyperlink{namespaceeprprm_a296f762f32ef4ccefdbb76dcc67d53e4}{itm}
+\item 
+integer, save \hyperlink{namespaceeprprm_a8fcd5e6142acff2e96817552c7b99ec7}{itd}
+\item 
+integer, save \hyperlink{namespaceeprprm_a5b1824e79d74efb7915ae0a6f0c58e8c}{ipsi0}
+\item 
+integer, save \hyperlink{namespaceeprprm_ac0175fc6c09ff35dab1be296d5bbf563}{lband}
+\item 
+integer, save \hyperlink{namespaceeprprm_a1e3baa760f2e80f85c21e7f6a951638a}{kband}
+\item 
+integer, save \hyperlink{namespaceeprprm_a16194baa58a7f76faad3df610fff1de7}{ldelta}
+\item 
+integer, save \hyperlink{namespaceeprprm_aa6fb32b69926115ede5a05ba73eb2c51}{kdelta}
+\item 
+integer, save \hyperlink{namespaceeprprm_aafebeca369f77ec06772c8c5702d9588}{lptmx}
+\item 
+integer, save \hyperlink{namespaceeprprm_a91334cbceabfc27605b10950c55b3aee}{kptmx}
+\item 
+integer, save \hyperlink{namespaceeprprm_a2af1ec4d2274473684b9de4971d04e7a}{neltot}
+\item 
+integer, save \hyperlink{namespaceeprprm_ae246996d811aaa3455d2bcf269be39b1}{nelv}
+\item 
+integer, save \hyperlink{namespaceeprprm_aa375e74f6ff897bef17e88f05ddb9cc8}{nelre}
+\item 
+integer, save \hyperlink{namespaceeprprm_a72632890c4519699def10ba0d100a9fe}{nelim}
+\item 
+integer, save \hyperlink{namespaceeprprm_afafc12206b0021b67cb82e9334c7eba2}{ncgstp}
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ac566c6a126d271ed9e7d5945b9f9eb10}{iphase} =1
+\item 
+integer, parameter \hyperlink{namespaceeprprm_af0c96b211fb46c4948f47c3e1ff1bacb}{igib0} =2
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a3eef5f7af6d19f0ead77488a0635d58f}{igib2} =3
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ad2980e2752db5a919355d76a8a29da9c}{iwxx} =4
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ad05099b8900a5c7f535819a923c2e1e9}{iwzz} =6
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a89f974b6c26f9bc6acf5f21e2d6401bf}{igxx} =7
+\item 
+integer, parameter \hyperlink{namespaceeprprm_af4fc8dd516742dc75bb1731ffdd1a85a}{igzz} =9
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a7d6cf3c30470b1d7221d8674e5867132}{iaxx} =10
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a592d9f042134ab4088fc6dcc9fe62c3d}{iazz} =12
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a6ede78b87d8f3d1e4cd4ea5bff06742b}{idx} =13
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a5463167e5bc7141311e3392fb1e289d6}{idz} =15
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ae1e179fe41d18f26b8d560e174e2b5f7}{ipml} =16
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ae2d71fd6f365ad8cbf1e6f4ca74f915b}{ipmxy} =17
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aacc49416b21a73a8188def9fc95832b2}{ipmzz} =18
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ae5585d5c735a41934964612061eb4b4f}{idjf} =19
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ad75b4a98adca16a10615413c1c355c63}{idjfprp} =20
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a4604a97e1a1375c11898938ba67719af}{ioss} =21
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a66aafcd5d51596bec207e6f00173d3f2}{ipsi} =22
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a9349944793e1e1e74dafcd991e257c5e}{iald} =23
+\item 
+integer, parameter \hyperlink{namespaceeprprm_adcd9588ca9ef68f5f1540c653d750f1f}{ibed} =24
+\item 
+integer, parameter \hyperlink{namespaceeprprm_adfb161bd35e2659997640101f96666f7}{igad} =25
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a1fe6b4a04457392c6fd0b5b5e32d60d7}{ialm} =26
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a71593f7582d5a4ff6d4b1ed044baf62a}{igam} =28
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a3a00d90efe2838bd54b4c1fcdcd0ff52}{ic20} =29
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aa85ffebee261b0da16535ac74bdb6e6c}{ic44} =33
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a445f1692956e3b94315b51d241c563ff}{ilb} =34
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aa3b9414473268c4ae2fb478898eb027c}{idc20} =35
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aa998c2427abb56777259ef57bdb708fc}{ib0} =36
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aa0ca4c31263db12aa6aeeaf13f16bc12}{igaman} =37
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a18ca5a39b3734717d7096b2377dc2dd5}{icgtol} =38
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a10c3c14979d3a056c2f355e30e673c1b}{ishift} =39
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a8927302cd0ecf7f59652f2eb47c44e67}{irange} =41
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a8084835b2ae66010902f11ae14822074}{ifldi} =42
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aeb78dc1543ef7b36ce47a31184796bf6}{idfld} =43
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a6c9edea10566ea2ae64c7923f1860e49}{iin2} =1
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a431c6240256ed187bc148c5a892bcea8}{iipdf} =2
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a040ec935adf70417cc2ac4b7a6a6e49f}{iist} =3
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a2732904d209316607bd18610129bfec2}{iml} =4
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a732057ba042959de08230caa9f51ff78}{ilemx} =7
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a49f6351153aa1494fc8a587461c98f1f}{inort} =14
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a813d100c067c108362268719ac2635a5}{instep} =15
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ae7e00481f2007ba006c1c62fd4e8c40d}{infld} =16
+\item 
+integer, parameter \hyperlink{namespaceeprprm_abd454257cb4db124a936d3622dcf895e}{iiderv} =17
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a552edeb01e4e44cbbf2dcd3594cef6a4}{iiwflg} =18
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a5fdd88a61951c01f059b9bda24d97c07}{iigflg} =19
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a863f652d54388377f1a88774c46beb1e}{iiaflg} =20
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a98fa5100c285284ec457e847f73e5d93}{iirflg} =21
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a11ffb5266269ac0ff51697fae12fcb6b}{indim} =24
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a358d1ba75b42e6437bc49e620c3e5a81}{iwyy} =5
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a70e71419e92341c6893d034efc5d7292}{igyy} =8
+\item 
+integer, parameter \hyperlink{namespaceeprprm_ac0000b0bfe42b5e4205465d2701a2e35}{iayy} =11
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a66b4b19c76054fec27bd70f1e469029d}{idy} =14
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aae761212a5c9a904378136355a0dadc8}{ibem} =27
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aa4aa2777c8d13e5d24b6080e3580b144}{ic22} =30
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a6aba9ea796ac50ae01e59139e4c33e83}{ic40} =31
+\item 
+integer, parameter \hyperlink{namespaceeprprm_af9d44fae9bbeda1996c31ffab00674e8}{ic42} =32
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a1488effb9b4b334d5a07636fc33cf7d9}{ishifti} =40
+\item 
+integer, parameter \hyperlink{namespaceeprprm_af058c51f52c4238e83a3c60beed3ce56}{imxy} =5
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a0f76a039a4e24732c804862598c6dfa7}{imzz} =6
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a3a9d10bd8f0c19c69227b26dd56bb5e0}{ilomx} =8
+\item 
+integer, parameter \hyperlink{namespaceeprprm_adb57a0fba230f2f9f14cdceee19dd793}{ikmn} =9
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a51c8dfbaac0a726d1128c55a93e78659}{ikmx} =10
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a27c3282bed1d10f15b4249095b5a3c9d}{immn} =11
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a1d5dea34176fa28d9ce0a2aeaf36a528}{immx} =12
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a2298a5c7baeae1d902e536fd444252ae}{iipnmx} =13
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a93c73c83591e4815464fef344e4647b9}{ijkmn} =22
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a5016ac34ad482ec07e7a1b5c2c2903b9}{ijmmn} =23
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a32f3a7caff494657776930786c83f825}{igamman} =I\+G\+A\+M\+A\+N
+\item 
+integer, parameter \hyperlink{namespaceeprprm_a571bd76f6ad7bd111bec5a9eb35a09db}{ishiftr} =I\+S\+H\+I\+F\+T
+\item 
+integer, parameter \hyperlink{namespaceeprprm_aec46ed8c8bb7d569036427f707a49270}{iideriv} =I\+I\+D\+E\+R\+V
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{namespaceeprprm_a08d578359aeab594b88c7c6987f92247}{}\index{eprprm@{eprprm}!prm\+\_\+ptr\+\_\+init@{prm\+\_\+ptr\+\_\+init}}
+\index{prm\+\_\+ptr\+\_\+init@{prm\+\_\+ptr\+\_\+init}!eprprm@{eprprm}}
+\subsubsection[{prm\+\_\+ptr\+\_\+init}]{\setlength{\rightskip}{0pt plus 5cm}subroutine eprprm\+::prm\+\_\+ptr\+\_\+init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{namespaceeprprm_a08d578359aeab594b88c7c6987f92247}
+
+
+Definition at line 145 of file eprprm.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=330pt]{namespaceeprprm_a08d578359aeab594b88c7c6987f92247_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Variable Documentation}
+\hypertarget{namespaceeprprm_ad39f78e950f2cd0753b0e04d9a2298e5}{}\index{eprprm@{eprprm}!a0@{a0}}
+\index{a0@{a0}!eprprm@{eprprm}}
+\subsubsection[{a0}]{\setlength{\rightskip}{0pt plus 5cm}double precision, save eprprm\+::a0}\label{namespaceeprprm_ad39f78e950f2cd0753b0e04d9a2298e5}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_abc7cc8fa4401fc11531ee125fcc4906c}{}\index{eprprm@{eprprm}!ald@{ald}}
+\index{ald@{ald}!eprprm@{eprprm}}
+\subsubsection[{ald}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::ald}\label{namespaceeprprm_abc7cc8fa4401fc11531ee125fcc4906c}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a13703c365a3472e93e91b30d4e391545}{}\index{eprprm@{eprprm}!alm@{alm}}
+\index{alm@{alm}!eprprm@{eprprm}}
+\subsubsection[{alm}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::alm}\label{namespaceeprprm_a13703c365a3472e93e91b30d4e391545}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aaa3734a81153f0f5562333ac84864e49}{}\index{eprprm@{eprprm}!axx@{axx}}
+\index{axx@{axx}!eprprm@{eprprm}}
+\subsubsection[{axx}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::axx}\label{namespaceeprprm_aaa3734a81153f0f5562333ac84864e49}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a29f92a59d9e07849d9f977fd5eee660a}{}\index{eprprm@{eprprm}!ayy@{ayy}}
+\index{ayy@{ayy}!eprprm@{eprprm}}
+\subsubsection[{ayy}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::ayy}\label{namespaceeprprm_a29f92a59d9e07849d9f977fd5eee660a}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_adcc426415a1981e131be4c31084a4522}{}\index{eprprm@{eprprm}!azz@{azz}}
+\index{azz@{azz}!eprprm@{eprprm}}
+\subsubsection[{azz}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::azz}\label{namespaceeprprm_adcc426415a1981e131be4c31084a4522}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a629a13197bc80e3af5e6fa75c8ed6ac5}{}\index{eprprm@{eprprm}!b0@{b0}}
+\index{b0@{b0}!eprprm@{eprprm}}
+\subsubsection[{b0}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::b0}\label{namespaceeprprm_a629a13197bc80e3af5e6fa75c8ed6ac5}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a34843c73666362f5441f87f9e90f194f}{}\index{eprprm@{eprprm}!bed@{bed}}
+\index{bed@{bed}!eprprm@{eprprm}}
+\subsubsection[{bed}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::bed}\label{namespaceeprprm_a34843c73666362f5441f87f9e90f194f}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ac6e05da7aea8c1049bfbe7518efb3718}{}\index{eprprm@{eprprm}!bem@{bem}}
+\index{bem@{bem}!eprprm@{eprprm}}
+\subsubsection[{bem}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::bem}\label{namespaceeprprm_ac6e05da7aea8c1049bfbe7518efb3718}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a61010df7a9653ac764d3a63cd86f2c58}{}\index{eprprm@{eprprm}!c20@{c20}}
+\index{c20@{c20}!eprprm@{eprprm}}
+\subsubsection[{c20}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::c20}\label{namespaceeprprm_a61010df7a9653ac764d3a63cd86f2c58}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ac474b20547c3ae489363e1d88af421ee}{}\index{eprprm@{eprprm}!c22@{c22}}
+\index{c22@{c22}!eprprm@{eprprm}}
+\subsubsection[{c22}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::c22}\label{namespaceeprprm_ac474b20547c3ae489363e1d88af421ee}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_af9e8027c85be89b7fe702e790879d4dc}{}\index{eprprm@{eprprm}!c40@{c40}}
+\index{c40@{c40}!eprprm@{eprprm}}
+\subsubsection[{c40}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::c40}\label{namespaceeprprm_af9e8027c85be89b7fe702e790879d4dc}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a9282392d54d26bb4089be779527779a3}{}\index{eprprm@{eprprm}!c42@{c42}}
+\index{c42@{c42}!eprprm@{eprprm}}
+\subsubsection[{c42}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::c42}\label{namespaceeprprm_a9282392d54d26bb4089be779527779a3}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a66fdf818e7c7a418d4d4e6990a8d7e6f}{}\index{eprprm@{eprprm}!c44@{c44}}
+\index{c44@{c44}!eprprm@{eprprm}}
+\subsubsection[{c44}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::c44}\label{namespaceeprprm_a66fdf818e7c7a418d4d4e6990a8d7e6f}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aec25b178310543929a81a557419e6066}{}\index{eprprm@{eprprm}!cgtol@{cgtol}}
+\index{cgtol@{cgtol}!eprprm@{eprprm}}
+\subsubsection[{cgtol}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::cgtol}\label{namespaceeprprm_aec25b178310543929a81a557419e6066}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a62656585611cf94d77d428ba60ca057d}{}\index{eprprm@{eprprm}!cpot@{cpot}}
+\index{cpot@{cpot}!eprprm@{eprprm}}
+\subsubsection[{cpot}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(5,5), save eprprm\+::cpot}\label{namespaceeprprm_a62656585611cf94d77d428ba60ca057d}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ab35b2ce4f9a24b5aac533a3bbe24a2da}{}\index{eprprm@{eprprm}!dc20@{dc20}}
+\index{dc20@{dc20}!eprprm@{eprprm}}
+\subsubsection[{dc20}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::dc20}\label{namespaceeprprm_ab35b2ce4f9a24b5aac533a3bbe24a2da}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a4bd38beae60831a2b05cc85572c3672c}{}\index{eprprm@{eprprm}!dfld@{dfld}}
+\index{dfld@{dfld}!eprprm@{eprprm}}
+\subsubsection[{dfld}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::dfld}\label{namespaceeprprm_a4bd38beae60831a2b05cc85572c3672c}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a46b49eab985df70d7470c7d12893ed51}{}\index{eprprm@{eprprm}!djf@{djf}}
+\index{djf@{djf}!eprprm@{eprprm}}
+\subsubsection[{djf}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::djf}\label{namespaceeprprm_a46b49eab985df70d7470c7d12893ed51}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aed1600aae18f5e06427947030e28b9f7}{}\index{eprprm@{eprprm}!djfprp@{djfprp}}
+\index{djfprp@{djfprp}!eprprm@{eprprm}}
+\subsubsection[{djfprp}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::djfprp}\label{namespaceeprprm_aed1600aae18f5e06427947030e28b9f7}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a117c92b4e4d6bb0b1f011613390a5c90}{}\index{eprprm@{eprprm}!dx@{dx}}
+\index{dx@{dx}!eprprm@{eprprm}}
+\subsubsection[{dx}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::dx}\label{namespaceeprprm_a117c92b4e4d6bb0b1f011613390a5c90}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_abac70a3ac4acf93dc3497c6a4e2002be}{}\index{eprprm@{eprprm}!dy@{dy}}
+\index{dy@{dy}!eprprm@{eprprm}}
+\subsubsection[{dy}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::dy}\label{namespaceeprprm_abac70a3ac4acf93dc3497c6a4e2002be}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_add4efdee3ef8ed3f6c7a2ac01f386d45}{}\index{eprprm@{eprprm}!dz@{dz}}
+\index{dz@{dz}!eprprm@{eprprm}}
+\subsubsection[{dz}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::dz}\label{namespaceeprprm_add4efdee3ef8ed3f6c7a2ac01f386d45}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a7cc69666db3b620019e12ddecfe6cc1d}{}\index{eprprm@{eprprm}!expkxy@{expkxy}}
+\index{expkxy@{expkxy}!eprprm@{eprprm}}
+\subsubsection[{expkxy}]{\setlength{\rightskip}{0pt plus 5cm}double precision, save eprprm\+::expkxy}\label{namespaceeprprm_a7cc69666db3b620019e12ddecfe6cc1d}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ad664ff7ebea7f4512e0ea31df49b4d39}{}\index{eprprm@{eprprm}!expkzz@{expkzz}}
+\index{expkzz@{expkzz}!eprprm@{eprprm}}
+\subsubsection[{expkzz}]{\setlength{\rightskip}{0pt plus 5cm}double precision, save eprprm\+::expkzz}\label{namespaceeprprm_ad664ff7ebea7f4512e0ea31df49b4d39}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a263e507a4f5b9ae978f9ae0b65cd347f}{}\index{eprprm@{eprprm}!expl@{expl}}
+\index{expl@{expl}!eprprm@{eprprm}}
+\subsubsection[{expl}]{\setlength{\rightskip}{0pt plus 5cm}double precision, save eprprm\+::expl}\label{namespaceeprprm_a263e507a4f5b9ae978f9ae0b65cd347f}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a76b05137064378c4b6c974a1a83699c2}{}\index{eprprm@{eprprm}!faa@{faa}}
+\index{faa@{faa}!eprprm@{eprprm}}
+\subsubsection[{faa}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(5), save eprprm\+::faa}\label{namespaceeprprm_a76b05137064378c4b6c974a1a83699c2}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a099e0d0520a26f87258bdc505825179a}{}\index{eprprm@{eprprm}!fad@{fad}}
+\index{fad@{fad}!eprprm@{eprprm}}
+\subsubsection[{fad}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(2,5), save eprprm\+::fad}\label{namespaceeprprm_a099e0d0520a26f87258bdc505825179a}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a66ed6d4bb84b6e64d383dcd0443d5644}{}\index{eprprm@{eprprm}!fam@{fam}}
+\index{fam@{fam}!eprprm@{eprprm}}
+\subsubsection[{fam}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(2,5), save eprprm\+::fam}\label{namespaceeprprm_a66ed6d4bb84b6e64d383dcd0443d5644}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a07ae15d6d34d8266405826664044bb7c}{}\index{eprprm@{eprprm}!fepr@{fepr}}
+\index{fepr@{fepr}!eprprm@{eprprm}}
+\subsubsection[{fepr}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(nfprm), target, save eprprm\+::fepr}\label{namespaceeprprm_a07ae15d6d34d8266405826664044bb7c}
+
+
+Definition at line 55 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a68ecc0791cbbb50860611eb5bc291713}{}\index{eprprm@{eprprm}!fgd@{fgd}}
+\index{fgd@{fgd}!eprprm@{eprprm}}
+\subsubsection[{fgd}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(2,5), save eprprm\+::fgd}\label{namespaceeprprm_a68ecc0791cbbb50860611eb5bc291713}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa299fb37397e2004e8b75f5d29c3f699}{}\index{eprprm@{eprprm}!fgm@{fgm}}
+\index{fgm@{fgm}!eprprm@{eprprm}}
+\subsubsection[{fgm}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(5), save eprprm\+::fgm}\label{namespaceeprprm_aa299fb37397e2004e8b75f5d29c3f699}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2ffe7346b998b70a5a4805535e14e4a0}{}\index{eprprm@{eprprm}!fldi@{fldi}}
+\index{fldi@{fldi}!eprprm@{eprprm}}
+\subsubsection[{fldi}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::fldi}\label{namespaceeprprm_a2ffe7346b998b70a5a4805535e14e4a0}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a8fbb63e1d467e826b13423da48e8b8ad}{}\index{eprprm@{eprprm}!fwd@{fwd}}
+\index{fwd@{fwd}!eprprm@{eprprm}}
+\subsubsection[{fwd}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(2,5), save eprprm\+::fwd}\label{namespaceeprprm_a8fbb63e1d467e826b13423da48e8b8ad}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a3bcbbf399e52465c098ffc865b73ac3d}{}\index{eprprm@{eprprm}!fwm@{fwm}}
+\index{fwm@{fwm}!eprprm@{eprprm}}
+\subsubsection[{fwm}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(5), save eprprm\+::fwm}\label{namespaceeprprm_a3bcbbf399e52465c098ffc865b73ac3d}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a38a7223f869f6d1e8da642a293f453bd}{}\index{eprprm@{eprprm}!g0@{g0}}
+\index{g0@{g0}!eprprm@{eprprm}}
+\subsubsection[{g0}]{\setlength{\rightskip}{0pt plus 5cm}double precision, save eprprm\+::g0}\label{namespaceeprprm_a38a7223f869f6d1e8da642a293f453bd}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_afafdc042dcab1ece9655a770a1d539d5}{}\index{eprprm@{eprprm}!gad@{gad}}
+\index{gad@{gad}!eprprm@{eprprm}}
+\subsubsection[{gad}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gad}\label{namespaceeprprm_afafdc042dcab1ece9655a770a1d539d5}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a353f9030a047a59f5801870f26604ed0}{}\index{eprprm@{eprprm}!gam@{gam}}
+\index{gam@{gam}!eprprm@{eprprm}}
+\subsubsection[{gam}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gam}\label{namespaceeprprm_a353f9030a047a59f5801870f26604ed0}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a31cc3edbc72bee76606e05fe5237e9f6}{}\index{eprprm@{eprprm}!gamman@{gamman}}
+\index{gamman@{gamman}!eprprm@{eprprm}}
+\subsubsection[{gamman}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gamman}\label{namespaceeprprm_a31cc3edbc72bee76606e05fe5237e9f6}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a462b5bf9efe84659f1c2d39ba9b97c7e}{}\index{eprprm@{eprprm}!gib0@{gib0}}
+\index{gib0@{gib0}!eprprm@{eprprm}}
+\subsubsection[{gib0}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gib0}\label{namespaceeprprm_a462b5bf9efe84659f1c2d39ba9b97c7e}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a9b2c7c36ac53819539d9ad650e473902}{}\index{eprprm@{eprprm}!gib2@{gib2}}
+\index{gib2@{gib2}!eprprm@{eprprm}}
+\subsubsection[{gib2}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gib2}\label{namespaceeprprm_a9b2c7c36ac53819539d9ad650e473902}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a25e7c94f4a649a87422a743e351a7ea7}{}\index{eprprm@{eprprm}!gxx@{gxx}}
+\index{gxx@{gxx}!eprprm@{eprprm}}
+\subsubsection[{gxx}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gxx}\label{namespaceeprprm_a25e7c94f4a649a87422a743e351a7ea7}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2edbce8cb024857bb4dcfc8a578b421b}{}\index{eprprm@{eprprm}!gyy@{gyy}}
+\index{gyy@{gyy}!eprprm@{eprprm}}
+\subsubsection[{gyy}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gyy}\label{namespaceeprprm_a2edbce8cb024857bb4dcfc8a578b421b}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa66a7218552c94d73835786cf3b190bb}{}\index{eprprm@{eprprm}!gzz@{gzz}}
+\index{gzz@{gzz}!eprprm@{eprprm}}
+\subsubsection[{gzz}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::gzz}\label{namespaceeprprm_aa66a7218552c94d73835786cf3b190bb}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a388da4f497546a49ff86e25246b6edd3}{}\index{eprprm@{eprprm}!iaflg@{iaflg}}
+\index{iaflg@{iaflg}!eprprm@{eprprm}}
+\subsubsection[{iaflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::iaflg}\label{namespaceeprprm_a388da4f497546a49ff86e25246b6edd3}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a9349944793e1e1e74dafcd991e257c5e}{}\index{eprprm@{eprprm}!iald@{iald}}
+\index{iald@{iald}!eprprm@{eprprm}}
+\subsubsection[{iald}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iald =23}\label{namespaceeprprm_a9349944793e1e1e74dafcd991e257c5e}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1fe6b4a04457392c6fd0b5b5e32d60d7}{}\index{eprprm@{eprprm}!ialm@{ialm}}
+\index{ialm@{ialm}!eprprm@{eprprm}}
+\subsubsection[{ialm}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ialm =26}\label{namespaceeprprm_a1fe6b4a04457392c6fd0b5b5e32d60d7}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a7d6cf3c30470b1d7221d8674e5867132}{}\index{eprprm@{eprprm}!iaxx@{iaxx}}
+\index{iaxx@{iaxx}!eprprm@{eprprm}}
+\subsubsection[{iaxx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iaxx =10}\label{namespaceeprprm_a7d6cf3c30470b1d7221d8674e5867132}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ac0000b0bfe42b5e4205465d2701a2e35}{}\index{eprprm@{eprprm}!iayy@{iayy}}
+\index{iayy@{iayy}!eprprm@{eprprm}}
+\subsubsection[{iayy}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iayy =11}\label{namespaceeprprm_ac0000b0bfe42b5e4205465d2701a2e35}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a592d9f042134ab4088fc6dcc9fe62c3d}{}\index{eprprm@{eprprm}!iazz@{iazz}}
+\index{iazz@{iazz}!eprprm@{eprprm}}
+\subsubsection[{iazz}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iazz =12}\label{namespaceeprprm_a592d9f042134ab4088fc6dcc9fe62c3d}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa998c2427abb56777259ef57bdb708fc}{}\index{eprprm@{eprprm}!ib0@{ib0}}
+\index{ib0@{ib0}!eprprm@{eprprm}}
+\subsubsection[{ib0}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ib0 =36}\label{namespaceeprprm_aa998c2427abb56777259ef57bdb708fc}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_adcd9588ca9ef68f5f1540c653d750f1f}{}\index{eprprm@{eprprm}!ibed@{ibed}}
+\index{ibed@{ibed}!eprprm@{eprprm}}
+\subsubsection[{ibed}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ibed =24}\label{namespaceeprprm_adcd9588ca9ef68f5f1540c653d750f1f}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aae761212a5c9a904378136355a0dadc8}{}\index{eprprm@{eprprm}!ibem@{ibem}}
+\index{ibem@{ibem}!eprprm@{eprprm}}
+\subsubsection[{ibem}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ibem =27}\label{namespaceeprprm_aae761212a5c9a904378136355a0dadc8}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a3a00d90efe2838bd54b4c1fcdcd0ff52}{}\index{eprprm@{eprprm}!ic20@{ic20}}
+\index{ic20@{ic20}!eprprm@{eprprm}}
+\subsubsection[{ic20}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ic20 =29}\label{namespaceeprprm_a3a00d90efe2838bd54b4c1fcdcd0ff52}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa4aa2777c8d13e5d24b6080e3580b144}{}\index{eprprm@{eprprm}!ic22@{ic22}}
+\index{ic22@{ic22}!eprprm@{eprprm}}
+\subsubsection[{ic22}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ic22 =30}\label{namespaceeprprm_aa4aa2777c8d13e5d24b6080e3580b144}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a6aba9ea796ac50ae01e59139e4c33e83}{}\index{eprprm@{eprprm}!ic40@{ic40}}
+\index{ic40@{ic40}!eprprm@{eprprm}}
+\subsubsection[{ic40}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ic40 =31}\label{namespaceeprprm_a6aba9ea796ac50ae01e59139e4c33e83}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_af9d44fae9bbeda1996c31ffab00674e8}{}\index{eprprm@{eprprm}!ic42@{ic42}}
+\index{ic42@{ic42}!eprprm@{eprprm}}
+\subsubsection[{ic42}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ic42 =32}\label{namespaceeprprm_af9d44fae9bbeda1996c31ffab00674e8}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa85ffebee261b0da16535ac74bdb6e6c}{}\index{eprprm@{eprprm}!ic44@{ic44}}
+\index{ic44@{ic44}!eprprm@{eprprm}}
+\subsubsection[{ic44}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ic44 =33}\label{namespaceeprprm_aa85ffebee261b0da16535ac74bdb6e6c}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a18ca5a39b3734717d7096b2377dc2dd5}{}\index{eprprm@{eprprm}!icgtol@{icgtol}}
+\index{icgtol@{icgtol}!eprprm@{eprprm}}
+\subsubsection[{icgtol}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::icgtol =38}\label{namespaceeprprm_a18ca5a39b3734717d7096b2377dc2dd5}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa3b9414473268c4ae2fb478898eb027c}{}\index{eprprm@{eprprm}!idc20@{idc20}}
+\index{idc20@{idc20}!eprprm@{eprprm}}
+\subsubsection[{idc20}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idc20 =35}\label{namespaceeprprm_aa3b9414473268c4ae2fb478898eb027c}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ab9ce629394911de502a28f8caf74bc0f}{}\index{eprprm@{eprprm}!ideriv@{ideriv}}
+\index{ideriv@{ideriv}!eprprm@{eprprm}}
+\subsubsection[{ideriv}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::ideriv}\label{namespaceeprprm_ab9ce629394911de502a28f8caf74bc0f}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aeb78dc1543ef7b36ce47a31184796bf6}{}\index{eprprm@{eprprm}!idfld@{idfld}}
+\index{idfld@{idfld}!eprprm@{eprprm}}
+\subsubsection[{idfld}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idfld =43}\label{namespaceeprprm_aeb78dc1543ef7b36ce47a31184796bf6}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae5585d5c735a41934964612061eb4b4f}{}\index{eprprm@{eprprm}!idjf@{idjf}}
+\index{idjf@{idjf}!eprprm@{eprprm}}
+\subsubsection[{idjf}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idjf =19}\label{namespaceeprprm_ae5585d5c735a41934964612061eb4b4f}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ad75b4a98adca16a10615413c1c355c63}{}\index{eprprm@{eprprm}!idjfprp@{idjfprp}}
+\index{idjfprp@{idjfprp}!eprprm@{eprprm}}
+\subsubsection[{idjfprp}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idjfprp =20}\label{namespaceeprprm_ad75b4a98adca16a10615413c1c355c63}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a6ede78b87d8f3d1e4cd4ea5bff06742b}{}\index{eprprm@{eprprm}!idx@{idx}}
+\index{idx@{idx}!eprprm@{eprprm}}
+\subsubsection[{idx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idx =13}\label{namespaceeprprm_a6ede78b87d8f3d1e4cd4ea5bff06742b}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a66b4b19c76054fec27bd70f1e469029d}{}\index{eprprm@{eprprm}!idy@{idy}}
+\index{idy@{idy}!eprprm@{eprprm}}
+\subsubsection[{idy}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idy =14}\label{namespaceeprprm_a66b4b19c76054fec27bd70f1e469029d}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a5463167e5bc7141311e3392fb1e289d6}{}\index{eprprm@{eprprm}!idz@{idz}}
+\index{idz@{idz}!eprprm@{eprprm}}
+\subsubsection[{idz}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::idz =15}\label{namespaceeprprm_a5463167e5bc7141311e3392fb1e289d6}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2ed802de333c566efe4519081a8062a8}{}\index{eprprm@{eprprm}!iepr@{iepr}}
+\index{iepr@{iepr}!eprprm@{eprprm}}
+\subsubsection[{iepr}]{\setlength{\rightskip}{0pt plus 5cm}integer, dimension(niprm), target, save eprprm\+::iepr}\label{namespaceeprprm_a2ed802de333c566efe4519081a8062a8}
+
+
+Definition at line 56 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a8084835b2ae66010902f11ae14822074}{}\index{eprprm@{eprprm}!ifldi@{ifldi}}
+\index{ifldi@{ifldi}!eprprm@{eprprm}}
+\subsubsection[{ifldi}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ifldi =42}\label{namespaceeprprm_a8084835b2ae66010902f11ae14822074}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_adfb161bd35e2659997640101f96666f7}{}\index{eprprm@{eprprm}!igad@{igad}}
+\index{igad@{igad}!eprprm@{eprprm}}
+\subsubsection[{igad}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igad =25}\label{namespaceeprprm_adfb161bd35e2659997640101f96666f7}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a71593f7582d5a4ff6d4b1ed044baf62a}{}\index{eprprm@{eprprm}!igam@{igam}}
+\index{igam@{igam}!eprprm@{eprprm}}
+\subsubsection[{igam}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igam =28}\label{namespaceeprprm_a71593f7582d5a4ff6d4b1ed044baf62a}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa0ca4c31263db12aa6aeeaf13f16bc12}{}\index{eprprm@{eprprm}!igaman@{igaman}}
+\index{igaman@{igaman}!eprprm@{eprprm}}
+\subsubsection[{igaman}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igaman =37}\label{namespaceeprprm_aa0ca4c31263db12aa6aeeaf13f16bc12}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a32f3a7caff494657776930786c83f825}{}\index{eprprm@{eprprm}!igamman@{igamman}}
+\index{igamman@{igamman}!eprprm@{eprprm}}
+\subsubsection[{igamman}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igamman =I\+G\+A\+M\+A\+N}\label{namespaceeprprm_a32f3a7caff494657776930786c83f825}
+
+
+Definition at line 116 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a96518ee0a5b885c5c5295a2b899777b2}{}\index{eprprm@{eprprm}!igflg@{igflg}}
+\index{igflg@{igflg}!eprprm@{eprprm}}
+\subsubsection[{igflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::igflg}\label{namespaceeprprm_a96518ee0a5b885c5c5295a2b899777b2}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_af0c96b211fb46c4948f47c3e1ff1bacb}{}\index{eprprm@{eprprm}!igib0@{igib0}}
+\index{igib0@{igib0}!eprprm@{eprprm}}
+\subsubsection[{igib0}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igib0 =2}\label{namespaceeprprm_af0c96b211fb46c4948f47c3e1ff1bacb}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a3eef5f7af6d19f0ead77488a0635d58f}{}\index{eprprm@{eprprm}!igib2@{igib2}}
+\index{igib2@{igib2}!eprprm@{eprprm}}
+\subsubsection[{igib2}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igib2 =3}\label{namespaceeprprm_a3eef5f7af6d19f0ead77488a0635d58f}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a89f974b6c26f9bc6acf5f21e2d6401bf}{}\index{eprprm@{eprprm}!igxx@{igxx}}
+\index{igxx@{igxx}!eprprm@{eprprm}}
+\subsubsection[{igxx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igxx =7}\label{namespaceeprprm_a89f974b6c26f9bc6acf5f21e2d6401bf}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a70e71419e92341c6893d034efc5d7292}{}\index{eprprm@{eprprm}!igyy@{igyy}}
+\index{igyy@{igyy}!eprprm@{eprprm}}
+\subsubsection[{igyy}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igyy =8}\label{namespaceeprprm_a70e71419e92341c6893d034efc5d7292}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_af4fc8dd516742dc75bb1731ffdd1a85a}{}\index{eprprm@{eprprm}!igzz@{igzz}}
+\index{igzz@{igzz}!eprprm@{eprprm}}
+\subsubsection[{igzz}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::igzz =9}\label{namespaceeprprm_af4fc8dd516742dc75bb1731ffdd1a85a}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a863f652d54388377f1a88774c46beb1e}{}\index{eprprm@{eprprm}!iiaflg@{iiaflg}}
+\index{iiaflg@{iiaflg}!eprprm@{eprprm}}
+\subsubsection[{iiaflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iiaflg =20}\label{namespaceeprprm_a863f652d54388377f1a88774c46beb1e}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aec46ed8c8bb7d569036427f707a49270}{}\index{eprprm@{eprprm}!iideriv@{iideriv}}
+\index{iideriv@{iideriv}!eprprm@{eprprm}}
+\subsubsection[{iideriv}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iideriv =I\+I\+D\+E\+R\+V}\label{namespaceeprprm_aec46ed8c8bb7d569036427f707a49270}
+
+
+Definition at line 116 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_abd454257cb4db124a936d3622dcf895e}{}\index{eprprm@{eprprm}!iiderv@{iiderv}}
+\index{iiderv@{iiderv}!eprprm@{eprprm}}
+\subsubsection[{iiderv}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iiderv =17}\label{namespaceeprprm_abd454257cb4db124a936d3622dcf895e}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a5fdd88a61951c01f059b9bda24d97c07}{}\index{eprprm@{eprprm}!iigflg@{iigflg}}
+\index{iigflg@{iigflg}!eprprm@{eprprm}}
+\subsubsection[{iigflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iigflg =19}\label{namespaceeprprm_a5fdd88a61951c01f059b9bda24d97c07}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a6c9edea10566ea2ae64c7923f1860e49}{}\index{eprprm@{eprprm}!iin2@{iin2}}
+\index{iin2@{iin2}!eprprm@{eprprm}}
+\subsubsection[{iin2}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iin2 =1}\label{namespaceeprprm_a6c9edea10566ea2ae64c7923f1860e49}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a431c6240256ed187bc148c5a892bcea8}{}\index{eprprm@{eprprm}!iipdf@{iipdf}}
+\index{iipdf@{iipdf}!eprprm@{eprprm}}
+\subsubsection[{iipdf}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iipdf =2}\label{namespaceeprprm_a431c6240256ed187bc148c5a892bcea8}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2298a5c7baeae1d902e536fd444252ae}{}\index{eprprm@{eprprm}!iipnmx@{iipnmx}}
+\index{iipnmx@{iipnmx}!eprprm@{eprprm}}
+\subsubsection[{iipnmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iipnmx =13}\label{namespaceeprprm_a2298a5c7baeae1d902e536fd444252ae}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a98fa5100c285284ec457e847f73e5d93}{}\index{eprprm@{eprprm}!iirflg@{iirflg}}
+\index{iirflg@{iirflg}!eprprm@{eprprm}}
+\subsubsection[{iirflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iirflg =21}\label{namespaceeprprm_a98fa5100c285284ec457e847f73e5d93}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a040ec935adf70417cc2ac4b7a6a6e49f}{}\index{eprprm@{eprprm}!iist@{iist}}
+\index{iist@{iist}!eprprm@{eprprm}}
+\subsubsection[{iist}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iist =3}\label{namespaceeprprm_a040ec935adf70417cc2ac4b7a6a6e49f}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a552edeb01e4e44cbbf2dcd3594cef6a4}{}\index{eprprm@{eprprm}!iiwflg@{iiwflg}}
+\index{iiwflg@{iiwflg}!eprprm@{eprprm}}
+\subsubsection[{iiwflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iiwflg =18}\label{namespaceeprprm_a552edeb01e4e44cbbf2dcd3594cef6a4}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a93c73c83591e4815464fef344e4647b9}{}\index{eprprm@{eprprm}!ijkmn@{ijkmn}}
+\index{ijkmn@{ijkmn}!eprprm@{eprprm}}
+\subsubsection[{ijkmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ijkmn =22}\label{namespaceeprprm_a93c73c83591e4815464fef344e4647b9}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a5016ac34ad482ec07e7a1b5c2c2903b9}{}\index{eprprm@{eprprm}!ijmmn@{ijmmn}}
+\index{ijmmn@{ijmmn}!eprprm@{eprprm}}
+\subsubsection[{ijmmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ijmmn =23}\label{namespaceeprprm_a5016ac34ad482ec07e7a1b5c2c2903b9}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_adb57a0fba230f2f9f14cdceee19dd793}{}\index{eprprm@{eprprm}!ikmn@{ikmn}}
+\index{ikmn@{ikmn}!eprprm@{eprprm}}
+\subsubsection[{ikmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ikmn =9}\label{namespaceeprprm_adb57a0fba230f2f9f14cdceee19dd793}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a51c8dfbaac0a726d1128c55a93e78659}{}\index{eprprm@{eprprm}!ikmx@{ikmx}}
+\index{ikmx@{ikmx}!eprprm@{eprprm}}
+\subsubsection[{ikmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ikmx =10}\label{namespaceeprprm_a51c8dfbaac0a726d1128c55a93e78659}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a445f1692956e3b94315b51d241c563ff}{}\index{eprprm@{eprprm}!ilb@{ilb}}
+\index{ilb@{ilb}!eprprm@{eprprm}}
+\subsubsection[{ilb}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ilb =34}\label{namespaceeprprm_a445f1692956e3b94315b51d241c563ff}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a732057ba042959de08230caa9f51ff78}{}\index{eprprm@{eprprm}!ilemx@{ilemx}}
+\index{ilemx@{ilemx}!eprprm@{eprprm}}
+\subsubsection[{ilemx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ilemx =7}\label{namespaceeprprm_a732057ba042959de08230caa9f51ff78}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a3a9d10bd8f0c19c69227b26dd56bb5e0}{}\index{eprprm@{eprprm}!ilomx@{ilomx}}
+\index{ilomx@{ilomx}!eprprm@{eprprm}}
+\subsubsection[{ilomx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ilomx =8}\label{namespaceeprprm_a3a9d10bd8f0c19c69227b26dd56bb5e0}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2732904d209316607bd18610129bfec2}{}\index{eprprm@{eprprm}!iml@{iml}}
+\index{iml@{iml}!eprprm@{eprprm}}
+\subsubsection[{iml}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iml =4}\label{namespaceeprprm_a2732904d209316607bd18610129bfec2}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a27c3282bed1d10f15b4249095b5a3c9d}{}\index{eprprm@{eprprm}!immn@{immn}}
+\index{immn@{immn}!eprprm@{eprprm}}
+\subsubsection[{immn}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::immn =11}\label{namespaceeprprm_a27c3282bed1d10f15b4249095b5a3c9d}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1d5dea34176fa28d9ce0a2aeaf36a528}{}\index{eprprm@{eprprm}!immx@{immx}}
+\index{immx@{immx}!eprprm@{eprprm}}
+\subsubsection[{immx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::immx =12}\label{namespaceeprprm_a1d5dea34176fa28d9ce0a2aeaf36a528}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_af058c51f52c4238e83a3c60beed3ce56}{}\index{eprprm@{eprprm}!imxy@{imxy}}
+\index{imxy@{imxy}!eprprm@{eprprm}}
+\subsubsection[{imxy}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::imxy =5}\label{namespaceeprprm_af058c51f52c4238e83a3c60beed3ce56}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a0f76a039a4e24732c804862598c6dfa7}{}\index{eprprm@{eprprm}!imzz@{imzz}}
+\index{imzz@{imzz}!eprprm@{eprprm}}
+\subsubsection[{imzz}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::imzz =6}\label{namespaceeprprm_a0f76a039a4e24732c804862598c6dfa7}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a6d00781f9c1b0e7cbce6207b1c57cf50}{}\index{eprprm@{eprprm}!in2@{in2}}
+\index{in2@{in2}!eprprm@{eprprm}}
+\subsubsection[{in2}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::in2}\label{namespaceeprprm_a6d00781f9c1b0e7cbce6207b1c57cf50}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a11ffb5266269ac0ff51697fae12fcb6b}{}\index{eprprm@{eprprm}!indim@{indim}}
+\index{indim@{indim}!eprprm@{eprprm}}
+\subsubsection[{indim}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::indim =24}\label{namespaceeprprm_a11ffb5266269ac0ff51697fae12fcb6b}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae7e00481f2007ba006c1c62fd4e8c40d}{}\index{eprprm@{eprprm}!infld@{infld}}
+\index{infld@{infld}!eprprm@{eprprm}}
+\subsubsection[{infld}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::infld =16}\label{namespaceeprprm_ae7e00481f2007ba006c1c62fd4e8c40d}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a49f6351153aa1494fc8a587461c98f1f}{}\index{eprprm@{eprprm}!inort@{inort}}
+\index{inort@{inort}!eprprm@{eprprm}}
+\subsubsection[{inort}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::inort =14}\label{namespaceeprprm_a49f6351153aa1494fc8a587461c98f1f}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a813d100c067c108362268719ac2635a5}{}\index{eprprm@{eprprm}!instep@{instep}}
+\index{instep@{instep}!eprprm@{eprprm}}
+\subsubsection[{instep}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::instep =15}\label{namespaceeprprm_a813d100c067c108362268719ac2635a5}
+
+
+Definition at line 101 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a4604a97e1a1375c11898938ba67719af}{}\index{eprprm@{eprprm}!ioss@{ioss}}
+\index{ioss@{ioss}!eprprm@{eprprm}}
+\subsubsection[{ioss}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ioss =21}\label{namespaceeprprm_a4604a97e1a1375c11898938ba67719af}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1e17be01336c885da6515899cae5a7ed}{}\index{eprprm@{eprprm}!ipdf@{ipdf}}
+\index{ipdf@{ipdf}!eprprm@{eprprm}}
+\subsubsection[{ipdf}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::ipdf}\label{namespaceeprprm_a1e17be01336c885da6515899cae5a7ed}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ac566c6a126d271ed9e7d5945b9f9eb10}{}\index{eprprm@{eprprm}!iphase@{iphase}}
+\index{iphase@{iphase}!eprprm@{eprprm}}
+\subsubsection[{iphase}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iphase =1}\label{namespaceeprprm_ac566c6a126d271ed9e7d5945b9f9eb10}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae1e179fe41d18f26b8d560e174e2b5f7}{}\index{eprprm@{eprprm}!ipml@{ipml}}
+\index{ipml@{ipml}!eprprm@{eprprm}}
+\subsubsection[{ipml}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ipml =16}\label{namespaceeprprm_ae1e179fe41d18f26b8d560e174e2b5f7}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae2d71fd6f365ad8cbf1e6f4ca74f915b}{}\index{eprprm@{eprprm}!ipmxy@{ipmxy}}
+\index{ipmxy@{ipmxy}!eprprm@{eprprm}}
+\subsubsection[{ipmxy}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ipmxy =17}\label{namespaceeprprm_ae2d71fd6f365ad8cbf1e6f4ca74f915b}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aacc49416b21a73a8188def9fc95832b2}{}\index{eprprm@{eprprm}!ipmzz@{ipmzz}}
+\index{ipmzz@{ipmzz}!eprprm@{eprprm}}
+\subsubsection[{ipmzz}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ipmzz =18}\label{namespaceeprprm_aacc49416b21a73a8188def9fc95832b2}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a77ecff6decc2bc0d8cf29e89b309b05a}{}\index{eprprm@{eprprm}!ipnmx@{ipnmx}}
+\index{ipnmx@{ipnmx}!eprprm@{eprprm}}
+\subsubsection[{ipnmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::ipnmx}\label{namespaceeprprm_a77ecff6decc2bc0d8cf29e89b309b05a}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a66aafcd5d51596bec207e6f00173d3f2}{}\index{eprprm@{eprprm}!ipsi@{ipsi}}
+\index{ipsi@{ipsi}!eprprm@{eprprm}}
+\subsubsection[{ipsi}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ipsi =22}\label{namespaceeprprm_a66aafcd5d51596bec207e6f00173d3f2}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a5b1824e79d74efb7915ae0a6f0c58e8c}{}\index{eprprm@{eprprm}!ipsi0@{ipsi0}}
+\index{ipsi0@{ipsi0}!eprprm@{eprprm}}
+\subsubsection[{ipsi0}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::ipsi0}\label{namespaceeprprm_a5b1824e79d74efb7915ae0a6f0c58e8c}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a22578647f8972b8b80f5a0349e6e6230}{}\index{eprprm@{eprprm}!ipt@{ipt}}
+\index{ipt@{ipt}!eprprm@{eprprm}}
+\subsubsection[{ipt}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::ipt}\label{namespaceeprprm_a22578647f8972b8b80f5a0349e6e6230}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a8927302cd0ecf7f59652f2eb47c44e67}{}\index{eprprm@{eprprm}!irange@{irange}}
+\index{irange@{irange}!eprprm@{eprprm}}
+\subsubsection[{irange}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::irange =41}\label{namespaceeprprm_a8927302cd0ecf7f59652f2eb47c44e67}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a85706144964dff252977da27aedf5980}{}\index{eprprm@{eprprm}!irflg@{irflg}}
+\index{irflg@{irflg}!eprprm@{eprprm}}
+\subsubsection[{irflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::irflg}\label{namespaceeprprm_a85706144964dff252977da27aedf5980}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a10c3c14979d3a056c2f355e30e673c1b}{}\index{eprprm@{eprprm}!ishift@{ishift}}
+\index{ishift@{ishift}!eprprm@{eprprm}}
+\subsubsection[{ishift}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ishift =39}\label{namespaceeprprm_a10c3c14979d3a056c2f355e30e673c1b}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1488effb9b4b334d5a07636fc33cf7d9}{}\index{eprprm@{eprprm}!ishifti@{ishifti}}
+\index{ishifti@{ishifti}!eprprm@{eprprm}}
+\subsubsection[{ishifti}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ishifti =40}\label{namespaceeprprm_a1488effb9b4b334d5a07636fc33cf7d9}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a571bd76f6ad7bd111bec5a9eb35a09db}{}\index{eprprm@{eprprm}!ishiftr@{ishiftr}}
+\index{ishiftr@{ishiftr}!eprprm@{eprprm}}
+\subsubsection[{ishiftr}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::ishiftr =I\+S\+H\+I\+F\+T}\label{namespaceeprprm_a571bd76f6ad7bd111bec5a9eb35a09db}
+
+
+Definition at line 116 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ab58e211ef16fa6500d1c29217daf43bb}{}\index{eprprm@{eprprm}!ist@{ist}}
+\index{ist@{ist}!eprprm@{eprprm}}
+\subsubsection[{ist}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::ist}\label{namespaceeprprm_ab58e211ef16fa6500d1c29217daf43bb}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a8fcd5e6142acff2e96817552c7b99ec7}{}\index{eprprm@{eprprm}!itd@{itd}}
+\index{itd@{itd}!eprprm@{eprprm}}
+\subsubsection[{itd}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::itd}\label{namespaceeprprm_a8fcd5e6142acff2e96817552c7b99ec7}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a296f762f32ef4ccefdbb76dcc67d53e4}{}\index{eprprm@{eprprm}!itm@{itm}}
+\index{itm@{itm}!eprprm@{eprprm}}
+\subsubsection[{itm}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::itm}\label{namespaceeprprm_a296f762f32ef4ccefdbb76dcc67d53e4}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1d51173ceaac8495c5e8db060d875f17}{}\index{eprprm@{eprprm}!itype@{itype}}
+\index{itype@{itype}!eprprm@{eprprm}}
+\subsubsection[{itype}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::itype}\label{namespaceeprprm_a1d51173ceaac8495c5e8db060d875f17}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a403d74c2cc9c63275be022605edd9154}{}\index{eprprm@{eprprm}!iwflg@{iwflg}}
+\index{iwflg@{iwflg}!eprprm@{eprprm}}
+\subsubsection[{iwflg}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::iwflg}\label{namespaceeprprm_a403d74c2cc9c63275be022605edd9154}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ad2980e2752db5a919355d76a8a29da9c}{}\index{eprprm@{eprprm}!iwxx@{iwxx}}
+\index{iwxx@{iwxx}!eprprm@{eprprm}}
+\subsubsection[{iwxx}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iwxx =4}\label{namespaceeprprm_ad2980e2752db5a919355d76a8a29da9c}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a358d1ba75b42e6437bc49e620c3e5a81}{}\index{eprprm@{eprprm}!iwyy@{iwyy}}
+\index{iwyy@{iwyy}!eprprm@{eprprm}}
+\subsubsection[{iwyy}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iwyy =5}\label{namespaceeprprm_a358d1ba75b42e6437bc49e620c3e5a81}
+
+
+Definition at line 108 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ad05099b8900a5c7f535819a923c2e1e9}{}\index{eprprm@{eprprm}!iwzz@{iwzz}}
+\index{iwzz@{iwzz}!eprprm@{eprprm}}
+\subsubsection[{iwzz}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter eprprm\+::iwzz =6}\label{namespaceeprprm_ad05099b8900a5c7f535819a923c2e1e9}
+
+
+Definition at line 92 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_abe2ee51f0c6d17c93f4b3c069fe2860f}{}\index{eprprm@{eprprm}!jkmn@{jkmn}}
+\index{jkmn@{jkmn}!eprprm@{eprprm}}
+\subsubsection[{jkmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::jkmn}\label{namespaceeprprm_abe2ee51f0c6d17c93f4b3c069fe2860f}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ab037beb1c3e7234aa53f0de2b7cd677f}{}\index{eprprm@{eprprm}!jmmn@{jmmn}}
+\index{jmmn@{jmmn}!eprprm@{eprprm}}
+\subsubsection[{jmmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::jmmn}\label{namespaceeprprm_ab037beb1c3e7234aa53f0de2b7cd677f}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1e3baa760f2e80f85c21e7f6a951638a}{}\index{eprprm@{eprprm}!kband@{kband}}
+\index{kband@{kband}!eprprm@{eprprm}}
+\subsubsection[{kband}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::kband}\label{namespaceeprprm_a1e3baa760f2e80f85c21e7f6a951638a}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa6fb32b69926115ede5a05ba73eb2c51}{}\index{eprprm@{eprprm}!kdelta@{kdelta}}
+\index{kdelta@{kdelta}!eprprm@{eprprm}}
+\subsubsection[{kdelta}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::kdelta}\label{namespaceeprprm_aa6fb32b69926115ede5a05ba73eb2c51}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a676b1fc89038dd161e506b50fb2843b7}{}\index{eprprm@{eprprm}!kmn@{kmn}}
+\index{kmn@{kmn}!eprprm@{eprprm}}
+\subsubsection[{kmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::kmn}\label{namespaceeprprm_a676b1fc89038dd161e506b50fb2843b7}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a0346dd5f175786eae1d0dd18f2cc97de}{}\index{eprprm@{eprprm}!kmx@{kmx}}
+\index{kmx@{kmx}!eprprm@{eprprm}}
+\subsubsection[{kmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::kmx}\label{namespaceeprprm_a0346dd5f175786eae1d0dd18f2cc97de}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a91334cbceabfc27605b10950c55b3aee}{}\index{eprprm@{eprprm}!kptmx@{kptmx}}
+\index{kptmx@{kptmx}!eprprm@{eprprm}}
+\subsubsection[{kptmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::kptmx}\label{namespaceeprprm_a91334cbceabfc27605b10950c55b3aee}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_afe0f92a6befdf0c77a36e3c2342ad9fd}{}\index{eprprm@{eprprm}!lb@{lb}}
+\index{lb@{lb}!eprprm@{eprprm}}
+\subsubsection[{lb}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::lb}\label{namespaceeprprm_afe0f92a6befdf0c77a36e3c2342ad9fd}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ac0175fc6c09ff35dab1be296d5bbf563}{}\index{eprprm@{eprprm}!lband@{lband}}
+\index{lband@{lband}!eprprm@{eprprm}}
+\subsubsection[{lband}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::lband}\label{namespaceeprprm_ac0175fc6c09ff35dab1be296d5bbf563}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a16194baa58a7f76faad3df610fff1de7}{}\index{eprprm@{eprprm}!ldelta@{ldelta}}
+\index{ldelta@{ldelta}!eprprm@{eprprm}}
+\subsubsection[{ldelta}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::ldelta}\label{namespaceeprprm_a16194baa58a7f76faad3df610fff1de7}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a080678b0daa6a1eb9c559ad6d6fd612c}{}\index{eprprm@{eprprm}!lemx@{lemx}}
+\index{lemx@{lemx}!eprprm@{eprprm}}
+\subsubsection[{lemx}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::lemx}\label{namespaceeprprm_a080678b0daa6a1eb9c559ad6d6fd612c}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a786312dd5552184d723c5151f2ac3aae}{}\index{eprprm@{eprprm}!lomx@{lomx}}
+\index{lomx@{lomx}!eprprm@{eprprm}}
+\subsubsection[{lomx}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::lomx}\label{namespaceeprprm_a786312dd5552184d723c5151f2ac3aae}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aafebeca369f77ec06772c8c5702d9588}{}\index{eprprm@{eprprm}!lptmx@{lptmx}}
+\index{lptmx@{lptmx}!eprprm@{eprprm}}
+\subsubsection[{lptmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::lptmx}\label{namespaceeprprm_aafebeca369f77ec06772c8c5702d9588}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aaeb3f5b0e42b358b3ee74be26733b4d8}{}\index{eprprm@{eprprm}!ml@{ml}}
+\index{ml@{ml}!eprprm@{eprprm}}
+\subsubsection[{ml}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::ml}\label{namespaceeprprm_aaeb3f5b0e42b358b3ee74be26733b4d8}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a72f5ed8d2a8be8741dc778c793c7ea60}{}\index{eprprm@{eprprm}!mmn@{mmn}}
+\index{mmn@{mmn}!eprprm@{eprprm}}
+\subsubsection[{mmn}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::mmn}\label{namespaceeprprm_a72f5ed8d2a8be8741dc778c793c7ea60}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aada30207c2cdc39eec667cd94639a103}{}\index{eprprm@{eprprm}!mmx@{mmx}}
+\index{mmx@{mmx}!eprprm@{eprprm}}
+\subsubsection[{mmx}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::mmx}\label{namespaceeprprm_aada30207c2cdc39eec667cd94639a103}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae805f0ee7d78a5230b240a1f35002f99}{}\index{eprprm@{eprprm}!mxy@{mxy}}
+\index{mxy@{mxy}!eprprm@{eprprm}}
+\subsubsection[{mxy}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::mxy}\label{namespaceeprprm_ae805f0ee7d78a5230b240a1f35002f99}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a83125799daad71e365f81a8f113c16a5}{}\index{eprprm@{eprprm}!mzz@{mzz}}
+\index{mzz@{mzz}!eprprm@{eprprm}}
+\subsubsection[{mzz}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::mzz}\label{namespaceeprprm_a83125799daad71e365f81a8f113c16a5}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_afafc12206b0021b67cb82e9334c7eba2}{}\index{eprprm@{eprprm}!ncgstp@{ncgstp}}
+\index{ncgstp@{ncgstp}!eprprm@{eprprm}}
+\subsubsection[{ncgstp}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::ncgstp}\label{namespaceeprprm_afafc12206b0021b67cb82e9334c7eba2}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a0b9f3a125298e3799bc9572f01ea2f9f}{}\index{eprprm@{eprprm}!ndim@{ndim}}
+\index{ndim@{ndim}!eprprm@{eprprm}}
+\subsubsection[{ndim}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::ndim}\label{namespaceeprprm_a0b9f3a125298e3799bc9572f01ea2f9f}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a72632890c4519699def10ba0d100a9fe}{}\index{eprprm@{eprprm}!nelim@{nelim}}
+\index{nelim@{nelim}!eprprm@{eprprm}}
+\subsubsection[{nelim}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::nelim}\label{namespaceeprprm_a72632890c4519699def10ba0d100a9fe}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aa375e74f6ff897bef17e88f05ddb9cc8}{}\index{eprprm@{eprprm}!nelre@{nelre}}
+\index{nelre@{nelre}!eprprm@{eprprm}}
+\subsubsection[{nelre}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::nelre}\label{namespaceeprprm_aa375e74f6ff897bef17e88f05ddb9cc8}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2af1ec4d2274473684b9de4971d04e7a}{}\index{eprprm@{eprprm}!neltot@{neltot}}
+\index{neltot@{neltot}!eprprm@{eprprm}}
+\subsubsection[{neltot}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::neltot}\label{namespaceeprprm_a2af1ec4d2274473684b9de4971d04e7a}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae246996d811aaa3455d2bcf269be39b1}{}\index{eprprm@{eprprm}!nelv@{nelv}}
+\index{nelv@{nelv}!eprprm@{eprprm}}
+\subsubsection[{nelv}]{\setlength{\rightskip}{0pt plus 5cm}integer, save eprprm\+::nelv}\label{namespaceeprprm_ae246996d811aaa3455d2bcf269be39b1}
+
+
+Definition at line 82 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_adfd6a1eecf874041ecb41842734e3e4e}{}\index{eprprm@{eprprm}!nfld@{nfld}}
+\index{nfld@{nfld}!eprprm@{eprprm}}
+\subsubsection[{nfld}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::nfld}\label{namespaceeprprm_adfd6a1eecf874041ecb41842734e3e4e}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a1dd9abe8921dea412e25e6fbdc197c63}{}\index{eprprm@{eprprm}!nort@{nort}}
+\index{nort@{nort}!eprprm@{eprprm}}
+\subsubsection[{nort}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::nort}\label{namespaceeprprm_a1dd9abe8921dea412e25e6fbdc197c63}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae03cc13b3aa9f85f67b589f3f4912ad7}{}\index{eprprm@{eprprm}!nstep@{nstep}}
+\index{nstep@{nstep}!eprprm@{eprprm}}
+\subsubsection[{nstep}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save eprprm\+::nstep}\label{namespaceeprprm_ae03cc13b3aa9f85f67b589f3f4912ad7}
+
+
+Definition at line 69 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a5b25465fbd4b811373049e1237b46c8b}{}\index{eprprm@{eprprm}!oss@{oss}}
+\index{oss@{oss}!eprprm@{eprprm}}
+\subsubsection[{oss}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::oss}\label{namespaceeprprm_a5b25465fbd4b811373049e1237b46c8b}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a29615427c069f371b1dc06f36a5e3e87}{}\index{eprprm@{eprprm}!phase@{phase}}
+\index{phase@{phase}!eprprm@{eprprm}}
+\subsubsection[{phase}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::phase}\label{namespaceeprprm_a29615427c069f371b1dc06f36a5e3e87}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a6ae1d6eacb896a3091f0445547cfa2fd}{}\index{eprprm@{eprprm}!pml@{pml}}
+\index{pml@{pml}!eprprm@{eprprm}}
+\subsubsection[{pml}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::pml}\label{namespaceeprprm_a6ae1d6eacb896a3091f0445547cfa2fd}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a86611abe980fe9a4af815110dfabcf03}{}\index{eprprm@{eprprm}!pmxy@{pmxy}}
+\index{pmxy@{pmxy}!eprprm@{eprprm}}
+\subsubsection[{pmxy}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::pmxy}\label{namespaceeprprm_a86611abe980fe9a4af815110dfabcf03}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_af0776a53068fa03a0596346cf6444058}{}\index{eprprm@{eprprm}!pmzz@{pmzz}}
+\index{pmzz@{pmzz}!eprprm@{eprprm}}
+\subsubsection[{pmzz}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::pmzz}\label{namespaceeprprm_af0776a53068fa03a0596346cf6444058}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a6b6519ee79a08bad2e65ca626d0da05f}{}\index{eprprm@{eprprm}!psi@{psi}}
+\index{psi@{psi}!eprprm@{eprprm}}
+\subsubsection[{psi}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::psi}\label{namespaceeprprm_a6b6519ee79a08bad2e65ca626d0da05f}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a231579a41b3c7fd995ac0598d20d3a45}{}\index{eprprm@{eprprm}!range@{range}}
+\index{range@{range}!eprprm@{eprprm}}
+\subsubsection[{range}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::range}\label{namespaceeprprm_a231579a41b3c7fd995ac0598d20d3a45}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a9ff047dcabc99908185f7e72f01c3d48}{}\index{eprprm@{eprprm}!shifti@{shifti}}
+\index{shifti@{shifti}!eprprm@{eprprm}}
+\subsubsection[{shifti}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::shifti}\label{namespaceeprprm_a9ff047dcabc99908185f7e72f01c3d48}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2c68e0cd38810c3c502a27135aaf5690}{}\index{eprprm@{eprprm}!shiftr@{shiftr}}
+\index{shiftr@{shiftr}!eprprm@{eprprm}}
+\subsubsection[{shiftr}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::shiftr}\label{namespaceeprprm_a2c68e0cd38810c3c502a27135aaf5690}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a87c34ea8981ed3859f4693b0c9037e9e}{}\index{eprprm@{eprprm}!w0@{w0}}
+\index{w0@{w0}!eprprm@{eprprm}}
+\subsubsection[{w0}]{\setlength{\rightskip}{0pt plus 5cm}double precision, save eprprm\+::w0}\label{namespaceeprprm_a87c34ea8981ed3859f4693b0c9037e9e}
+
+
+Definition at line 78 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_abce7d0f30373297006e6d9bdd267d42b}{}\index{eprprm@{eprprm}!wxx@{wxx}}
+\index{wxx@{wxx}!eprprm@{eprprm}}
+\subsubsection[{wxx}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::wxx}\label{namespaceeprprm_abce7d0f30373297006e6d9bdd267d42b}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_aebf10e6b79ad77a88d12e3b64010b1a5}{}\index{eprprm@{eprprm}!wyy@{wyy}}
+\index{wyy@{wyy}!eprprm@{eprprm}}
+\subsubsection[{wyy}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::wyy}\label{namespaceeprprm_aebf10e6b79ad77a88d12e3b64010b1a5}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_ae628024fe9921a7ae1888538ad9c5fff}{}\index{eprprm@{eprprm}!wzz@{wzz}}
+\index{wzz@{wzz}!eprprm@{eprprm}}
+\subsubsection[{wzz}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save eprprm\+::wzz}\label{namespaceeprprm_ae628024fe9921a7ae1888538ad9c5fff}
+
+
+Definition at line 58 of file eprprm.\+f90.
+
+\hypertarget{namespaceeprprm_a2f54a1c1e6e39000e990757e598574db}{}\index{eprprm@{eprprm}!xlk@{xlk}}
+\index{xlk@{xlk}!eprprm@{eprprm}}
+\subsubsection[{xlk}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(5,5), save eprprm\+::xlk}\label{namespaceeprprm_a2f54a1c1e6e39000e990757e598574db}
+
+
+Definition at line 78 of file eprprm.\+f90.
+

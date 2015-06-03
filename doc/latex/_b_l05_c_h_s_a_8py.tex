@@ -1,0 +1,57 @@
+\hypertarget{_b_l05_c_h_s_a_8py}{}\section{B\+L05\+C\+H\+S\+A.\+py File Reference}
+\label{_b_l05_c_h_s_a_8py}\index{B\+L05\+C\+H\+S\+A.\+py@{B\+L05\+C\+H\+S\+A.\+py}}
+\subsection*{Namespaces}
+\begin{DoxyCompactItemize}
+\item 
+ \hyperlink{namespace_b_l05_c_h_s_a}{B\+L05\+C\+H\+S\+A}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespace_b_l05_c_h_s_a_a1a819893783ede39234c56a7286d30bc}{B\+L05\+C\+H\+S\+A.\+read\+\_\+column\+\_\+data} (filename)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_afb6ef627920d8cbf2ce053140030ebf7}{B\+L05\+C\+H\+S\+A.\+proc} = Popen(\mbox{[}\textquotesingle{}./\hyperlink{nlsl_8f90_a89bfe89320539cc08d8701d4f2a028a6}{nlsl}\textquotesingle{}\mbox{]},stdin = P\+I\+P\+E, stderr = S\+T\+D\+O\+U\+T)
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a3a4b7cc37a8b2a6d0fcd04d9cb56616c}{B\+L05\+C\+H\+S\+A.\+fp} = open(\textquotesingle{}B\+L05\+C\+H\+S\+A.\+run\textquotesingle{})
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a048090b16140caac58f50ec58a3a63ce}{B\+L05\+C\+H\+S\+A.\+output} = proc.\+communicate(input = fp.\+read())
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{B\+L05\+C\+H\+S\+A.\+data} = read\+\_\+column\+\_\+data(\textquotesingle{}B\+L05\+C\+H\+S\+A.\+spc\textquotesingle{})
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_ac96edf7f6341a6e26666193e7bfd5ef6}{B\+L05\+C\+H\+S\+A.\+fields} = data\mbox{[}\+:,0\mbox{]}
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_a22267f248a50448e8ec8ea567d9cff93}{B\+L05\+C\+H\+S\+A.\+experimental} = data\mbox{[}\+:,1\mbox{]}
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_a371b841893a6562051410836ac64e8a2}{B\+L05\+C\+H\+S\+A.\+fit} = data\mbox{[}\+:,2\mbox{]}
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a827312760f5e707d60c4ac26b7ea5060}{B\+L05\+C\+H\+S\+A.\+integral\+\_\+of\+\_\+spectrum} = cumsum(experimental)
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_adb6114e66278f9e6e787673c8ad3d0dc}{B\+L05\+C\+H\+S\+A.\+normalization} = abs(sum(integral\+\_\+of\+\_\+spectrum))
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_ac496d41ec0dcccce7efa61a981b5b0a7}{B\+L05\+C\+H\+S\+A.\+fig} = figure(figsize = (9,6))
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_a6e2965b93cd1337bb3ba33f58af818d5}{B\+L05\+C\+H\+S\+A.\+components} = data\mbox{[}\+:,3\+:\mbox{]}
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_ae47d721fbc9aa091d7f5ebe40717a9ef}{B\+L05\+C\+H\+S\+A.\+max\+\_\+of\+\_\+fit} = max(fit)
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_af2a1d084aae311c4772e173de8ef0a9d}{B\+L05\+C\+H\+S\+A.\+ax} = gca()
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a7a5c94600d2ea2952192993875a03164}{B\+L05\+C\+H\+S\+A.\+ylims} = ax.\+get\+\_\+ylim()
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a5c928db19ba6b2f7483c5cb9f0571f3b}{B\+L05\+C\+H\+S\+A.\+scale\+\_\+integral} = max\+\_\+of\+\_\+fit/max(integral\+\_\+of\+\_\+spectrum)
+\item 
+int \hyperlink{namespace_b_l05_c_h_s_a_a5107e74d836195459b535f42b45d983d}{B\+L05\+C\+H\+S\+A.\+loc} = 2
+\item 
+int \hyperlink{namespace_b_l05_c_h_s_a_a3fd3e4180173d393a4d5d4f1ec9b6307}{B\+L05\+C\+H\+S\+A.\+borderaxespad} = 0
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a107c588f7c1eecf4092b2eb12a1eef08}{B\+L05\+C\+H\+S\+A.\+rms} = mean((fit/normalization-\/experimental/normalization)$\ast$$\ast$2)
+\item 
+string \hyperlink{namespace_b_l05_c_h_s_a_aabc5219aecb77a5fd4da7ab9c8c68098}{B\+L05\+C\+H\+S\+A.\+horizontalalignment} = \textquotesingle{}left\textquotesingle{}
+\item 
+string \hyperlink{namespace_b_l05_c_h_s_a_a72a594605b8f05198333359e60604fa6}{B\+L05\+C\+H\+S\+A.\+verticalalignment} = \textquotesingle{}top\textquotesingle{}
+\item 
+\hyperlink{namespace_b_l05_c_h_s_a_a7a34eabeefcbdc0884c99c2c91c66b8b}{B\+L05\+C\+H\+S\+A.\+transform} = ax.\+trans\+Axes)
+\end{DoxyCompactItemize}

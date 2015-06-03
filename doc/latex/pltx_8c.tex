@@ -1,0 +1,618 @@
+\hypertarget{pltx_8c}{}\section{pltx.\+c File Reference}
+\label{pltx_8c}\index{pltx.\+c@{pltx.\+c}}
+{\ttfamily \#include $<$X11/\+Xlib.\+h$>$}\\*
+{\ttfamily \#include $<$X11/\+Xutil.\+h$>$}\\*
+{\ttfamily \#include $<$stdio.\+h$>$}\\*
+{\ttfamily \#include $<$stdlib.\+h$>$}\\*
+{\ttfamily \#include $<$string.\+h$>$}\\*
+{\ttfamily \#include \char`\"{}fortrancall.\+h\char`\"{}}\\*
+Include dependency graph for pltx.\+c\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c__incl}
+\end{center}
+\end{figure}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structwstruct}{wstruct}
+\item 
+struct \hyperlink{structxarry}{xarry}
+\end{DoxyCompactItemize}
+\subsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\#define \hyperlink{pltx_8c_a96f609b2a30e2dc3cc404945cdb2d55e}{M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S}~5
+\end{DoxyCompactItemize}
+\subsection*{Typedefs}
+\begin{DoxyCompactItemize}
+\item 
+typedef char \hyperlink{pltx_8c_ab529a1f0dcacd8c55a0a45125dc39900}{word}\mbox{[}20\mbox{]}
+\end{DoxyCompactItemize}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \hyperlink{pltx_8c_aefa16b0f532fe180904f44eafab05208}{findzero} (int wn, float ymax, float ymin)
+\item 
+void \hyperlink{pltx_8c_a88130bf35d237dabab9614148aa3dfa3}{drawln} (int wn)
+\item 
+struct \hyperlink{structxarry}{xarry} $\ast$ \hyperlink{pltx_8c_a6747050abff0d477c44e492383218a11}{xnew} (struct \hyperlink{structxarry}{xarry} $\ast$list)
+\item 
+void \hyperlink{pltx_8c_a9d46ff9578c5000db70120029a2cb57f}{xdump} (struct \hyperlink{structxarry}{xarry} $\ast$list)
+\item 
+float \hyperlink{pltx_8c_aa6614a6fc5066548ab0cdb791113a069}{findmin} (float $\ast$ary, int indx)
+\item 
+float \hyperlink{pltx_8c_a422a31814a7415731e36707f73c4121f}{findmax} (float $\ast$ary, int indx)
+\item 
+void \hyperlink{pltx_8c_aa6565904a3998c8908015d1a8f6445b3}{differnce} (X\+Point $\ast$xy1, X\+Point $\ast$xy2, int indx, X\+Point $\ast$ydif, int yzer)
+\item 
+void \hyperlink{pltx_8c_ad09dfee00faca367bed656e71623f002}{pixary} (float $\ast$y, float min, float step, int n, X\+Point $\ast$xy, float ymax, float ymin, int wn)
+\item 
+void \hyperlink{pltx_8c_a141111e642d5f81befc812204887412a}{calcul} (int wn)
+\item 
+void \hyperlink{pltx_8c_ad405c86ebd73a157d4487e4424a754e6}{calcpt} (int xpt, int ypt, float $\ast$xpt1, float $\ast$ypt1, int wn)
+\item 
+void \hyperlink{pltx_8c_a51dac7c88bf37276eeb721ff1e4043a4}{setxpts} (X\+Point $\ast$xypts, int xpt, int ypt)
+\item 
+void \hyperlink{pltx_8c_ac09954c5d17d08c8c5fea0d1dd0a9db9}{getstr} (char $\ast$pltstr, float xpt, float ypt)
+\item 
+void \hyperlink{pltx_8c_ad3f1a01c499cc0f3f5bb2316f5e746db}{doevnt} (int wn)
+\item 
+void \hyperlink{fortrancall_8h_a51ae4d1836c932b91b65e1ca97a36e8d}{F\+O\+R\+T\+R\+A\+N}() \hyperlink{pltx_8c_a4b0e996f0237cb36a62e584234cda3fe}{getwndws} (int $\ast$n, \hyperlink{pltx__dummy_8c_ab529a1f0dcacd8c55a0a45125dc39900}{word} $\ast$title)
+\item 
+void \hyperlink{pltx_8c_a38dc6b2da2e8a3902fc907c2a02fc534}{putary} (double $\ast$y1, double $\ast$y2, int wn)
+\item 
+void \hyperlink{fortrancall_8h_a51ae4d1836c932b91b65e1ca97a36e8d}{F\+O\+R\+T\+R\+A\+N}() \hyperlink{pltx_8c_ace1dbffe01532e1ef8931009a72dd700}{fstplt} (double $\ast$y1, double $\ast$y2, double $\ast$xmin1, double $\ast$xstep1, int $\ast$indx1, int $\ast$wnum)
+\item 
+void \hyperlink{fortrancall_8h_a51ae4d1836c932b91b65e1ca97a36e8d}{F\+O\+R\+T\+R\+A\+N}() \hyperlink{pltx_8c_ab22bf31828fb3b581a3655ce56ab9bc3}{wpoll} ()
+\item 
+void \hyperlink{fortrancall_8h_a51ae4d1836c932b91b65e1ca97a36e8d}{F\+O\+R\+T\+R\+A\+N}() \hyperlink{pltx_8c_aefccceed59762e640b6181453f59b35b}{shtwndws} ()
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structwstruct}{wstruct} \hyperlink{pltx_8c_abac29bce7772cb7fc3b527812813f14f}{wds} \mbox{[}\hyperlink{pltx__dummy_8c_a96f609b2a30e2dc3cc404945cdb2d55e}{M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S}+1\mbox{]}
+\item 
+int \hyperlink{pltx_8c_a74f6d7d4a87016ee3ca22eb4368fe838}{numwndws} = 0
+\item 
+int \hyperlink{pltx_8c_a5992b274cfdcacdbc1fa8347fd01ebde}{done} = 0
+\item 
+int \hyperlink{pltx_8c_ad73d9fa3a03b4d503db03d00b0a81ed9}{display\+O\+K} = 0
+\end{DoxyCompactItemize}
+
+
+\subsection{Macro Definition Documentation}
+\hypertarget{pltx_8c_a96f609b2a30e2dc3cc404945cdb2d55e}{}\index{pltx.\+c@{pltx.\+c}!M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S@{M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S}}
+\index{M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S@{M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S}]{\setlength{\rightskip}{0pt plus 5cm}\#define M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S~5}\label{pltx_8c_a96f609b2a30e2dc3cc404945cdb2d55e}
+
+
+Definition at line 55 of file pltx.\+c.
+
+
+
+\subsection{Typedef Documentation}
+\hypertarget{pltx_8c_ab529a1f0dcacd8c55a0a45125dc39900}{}\index{pltx.\+c@{pltx.\+c}!word@{word}}
+\index{word@{word}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{word}]{\setlength{\rightskip}{0pt plus 5cm}typedef char word\mbox{[}20\mbox{]}}\label{pltx_8c_ab529a1f0dcacd8c55a0a45125dc39900}
+
+
+Definition at line 83 of file pltx.\+c.
+
+
+
+\subsection{Function Documentation}
+\hypertarget{pltx_8c_ad405c86ebd73a157d4487e4424a754e6}{}\index{pltx.\+c@{pltx.\+c}!calcpt@{calcpt}}
+\index{calcpt@{calcpt}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{calcpt}]{\setlength{\rightskip}{0pt plus 5cm}void calcpt (
+\begin{DoxyParamCaption}
+\item[{int}]{xpt, }
+\item[{int}]{ypt, }
+\item[{float $\ast$}]{xpt1, }
+\item[{float $\ast$}]{ypt1, }
+\item[{int}]{wn}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_ad405c86ebd73a157d4487e4424a754e6}
+
+
+Definition at line 351 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ad405c86ebd73a157d4487e4424a754e6_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a141111e642d5f81befc812204887412a}{}\index{pltx.\+c@{pltx.\+c}!calcul@{calcul}}
+\index{calcul@{calcul}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{calcul}]{\setlength{\rightskip}{0pt plus 5cm}void calcul (
+\begin{DoxyParamCaption}
+\item[{int}]{wn}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a141111e642d5f81befc812204887412a}
+
+
+Definition at line 321 of file pltx.\+c.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=293pt]{pltx_8c_a141111e642d5f81befc812204887412a_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a141111e642d5f81befc812204887412a_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_aa6565904a3998c8908015d1a8f6445b3}{}\index{pltx.\+c@{pltx.\+c}!differnce@{differnce}}
+\index{differnce@{differnce}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{differnce}]{\setlength{\rightskip}{0pt plus 5cm}void differnce (
+\begin{DoxyParamCaption}
+\item[{X\+Point $\ast$}]{xy1, }
+\item[{X\+Point $\ast$}]{xy2, }
+\item[{int}]{indx, }
+\item[{X\+Point $\ast$}]{ydif, }
+\item[{int}]{yzer}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_aa6565904a3998c8908015d1a8f6445b3}
+
+
+Definition at line 246 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_aa6565904a3998c8908015d1a8f6445b3_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_ad3f1a01c499cc0f3f5bb2316f5e746db}{}\index{pltx.\+c@{pltx.\+c}!doevnt@{doevnt}}
+\index{doevnt@{doevnt}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{doevnt}]{\setlength{\rightskip}{0pt plus 5cm}void doevnt (
+\begin{DoxyParamCaption}
+\item[{int}]{wn}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_ad3f1a01c499cc0f3f5bb2316f5e746db}
+
+
+Definition at line 405 of file pltx.\+c.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ad3f1a01c499cc0f3f5bb2316f5e746db_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ad3f1a01c499cc0f3f5bb2316f5e746db_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a88130bf35d237dabab9614148aa3dfa3}{}\index{pltx.\+c@{pltx.\+c}!drawln@{drawln}}
+\index{drawln@{drawln}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{drawln}]{\setlength{\rightskip}{0pt plus 5cm}void drawln (
+\begin{DoxyParamCaption}
+\item[{int}]{wn}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a88130bf35d237dabab9614148aa3dfa3}
+
+
+Definition at line 116 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a88130bf35d237dabab9614148aa3dfa3_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a422a31814a7415731e36707f73c4121f}{}\index{pltx.\+c@{pltx.\+c}!findmax@{findmax}}
+\index{findmax@{findmax}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{findmax}]{\setlength{\rightskip}{0pt plus 5cm}float findmax (
+\begin{DoxyParamCaption}
+\item[{float $\ast$}]{ary, }
+\item[{int}]{indx}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a422a31814a7415731e36707f73c4121f}
+
+
+Definition at line 222 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a422a31814a7415731e36707f73c4121f_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_aa6614a6fc5066548ab0cdb791113a069}{}\index{pltx.\+c@{pltx.\+c}!findmin@{findmin}}
+\index{findmin@{findmin}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{findmin}]{\setlength{\rightskip}{0pt plus 5cm}float findmin (
+\begin{DoxyParamCaption}
+\item[{float $\ast$}]{ary, }
+\item[{int}]{indx}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_aa6614a6fc5066548ab0cdb791113a069}
+
+
+Definition at line 202 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_aa6614a6fc5066548ab0cdb791113a069_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_aefa16b0f532fe180904f44eafab05208}{}\index{pltx.\+c@{pltx.\+c}!findzero@{findzero}}
+\index{findzero@{findzero}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{findzero}]{\setlength{\rightskip}{0pt plus 5cm}int findzero (
+\begin{DoxyParamCaption}
+\item[{int}]{wn, }
+\item[{float}]{ymax, }
+\item[{float}]{ymin}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_aefa16b0f532fe180904f44eafab05208}
+
+
+Definition at line 96 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_aefa16b0f532fe180904f44eafab05208_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_ace1dbffe01532e1ef8931009a72dd700}{}\index{pltx.\+c@{pltx.\+c}!fstplt@{fstplt}}
+\index{fstplt@{fstplt}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{fstplt}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf F\+O\+R\+T\+R\+A\+N}() fstplt (
+\begin{DoxyParamCaption}
+\item[{double $\ast$}]{y1, }
+\item[{double $\ast$}]{y2, }
+\item[{double $\ast$}]{xmin1, }
+\item[{double $\ast$}]{xstep1, }
+\item[{int $\ast$}]{indx1, }
+\item[{int $\ast$}]{wnum}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_ace1dbffe01532e1ef8931009a72dd700}
+
+
+Definition at line 805 of file pltx.\+c.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ace1dbffe01532e1ef8931009a72dd700_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ace1dbffe01532e1ef8931009a72dd700_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_ac09954c5d17d08c8c5fea0d1dd0a9db9}{}\index{pltx.\+c@{pltx.\+c}!getstr@{getstr}}
+\index{getstr@{getstr}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{getstr}]{\setlength{\rightskip}{0pt plus 5cm}void getstr (
+\begin{DoxyParamCaption}
+\item[{char $\ast$}]{pltstr, }
+\item[{float}]{xpt, }
+\item[{float}]{ypt}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_ac09954c5d17d08c8c5fea0d1dd0a9db9}
+
+
+Definition at line 389 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ac09954c5d17d08c8c5fea0d1dd0a9db9_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a4b0e996f0237cb36a62e584234cda3fe}{}\index{pltx.\+c@{pltx.\+c}!getwndws@{getwndws}}
+\index{getwndws@{getwndws}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{getwndws}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf F\+O\+R\+T\+R\+A\+N}() getwndws (
+\begin{DoxyParamCaption}
+\item[{int $\ast$}]{n, }
+\item[{{\bf word} $\ast$}]{title}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a4b0e996f0237cb36a62e584234cda3fe}
+
+
+Definition at line 589 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=284pt]{pltx_8c_a4b0e996f0237cb36a62e584234cda3fe_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_ad09dfee00faca367bed656e71623f002}{}\index{pltx.\+c@{pltx.\+c}!pixary@{pixary}}
+\index{pixary@{pixary}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{pixary}]{\setlength{\rightskip}{0pt plus 5cm}void pixary (
+\begin{DoxyParamCaption}
+\item[{float $\ast$}]{y, }
+\item[{float}]{min, }
+\item[{float}]{step, }
+\item[{int}]{n, }
+\item[{X\+Point $\ast$}]{xy, }
+\item[{float}]{ymax, }
+\item[{float}]{ymin, }
+\item[{int}]{wn}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_ad09dfee00faca367bed656e71623f002}
+
+
+Definition at line 266 of file pltx.\+c.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{pltx_8c_ad09dfee00faca367bed656e71623f002_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ad09dfee00faca367bed656e71623f002_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a38dc6b2da2e8a3902fc907c2a02fc534}{}\index{pltx.\+c@{pltx.\+c}!putary@{putary}}
+\index{putary@{putary}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{putary}]{\setlength{\rightskip}{0pt plus 5cm}void putary (
+\begin{DoxyParamCaption}
+\item[{double $\ast$}]{y1, }
+\item[{double $\ast$}]{y2, }
+\item[{int}]{wn}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a38dc6b2da2e8a3902fc907c2a02fc534}
+
+
+Definition at line 793 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a38dc6b2da2e8a3902fc907c2a02fc534_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a51dac7c88bf37276eeb721ff1e4043a4}{}\index{pltx.\+c@{pltx.\+c}!setxpts@{setxpts}}
+\index{setxpts@{setxpts}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{setxpts}]{\setlength{\rightskip}{0pt plus 5cm}void setxpts (
+\begin{DoxyParamCaption}
+\item[{X\+Point $\ast$}]{xypts, }
+\item[{int}]{xpt, }
+\item[{int}]{ypt}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a51dac7c88bf37276eeb721ff1e4043a4}
+
+
+Definition at line 373 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a51dac7c88bf37276eeb721ff1e4043a4_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_aefccceed59762e640b6181453f59b35b}{}\index{pltx.\+c@{pltx.\+c}!shtwndws@{shtwndws}}
+\index{shtwndws@{shtwndws}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{shtwndws}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf F\+O\+R\+T\+R\+A\+N}() shtwndws (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_aefccceed59762e640b6181453f59b35b}
+
+
+Definition at line 875 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=285pt]{pltx_8c_aefccceed59762e640b6181453f59b35b_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_ab22bf31828fb3b581a3655ce56ab9bc3}{}\index{pltx.\+c@{pltx.\+c}!wpoll@{wpoll}}
+\index{wpoll@{wpoll}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{wpoll}]{\setlength{\rightskip}{0pt plus 5cm}void {\bf F\+O\+R\+T\+R\+A\+N}() wpoll (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_ab22bf31828fb3b581a3655ce56ab9bc3}
+
+
+Definition at line 860 of file pltx.\+c.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ab22bf31828fb3b581a3655ce56ab9bc3_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_ab22bf31828fb3b581a3655ce56ab9bc3_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a9d46ff9578c5000db70120029a2cb57f}{}\index{pltx.\+c@{pltx.\+c}!xdump@{xdump}}
+\index{xdump@{xdump}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{xdump}]{\setlength{\rightskip}{0pt plus 5cm}void xdump (
+\begin{DoxyParamCaption}
+\item[{struct {\bf xarry} $\ast$}]{list}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a9d46ff9578c5000db70120029a2cb57f}
+
+
+Definition at line 186 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a9d46ff9578c5000db70120029a2cb57f_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{pltx_8c_a6747050abff0d477c44e492383218a11}{}\index{pltx.\+c@{pltx.\+c}!xnew@{xnew}}
+\index{xnew@{xnew}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{xnew}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf xarry}$\ast$ xnew (
+\begin{DoxyParamCaption}
+\item[{struct {\bf xarry} $\ast$}]{list}
+\end{DoxyParamCaption}
+)}\label{pltx_8c_a6747050abff0d477c44e492383218a11}
+
+
+Definition at line 174 of file pltx.\+c.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pltx_8c_a6747050abff0d477c44e492383218a11_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Variable Documentation}
+\hypertarget{pltx_8c_ad73d9fa3a03b4d503db03d00b0a81ed9}{}\index{pltx.\+c@{pltx.\+c}!display\+O\+K@{display\+O\+K}}
+\index{display\+O\+K@{display\+O\+K}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{display\+O\+K}]{\setlength{\rightskip}{0pt plus 5cm}int display\+O\+K = 0}\label{pltx_8c_ad73d9fa3a03b4d503db03d00b0a81ed9}
+
+
+Definition at line 89 of file pltx.\+c.
+
+\hypertarget{pltx_8c_a5992b274cfdcacdbc1fa8347fd01ebde}{}\index{pltx.\+c@{pltx.\+c}!done@{done}}
+\index{done@{done}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{done}]{\setlength{\rightskip}{0pt plus 5cm}int done = 0}\label{pltx_8c_a5992b274cfdcacdbc1fa8347fd01ebde}
+
+
+Definition at line 88 of file pltx.\+c.
+
+\hypertarget{pltx_8c_a74f6d7d4a87016ee3ca22eb4368fe838}{}\index{pltx.\+c@{pltx.\+c}!numwndws@{numwndws}}
+\index{numwndws@{numwndws}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{numwndws}]{\setlength{\rightskip}{0pt plus 5cm}int numwndws = 0}\label{pltx_8c_a74f6d7d4a87016ee3ca22eb4368fe838}
+
+
+Definition at line 87 of file pltx.\+c.
+
+\hypertarget{pltx_8c_abac29bce7772cb7fc3b527812813f14f}{}\index{pltx.\+c@{pltx.\+c}!wds@{wds}}
+\index{wds@{wds}!pltx.\+c@{pltx.\+c}}
+\subsubsection[{wds}]{\setlength{\rightskip}{0pt plus 5cm}struct {\bf wstruct} wds\mbox{[}{\bf M\+A\+X\+\_\+\+W\+I\+N\+D\+O\+W\+S}+1\mbox{]}}\label{pltx_8c_abac29bce7772cb7fc3b527812813f14f}
+
+
+Definition at line 86 of file pltx.\+c.
+

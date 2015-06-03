@@ -1,0 +1,11 @@
+<map id="dchex" name="dchex">
+<area shape="rect" id="node2" href="$sscale_8f90.html#a39da067b8870667b582ba329d60d0e04" title="sscale" alt="" coords="111,81,171,108"/>
+<area shape="rect" id="node10" href="$sshift_8f90.html#a2688fe3d7ac81ecd0fa061c6657bf7e3" title="sshift" alt="" coords="114,132,167,159"/>
+<area shape="rect" id="node3" href="$lfun_8f90.html#ab7c9dc7a5f1e9505fe661df6f7f23018" title="Subroutine for interfacing EPRLL spectral calculations with the MINPACK version of the Levenberg&#45;Marq..." alt="" coords="219,81,261,108"/>
+<area shape="rect" id="node4" href="$fitl_8f90.html#a118157010a06f371982aa8f4776e4cbf" title="fitl" alt="" coords="318,5,357,32"/>
+<area shape="rect" id="node7" href="$l1pfun_8f90.html#a3debb267bdd8abe63fda9fccd7b466e2" title="l1pfun" alt="" coords="309,56,365,83"/>
+<area shape="rect" id="node8" href="$scalec_8f90.html#ad0a10d81f2261d3878c75b50d67b8b09" title="scalec" alt="" coords="413,107,473,133"/>
+<area shape="rect" id="node9" href="$shiftc_8f90.html#a6a52b18ff3a85d80bac3f46a497d7e6e" title="shiftc" alt="" coords="417,157,470,184"/>
+<area shape="rect" id="node5" href="$fitc_8f90.html#ae805998691f59fca2d33023f207e8b7d" title="fitc" alt="" coords="424,31,463,57"/>
+<area shape="rect" id="node6" href="$nlsl_8f90.html#a89bfe89320539cc08d8701d4f2a028a6" title="nlsl" alt="" coords="521,107,564,133"/>
+</map>

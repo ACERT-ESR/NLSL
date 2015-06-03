@@ -1,0 +1,63 @@
+\hypertarget{addprm_8f90}{}\section{addprm.\+f90 File Reference}
+\label{addprm_8f90}\index{addprm.\+f90@{addprm.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{addprm_8f90_a8a722836d72ad8bdc80480ec056aaff0}{addprm} (ix, ix2, ibd, prmn, prmx, prsc, step, ident)
+\begin{DoxyCompactList}\small\item\em Add a parameter to list of parameters being varied for nonlinear least-\/squares. Also maintain the lists of. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{addprm_8f90_a8a722836d72ad8bdc80480ec056aaff0}{}\index{addprm.\+f90@{addprm.\+f90}!addprm@{addprm}}
+\index{addprm@{addprm}!addprm.\+f90@{addprm.\+f90}}
+\subsubsection[{addprm}]{\setlength{\rightskip}{0pt plus 5cm}subroutine addprm (
+\begin{DoxyParamCaption}
+\item[{integer}]{ix, }
+\item[{integer}]{ix2, }
+\item[{integer}]{ibd, }
+\item[{double precision}]{prmn, }
+\item[{double precision}]{prmx, }
+\item[{double precision}]{prsc, }
+\item[{double precision}]{step, }
+\item[{character$\ast$9}]{ident}
+\end{DoxyParamCaption}
+)}\label{addprm_8f90_a8a722836d72ad8bdc80480ec056aaff0}
+
+
+Add a parameter to list of parameters being varied for nonlinear least-\/squares. Also maintain the lists of. 
+
+
+\begin{DoxyEnumerate}
+\item ixst \+: secondary parameter index (for multiple sites/spectra)
+\item ibnd \+: boundary flag for variable parameter
+\item prmin \+: minimum for variable parameter
+\item prmax \+: maximum for variable parameter
+\item prscl \+: desired accuracy for given parameter
+\item xfdstp \+: Size of forward-\/differences step
+\item tag \+: Name of the parameter (character$\ast$9)
+\item ixx \+: index of each element in the fparm array into the x vector
+\end{DoxyEnumerate}
+
+The values of these parameters for the given variable parameter are passed to A\+D\+D\+P\+R\+M\+: \begin{TabularC}{2}
+\hline
+\rowcolor{lightgray}{\bf subroutine parameter }&{\bf kept in list  }\\\cline{1-2}
+ix2 &ixst \\\cline{1-2}
+ibd &ibnd \\\cline{1-2}
+prmn &prmin \\\cline{1-2}
+prmx &prmax \\\cline{1-2}
+prsc &prscl \\\cline{1-2}
+step &xfdstp \\\cline{1-2}
+ident &tag \\\cline{1-2}
+\end{TabularC}
+Notes\+:
+
+
+\begin{DoxyItemize}
+\item Each addition to the list is included in sort order with respect to the index ix. This is an artifact of the original implementation of the program, and no longer required.
+\item If ix2 = -\/1, the parameter specified by ix is to be varied individually for E\+A\+C\+H existing site/spectrum If ix2 = 0, the parameter is to be varied for A\+L\+L sites/spectra at once 
+\end{DoxyItemize}
+
+Here is the caller graph for this function\+:
+% FIG 0
+
+

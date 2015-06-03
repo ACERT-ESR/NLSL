@@ -1,0 +1,71 @@
+\hypertarget{lmcom_8f90}{}\section{lmcom.\+f90 File Reference}
+\label{lmcom_8f90}\index{lmcom.\+f90@{lmcom.\+f90}}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \hyperlink{namespacelmcom}{lmcom}
+\end{DoxyCompactItemize}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{namespacelmcom_a26483da80dec8b6306b5f926e4a80dc9}{lmcom\+::lmcom\+\_\+init}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+double precision, dimension(mxpt, mxjcol), save \hyperlink{namespacelmcom_a018d5f8fb4351da862f8bcefa364e12e}{lmcom\+::fjac}
+\item 
+double precision, dimension(mxpt), save \hyperlink{namespacelmcom_ab50f0abccf4f1c3e87f6071526d61363}{lmcom\+::fvec}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a72375dfc91bb846bf6217f4ba7128668}{lmcom\+::x}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_af11b1d0cbeaec637a780878fe18fe09c}{lmcom\+::diag}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a63a8a7918e7cbce07dfbedc2bdb45a43}{lmcom\+::qtf}
+\item 
+double precision, dimension(mxjcol, mxjcol), save \hyperlink{namespacelmcom_aacb23bb898fe2de57198d773238bf083}{lmcom\+::corr}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_ae1403dcb6cf117bfc1c3e30027f4083d}{lmcom\+::work1}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a5387f8a935ae7c02be3d253f25c05bc3}{lmcom\+::work2}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_ae3ab21ac0f46fcb22d3f1ab0cbdff11d}{lmcom\+::work3}
+\item 
+double precision, dimension(mxpt), save \hyperlink{namespacelmcom_a5790f3005f1d69022aa3b8b381846167}{lmcom\+::work4}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a31e4997c230f3dbcc94a8c0e6d384e94}{lmcom\+::gnvec}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_ac3eeb83649f37addf933e5070a1fe049}{lmcom\+::gradf}
+\item 
+double precision, dimension(mxtv, mxtv), save \hyperlink{namespacelmcom_a240b0cee11c5624109bf7406dd09fb78}{lmcom\+::tcov}
+\item 
+integer, dimension(mxjcol), save \hyperlink{namespacelmcom_a121f23e757b91241901dc50f0a8df442}{lmcom\+::ipvt}
+\item 
+integer, save \hyperlink{namespacelmcom_aadbf5144e9381af3170b6a5a28e4b78b}{lmcom\+::nprint}
+\item 
+integer, save \hyperlink{namespacelmcom_a4c1633d12ad21f03c516a9462238ad61}{lmcom\+::lmflag}
+\item 
+integer, parameter \hyperlink{namespacelmcom_aad3b03184ac1f60073603509538acb48}{lmcom\+::nflmpr} =4
+\item 
+integer, parameter \hyperlink{namespacelmcom_a28abdbf55d5b7cc7462e9e262599555c}{lmcom\+::nilmpr} =4
+\item 
+double precision, dimension(nflmpr), target, save \hyperlink{namespacelmcom_a0ea5f5946dee4a816e40e387a124a22c}{lmcom\+::flmprm}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_abb1766ab4716093e480d85453a11f673}{lmcom\+::ftol}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_a3df2b8cc0e339c5e5a99796d8db6a9e9}{lmcom\+::gtol}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_a4e4d3f7e9155e311663660404b8b2dcb}{lmcom\+::xtol}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_aff33e94a2d069cb895d6fa4d3ee87da4}{lmcom\+::factor}
+\item 
+integer, dimension(nilmpr), target, save \hyperlink{namespacelmcom_a3c53f2ad1abc95ccc5f8df329f280ed1}{lmcom\+::ilmprm}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_a4c3d75e38135f2552ef77b6f3c2caa22}{lmcom\+::maxev}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_ae18c9a2ec5a21bb78e02195588a6899b}{lmcom\+::maxitr}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_a6f1797b1628e11b42f2f07b9c58640e4}{lmcom\+::mode}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_abc795ed712d1aebd401fa8bcaa08fc34}{lmcom\+::info}
+\end{DoxyCompactItemize}

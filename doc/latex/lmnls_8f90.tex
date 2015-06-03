@@ -1,0 +1,177 @@
+\hypertarget{lmnls_8f90}{}\section{lmnls.\+f90 File Reference}
+\label{lmnls_8f90}\index{lmnls.\+f90@{lmnls.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{lmnls_8f90_a3824341b48a4f0f2246536a6922c8d38}{lmnls} (fcn, m, n, x, fvec, fjac, ldfjac, ftol, xtol, gtol, maxfev, maxitr, diag, scale, \hyperlink{genio_8c_a2d7e5dd7a479c4c7aef6e6133a1441c5}{factor}, nprint, \hyperlink{genio_8c_a11ec0d8744d11b1caaf0c5747b30720b}{info}, nfev, njev, ipvt, qtf, gnvec, gradf, wa1, wa2, wa3, wa4)
+\begin{DoxyCompactList}\small\item\em \subsection*{(L)evenberg-\/(M)arquardt (N)onlinear (L)east (S)quares }
+
+This is a modification of the original lmder subroutine from the M\+I\+N\+P\+A\+C\+K subroutine library. It uses a Levenberg-\/\+Marquardt nonlinear least-\/squares algorithm modified to carry out a local optimization constrained to lie within a \char`\"{}trust region\char`\"{} defined by a step bound delta using scaling of the variables. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{lmnls_8f90_a3824341b48a4f0f2246536a6922c8d38}{}\index{lmnls.\+f90@{lmnls.\+f90}!lmnls@{lmnls}}
+\index{lmnls@{lmnls}!lmnls.\+f90@{lmnls.\+f90}}
+\subsubsection[{lmnls}]{\setlength{\rightskip}{0pt plus 5cm}subroutine lmnls (
+\begin{DoxyParamCaption}
+\item[{external}]{fcn, }
+\item[{integer}]{m, }
+\item[{integer}]{n, }
+\item[{double precision, dimension(n)}]{x, }
+\item[{double precision, dimension(m)}]{fvec, }
+\item[{double precision, dimension(ldfjac,njcol)}]{fjac, }
+\item[{integer}]{ldfjac, }
+\item[{double precision}]{ftol, }
+\item[{double precision}]{xtol, }
+\item[{double precision}]{gtol, }
+\item[{integer}]{maxfev, }
+\item[{integer}]{maxitr, }
+\item[{double precision, dimension(njcol)}]{diag, }
+\item[{double precision, dimension(njcol)}]{scale, }
+\item[{double precision}]{factor, }
+\item[{integer}]{nprint, }
+\item[{integer}]{info, }
+\item[{integer}]{nfev, }
+\item[{integer}]{njev, }
+\item[{integer, dimension(n)}]{ipvt, }
+\item[{double precision, dimension(njcol)}]{qtf, }
+\item[{double precision, dimension(njcol)}]{gnvec, }
+\item[{double precision, dimension(njcol)}]{gradf, }
+\item[{double precision, dimension(njcol)}]{wa1, }
+\item[{double precision, dimension(njcol)}]{wa2, }
+\item[{double precision, dimension(njcol)}]{wa3, }
+\item[{double precision, dimension(m)}]{wa4}
+\end{DoxyParamCaption}
+)}\label{lmnls_8f90_a3824341b48a4f0f2246536a6922c8d38}
+
+
+\subsection*{(L)evenberg-\/(M)arquardt (N)onlinear (L)east (S)quares }
+
+This is a modification of the original lmder subroutine from the M\+I\+N\+P\+A\+C\+K subroutine library. It uses a Levenberg-\/\+Marquardt nonlinear least-\/squares algorithm modified to carry out a local optimization constrained to lie within a \char`\"{}trust region\char`\"{} defined by a step bound delta using scaling of the variables. 
+
+For a description of the trust region approach for least squares problems, see J.\+E. Dennis and R.\+B. Schnabel, Numerical Methods for Unconstrained Optimization and Nonlinear Equations, Prentice-\/\+Hall, Englewood Cliffs, N\+J (1983), sections 6.\+4, 7.\+1, and 10.\+2. \begin{DoxyVerb}The purpose of LMDER is to minimize the sum of the squares of
+m nonlinear functions in n variables by a modification of
+the Levenberg-Marquardt algorithm. The user must provide a
+subroutine which calculates the functions and the Jacobian.
+
+The subroutine statement is
+
+  subroutine lmnls(fcn,m,n,x,fvec,fjac,ldfjac,ftol,xtol,gtol,
+                   maxfev,maxitr,diag,scale,factor,nprint,info,
+                   nfev,njev,ipvt,qtf,wa1,wa2,wa3,wa4) \end{DoxyVerb}
+
+
+
+\begin{DoxyParams}{Parameters}
+{\em F\+C\+N} & is the name of the user-\/supplied subroutine which calculates the functions and the Jacobian. F\+C\+N must be declared in an external statement in the user calling program, and should be written as follows\+: \begin{quote}
+\begin{DoxyVerb} subroutine fcn(m,n,x,fvec,fjac,ldfjac,iflag)
+ integer m,n,ldfjac,iflag
+ double precision x(n),fvec(m),fjac(ldfjac,n)
+ ----------
+ If iflag=1 calculate the functions at x and
+ return this vector in fvec. Do not alter fjac.
+ If iflag=2 calculate the Jacobian at x and
+ return this matrix in fjac. Do not alter fvec.
+ ----------
+ return
+ end
+\end{DoxyVerb}
+
+
+\end{quote}
+The value of I\+F\+L\+A\+G should not be changed by F\+C\+N unless the user wants to terminate execution of L\+M\+D\+E\+R. In this case set iflag to a negative integer.\\
+\hline
+{\em M} & is a positive integer input variable set to the number of functions.\\
+\hline
+{\em N} & is a positive integer input variable set to the number of variables. N must not exceed M.\\
+\hline
+{\em X} & is an array of length N. On input X must contain an initial estimate of the solution vector. On output X contains the final estimate of the solution vector.\\
+\hline
+{\em F\+V\+E\+C} & is an output array of length M which contains the functions evaluated at the output X.\\
+\hline
+{\em F\+J\+A\+C} & is an output M by N array. the upper N by N submatrix of F\+J\+A\+C contains an upper triangular matrix R with diagonal elements of nonincreasing magnitude such that \begin{quote}
+\begin{DoxyVerb}        T     T           T
+       P *(JAC *JAC)*P = R *R,
+\end{DoxyVerb}
+
+
+\end{quote}
+where P is a permutation matrix and J\+A\+C is the final calculated Jacobian. column j of P is column I\+P\+V\+T(j) (see below) of the identity matrix. The lower trapezoidal part of F\+J\+A\+C contains information generated during the computation of R.\\
+\hline
+{\em L\+D\+F\+J\+A\+C} & is a positive integer input variable not less than M which specifies the leading dimension of the array F\+J\+A\+C.\\
+\hline
+{\em F\+T\+O\+L} & is a nonnegative input variable. Termination occurs when both the actual and predicted relative reductions in the sum of squares are at most F\+T\+O\+L. Therefore, F\+T\+O\+L measures the relative error desired in the sum of squares.\\
+\hline
+{\em X\+T\+O\+L} & is a nonnegative input variable. Termination occurs when the relative error between two consecutive iterates is at most X\+T\+O\+L. Therefore, X\+T\+O\+L measures the relative error desired in the approximate solution.\\
+\hline
+{\em G\+T\+O\+L} & is a nonnegative input variable. Termination occurs when the cosine of the angle between F\+V\+E\+C and any column of the Jacobian is at most G\+T\+O\+L in absolute value. therefore, G\+T\+O\+L measures the orthogonality desired between the function vector and the columns of the Jacobian.\\
+\hline
+{\em M\+A\+X\+F\+E\+V} & is a positive integer input variable. Termination occurs when the number of calls to F\+C\+N with I\+F\+L\+A\+G=1 has reached M\+A\+X\+F\+E\+V.\\
+\hline
+{\em S\+C\+A\+L\+E} & is an array of length N containing multiplicative scale factors for each of the variables in X. If an element of S\+C\+A\+L\+E is non-\/positive, it will be reset internally to unity. Positive entries in the S\+C\+A\+L\+E array will be retained as user-\/specified scaling factors for the trust-\/region search of the algorithm. The step for the Ith parameter will be scaled using the norm of the Ith column of the Jacobian {\itshape divided} by S\+C\+A\+L\+E(\+I). This produces larger steps along the ith dimension, at least initialy. The default value for all parameters is unity (i.\+e., the column norms of the Jacobian will be used). \begin{quote}
+N\+B\+: This convention differs from the original specifications of L\+M\+D\+E\+R in M\+I\+N\+P\+A\+C\+K. \end{quote}
+\\
+\hline
+{\em F\+A\+C\+T\+O\+R} & is a positive input variable used in determining the initial trust region bound. This bound is set to the product of F\+A\+C\+T\+O\+R and the Euclidean norm of D\+I\+A\+G$\ast$\+X if nonzero, or else to F\+A\+C\+T\+O\+R itself. In most cases F\+A\+C\+T\+O\+R should lie in the interval (.1,100.). 100 is a generally recommended value.\\
+\hline
+{\em N\+P\+R\+I\+N\+T} & is an integer input variable that enables controlled printing of iterates if it is positive. In this case, fcn is called with I\+F\+L\+A\+G=0 at the beginning of the first iteration and every N\+P\+R\+I\+N\+T iterations thereafter and immediately prior to return, with X, F\+V\+E\+C, and F\+J\+A\+C available for printing. F\+V\+E\+C and F\+J\+A\+C should not be altered. If N\+P\+R\+I\+N\+T is not positive, no special calls of F\+C\+N with I\+F\+L\+A\+G=0 are made.\\
+\hline
+{\em I\+N\+F\+O} & is an integer output variable. If the user has terminated execution, I\+N\+F\+F\+O is set to the (negative) value of I\+F\+L\+A\+G. See description of F\+C\+N. Otherwise, I\+N\+F\+O is set as follows\+:
+
+I\+N\+F\+O=0 Improper input parameters.
+
+I\+N\+F\+O=1 Both actual and predicted relative reductions in the sum of squares are at most F\+T\+O\+L.
+
+I\+N\+F\+O=2 Relative error between two consecutive iterates is at most X\+T\+O\+L.
+
+I\+N\+F\+O=3 conditions for I\+N\+F\+O=1 and I\+N\+F\+O=2 both hold.
+
+I\+N\+F\+O=4 The cosine of the angle between F\+V\+E\+C and any column of the Jacobian is at most G\+T\+O\+L in absolute value.
+
+I\+N\+F\+O=5 number of calls to F\+C\+N with I\+F\+L\+A\+G=1 has reached M\+A\+X\+F\+E\+V.
+
+I\+N\+F\+O=6 F\+T\+O\+L is too small. No further reduction in the sum of squares is possible.
+
+I\+N\+F\+O=7 X\+T\+O\+L is too small. No further improvement in the approximate solution X is possible.
+
+I\+N\+F\+O=8 G\+T\+O\+L is too small. F\+V\+E\+C is orthogonal to the columns of the Jacobian to machine precision. \\
+\hline
+{\em N\+F\+E\+V} & is an integer output variable set to the number of calls to F\+C\+N with I\+F\+L\+A\+G=1.\\
+\hline
+{\em N\+J\+E\+V} & is an integer output variable set to the number of calls to N\+J\+E\+V with I\+F\+L\+A\+G=2.\\
+\hline
+{\em I\+P\+V\+T} & is an integer output array of length N. I\+P\+V\+T defines a permutation matrix p such that J\+A\+C$\ast$\+P=Q$\ast$\+R, where J\+A\+C is the final calculated Jacobian, Q is orthogonal (not stored), and R is upper triangular with diagonal elements of nonincreasing magnitude. column j of P is column I\+P\+V\+T(j) of the identity matrix.\\
+\hline
+{\em Q\+T\+F} & is an output array of length N which contains the first N elements of the vector (Q transpose)$\ast$\+F\+V\+E\+C.\\
+\hline
+{\em W\+A1,W\+A2,and} & W\+A3 are work arrays of length N.\\
+\hline
+{\em W\+A4} & is a work array of length M. \\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 23 of file lmnls.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=274pt]{lmnls_8f90_a3824341b48a4f0f2246536a6922c8d38_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=318pt]{lmnls_8f90_a3824341b48a4f0f2246536a6922c8d38_icgraph}
+\end{center}
+\end{figure}
+
+

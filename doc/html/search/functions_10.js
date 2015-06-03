@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['scalec',['scalec',['../scalec_8f90.html#ad0a10d81f2261d3878c75b50d67b8b09',1,'scalec.f90']]],
+  ['sclstt',['sclstt',['../statc_8f90.html#ae16bfd92ffef0473410fab06faad127b',1,'statc.f90']]],
+  ['scmvm',['scmvm',['../scmvm_8f90.html#a817a228f783b83b1f24cba6492a5020c',1,'scmvm.f90']]],
+  ['series',['series',['../series_8f90.html#a8759d6abf2410faf05ee748480168fb7',1,'series.f90']]],
+  ['setdat',['setdat',['../setnm_8f90.html#accb38035af6a214dfbdc90ce2188b11a',1,'setnm.f90']]],
+  ['setfil',['setfil',['../setnm_8f90.html#a1106fd8c5d7b87312c5334f602744458',1,'setnm.f90']]],
+  ['setipr',['setipr',['../setprm_8f90.html#a5f1fa9c7fe001f431092f52dc31e41c5',1,'setprm.f90']]],
+  ['setmts',['setmts',['../setmts_8f90.html#ae2cb7ba6310f33c7c3f4fa7ed33a0dba',1,'setmts.f90']]],
+  ['setprm',['setprm',['../setprm_8f90.html#a7e1548d88d71985a1c2da1936867fcfa',1,'setprm.f90']]],
+  ['setspc',['setspc',['../setspc_8f90.html#a61ca0836c54fcb7dc436e12e92759dbe',1,'setspc.f90']]],
+  ['setxpts',['setxpts',['../pltx_8c.html#a51dac7c88bf37276eeb721ff1e4043a4',1,'pltx.c']]],
+  ['sglint',['sglint',['../getdat_8f90.html#a46078dfe6700b7b7f94afb620f8be900',1,'getdat.f90']]],
+  ['shiftc',['shiftc',['../shiftc_8f90.html#a6a52b18ff3a85d80bac3f46a497d7e6e',1,'shiftc.f90']]],
+  ['shtwndws',['shtwndws',['../pltx_8c.html#aefccceed59762e640b6181453f59b35b',1,'shtwndws():&#160;pltx.c'],['../pltx__dummy_8c.html#aefccceed59762e640b6181453f59b35b',1,'shtwndws():&#160;pltx_dummy.c']]],
+  ['sigint_5fhandler',['sigint_handler',['../catch_8c.html#a258e3b580e688a0cf46e4258525aeaf1',1,'catch.c']]],
+  ['sitec',['sitec',['../sitec_8f90.html#a1d59ebe2b8218ba5db46de19fb6b45ce',1,'sitec.f90']]],
+  ['spcpar',['spcpar',['../setprm_8f90.html#a94dc3ce049cc28204dbe4c0c7a6f1fcf',1,'setprm.f90']]],
+  ['splnay',['splnay',['../getdat_8f90.html#ac7e8bf52fc6be4ec95bb72582598bb6b',1,'getdat.f90']]],
+  ['srchc',['srchc',['../srchc_8f90.html#ace37398565fbd0397c6a6e4f8b387f96',1,'srchc.f90']]],
+  ['sscale',['sscale',['../sscale_8f90.html#a39da067b8870667b582ba329d60d0e04',1,'sscale.f90']]],
+  ['sshift',['sshift',['../sshift_8f90.html#a2688fe3d7ac81ecd0fa061c6657bf7e3',1,'sshift.f90']]],
+  ['statc',['statc',['../statc_8f90.html#a786ec6e498ac66382429f81e933455b6',1,'statc.f90']]],
+  ['stvect',['stvect',['../stvect_8f90.html#a6d21dd6b772f9a56b6a59a986216276d',1,'stvect.f90']]],
+  ['symmsg',['symmsg',['../tensym_8f90.html#a4f53177241af012a98f5a7974e4238ea',1,'tensym.f90']]]
+];

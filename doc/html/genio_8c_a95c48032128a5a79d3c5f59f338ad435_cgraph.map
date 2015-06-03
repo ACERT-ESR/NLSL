@@ -1,0 +1,10 @@
+<map id="getbin" name="getbin">
+<area shape="rect" id="node2" href="$genio_8c.html#ae059406cbbc0e8ef58b0c02a0241dbeb" title="getlinerec" alt="" coords="111,38,189,64"/>
+<area shape="rect" id="node3" href="$genio_8c.html#ab430f75ad168680d4f48c89cb1cb2046" title="getrecsize" alt="" coords="239,88,321,115"/>
+<area shape="rect" id="node4" href="$genio_8c.html#a3df1a7e16a74d2f0c40aaf9bbf0c00d7" title="getint" alt="" coords="371,38,425,64"/>
+<area shape="rect" id="node6" href="$genio_8c.html#a679ca318bead24eb7a0620fafbdac71e" title="array_err" alt="" coords="113,139,187,166"/>
+<area shape="rect" id="node7" href="$genio_8c.html#a3116ecf14b4e8ab412c5db8b2de72369" title="getreal" alt="" coords="249,240,311,267"/>
+<area shape="rect" id="node8" href="$genio_8c.html#aff4b8ddb1606b33b69b5f8c31a6aaa2a" title="getarray" alt="" coords="115,190,185,216"/>
+<area shape="rect" id="node5" href="$genio_8c.html#a775e74290787e5af71cad8e8ce473f1e" title="ill_linerec" alt="" coords="242,38,318,64"/>
+<area shape="rect" id="node9" href="$genio_8c.html#a2d08475328962144de3590e85bca36d2" title="ill_arrayrec" alt="" coords="237,190,323,216"/>
+</map>

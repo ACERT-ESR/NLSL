@@ -1,0 +1,71 @@
+\hypertarget{eprls_8f90}{}\section{eprls.\+f90 File Reference}
+\label{eprls_8f90}\index{eprls.\+f90@{eprls.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{eprls_8f90_a97c141db091577f522d24040ddcc3a91}{eprls} (icalc, al, be, bss, iprune, spectr, nft, ndone, ierr)
+\begin{DoxyCompactList}\small\item\em Subroutine version of E\+P\+R\+L\+L family of programs by D. Schneider. This routine is intended for use with nonlinear least-\/squares applications. The routine calculates the tridiagonal matrix for the parameters passed in the fparm and iparm arrays using the Conjugate Gradients version of the Lanczos algorithm. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{eprls_8f90_a97c141db091577f522d24040ddcc3a91}{}\index{eprls.\+f90@{eprls.\+f90}!eprls@{eprls}}
+\index{eprls@{eprls}!eprls.\+f90@{eprls.\+f90}}
+\subsubsection[{eprls}]{\setlength{\rightskip}{0pt plus 5cm}subroutine eprls (
+\begin{DoxyParamCaption}
+\item[{integer}]{icalc, }
+\item[{double complex, dimension(mxdim)}]{al, }
+\item[{double complex, dimension(mxdim)}]{be, }
+\item[{integer, dimension(5,mxdim)}]{bss, }
+\item[{integer}]{iprune, }
+\item[{double precision, dimension($\ast$)}]{spectr, }
+\item[{integer}]{nft, }
+\item[{integer}]{ndone, }
+\item[{integer}]{ierr}
+\end{DoxyParamCaption}
+)}\label{eprls_8f90_a97c141db091577f522d24040ddcc3a91}
+
+
+Subroutine version of E\+P\+R\+L\+L family of programs by D. Schneider. This routine is intended for use with nonlinear least-\/squares applications. The routine calculates the tridiagonal matrix for the parameters passed in the fparm and iparm arrays using the Conjugate Gradients version of the Lanczos algorithm. 
+
+Calculation parameters are input in the arrays fparm and iparm. They are expected in the same order as that found in common /eprprm/. The input flag icalc is specified as a three-\/digit number ijk, where \begin{DoxyVerb}            j.ne.0  => Perform matrix and CG calculations (matrll/cscg) 
+            k.ne.0  => Perform starting vector and CG calculations (stvect/cscg)
+\end{DoxyVerb}
+
+
+The continued-\/fractions calculation is always performed. 
+\begin{DoxyParams}{Parameters}
+{\em al(ndone)} & Diagonal of tridiagonal matrix for spectrum \\
+\hline
+{\em be(ndone)} & Off-\/diagonal of tridiagonal matrix for spectrum \\
+\hline
+{\em ndone} & Number of C\+G steps taken. Zero for Lanczos calculations, and set negative if C\+G did not converge \\
+\hline
+{\em ierr} & Error flag. Meaning of values assigned to ierr are defined in \textquotesingle{}errmsg.\+inc\textquotesingle{}.\\
+\hline
+\end{DoxyParams}
+Written by D\+E\+B, 26-\/\+Sep-\/91 based on programs from D\+J\+S 
+
+Definition at line 44 of file eprls.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{eprls_8f90_a97c141db091577f522d24040ddcc3a91_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{eprls_8f90_a97c141db091577f522d24040ddcc3a91_icgraph}
+\end{center}
+\end{figure}
+
+

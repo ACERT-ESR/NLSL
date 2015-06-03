@@ -1,0 +1,290 @@
+\hypertarget{namespacelmcom}{}\section{lmcom Module Reference}
+\label{namespacelmcom}\index{lmcom@{lmcom}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{namespacelmcom_a26483da80dec8b6306b5f926e4a80dc9}{lmcom\+\_\+init}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+double precision, dimension(mxpt, mxjcol), save \hyperlink{namespacelmcom_a018d5f8fb4351da862f8bcefa364e12e}{fjac}
+\item 
+double precision, dimension(mxpt), save \hyperlink{namespacelmcom_ab50f0abccf4f1c3e87f6071526d61363}{fvec}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a72375dfc91bb846bf6217f4ba7128668}{x}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_af11b1d0cbeaec637a780878fe18fe09c}{diag}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a63a8a7918e7cbce07dfbedc2bdb45a43}{qtf}
+\item 
+double precision, dimension(mxjcol, mxjcol), save \hyperlink{namespacelmcom_aacb23bb898fe2de57198d773238bf083}{corr}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_ae1403dcb6cf117bfc1c3e30027f4083d}{work1}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a5387f8a935ae7c02be3d253f25c05bc3}{work2}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_ae3ab21ac0f46fcb22d3f1ab0cbdff11d}{work3}
+\item 
+double precision, dimension(mxpt), save \hyperlink{namespacelmcom_a5790f3005f1d69022aa3b8b381846167}{work4}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_a31e4997c230f3dbcc94a8c0e6d384e94}{gnvec}
+\item 
+double precision, dimension(mxjcol), save \hyperlink{namespacelmcom_ac3eeb83649f37addf933e5070a1fe049}{gradf}
+\item 
+double precision, dimension(mxtv, mxtv), save \hyperlink{namespacelmcom_a240b0cee11c5624109bf7406dd09fb78}{tcov}
+\item 
+integer, dimension(mxjcol), save \hyperlink{namespacelmcom_a121f23e757b91241901dc50f0a8df442}{ipvt}
+\item 
+integer, save \hyperlink{namespacelmcom_aadbf5144e9381af3170b6a5a28e4b78b}{nprint}
+\item 
+integer, save \hyperlink{namespacelmcom_a4c1633d12ad21f03c516a9462238ad61}{lmflag}
+\item 
+integer, parameter \hyperlink{namespacelmcom_aad3b03184ac1f60073603509538acb48}{nflmpr} =4
+\item 
+integer, parameter \hyperlink{namespacelmcom_a28abdbf55d5b7cc7462e9e262599555c}{nilmpr} =4
+\item 
+double precision, dimension(\hyperlink{namespacelmcom_aad3b03184ac1f60073603509538acb48}{nflmpr}), target, save \hyperlink{namespacelmcom_a0ea5f5946dee4a816e40e387a124a22c}{flmprm}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_abb1766ab4716093e480d85453a11f673}{ftol}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_a3df2b8cc0e339c5e5a99796d8db6a9e9}{gtol}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_a4e4d3f7e9155e311663660404b8b2dcb}{xtol}
+\item 
+double precision, pointer, save \hyperlink{namespacelmcom_aff33e94a2d069cb895d6fa4d3ee87da4}{factor}
+\item 
+integer, dimension(\hyperlink{namespacelmcom_a28abdbf55d5b7cc7462e9e262599555c}{nilmpr}), target, save \hyperlink{namespacelmcom_a3c53f2ad1abc95ccc5f8df329f280ed1}{ilmprm}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_a4c3d75e38135f2552ef77b6f3c2caa22}{maxev}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_ae18c9a2ec5a21bb78e02195588a6899b}{maxitr}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_a6f1797b1628e11b42f2f07b9c58640e4}{mode}
+\item 
+integer, pointer, save \hyperlink{namespacelmcom_abc795ed712d1aebd401fa8bcaa08fc34}{info}
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{namespacelmcom_a26483da80dec8b6306b5f926e4a80dc9}{}\index{lmcom@{lmcom}!lmcom\+\_\+init@{lmcom\+\_\+init}}
+\index{lmcom\+\_\+init@{lmcom\+\_\+init}!lmcom@{lmcom}}
+\subsubsection[{lmcom\+\_\+init}]{\setlength{\rightskip}{0pt plus 5cm}subroutine lmcom\+::lmcom\+\_\+init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}\label{namespacelmcom_a26483da80dec8b6306b5f926e4a80dc9}
+
+
+Definition at line 37 of file lmcom.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=325pt]{namespacelmcom_a26483da80dec8b6306b5f926e4a80dc9_icgraph}
+\end{center}
+\end{figure}
+
+
+
+
+\subsection{Variable Documentation}
+\hypertarget{namespacelmcom_aacb23bb898fe2de57198d773238bf083}{}\index{lmcom@{lmcom}!corr@{corr}}
+\index{corr@{corr}!lmcom@{lmcom}}
+\subsubsection[{corr}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol,mxjcol), save lmcom\+::corr}\label{namespacelmcom_aacb23bb898fe2de57198d773238bf083}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_af11b1d0cbeaec637a780878fe18fe09c}{}\index{lmcom@{lmcom}!diag@{diag}}
+\index{diag@{diag}!lmcom@{lmcom}}
+\subsubsection[{diag}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::diag}\label{namespacelmcom_af11b1d0cbeaec637a780878fe18fe09c}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_aff33e94a2d069cb895d6fa4d3ee87da4}{}\index{lmcom@{lmcom}!factor@{factor}}
+\index{factor@{factor}!lmcom@{lmcom}}
+\subsubsection[{factor}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save lmcom\+::factor}\label{namespacelmcom_aff33e94a2d069cb895d6fa4d3ee87da4}
+
+
+Definition at line 29 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a018d5f8fb4351da862f8bcefa364e12e}{}\index{lmcom@{lmcom}!fjac@{fjac}}
+\index{fjac@{fjac}!lmcom@{lmcom}}
+\subsubsection[{fjac}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxpt,mxjcol), save lmcom\+::fjac}\label{namespacelmcom_a018d5f8fb4351da862f8bcefa364e12e}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a0ea5f5946dee4a816e40e387a124a22c}{}\index{lmcom@{lmcom}!flmprm@{flmprm}}
+\index{flmprm@{flmprm}!lmcom@{lmcom}}
+\subsubsection[{flmprm}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension({\bf nflmpr}), target, save lmcom\+::flmprm}\label{namespacelmcom_a0ea5f5946dee4a816e40e387a124a22c}
+
+
+Definition at line 28 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_abb1766ab4716093e480d85453a11f673}{}\index{lmcom@{lmcom}!ftol@{ftol}}
+\index{ftol@{ftol}!lmcom@{lmcom}}
+\subsubsection[{ftol}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save lmcom\+::ftol}\label{namespacelmcom_abb1766ab4716093e480d85453a11f673}
+
+
+Definition at line 29 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_ab50f0abccf4f1c3e87f6071526d61363}{}\index{lmcom@{lmcom}!fvec@{fvec}}
+\index{fvec@{fvec}!lmcom@{lmcom}}
+\subsubsection[{fvec}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxpt), save lmcom\+::fvec}\label{namespacelmcom_ab50f0abccf4f1c3e87f6071526d61363}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a31e4997c230f3dbcc94a8c0e6d384e94}{}\index{lmcom@{lmcom}!gnvec@{gnvec}}
+\index{gnvec@{gnvec}!lmcom@{lmcom}}
+\subsubsection[{gnvec}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::gnvec}\label{namespacelmcom_a31e4997c230f3dbcc94a8c0e6d384e94}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_ac3eeb83649f37addf933e5070a1fe049}{}\index{lmcom@{lmcom}!gradf@{gradf}}
+\index{gradf@{gradf}!lmcom@{lmcom}}
+\subsubsection[{gradf}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::gradf}\label{namespacelmcom_ac3eeb83649f37addf933e5070a1fe049}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a3df2b8cc0e339c5e5a99796d8db6a9e9}{}\index{lmcom@{lmcom}!gtol@{gtol}}
+\index{gtol@{gtol}!lmcom@{lmcom}}
+\subsubsection[{gtol}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save lmcom\+::gtol}\label{namespacelmcom_a3df2b8cc0e339c5e5a99796d8db6a9e9}
+
+
+Definition at line 29 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a3c53f2ad1abc95ccc5f8df329f280ed1}{}\index{lmcom@{lmcom}!ilmprm@{ilmprm}}
+\index{ilmprm@{ilmprm}!lmcom@{lmcom}}
+\subsubsection[{ilmprm}]{\setlength{\rightskip}{0pt plus 5cm}integer, dimension({\bf nilmpr}), target, save lmcom\+::ilmprm}\label{namespacelmcom_a3c53f2ad1abc95ccc5f8df329f280ed1}
+
+
+Definition at line 31 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_abc795ed712d1aebd401fa8bcaa08fc34}{}\index{lmcom@{lmcom}!info@{info}}
+\index{info@{info}!lmcom@{lmcom}}
+\subsubsection[{info}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save lmcom\+::info}\label{namespacelmcom_abc795ed712d1aebd401fa8bcaa08fc34}
+
+
+Definition at line 32 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a121f23e757b91241901dc50f0a8df442}{}\index{lmcom@{lmcom}!ipvt@{ipvt}}
+\index{ipvt@{ipvt}!lmcom@{lmcom}}
+\subsubsection[{ipvt}]{\setlength{\rightskip}{0pt plus 5cm}integer, dimension(mxjcol), save lmcom\+::ipvt}\label{namespacelmcom_a121f23e757b91241901dc50f0a8df442}
+
+
+Definition at line 24 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a4c1633d12ad21f03c516a9462238ad61}{}\index{lmcom@{lmcom}!lmflag@{lmflag}}
+\index{lmflag@{lmflag}!lmcom@{lmcom}}
+\subsubsection[{lmflag}]{\setlength{\rightskip}{0pt plus 5cm}integer, save lmcom\+::lmflag}\label{namespacelmcom_a4c1633d12ad21f03c516a9462238ad61}
+
+
+Definition at line 24 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a4c3d75e38135f2552ef77b6f3c2caa22}{}\index{lmcom@{lmcom}!maxev@{maxev}}
+\index{maxev@{maxev}!lmcom@{lmcom}}
+\subsubsection[{maxev}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save lmcom\+::maxev}\label{namespacelmcom_a4c3d75e38135f2552ef77b6f3c2caa22}
+
+
+Definition at line 32 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_ae18c9a2ec5a21bb78e02195588a6899b}{}\index{lmcom@{lmcom}!maxitr@{maxitr}}
+\index{maxitr@{maxitr}!lmcom@{lmcom}}
+\subsubsection[{maxitr}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save lmcom\+::maxitr}\label{namespacelmcom_ae18c9a2ec5a21bb78e02195588a6899b}
+
+
+Definition at line 32 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a6f1797b1628e11b42f2f07b9c58640e4}{}\index{lmcom@{lmcom}!mode@{mode}}
+\index{mode@{mode}!lmcom@{lmcom}}
+\subsubsection[{mode}]{\setlength{\rightskip}{0pt plus 5cm}integer, pointer, save lmcom\+::mode}\label{namespacelmcom_a6f1797b1628e11b42f2f07b9c58640e4}
+
+
+Definition at line 32 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_aad3b03184ac1f60073603509538acb48}{}\index{lmcom@{lmcom}!nflmpr@{nflmpr}}
+\index{nflmpr@{nflmpr}!lmcom@{lmcom}}
+\subsubsection[{nflmpr}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter lmcom\+::nflmpr =4}\label{namespacelmcom_aad3b03184ac1f60073603509538acb48}
+
+
+Definition at line 26 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a28abdbf55d5b7cc7462e9e262599555c}{}\index{lmcom@{lmcom}!nilmpr@{nilmpr}}
+\index{nilmpr@{nilmpr}!lmcom@{lmcom}}
+\subsubsection[{nilmpr}]{\setlength{\rightskip}{0pt plus 5cm}integer, parameter lmcom\+::nilmpr =4}\label{namespacelmcom_a28abdbf55d5b7cc7462e9e262599555c}
+
+
+Definition at line 26 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_aadbf5144e9381af3170b6a5a28e4b78b}{}\index{lmcom@{lmcom}!nprint@{nprint}}
+\index{nprint@{nprint}!lmcom@{lmcom}}
+\subsubsection[{nprint}]{\setlength{\rightskip}{0pt plus 5cm}integer, save lmcom\+::nprint}\label{namespacelmcom_aadbf5144e9381af3170b6a5a28e4b78b}
+
+
+Definition at line 24 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a63a8a7918e7cbce07dfbedc2bdb45a43}{}\index{lmcom@{lmcom}!qtf@{qtf}}
+\index{qtf@{qtf}!lmcom@{lmcom}}
+\subsubsection[{qtf}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::qtf}\label{namespacelmcom_a63a8a7918e7cbce07dfbedc2bdb45a43}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a240b0cee11c5624109bf7406dd09fb78}{}\index{lmcom@{lmcom}!tcov@{tcov}}
+\index{tcov@{tcov}!lmcom@{lmcom}}
+\subsubsection[{tcov}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxtv,mxtv), save lmcom\+::tcov}\label{namespacelmcom_a240b0cee11c5624109bf7406dd09fb78}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_ae1403dcb6cf117bfc1c3e30027f4083d}{}\index{lmcom@{lmcom}!work1@{work1}}
+\index{work1@{work1}!lmcom@{lmcom}}
+\subsubsection[{work1}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::work1}\label{namespacelmcom_ae1403dcb6cf117bfc1c3e30027f4083d}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a5387f8a935ae7c02be3d253f25c05bc3}{}\index{lmcom@{lmcom}!work2@{work2}}
+\index{work2@{work2}!lmcom@{lmcom}}
+\subsubsection[{work2}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::work2}\label{namespacelmcom_a5387f8a935ae7c02be3d253f25c05bc3}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_ae3ab21ac0f46fcb22d3f1ab0cbdff11d}{}\index{lmcom@{lmcom}!work3@{work3}}
+\index{work3@{work3}!lmcom@{lmcom}}
+\subsubsection[{work3}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::work3}\label{namespacelmcom_ae3ab21ac0f46fcb22d3f1ab0cbdff11d}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a5790f3005f1d69022aa3b8b381846167}{}\index{lmcom@{lmcom}!work4@{work4}}
+\index{work4@{work4}!lmcom@{lmcom}}
+\subsubsection[{work4}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxpt), save lmcom\+::work4}\label{namespacelmcom_a5790f3005f1d69022aa3b8b381846167}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a72375dfc91bb846bf6217f4ba7128668}{}\index{lmcom@{lmcom}!x@{x}}
+\index{x@{x}!lmcom@{lmcom}}
+\subsubsection[{x}]{\setlength{\rightskip}{0pt plus 5cm}double precision, dimension(mxjcol), save lmcom\+::x}\label{namespacelmcom_a72375dfc91bb846bf6217f4ba7128668}
+
+
+Definition at line 17 of file lmcom.\+f90.
+
+\hypertarget{namespacelmcom_a4e4d3f7e9155e311663660404b8b2dcb}{}\index{lmcom@{lmcom}!xtol@{xtol}}
+\index{xtol@{xtol}!lmcom@{lmcom}}
+\subsubsection[{xtol}]{\setlength{\rightskip}{0pt plus 5cm}double precision, pointer, save lmcom\+::xtol}\label{namespacelmcom_a4e4d3f7e9155e311663660404b8b2dcb}
+
+
+Definition at line 29 of file lmcom.\+f90.
+

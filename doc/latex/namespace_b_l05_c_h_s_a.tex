@@ -1,0 +1,216 @@
+\hypertarget{namespace_b_l05_c_h_s_a}{}\section{B\+L05\+C\+H\+S\+A Namespace Reference}
+\label{namespace_b_l05_c_h_s_a}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespace_b_l05_c_h_s_a_a1a819893783ede39234c56a7286d30bc}{read\+\_\+column\+\_\+data} (filename)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_afb6ef627920d8cbf2ce053140030ebf7}{proc} = Popen(\mbox{[}\textquotesingle{}./\hyperlink{nlsl_8f90_a89bfe89320539cc08d8701d4f2a028a6}{nlsl}\textquotesingle{}\mbox{]},stdin = P\+I\+P\+E, stderr = S\+T\+D\+O\+U\+T)
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a3a4b7cc37a8b2a6d0fcd04d9cb56616c}{fp} = open(\textquotesingle{}B\+L05\+C\+H\+S\+A.\+run\textquotesingle{})
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a048090b16140caac58f50ec58a3a63ce}{output} = proc.\+communicate(input = fp.\+read())
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{data} = \hyperlink{namespace_b_l05_c_h_s_a_a1a819893783ede39234c56a7286d30bc}{read\+\_\+column\+\_\+data}(\textquotesingle{}B\+L05\+C\+H\+S\+A.\+spc\textquotesingle{})
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_ac96edf7f6341a6e26666193e7bfd5ef6}{fields} = \hyperlink{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{data}\mbox{[}\+:,0\mbox{]}
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_a22267f248a50448e8ec8ea567d9cff93}{experimental} = \hyperlink{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{data}\mbox{[}\+:,1\mbox{]}
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_a371b841893a6562051410836ac64e8a2}{fit} = \hyperlink{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{data}\mbox{[}\+:,2\mbox{]}
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a827312760f5e707d60c4ac26b7ea5060}{integral\+\_\+of\+\_\+spectrum} = cumsum(\hyperlink{namespace_b_l05_c_h_s_a_a22267f248a50448e8ec8ea567d9cff93}{experimental})
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_adb6114e66278f9e6e787673c8ad3d0dc}{normalization} = abs(sum(\hyperlink{namespace_b_l05_c_h_s_a_a827312760f5e707d60c4ac26b7ea5060}{integral\+\_\+of\+\_\+spectrum}))
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_ac496d41ec0dcccce7efa61a981b5b0a7}{fig} = figure(figsize = (9,6))
+\item 
+list \hyperlink{namespace_b_l05_c_h_s_a_a6e2965b93cd1337bb3ba33f58af818d5}{components} = \hyperlink{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{data}\mbox{[}\+:,3\+:\mbox{]}
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_ae47d721fbc9aa091d7f5ebe40717a9ef}{max\+\_\+of\+\_\+fit} = max(\hyperlink{namespace_b_l05_c_h_s_a_a371b841893a6562051410836ac64e8a2}{fit})
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_af2a1d084aae311c4772e173de8ef0a9d}{ax} = gca()
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a7a5c94600d2ea2952192993875a03164}{ylims} = ax.\+get\+\_\+ylim()
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a5c928db19ba6b2f7483c5cb9f0571f3b}{scale\+\_\+integral} = \hyperlink{namespace_b_l05_c_h_s_a_ae47d721fbc9aa091d7f5ebe40717a9ef}{max\+\_\+of\+\_\+fit}/max(\hyperlink{namespace_b_l05_c_h_s_a_a827312760f5e707d60c4ac26b7ea5060}{integral\+\_\+of\+\_\+spectrum})
+\item 
+int \hyperlink{namespace_b_l05_c_h_s_a_a5107e74d836195459b535f42b45d983d}{loc} = 2
+\item 
+int \hyperlink{namespace_b_l05_c_h_s_a_a3fd3e4180173d393a4d5d4f1ec9b6307}{borderaxespad} = 0
+\item 
+tuple \hyperlink{namespace_b_l05_c_h_s_a_a107c588f7c1eecf4092b2eb12a1eef08}{rms} = mean((\hyperlink{namespace_b_l05_c_h_s_a_a371b841893a6562051410836ac64e8a2}{fit}/\hyperlink{namespace_b_l05_c_h_s_a_adb6114e66278f9e6e787673c8ad3d0dc}{normalization}-\/\hyperlink{namespace_b_l05_c_h_s_a_a22267f248a50448e8ec8ea567d9cff93}{experimental}/\hyperlink{namespace_b_l05_c_h_s_a_adb6114e66278f9e6e787673c8ad3d0dc}{normalization})$\ast$$\ast$2)
+\item 
+string \hyperlink{namespace_b_l05_c_h_s_a_aabc5219aecb77a5fd4da7ab9c8c68098}{horizontalalignment} = \textquotesingle{}left\textquotesingle{}
+\item 
+string \hyperlink{namespace_b_l05_c_h_s_a_a72a594605b8f05198333359e60604fa6}{verticalalignment} = \textquotesingle{}top\textquotesingle{}
+\item 
+\hyperlink{namespace_b_l05_c_h_s_a_a7a34eabeefcbdc0884c99c2c91c66b8b}{transform} = ax.\+trans\+Axes)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{namespace_b_l05_c_h_s_a_a1a819893783ede39234c56a7286d30bc}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!read\+\_\+column\+\_\+data@{read\+\_\+column\+\_\+data}}
+\index{read\+\_\+column\+\_\+data@{read\+\_\+column\+\_\+data}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{read\+\_\+column\+\_\+data}]{\setlength{\rightskip}{0pt plus 5cm}def B\+L05\+C\+H\+S\+A.\+read\+\_\+column\+\_\+data (
+\begin{DoxyParamCaption}
+\item[{}]{filename}
+\end{DoxyParamCaption}
+)}\label{namespace_b_l05_c_h_s_a_a1a819893783ede39234c56a7286d30bc}
+
+
+Definition at line 5 of file B\+L05\+C\+H\+S\+A.\+py.
+
+
+
+\subsection{Variable Documentation}
+\hypertarget{namespace_b_l05_c_h_s_a_af2a1d084aae311c4772e173de8ef0a9d}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!ax@{ax}}
+\index{ax@{ax}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{ax}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+ax = gca()}\label{namespace_b_l05_c_h_s_a_af2a1d084aae311c4772e173de8ef0a9d}
+
+
+Definition at line 44 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a3fd3e4180173d393a4d5d4f1ec9b6307}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!borderaxespad@{borderaxespad}}
+\index{borderaxespad@{borderaxespad}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{borderaxespad}]{\setlength{\rightskip}{0pt plus 5cm}int B\+L05\+C\+H\+S\+A.\+borderaxespad = 0}\label{namespace_b_l05_c_h_s_a_a3fd3e4180173d393a4d5d4f1ec9b6307}
+
+
+Definition at line 50 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a6e2965b93cd1337bb3ba33f58af818d5}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!components@{components}}
+\index{components@{components}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{components}]{\setlength{\rightskip}{0pt plus 5cm}B\+L05\+C\+H\+S\+A.\+components = {\bf data}\mbox{[}\+:,3\+:\mbox{]}}\label{namespace_b_l05_c_h_s_a_a6e2965b93cd1337bb3ba33f58af818d5}
+
+
+Definition at line 36 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!data@{data}}
+\index{data@{data}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+data = {\bf read\+\_\+column\+\_\+data}(\textquotesingle{}B\+L05\+C\+H\+S\+A.\+spc\textquotesingle{})}\label{namespace_b_l05_c_h_s_a_ad4aff4c0274888557c2d5e9676e0b1c0}
+
+
+Definition at line 27 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a22267f248a50448e8ec8ea567d9cff93}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!experimental@{experimental}}
+\index{experimental@{experimental}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{experimental}]{\setlength{\rightskip}{0pt plus 5cm}list B\+L05\+C\+H\+S\+A.\+experimental = {\bf data}\mbox{[}\+:,1\mbox{]}}\label{namespace_b_l05_c_h_s_a_a22267f248a50448e8ec8ea567d9cff93}
+
+
+Definition at line 29 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_ac96edf7f6341a6e26666193e7bfd5ef6}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!fields@{fields}}
+\index{fields@{fields}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{fields}]{\setlength{\rightskip}{0pt plus 5cm}list B\+L05\+C\+H\+S\+A.\+fields = {\bf data}\mbox{[}\+:,0\mbox{]}}\label{namespace_b_l05_c_h_s_a_ac96edf7f6341a6e26666193e7bfd5ef6}
+
+
+Definition at line 28 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_ac496d41ec0dcccce7efa61a981b5b0a7}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!fig@{fig}}
+\index{fig@{fig}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{fig}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+fig = figure(figsize = (9,6))}\label{namespace_b_l05_c_h_s_a_ac496d41ec0dcccce7efa61a981b5b0a7}
+
+
+Definition at line 33 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a371b841893a6562051410836ac64e8a2}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!fit@{fit}}
+\index{fit@{fit}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{fit}]{\setlength{\rightskip}{0pt plus 5cm}list B\+L05\+C\+H\+S\+A.\+fit = {\bf data}\mbox{[}\+:,2\mbox{]}}\label{namespace_b_l05_c_h_s_a_a371b841893a6562051410836ac64e8a2}
+
+
+Definition at line 30 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a3a4b7cc37a8b2a6d0fcd04d9cb56616c}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!fp@{fp}}
+\index{fp@{fp}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{fp}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+fp = open(\textquotesingle{}B\+L05\+C\+H\+S\+A.\+run\textquotesingle{})}\label{namespace_b_l05_c_h_s_a_a3a4b7cc37a8b2a6d0fcd04d9cb56616c}
+
+
+Definition at line 23 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_aabc5219aecb77a5fd4da7ab9c8c68098}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!horizontalalignment@{horizontalalignment}}
+\index{horizontalalignment@{horizontalalignment}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{horizontalalignment}]{\setlength{\rightskip}{0pt plus 5cm}string B\+L05\+C\+H\+S\+A.\+horizontalalignment = \textquotesingle{}left\textquotesingle{}}\label{namespace_b_l05_c_h_s_a_aabc5219aecb77a5fd4da7ab9c8c68098}
+
+
+Definition at line 54 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a827312760f5e707d60c4ac26b7ea5060}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!integral\+\_\+of\+\_\+spectrum@{integral\+\_\+of\+\_\+spectrum}}
+\index{integral\+\_\+of\+\_\+spectrum@{integral\+\_\+of\+\_\+spectrum}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{integral\+\_\+of\+\_\+spectrum}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+integral\+\_\+of\+\_\+spectrum = cumsum({\bf experimental})}\label{namespace_b_l05_c_h_s_a_a827312760f5e707d60c4ac26b7ea5060}
+
+
+Definition at line 31 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a5107e74d836195459b535f42b45d983d}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!loc@{loc}}
+\index{loc@{loc}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{loc}]{\setlength{\rightskip}{0pt plus 5cm}int B\+L05\+C\+H\+S\+A.\+loc = 2}\label{namespace_b_l05_c_h_s_a_a5107e74d836195459b535f42b45d983d}
+
+
+Definition at line 49 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_ae47d721fbc9aa091d7f5ebe40717a9ef}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!max\+\_\+of\+\_\+fit@{max\+\_\+of\+\_\+fit}}
+\index{max\+\_\+of\+\_\+fit@{max\+\_\+of\+\_\+fit}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{max\+\_\+of\+\_\+fit}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+max\+\_\+of\+\_\+fit = max({\bf fit})}\label{namespace_b_l05_c_h_s_a_ae47d721fbc9aa091d7f5ebe40717a9ef}
+
+
+Definition at line 41 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_adb6114e66278f9e6e787673c8ad3d0dc}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!normalization@{normalization}}
+\index{normalization@{normalization}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{normalization}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+normalization = abs(sum({\bf integral\+\_\+of\+\_\+spectrum}))}\label{namespace_b_l05_c_h_s_a_adb6114e66278f9e6e787673c8ad3d0dc}
+
+
+Definition at line 32 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a048090b16140caac58f50ec58a3a63ce}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!output@{output}}
+\index{output@{output}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{output}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+output = proc.\+communicate(input = fp.\+read())}\label{namespace_b_l05_c_h_s_a_a048090b16140caac58f50ec58a3a63ce}
+
+
+Definition at line 24 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_afb6ef627920d8cbf2ce053140030ebf7}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!proc@{proc}}
+\index{proc@{proc}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{proc}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+proc = Popen(\mbox{[}\textquotesingle{}./{\bf nlsl}\textquotesingle{}\mbox{]},stdin = P\+I\+P\+E, stderr = S\+T\+D\+O\+U\+T)}\label{namespace_b_l05_c_h_s_a_afb6ef627920d8cbf2ce053140030ebf7}
+
+
+Definition at line 20 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a107c588f7c1eecf4092b2eb12a1eef08}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!rms@{rms}}
+\index{rms@{rms}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{rms}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+rms = mean(({\bf fit}/{\bf normalization}-\/{\bf experimental}/{\bf normalization})$\ast$$\ast$2)}\label{namespace_b_l05_c_h_s_a_a107c588f7c1eecf4092b2eb12a1eef08}
+
+
+Definition at line 52 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a5c928db19ba6b2f7483c5cb9f0571f3b}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!scale\+\_\+integral@{scale\+\_\+integral}}
+\index{scale\+\_\+integral@{scale\+\_\+integral}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{scale\+\_\+integral}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+scale\+\_\+integral = {\bf max\+\_\+of\+\_\+fit}/max({\bf integral\+\_\+of\+\_\+spectrum})}\label{namespace_b_l05_c_h_s_a_a5c928db19ba6b2f7483c5cb9f0571f3b}
+
+
+Definition at line 46 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a7a34eabeefcbdc0884c99c2c91c66b8b}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!transform@{transform}}
+\index{transform@{transform}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{transform}]{\setlength{\rightskip}{0pt plus 5cm}B\+L05\+C\+H\+S\+A.\+transform = ax.\+trans\+Axes)}\label{namespace_b_l05_c_h_s_a_a7a34eabeefcbdc0884c99c2c91c66b8b}
+
+
+Definition at line 56 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a72a594605b8f05198333359e60604fa6}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!verticalalignment@{verticalalignment}}
+\index{verticalalignment@{verticalalignment}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{verticalalignment}]{\setlength{\rightskip}{0pt plus 5cm}string B\+L05\+C\+H\+S\+A.\+verticalalignment = \textquotesingle{}top\textquotesingle{}}\label{namespace_b_l05_c_h_s_a_a72a594605b8f05198333359e60604fa6}
+
+
+Definition at line 55 of file B\+L05\+C\+H\+S\+A.\+py.
+
+\hypertarget{namespace_b_l05_c_h_s_a_a7a5c94600d2ea2952192993875a03164}{}\index{B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}!ylims@{ylims}}
+\index{ylims@{ylims}!B\+L05\+C\+H\+S\+A@{B\+L05\+C\+H\+S\+A}}
+\subsubsection[{ylims}]{\setlength{\rightskip}{0pt plus 5cm}tuple B\+L05\+C\+H\+S\+A.\+ylims = ax.\+get\+\_\+ylim()}\label{namespace_b_l05_c_h_s_a_a7a5c94600d2ea2952192993875a03164}
+
+
+Definition at line 45 of file B\+L05\+C\+H\+S\+A.\+py.
+

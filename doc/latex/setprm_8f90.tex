@@ -1,0 +1,137 @@
+\hypertarget{setprm_8f90}{}\section{setprm.\+f90 File Reference}
+\label{setprm_8f90}\index{setprm.\+f90@{setprm.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{setprm_8f90_a7e1548d88d71985a1c2da1936867fcfa}{setprm} (ixparm, ixsite, fval)
+\begin{DoxyCompactList}\small\item\em This file contains two routines that set a given parameter, specified by an index into the fparm or iparm array, given the parameter value and a site/spectrum index. The secondary index is interpreted according to whether or not the parameter belongs to a set of parameters that must be the same for all components of a given spectrum. This set of \char`\"{}spectral parameters\char`\"{} includes. \end{DoxyCompactList}\item 
+subroutine \hyperlink{setprm_8f90_a5f1fa9c7fe001f431092f52dc31e41c5}{setipr} (ixparm, ixsite, ival)
+\begin{DoxyCompactList}\small\item\em Analogous routine to setprm for integer parameters There are only two user-\/settable integer spectrum parameters\+: nfield, and ideriv. These are normally determined by the input data file, but are needed when calculations are to performed without data or fitting. \end{DoxyCompactList}\item 
+logical function \hyperlink{setprm_8f90_a94dc3ce049cc28204dbe4c0c7a6f1fcf}{spcpar} (ix)
+\begin{DoxyCompactList}\small\item\em Returns .true. if the index argument corresponds to a floating point or integer parameter that cannot change for an individual spectrum, regardless of the number of sites for which the calculation is made. These include\+: \end{DoxyCompactList}\item 
+character $\ast$7 function \hyperlink{setprm_8f90_a49e4e821bfd53df2982c2ba6ed0294b7}{ptype} (ix)
+\item 
+integer function \hyperlink{setprm_8f90_af7892849c40e27ba2dee107497814af8}{ixlim} (ix)
+\item 
+double precision function \hyperlink{setprm_8f90_a0cabfd855024bcc7cd43c628e3adf334}{getprm} (ixparm, ixsite)
+\begin{DoxyCompactList}\small\item\em Given a parameter index and a site/spectrum index, this function returns the value of the parameter from the fparm array (for site parameters) or from the spectral parameter arrays for spectrum parameters. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{setprm_8f90_a0cabfd855024bcc7cd43c628e3adf334}{}\index{setprm.\+f90@{setprm.\+f90}!getprm@{getprm}}
+\index{getprm@{getprm}!setprm.\+f90@{setprm.\+f90}}
+\subsubsection[{getprm}]{\setlength{\rightskip}{0pt plus 5cm}double precision function getprm (
+\begin{DoxyParamCaption}
+\item[{integer}]{ixparm, }
+\item[{integer}]{ixsite}
+\end{DoxyParamCaption}
+)}\label{setprm_8f90_a0cabfd855024bcc7cd43c628e3adf334}
+
+
+Given a parameter index and a site/spectrum index, this function returns the value of the parameter from the fparm array (for site parameters) or from the spectral parameter arrays for spectrum parameters. 
+
+
+
+Definition at line 331 of file setprm.\+f90.
+
+\hypertarget{setprm_8f90_af7892849c40e27ba2dee107497814af8}{}\index{setprm.\+f90@{setprm.\+f90}!ixlim@{ixlim}}
+\index{ixlim@{ixlim}!setprm.\+f90@{setprm.\+f90}}
+\subsubsection[{ixlim}]{\setlength{\rightskip}{0pt plus 5cm}integer function ixlim (
+\begin{DoxyParamCaption}
+\item[{integer}]{ix}
+\end{DoxyParamCaption}
+)}\label{setprm_8f90_af7892849c40e27ba2dee107497814af8}
+
+
+Definition at line 300 of file setprm.\+f90.
+
+\hypertarget{setprm_8f90_a49e4e821bfd53df2982c2ba6ed0294b7}{}\index{setprm.\+f90@{setprm.\+f90}!ptype@{ptype}}
+\index{ptype@{ptype}!setprm.\+f90@{setprm.\+f90}}
+\subsubsection[{ptype}]{\setlength{\rightskip}{0pt plus 5cm}character$\ast$7 function ptype (
+\begin{DoxyParamCaption}
+\item[{integer}]{ix}
+\end{DoxyParamCaption}
+)}\label{setprm_8f90_a49e4e821bfd53df2982c2ba6ed0294b7}
+
+
+Definition at line 285 of file setprm.\+f90.
+
+\hypertarget{setprm_8f90_a5f1fa9c7fe001f431092f52dc31e41c5}{}\index{setprm.\+f90@{setprm.\+f90}!setipr@{setipr}}
+\index{setipr@{setipr}!setprm.\+f90@{setprm.\+f90}}
+\subsubsection[{setipr}]{\setlength{\rightskip}{0pt plus 5cm}subroutine setipr (
+\begin{DoxyParamCaption}
+\item[{integer}]{ixparm, }
+\item[{integer}]{ixsite, }
+\item[{integer}]{ival}
+\end{DoxyParamCaption}
+)}\label{setprm_8f90_a5f1fa9c7fe001f431092f52dc31e41c5}
+
+
+Analogous routine to setprm for integer parameters There are only two user-\/settable integer spectrum parameters\+: nfield, and ideriv. These are normally determined by the input data file, but are needed when calculations are to performed without data or fitting. 
+
+
+
+Definition at line 142 of file setprm.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=257pt]{setprm_8f90_a5f1fa9c7fe001f431092f52dc31e41c5_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{setprm_8f90_a7e1548d88d71985a1c2da1936867fcfa}{}\index{setprm.\+f90@{setprm.\+f90}!setprm@{setprm}}
+\index{setprm@{setprm}!setprm.\+f90@{setprm.\+f90}}
+\subsubsection[{setprm}]{\setlength{\rightskip}{0pt plus 5cm}subroutine setprm (
+\begin{DoxyParamCaption}
+\item[{integer}]{ixparm, }
+\item[{integer}]{ixsite, }
+\item[{double precision}]{fval}
+\end{DoxyParamCaption}
+)}\label{setprm_8f90_a7e1548d88d71985a1c2da1936867fcfa}
+
+
+This file contains two routines that set a given parameter, specified by an index into the fparm or iparm array, given the parameter value and a site/spectrum index. The secondary index is interpreted according to whether or not the parameter belongs to a set of parameters that must be the same for all components of a given spectrum. This set of \char`\"{}spectral parameters\char`\"{} includes. 
+
+P\+H\+A\+S\+E (spectral phase angle) P\+S\+I (director tilt angle) B0 (spectrometer field) L\+B (spectral line broadening) R\+A\+N\+G\+E (spectral range)
+
+and is identified by the logical function spcpar(index) coded in this file. These parameters are kept arrays separate from the fparm arrays in which the site parameters are kept.
+
+The index ixsite is interpreted as referring to a spectrum for spectral parameters; otherwise, the index refers to a component within a given spectrum.
+
+Whenever a parameter is changed, if recalculation of a spectrum with the new parameter value would require recalculation of the tridiagonal matrix, a flag is set for the given sites/spectra affected by that parameter. 
+
+Definition at line 34 of file setprm.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{setprm_8f90_a7e1548d88d71985a1c2da1936867fcfa_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{setprm_8f90_a94dc3ce049cc28204dbe4c0c7a6f1fcf}{}\index{setprm.\+f90@{setprm.\+f90}!spcpar@{spcpar}}
+\index{spcpar@{spcpar}!setprm.\+f90@{setprm.\+f90}}
+\subsubsection[{spcpar}]{\setlength{\rightskip}{0pt plus 5cm}logical function spcpar (
+\begin{DoxyParamCaption}
+\item[{integer}]{ix}
+\end{DoxyParamCaption}
+)}\label{setprm_8f90_a94dc3ce049cc28204dbe4c0c7a6f1fcf}
+
+
+Returns .true. if the index argument corresponds to a floating point or integer parameter that cannot change for an individual spectrum, regardless of the number of sites for which the calculation is made. These include\+: 
+
+P\+H\+A\+S\+E (spectral phase angle) P\+S\+I (director tilt angle) L\+B (spectral line broadening) B0 (spectrometer field) F\+I\+E\+L\+D\+I (initial field of spectrum) D\+F\+L\+D (field step per point in spectrum) R\+A\+N\+G\+E (field range of spectrum)
+
+N\+F\+I\+E\+L\+D (number of points in spectrum) I\+D\+E\+R\+I\+V (0th/1st derivative flag for spectrum) 
+
+Definition at line 263 of file setprm.\+f90.
+

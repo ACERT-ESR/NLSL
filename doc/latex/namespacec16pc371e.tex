@@ -1,0 +1,216 @@
+\hypertarget{namespacec16pc371e}{}\section{c16pc371e Namespace Reference}
+\label{namespacec16pc371e}\index{c16pc371e@{c16pc371e}}
+\subsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+def \hyperlink{namespacec16pc371e_a0153b4041400f25a70d09d514ceec33b}{read\+\_\+column\+\_\+data} (filename)
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+tuple \hyperlink{namespacec16pc371e_a13cd41e616bc6905db6e62587846c585}{proc} = Popen(\mbox{[}\textquotesingle{}./\hyperlink{nlsl_8f90_a89bfe89320539cc08d8701d4f2a028a6}{nlsl}\textquotesingle{}\mbox{]},stdin = P\+I\+P\+E, stderr = S\+T\+D\+O\+U\+T)
+\item 
+tuple \hyperlink{namespacec16pc371e_a35e97f624cf6abcdeab4ba70fd6a7017}{fp} = open(\textquotesingle{}c16pc371e.\+run\textquotesingle{})
+\item 
+tuple \hyperlink{namespacec16pc371e_a467a6c86928112c80cf8b3a1aa5a2c23}{output} = proc.\+communicate(input = fp.\+read())
+\item 
+tuple \hyperlink{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{data} = \hyperlink{namespacec16pc371e_a0153b4041400f25a70d09d514ceec33b}{read\+\_\+column\+\_\+data}(\textquotesingle{}c16pc371e.\+spc\textquotesingle{})
+\item 
+list \hyperlink{namespacec16pc371e_afb22661e72837d4c510bdde35b5fcc8c}{fields} = \hyperlink{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{data}\mbox{[}\+:,0\mbox{]}
+\item 
+list \hyperlink{namespacec16pc371e_a7dfce36e81e50822518ad4c383ed6ff7}{experimental} = \hyperlink{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{data}\mbox{[}\+:,1\mbox{]}
+\item 
+list \hyperlink{namespacec16pc371e_a49e887cbe117ff5f531bd888281c5231}{fit} = \hyperlink{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{data}\mbox{[}\+:,2\mbox{]}
+\item 
+tuple \hyperlink{namespacec16pc371e_a05e96a26ed3b7bca365b95b85998ec9e}{integral\+\_\+of\+\_\+spectrum} = cumsum(\hyperlink{namespacec16pc371e_a7dfce36e81e50822518ad4c383ed6ff7}{experimental})
+\item 
+tuple \hyperlink{namespacec16pc371e_af780649477537ddb25dcd57c713e1bff}{normalization} = abs(sum(\hyperlink{namespacec16pc371e_a05e96a26ed3b7bca365b95b85998ec9e}{integral\+\_\+of\+\_\+spectrum}))
+\item 
+tuple \hyperlink{namespacec16pc371e_a6bec840746fd359d103d452c6b90d39d}{fig} = figure(figsize = (9,6))
+\item 
+list \hyperlink{namespacec16pc371e_a69f565742b2cf5db40a50acb493b3c5a}{components} = \hyperlink{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{data}\mbox{[}\+:,3\+:\mbox{]}
+\item 
+tuple \hyperlink{namespacec16pc371e_a2331155ad7c247e67ee3435503d77f56}{max\+\_\+of\+\_\+fit} = max(\hyperlink{namespacec16pc371e_a49e887cbe117ff5f531bd888281c5231}{fit})
+\item 
+tuple \hyperlink{namespacec16pc371e_a50bcb2df148263ff04f8c0744e804003}{ax} = gca()
+\item 
+tuple \hyperlink{namespacec16pc371e_a118debebcb7f367c579f9df9055e02a8}{ylims} = ax.\+get\+\_\+ylim()
+\item 
+tuple \hyperlink{namespacec16pc371e_a3df2592dd167acc286a1cdd08210454a}{scale\+\_\+integral} = \hyperlink{namespacec16pc371e_a2331155ad7c247e67ee3435503d77f56}{max\+\_\+of\+\_\+fit}/max(\hyperlink{namespacec16pc371e_a05e96a26ed3b7bca365b95b85998ec9e}{integral\+\_\+of\+\_\+spectrum})
+\item 
+int \hyperlink{namespacec16pc371e_af0eb0394732238c357ee921e5c2ab0d8}{loc} = 2
+\item 
+int \hyperlink{namespacec16pc371e_a45d364a7197effa2dbb8e025330d0f42}{borderaxespad} = 0
+\item 
+tuple \hyperlink{namespacec16pc371e_a451978b863dc650e43490635266ee879}{rms} = mean((\hyperlink{namespacec16pc371e_a49e887cbe117ff5f531bd888281c5231}{fit}/\hyperlink{namespacec16pc371e_af780649477537ddb25dcd57c713e1bff}{normalization}-\/\hyperlink{namespacec16pc371e_a7dfce36e81e50822518ad4c383ed6ff7}{experimental}/\hyperlink{namespacec16pc371e_af780649477537ddb25dcd57c713e1bff}{normalization})$\ast$$\ast$2)
+\item 
+string \hyperlink{namespacec16pc371e_a21bc26586b6d554a8a6d43ceb16feed5}{horizontalalignment} = \textquotesingle{}left\textquotesingle{}
+\item 
+string \hyperlink{namespacec16pc371e_a4241a9920f00722eb794924e195397e7}{verticalalignment} = \textquotesingle{}top\textquotesingle{}
+\item 
+\hyperlink{namespacec16pc371e_a834c9592ce8fabf2087ea344dbe5a60f}{transform} = ax.\+trans\+Axes)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function Documentation}
+\hypertarget{namespacec16pc371e_a0153b4041400f25a70d09d514ceec33b}{}\index{c16pc371e@{c16pc371e}!read\+\_\+column\+\_\+data@{read\+\_\+column\+\_\+data}}
+\index{read\+\_\+column\+\_\+data@{read\+\_\+column\+\_\+data}!c16pc371e@{c16pc371e}}
+\subsubsection[{read\+\_\+column\+\_\+data}]{\setlength{\rightskip}{0pt plus 5cm}def c16pc371e.\+read\+\_\+column\+\_\+data (
+\begin{DoxyParamCaption}
+\item[{}]{filename}
+\end{DoxyParamCaption}
+)}\label{namespacec16pc371e_a0153b4041400f25a70d09d514ceec33b}
+
+
+Definition at line 5 of file c16pc371e.\+py.
+
+
+
+\subsection{Variable Documentation}
+\hypertarget{namespacec16pc371e_a50bcb2df148263ff04f8c0744e804003}{}\index{c16pc371e@{c16pc371e}!ax@{ax}}
+\index{ax@{ax}!c16pc371e@{c16pc371e}}
+\subsubsection[{ax}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+ax = gca()}\label{namespacec16pc371e_a50bcb2df148263ff04f8c0744e804003}
+
+
+Definition at line 44 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a45d364a7197effa2dbb8e025330d0f42}{}\index{c16pc371e@{c16pc371e}!borderaxespad@{borderaxespad}}
+\index{borderaxespad@{borderaxespad}!c16pc371e@{c16pc371e}}
+\subsubsection[{borderaxespad}]{\setlength{\rightskip}{0pt plus 5cm}int c16pc371e.\+borderaxespad = 0}\label{namespacec16pc371e_a45d364a7197effa2dbb8e025330d0f42}
+
+
+Definition at line 50 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a69f565742b2cf5db40a50acb493b3c5a}{}\index{c16pc371e@{c16pc371e}!components@{components}}
+\index{components@{components}!c16pc371e@{c16pc371e}}
+\subsubsection[{components}]{\setlength{\rightskip}{0pt plus 5cm}c16pc371e.\+components = {\bf data}\mbox{[}\+:,3\+:\mbox{]}}\label{namespacec16pc371e_a69f565742b2cf5db40a50acb493b3c5a}
+
+
+Definition at line 36 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}{}\index{c16pc371e@{c16pc371e}!data@{data}}
+\index{data@{data}!c16pc371e@{c16pc371e}}
+\subsubsection[{data}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+data = {\bf read\+\_\+column\+\_\+data}(\textquotesingle{}c16pc371e.\+spc\textquotesingle{})}\label{namespacec16pc371e_a8d2e4e686444b439d91f733861bb40e5}
+
+
+Definition at line 27 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a7dfce36e81e50822518ad4c383ed6ff7}{}\index{c16pc371e@{c16pc371e}!experimental@{experimental}}
+\index{experimental@{experimental}!c16pc371e@{c16pc371e}}
+\subsubsection[{experimental}]{\setlength{\rightskip}{0pt plus 5cm}list c16pc371e.\+experimental = {\bf data}\mbox{[}\+:,1\mbox{]}}\label{namespacec16pc371e_a7dfce36e81e50822518ad4c383ed6ff7}
+
+
+Definition at line 29 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_afb22661e72837d4c510bdde35b5fcc8c}{}\index{c16pc371e@{c16pc371e}!fields@{fields}}
+\index{fields@{fields}!c16pc371e@{c16pc371e}}
+\subsubsection[{fields}]{\setlength{\rightskip}{0pt plus 5cm}list c16pc371e.\+fields = {\bf data}\mbox{[}\+:,0\mbox{]}}\label{namespacec16pc371e_afb22661e72837d4c510bdde35b5fcc8c}
+
+
+Definition at line 28 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a6bec840746fd359d103d452c6b90d39d}{}\index{c16pc371e@{c16pc371e}!fig@{fig}}
+\index{fig@{fig}!c16pc371e@{c16pc371e}}
+\subsubsection[{fig}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+fig = figure(figsize = (9,6))}\label{namespacec16pc371e_a6bec840746fd359d103d452c6b90d39d}
+
+
+Definition at line 33 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a49e887cbe117ff5f531bd888281c5231}{}\index{c16pc371e@{c16pc371e}!fit@{fit}}
+\index{fit@{fit}!c16pc371e@{c16pc371e}}
+\subsubsection[{fit}]{\setlength{\rightskip}{0pt plus 5cm}list c16pc371e.\+fit = {\bf data}\mbox{[}\+:,2\mbox{]}}\label{namespacec16pc371e_a49e887cbe117ff5f531bd888281c5231}
+
+
+Definition at line 30 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a35e97f624cf6abcdeab4ba70fd6a7017}{}\index{c16pc371e@{c16pc371e}!fp@{fp}}
+\index{fp@{fp}!c16pc371e@{c16pc371e}}
+\subsubsection[{fp}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+fp = open(\textquotesingle{}c16pc371e.\+run\textquotesingle{})}\label{namespacec16pc371e_a35e97f624cf6abcdeab4ba70fd6a7017}
+
+
+Definition at line 23 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a21bc26586b6d554a8a6d43ceb16feed5}{}\index{c16pc371e@{c16pc371e}!horizontalalignment@{horizontalalignment}}
+\index{horizontalalignment@{horizontalalignment}!c16pc371e@{c16pc371e}}
+\subsubsection[{horizontalalignment}]{\setlength{\rightskip}{0pt plus 5cm}string c16pc371e.\+horizontalalignment = \textquotesingle{}left\textquotesingle{}}\label{namespacec16pc371e_a21bc26586b6d554a8a6d43ceb16feed5}
+
+
+Definition at line 54 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a05e96a26ed3b7bca365b95b85998ec9e}{}\index{c16pc371e@{c16pc371e}!integral\+\_\+of\+\_\+spectrum@{integral\+\_\+of\+\_\+spectrum}}
+\index{integral\+\_\+of\+\_\+spectrum@{integral\+\_\+of\+\_\+spectrum}!c16pc371e@{c16pc371e}}
+\subsubsection[{integral\+\_\+of\+\_\+spectrum}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+integral\+\_\+of\+\_\+spectrum = cumsum({\bf experimental})}\label{namespacec16pc371e_a05e96a26ed3b7bca365b95b85998ec9e}
+
+
+Definition at line 31 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_af0eb0394732238c357ee921e5c2ab0d8}{}\index{c16pc371e@{c16pc371e}!loc@{loc}}
+\index{loc@{loc}!c16pc371e@{c16pc371e}}
+\subsubsection[{loc}]{\setlength{\rightskip}{0pt plus 5cm}int c16pc371e.\+loc = 2}\label{namespacec16pc371e_af0eb0394732238c357ee921e5c2ab0d8}
+
+
+Definition at line 49 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a2331155ad7c247e67ee3435503d77f56}{}\index{c16pc371e@{c16pc371e}!max\+\_\+of\+\_\+fit@{max\+\_\+of\+\_\+fit}}
+\index{max\+\_\+of\+\_\+fit@{max\+\_\+of\+\_\+fit}!c16pc371e@{c16pc371e}}
+\subsubsection[{max\+\_\+of\+\_\+fit}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+max\+\_\+of\+\_\+fit = max({\bf fit})}\label{namespacec16pc371e_a2331155ad7c247e67ee3435503d77f56}
+
+
+Definition at line 41 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_af780649477537ddb25dcd57c713e1bff}{}\index{c16pc371e@{c16pc371e}!normalization@{normalization}}
+\index{normalization@{normalization}!c16pc371e@{c16pc371e}}
+\subsubsection[{normalization}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+normalization = abs(sum({\bf integral\+\_\+of\+\_\+spectrum}))}\label{namespacec16pc371e_af780649477537ddb25dcd57c713e1bff}
+
+
+Definition at line 32 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a467a6c86928112c80cf8b3a1aa5a2c23}{}\index{c16pc371e@{c16pc371e}!output@{output}}
+\index{output@{output}!c16pc371e@{c16pc371e}}
+\subsubsection[{output}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+output = proc.\+communicate(input = fp.\+read())}\label{namespacec16pc371e_a467a6c86928112c80cf8b3a1aa5a2c23}
+
+
+Definition at line 24 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a13cd41e616bc6905db6e62587846c585}{}\index{c16pc371e@{c16pc371e}!proc@{proc}}
+\index{proc@{proc}!c16pc371e@{c16pc371e}}
+\subsubsection[{proc}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+proc = Popen(\mbox{[}\textquotesingle{}./{\bf nlsl}\textquotesingle{}\mbox{]},stdin = P\+I\+P\+E, stderr = S\+T\+D\+O\+U\+T)}\label{namespacec16pc371e_a13cd41e616bc6905db6e62587846c585}
+
+
+Definition at line 20 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a451978b863dc650e43490635266ee879}{}\index{c16pc371e@{c16pc371e}!rms@{rms}}
+\index{rms@{rms}!c16pc371e@{c16pc371e}}
+\subsubsection[{rms}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+rms = mean(({\bf fit}/{\bf normalization}-\/{\bf experimental}/{\bf normalization})$\ast$$\ast$2)}\label{namespacec16pc371e_a451978b863dc650e43490635266ee879}
+
+
+Definition at line 52 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a3df2592dd167acc286a1cdd08210454a}{}\index{c16pc371e@{c16pc371e}!scale\+\_\+integral@{scale\+\_\+integral}}
+\index{scale\+\_\+integral@{scale\+\_\+integral}!c16pc371e@{c16pc371e}}
+\subsubsection[{scale\+\_\+integral}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+scale\+\_\+integral = {\bf max\+\_\+of\+\_\+fit}/max({\bf integral\+\_\+of\+\_\+spectrum})}\label{namespacec16pc371e_a3df2592dd167acc286a1cdd08210454a}
+
+
+Definition at line 46 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a834c9592ce8fabf2087ea344dbe5a60f}{}\index{c16pc371e@{c16pc371e}!transform@{transform}}
+\index{transform@{transform}!c16pc371e@{c16pc371e}}
+\subsubsection[{transform}]{\setlength{\rightskip}{0pt plus 5cm}c16pc371e.\+transform = ax.\+trans\+Axes)}\label{namespacec16pc371e_a834c9592ce8fabf2087ea344dbe5a60f}
+
+
+Definition at line 56 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a4241a9920f00722eb794924e195397e7}{}\index{c16pc371e@{c16pc371e}!verticalalignment@{verticalalignment}}
+\index{verticalalignment@{verticalalignment}!c16pc371e@{c16pc371e}}
+\subsubsection[{verticalalignment}]{\setlength{\rightskip}{0pt plus 5cm}string c16pc371e.\+verticalalignment = \textquotesingle{}top\textquotesingle{}}\label{namespacec16pc371e_a4241a9920f00722eb794924e195397e7}
+
+
+Definition at line 55 of file c16pc371e.\+py.
+
+\hypertarget{namespacec16pc371e_a118debebcb7f367c579f9df9055e02a8}{}\index{c16pc371e@{c16pc371e}!ylims@{ylims}}
+\index{ylims@{ylims}!c16pc371e@{c16pc371e}}
+\subsubsection[{ylims}]{\setlength{\rightskip}{0pt plus 5cm}tuple c16pc371e.\+ylims = ax.\+get\+\_\+ylim()}\label{namespacec16pc371e_a118debebcb7f367c579f9df9055e02a8}
+
+
+Definition at line 45 of file c16pc371e.\+py.
+

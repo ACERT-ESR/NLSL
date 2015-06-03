@@ -1,0 +1,223 @@
+\hypertarget{getdat_8f90}{}\section{getdat.\+f90 File Reference}
+\label{getdat_8f90}\index{getdat.\+f90@{getdat.\+f90}}
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+integer function \hyperlink{getdat_8f90_aad5b61c1adc8ea9a446e17a76115aae9}{getdat} (filen, infmt, modebc, nspln, ideriv, norm, lumsg, comment, ncmts, spndat, bi, delb, stddev, xraw, yraw, y2)
+\item 
+integer function \hyperlink{getdat_8f90_aa9ba27e055bfaddf3976173c0156cd5a}{getasc} (filen, x, y, n, comment, ncmt, maxcmt, maxinp)
+\item 
+double precision function \hyperlink{getdat_8f90_a46078dfe6700b7b7f94afb620f8be900}{sglint} (arry, n)
+\item 
+double precision function \hyperlink{getdat_8f90_a1840f19f1cd9d749359607549d0c93bc}{dblint} (arry, n)
+\item 
+subroutine \hyperlink{getdat_8f90_a146605357525009dfbe90a0ab7658b38}{linebc} (x, y, n, modebc, c0, c1, stddev)
+\item 
+subroutine \hyperlink{getdat_8f90_ab2315d122d765a7c72af2d513184073d}{ncspln} (x, y, n, y2)
+\item 
+subroutine \hyperlink{getdat_8f90_ac7e8bf52fc6be4ec95bb72582598bb6b}{splnay} (xa, ya, y2a, n, x0, dx, y, ns)
+\item 
+subroutine \hyperlink{getdat_8f90_a2bb69af07ce6f2fa50185b51df2c5253}{normlz} (arry, n, dx, ideriv, lumsg, anorm)
+\end{DoxyCompactItemize}
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{getdat_8f90_a1840f19f1cd9d749359607549d0c93bc}{}\index{getdat.\+f90@{getdat.\+f90}!dblint@{dblint}}
+\index{dblint@{dblint}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{dblint}]{\setlength{\rightskip}{0pt plus 5cm}double precision function dblint (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(n)}]{arry, }
+\item[{integer}]{n}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_a1840f19f1cd9d749359607549d0c93bc}
+
+
+Definition at line 337 of file getdat.\+f90.
+
+\hypertarget{getdat_8f90_aa9ba27e055bfaddf3976173c0156cd5a}{}\index{getdat.\+f90@{getdat.\+f90}!getasc@{getasc}}
+\index{getasc@{getasc}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{getasc}]{\setlength{\rightskip}{0pt plus 5cm}integer function getasc (
+\begin{DoxyParamCaption}
+\item[{character$\ast$30}]{filen, }
+\item[{double precision, dimension($\ast$)}]{x, }
+\item[{double precision, dimension($\ast$)}]{y, }
+\item[{integer}]{n, }
+\item[{character$\ast$80, dimension(maxcmt)}]{comment, }
+\item[{integer}]{ncmt, }
+\item[{integer}]{maxcmt, }
+\item[{integer}]{maxinp}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_aa9ba27e055bfaddf3976173c0156cd5a}
+
+
+Definition at line 221 of file getdat.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=206pt]{getdat_8f90_aa9ba27e055bfaddf3976173c0156cd5a_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{getdat_8f90_aad5b61c1adc8ea9a446e17a76115aae9}{}\index{getdat.\+f90@{getdat.\+f90}!getdat@{getdat}}
+\index{getdat@{getdat}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{getdat}]{\setlength{\rightskip}{0pt plus 5cm}integer function getdat (
+\begin{DoxyParamCaption}
+\item[{character$\ast$30}]{filen, }
+\item[{integer}]{infmt, }
+\item[{integer}]{modebc, }
+\item[{integer}]{nspln, }
+\item[{integer}]{ideriv, }
+\item[{integer}]{norm, }
+\item[{integer}]{lumsg, }
+\item[{character$\ast$80, dimension(mxcmt)}]{comment, }
+\item[{integer}]{ncmts, }
+\item[{double precision, dimension(nspln)}]{spndat, }
+\item[{double precision}]{bi, }
+\item[{double precision}]{delb, }
+\item[{double precision}]{stddev, }
+\item[{double precision, dimension(mxinp)}]{xraw, }
+\item[{double precision, dimension(mxinp)}]{yraw, }
+\item[{double precision, dimension(mxinp)}]{y2}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_aad5b61c1adc8ea9a446e17a76115aae9}
+
+
+Definition at line 64 of file getdat.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=206pt]{getdat_8f90_aad5b61c1adc8ea9a446e17a76115aae9_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{getdat_8f90_a146605357525009dfbe90a0ab7658b38}{}\index{getdat.\+f90@{getdat.\+f90}!linebc@{linebc}}
+\index{linebc@{linebc}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{linebc}]{\setlength{\rightskip}{0pt plus 5cm}subroutine linebc (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(n)}]{x, }
+\item[{double precision, dimension(n)}]{y, }
+\item[{integer}]{n, }
+\item[{integer}]{modebc, }
+\item[{double precision}]{c0, }
+\item[{double precision}]{c1, }
+\item[{double precision}]{stddev}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_a146605357525009dfbe90a0ab7658b38}
+
+
+Definition at line 377 of file getdat.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=202pt]{getdat_8f90_a146605357525009dfbe90a0ab7658b38_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{getdat_8f90_ab2315d122d765a7c72af2d513184073d}{}\index{getdat.\+f90@{getdat.\+f90}!ncspln@{ncspln}}
+\index{ncspln@{ncspln}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{ncspln}]{\setlength{\rightskip}{0pt plus 5cm}subroutine ncspln (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(n)}]{x, }
+\item[{double precision, dimension(n)}]{y, }
+\item[{integer}]{n, }
+\item[{double precision, dimension(n)}]{y2}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_ab2315d122d765a7c72af2d513184073d}
+
+
+Definition at line 446 of file getdat.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{getdat_8f90_ab2315d122d765a7c72af2d513184073d_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{getdat_8f90_a2bb69af07ce6f2fa50185b51df2c5253}{}\index{getdat.\+f90@{getdat.\+f90}!normlz@{normlz}}
+\index{normlz@{normlz}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{normlz}]{\setlength{\rightskip}{0pt plus 5cm}subroutine normlz (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(n)}]{arry, }
+\item[{integer}]{n, }
+\item[{double precision}]{dx, }
+\item[{integer}]{ideriv, }
+\item[{integer}]{lumsg, }
+\item[{double precision}]{anorm}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_a2bb69af07ce6f2fa50185b51df2c5253}
+
+
+Definition at line 545 of file getdat.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=206pt]{getdat_8f90_a2bb69af07ce6f2fa50185b51df2c5253_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{getdat_8f90_a46078dfe6700b7b7f94afb620f8be900}{}\index{getdat.\+f90@{getdat.\+f90}!sglint@{sglint}}
+\index{sglint@{sglint}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{sglint}]{\setlength{\rightskip}{0pt plus 5cm}double precision function sglint (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(n)}]{arry, }
+\item[{integer}]{n}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_a46078dfe6700b7b7f94afb620f8be900}
+
+
+Definition at line 314 of file getdat.\+f90.
+
+\hypertarget{getdat_8f90_ac7e8bf52fc6be4ec95bb72582598bb6b}{}\index{getdat.\+f90@{getdat.\+f90}!splnay@{splnay}}
+\index{splnay@{splnay}!getdat.\+f90@{getdat.\+f90}}
+\subsubsection[{splnay}]{\setlength{\rightskip}{0pt plus 5cm}subroutine splnay (
+\begin{DoxyParamCaption}
+\item[{double precision, dimension(n)}]{xa, }
+\item[{double precision, dimension(n)}]{ya, }
+\item[{double precision, dimension(n)}]{y2a, }
+\item[{integer}]{n, }
+\item[{double precision}]{x0, }
+\item[{double precision}]{dx, }
+\item[{double precision, dimension(ns)}]{y, }
+\item[{integer}]{ns}
+\end{DoxyParamCaption}
+)}\label{getdat_8f90_ac7e8bf52fc6be4ec95bb72582598bb6b}
+
+
+Definition at line 488 of file getdat.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=205pt]{getdat_8f90_ac7e8bf52fc6be4ec95bb72582598bb6b_icgraph}
+\end{center}
+\end{figure}
+
+

@@ -1,0 +1,176 @@
+\hypertarget{strutl1_8f90}{}\section{strutl1.\+f90 File Reference}
+\label{strutl1_8f90}\index{strutl1.\+f90@{strutl1.\+f90}}
+
+
+I/\+O U\+T\+I\+L\+I\+T\+Y R\+O\+U\+T\+I\+N\+E\+S F\+O\+R N\+L\+S C\+O\+M\+M\+A\+N\+D I\+N\+T\+E\+R\+P\+R\+E\+T\+E\+R.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+logical function \hyperlink{strutl1_8f90_a08e73551aff16837daba150be0d2db49}{getlin} (line)
+\begin{DoxyCompactList}\small\item\em issue a prompt and retreive a line from command stream \end{DoxyCompactList}\item 
+subroutine \hyperlink{strutl1_8f90_a6b9f890d6d1b4e9b0bac9e0df2ab92bd}{gettkn} (line, token, lth)
+\begin{DoxyCompactList}\small\item\em Written for free-\/form input of parameters for slow-\/motional calculations. Returns a token consisting of nonseparator characters (separators are space, tab, and \textquotesingle{},\textquotesingle{}) with all control. \end{DoxyCompactList}\item 
+subroutine \hyperlink{strutl1_8f90_af9784b3ca67c58bb066b453c89c1b498}{ungett} (token, lth, line)
+\item 
+logical function \hyperlink{strutl1_8f90_a3a3c560da037b2df0b8fc5845276b6b7}{ftoken} (token, lth, val)
+\item 
+logical function \hyperlink{strutl1_8f90_af284e754f2f7488dddacb17fbf61d7db}{itoken} (token, lth, ival)
+\item 
+integer function \hyperlink{strutl1_8f90_a8fc5464952b51f57ca4e8a88f122e37a}{indtkn} (line)
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+I/\+O U\+T\+I\+L\+I\+T\+Y R\+O\+U\+T\+I\+N\+E\+S F\+O\+R N\+L\+S C\+O\+M\+M\+A\+N\+D I\+N\+T\+E\+R\+P\+R\+E\+T\+E\+R. 
+
+Contains four functions and two subroutines\+: \begin{DoxyVerb} getlin  -- issue a prompt, retrieve a line from command stream *
+
+ gettkn  -- extract a token from the given line (subroutine)
+
+ ungett  -- replace a token at the line's beginning (subroutine)
+
+ ftoken  -- returns a real number
+
+ itoken  -- returns an integer number
+
+ indtkn  -- returns an index, i.e., a parenthesized number *
+\end{DoxyVerb}
+
+
+
+\begin{DoxyItemize}
+\item Note\+: two of these routines use module stdio. Subroutine touppr and function itrim were moved into \hyperlink{strutl2_8f90}{strutl2.\+f90} because they have \subsubsection*{more general utility and a different set of dependencies. }
+\end{DoxyItemize}
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{strutl1_8f90_a3a3c560da037b2df0b8fc5845276b6b7}{}\index{strutl1.\+f90@{strutl1.\+f90}!ftoken@{ftoken}}
+\index{ftoken@{ftoken}!strutl1.\+f90@{strutl1.\+f90}}
+\subsubsection[{ftoken}]{\setlength{\rightskip}{0pt plus 5cm}logical function ftoken (
+\begin{DoxyParamCaption}
+\item[{character}]{token, }
+\item[{integer}]{lth, }
+\item[{double precision}]{val}
+\end{DoxyParamCaption}
+)}\label{strutl1_8f90_a3a3c560da037b2df0b8fc5845276b6b7}
+
+
+Definition at line 182 of file strutl1.\+f90.
+
+\hypertarget{strutl1_8f90_a08e73551aff16837daba150be0d2db49}{}\index{strutl1.\+f90@{strutl1.\+f90}!getlin@{getlin}}
+\index{getlin@{getlin}!strutl1.\+f90@{strutl1.\+f90}}
+\subsubsection[{getlin}]{\setlength{\rightskip}{0pt plus 5cm}logical function getlin (
+\begin{DoxyParamCaption}
+\item[{character$\ast$80}]{line}
+\end{DoxyParamCaption}
+)}\label{strutl1_8f90_a08e73551aff16837daba150be0d2db49}
+
+
+issue a prompt and retreive a line from command stream 
+
+\begin{DoxyReturn}{Returns}
+
+\end{DoxyReturn}
+
+
+Definition at line 32 of file strutl1.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{strutl1_8f90_a08e73551aff16837daba150be0d2db49_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{strutl1_8f90_a6b9f890d6d1b4e9b0bac9e0df2ab92bd}{}\index{strutl1.\+f90@{strutl1.\+f90}!gettkn@{gettkn}}
+\index{gettkn@{gettkn}!strutl1.\+f90@{strutl1.\+f90}}
+\subsubsection[{gettkn}]{\setlength{\rightskip}{0pt plus 5cm}subroutine gettkn (
+\begin{DoxyParamCaption}
+\item[{character}]{line, }
+\item[{character}]{token, }
+\item[{integer}]{lth}
+\end{DoxyParamCaption}
+)}\label{strutl1_8f90_a6b9f890d6d1b4e9b0bac9e0df2ab92bd}
+
+
+Written for free-\/form input of parameters for slow-\/motional calculations. Returns a token consisting of nonseparator characters (separators are space, tab, and \textquotesingle{},\textquotesingle{}) with all control. 
+
+characters filtered out. Special cases\+: \textquotesingle{}(\textquotesingle{}, \textquotesingle{})\textquotesingle{}, \textquotesingle{}=\textquotesingle{}, \textquotesingle{}$\ast$\textquotesingle{}, and end-\/of-\/line, which are returned as single-\/character tokens. 
+
+Definition at line 75 of file strutl1.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=550pt]{strutl1_8f90_a6b9f890d6d1b4e9b0bac9e0df2ab92bd_icgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{strutl1_8f90_a8fc5464952b51f57ca4e8a88f122e37a}{}\index{strutl1.\+f90@{strutl1.\+f90}!indtkn@{indtkn}}
+\index{indtkn@{indtkn}!strutl1.\+f90@{strutl1.\+f90}}
+\subsubsection[{indtkn}]{\setlength{\rightskip}{0pt plus 5cm}integer function indtkn (
+\begin{DoxyParamCaption}
+\item[{character}]{line}
+\end{DoxyParamCaption}
+)}\label{strutl1_8f90_a8fc5464952b51f57ca4e8a88f122e37a}
+
+
+Definition at line 282 of file strutl1.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=203pt]{strutl1_8f90_a8fc5464952b51f57ca4e8a88f122e37a_cgraph}
+\end{center}
+\end{figure}
+
+
+\hypertarget{strutl1_8f90_af284e754f2f7488dddacb17fbf61d7db}{}\index{strutl1.\+f90@{strutl1.\+f90}!itoken@{itoken}}
+\index{itoken@{itoken}!strutl1.\+f90@{strutl1.\+f90}}
+\subsubsection[{itoken}]{\setlength{\rightskip}{0pt plus 5cm}logical function itoken (
+\begin{DoxyParamCaption}
+\item[{character$\ast$30}]{token, }
+\item[{integer}]{lth, }
+\item[{integer}]{ival}
+\end{DoxyParamCaption}
+)}\label{strutl1_8f90_af284e754f2f7488dddacb17fbf61d7db}
+
+
+Definition at line 248 of file strutl1.\+f90.
+
+\hypertarget{strutl1_8f90_af9784b3ca67c58bb066b453c89c1b498}{}\index{strutl1.\+f90@{strutl1.\+f90}!ungett@{ungett}}
+\index{ungett@{ungett}!strutl1.\+f90@{strutl1.\+f90}}
+\subsubsection[{ungett}]{\setlength{\rightskip}{0pt plus 5cm}subroutine ungett (
+\begin{DoxyParamCaption}
+\item[{character}]{token, }
+\item[{integer}]{lth, }
+\item[{character}]{line}
+\end{DoxyParamCaption}
+)}\label{strutl1_8f90_af9784b3ca67c58bb066b453c89c1b498}
+
+
+Definition at line 165 of file strutl1.\+f90.
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=271pt]{strutl1_8f90_af9784b3ca67c58bb066b453c89c1b498_icgraph}
+\end{center}
+\end{figure}
+
+

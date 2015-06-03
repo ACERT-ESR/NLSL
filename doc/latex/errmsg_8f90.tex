@@ -1,0 +1,72 @@
+\hypertarget{errmsg_8f90}{}\section{errmsg.\+f90 File Reference}
+\label{errmsg_8f90}\index{errmsg.\+f90@{errmsg.\+f90}}
+\subsection*{Modules}
+\begin{DoxyCompactItemize}
+\item 
+module \hyperlink{namespaceerrmsg}{errmsg}
+\end{DoxyCompactItemize}
+\subsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a3c20e4760937a2c172186eb1a41b4324}{errmsg\+::fatal} =16
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ac85a2d84a76993973b0e1d0b9468a435}{errmsg\+::neperr} =26
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ab49203bff19fc0f246e4c5c9a5dc5e6a}{errmsg\+::nmnerr} =12
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7cb7b650612732df96fa27b0a1c1c31d}{errmsg\+::zeroin2} =1
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a0e019c9f428b5a069f6151d6bfaa86fb}{errmsg\+::posb0} =2
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a72b6b178f88a9cad634ba1ecffd4360e}{errmsg\+::badhifld} =3
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a00dba98c91084f1c2db700ed723cc987}{errmsg\+::badjmp} =4
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a2da9038dd4b007477a8b298e5337073b}{errmsg\+::badav} =5
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ac01191556cf33ea462a1142e65170aaf}{errmsg\+::baddj} =6
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_afb80692f6c4417a672c393055d791b8b}{errmsg\+::lemxhi} =7
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a01466a6a6156a7d918d06c6541bd8157}{errmsg\+::bssadj} =8
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_aa8bf55f6853922e424f337d40e4ccd31}{errmsg\+::nstephi} =9
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a1fa7038ca8a627e43f072d0c10923c23}{errmsg\+::cgtolhi} =10
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a0c6fea2ff2ee922f95397b185f502595}{errmsg\+::shifthi} =11
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a60cd5988aab762b581a9c0e94c938532}{errmsg\+::noconvrg} =12
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a403ef985efca9149532af584489cb180}{errmsg\+::noalpham} =13
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a5c2dd62917a9619ba73df96976e02bf6}{errmsg\+::noalphad} =14
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a05eedf7a2d38c8fef6c8bcca5f0cc4cf}{errmsg\+::badbess} =15
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a22aeeb76d868c381f92850c74ccea1b2}{errmsg\+::zerob0} =16
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7c5ea4a2cc774cbc54767762f93892f1}{errmsg\+::zerog} =17
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_ab3edf43039b31a84e1639c8c191cf845}{errmsg\+::tdgerr} =18
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_acbf97bafa8409486ee37b208d9a2b401}{errmsg\+::mtxbig} =19
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_aabe2c315daae78b5d9b83d375633f232}{errmsg\+::dimbig} =20
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7322587bbf416b2de4df7805d2cdd7ac}{errmsg\+::mtxhlt} =21
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a5feae987491fe8205e57246e1de50dfc}{errmsg\+::cghlt} =22
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_afa159d21fd7ab46652f1d9c57f35c203}{errmsg\+::tdgbig} =23
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a7decbda7b2a8c1fa190b82517dc89439}{errmsg\+::nomin} =24
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_aa86f5107fe38dcc547cb18037e7049f4}{errmsg\+::zeronfld} =25
+\item 
+integer, parameter \hyperlink{namespaceerrmsg_a9f47fe67b90a69b4673e8fa1d69a6859}{errmsg\+::zrorange} =26
+\item 
+character $\ast$50, dimension(neperr), save \hyperlink{namespaceerrmsg_aa73f9a54ef743fc885698d80c8898d90}{errmsg\+::eprerr} = (/ \textquotesingle{}Zero nuclear spin assumed \textquotesingle{} , \textquotesingle{}Positive B0 assumed \textquotesingle{} , \textquotesingle{}High-\/field approx. may not apply \textquotesingle{} , \textquotesingle{}Nonzero potential with jump/free\+: ipdf set to 0 \textquotesingle{} , \textquotesingle{}Zero potential with aniso. viscos.\+: ipdf set to 0 \textquotesingle{} , \textquotesingle{}Discrete jumps with aniso. viscos.\+: ipdf set 0 \textquotesingle{} , \textquotesingle{}lemx must be 48 or less with potential \textquotesingle{} , \textquotesingle{}Basis set adjusted to (iii,iii,iii,iii,iii,iii,ii)\textquotesingle{} , \textquotesingle{}N\+S\+T\+E\+P too large\+: adjusted to iiiii \textquotesingle{} , \textquotesingle{}C\+G\+T\+O\+L too small\+: adjusted to xxxxxxxxx \textquotesingle{} , \textquotesingle{}S\+H\+I\+F\+T\+R too small\+: adjusted to xxxxxxxxx \textquotesingle{} , \textquotesingle{}C\+G did not converge after iiiii steps \textquotesingle{} , \textquotesingle{}Angle alpham not needed w/ axial g-\/matrix \textquotesingle{} , \textquotesingle{}Angle alphad not needed w/ axial diffusion tensor \textquotesingle{} , \textquotesingle{}Taylor \hyperlink{series_8f90_a8759d6abf2410faf05ee748480168fb7}{series} for Bessel function did not converge\textquotesingle{} , \textquotesingle{}Zero B0 \textquotesingle{} , \textquotesingle{}Zero g-\/tensor element \textquotesingle{} , \textquotesingle{}Error in tridiagonal matrix storage \textquotesingle{} , \textquotesingle{}Too many matrix elements \textquotesingle{} , \textquotesingle{}Matrix dimension too large \textquotesingle{} , \textquotesingle{}User halt during matrix calculation \textquotesingle{} , \textquotesingle{}User halt during C\+G tridiagonalization \textquotesingle{} , \textquotesingle{}Too many tridiagonal matrix elements \textquotesingle{} , \textquotesingle{}Bracketing did not find minimum within step bound \textquotesingle{} , \textquotesingle{}Number of points in spectrum is zero \textquotesingle{} , \textquotesingle{}Field range of spectrum is zero \textquotesingle{} /)
+\item 
+character $\ast$32, dimension(0\+:nmnerr-\/1), save \hyperlink{namespaceerrmsg_a19c5c8f313e142ee64e6450ce546fcbf}{errmsg\+::minerr} = (/ \textquotesingle{}Bad input parameters \textquotesingle{} , \textquotesingle{}Chi-\/squared convergence \textquotesingle{} , \textquotesingle{}X vector convergence \textquotesingle{} , \textquotesingle{}Chi-\/squared/X vector convergence\textquotesingle{} , \textquotesingle{}Gradient convergence \textquotesingle{} , \textquotesingle{}Max function evaluations reached\textquotesingle{} , \textquotesingle{}Max iterations reached \textquotesingle{} , \textquotesingle{}F\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}X\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}Zero Jacobian or G\+T\+O\+L too small \textquotesingle{} , \textquotesingle{}Terminated internally \textquotesingle{} , \textquotesingle{}Single calculation completed \textquotesingle{} /)
+\end{DoxyCompactItemize}

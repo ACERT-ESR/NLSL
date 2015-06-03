@@ -1,0 +1,104 @@
+\hypertarget{lfun_8f90}{}\section{lfun.\+f90 File Reference}
+\label{lfun_8f90}\index{lfun.\+f90@{lfun.\+f90}}
+
+
+This seems to be the central hub, which is called by the L-\/\+M optimization, and which calls the functions that generate the simulated spectrum.  
+
+
+\subsection*{Functions/\+Subroutines}
+\begin{DoxyCompactItemize}
+\item 
+subroutine \hyperlink{lfun_8f90_ab7c9dc7a5f1e9505fe661df6f7f23018}{lfun} (m, n, x, fvec, fjac, ldfjac, iflag)
+\begin{DoxyCompactList}\small\item\em Subroutine for interfacing E\+P\+R\+L\+L spectral calculations with the M\+I\+N\+P\+A\+C\+K version of the Levenberg-\/\+Marquardt nonlinear least squares algorithm for fitting experimental spectra. The function performed function determined by the I\+F\+L\+A\+G argument. M\+O\+M\+D\+L\+S subroutine to calculate a spectrum or series of spectra, each of which consists of one or more spectral components, or \char`\"{}sites\char`\"{}. \end{DoxyCompactList}\item 
+logical function \hyperlink{lfun_8f90_aa6920b92f32157bb75d353c210aa9ffd}{hltchk} (ierr, isite, ispec, iflag)
+\begin{DoxyCompactList}\small\item\em Check whether a user halt (control-\/\+C) or other error has occurred during the spectral calculation and set the iflag error flag for L\+M\+N\+L\+S accordingly. Returns .true. for fatal errors or user halts, and .false. otherwise. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+This seems to be the central hub, which is called by the L-\/\+M optimization, and which calls the functions that generate the simulated spectrum. 
+
+
+
+\subsection{Function/\+Subroutine Documentation}
+\hypertarget{lfun_8f90_aa6920b92f32157bb75d353c210aa9ffd}{}\index{lfun.\+f90@{lfun.\+f90}!hltchk@{hltchk}}
+\index{hltchk@{hltchk}!lfun.\+f90@{lfun.\+f90}}
+\subsubsection[{hltchk}]{\setlength{\rightskip}{0pt plus 5cm}logical function hltchk (
+\begin{DoxyParamCaption}
+\item[{integer}]{ierr, }
+\item[{integer}]{isite, }
+\item[{integer}]{ispec, }
+\item[{integer}]{iflag}
+\end{DoxyParamCaption}
+)}\label{lfun_8f90_aa6920b92f32157bb75d353c210aa9ffd}
+
+
+Check whether a user halt (control-\/\+C) or other error has occurred during the spectral calculation and set the iflag error flag for L\+M\+N\+L\+S accordingly. Returns .true. for fatal errors or user halts, and .false. otherwise. 
+
+
+
+Definition at line 615 of file lfun.\+f90.
+
+\hypertarget{lfun_8f90_ab7c9dc7a5f1e9505fe661df6f7f23018}{}\index{lfun.\+f90@{lfun.\+f90}!lfun@{lfun}}
+\index{lfun@{lfun}!lfun.\+f90@{lfun.\+f90}}
+\subsubsection[{lfun}]{\setlength{\rightskip}{0pt plus 5cm}subroutine lfun (
+\begin{DoxyParamCaption}
+\item[{integer}]{m, }
+\item[{integer}]{n, }
+\item[{double precision, dimension(n)}]{x, }
+\item[{double precision, dimension(m)}]{fvec, }
+\item[{double precision, dimension(ldfjac,n+nsite+nspc)}]{fjac, }
+\item[{integer}]{ldfjac, }
+\item[{integer}]{iflag}
+\end{DoxyParamCaption}
+)}\label{lfun_8f90_ab7c9dc7a5f1e9505fe661df6f7f23018}
+
+
+Subroutine for interfacing E\+P\+R\+L\+L spectral calculations with the M\+I\+N\+P\+A\+C\+K version of the Levenberg-\/\+Marquardt nonlinear least squares algorithm for fitting experimental spectra. The function performed function determined by the I\+F\+L\+A\+G argument. M\+O\+M\+D\+L\+S subroutine to calculate a spectrum or series of spectra, each of which consists of one or more spectral components, or \char`\"{}sites\char`\"{}. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em iflag} & \begin{quote}
+I\+F\+L\+A\+G=0 (Printing of iterates)
+
+I\+F\+L\+A\+G=1 (Evaluation of residuals function)
+
+For a function evaluation, this routine takes the input vector X of search parameters, loads them into the fparm parameter arrays in /parcom/ (using additional indices available in /parcom/) and then performs spectral calculations by calling the M\+O\+M\+D\+L\+S subroutine.
+
+The experimental data to which the calculations are to be compared is contained in the common block /expdat/. L\+F\+U\+N optionally shifts the calculated spectra to minimize the squared differences between calculation and data, and then automatically determines a least-\/ squares scale factor (or set of scale factors for multiple sites/spectra) which are returned in the vector sfac in common /mspctr/. The The unscaled spectra are returned in the matrix spectr in common /mspctr/. Each column of spectr corresponds to a single site; multiple spectra are stored sequentially in the columns of spectr.
+
+The residuals (differences between calculation and data after shifting and scaling) are scaled by the standard deviation of the estimated noise in each experimental spectrum, and returned to M\+I\+N\+P\+A\+C\+K through the fvec argument.
+
+I\+F\+L\+A\+G=2 (Jacobian evaluation)
+
+For evaluation of the Jacobian, the routine uses the forward-\/differences approximation to calculate the partial derivative of the spectrum with respect to each of the parameters being varied. The routine assumes that the individual spectra calculated at the point in parameter space where the Jacobian is being evaluated are contained in in the spectr matrix, and the appropriate scaling factors in the sfac array (both in common /mspctr/ ). The Jacobian matrix is returned in the fjac argument.
+
+I\+F\+L\+A\+G=3 Fit is terminating. Output most recent set of parameter values and exit. \end{quote}
+\\
+\hline
+\end{DoxyParams}
+
+
+Definition at line 68 of file lfun.\+f90.
+
+
+
+Here is the call graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lfun_8f90_ab7c9dc7a5f1e9505fe661df6f7f23018_cgraph}
+\end{center}
+\end{figure}
+
+
+
+
+Here is the caller graph for this function\+:\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=339pt]{lfun_8f90_ab7c9dc7a5f1e9505fe661df6f7f23018_icgraph}
+\end{center}
+\end{figure}
+
+

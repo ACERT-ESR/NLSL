@@ -1,0 +1,7 @@
+<map id="putbin" name="putbin">
+<area shape="rect" id="node2" href="$genio_8c.html#a1c146c00f49bd40807e8aa6daa1bc130" title="putlinerec" alt="" coords="111,39,189,66"/>
+<area shape="rect" id="node3" href="$genio_8c.html#a3ca30e8c99852f7653f19bf6d4a61130" title="putrecsize" alt="" coords="237,64,320,91"/>
+<area shape="rect" id="node4" href="$genio_8c.html#a5fb79bc6c32e420122f5ba1667a89f38" title="putint" alt="" coords="368,14,423,40"/>
+<area shape="rect" id="node5" href="$genio_8c.html#a363e19b6dc2fad5a773d0c9ca34bde5f" title="putreal" alt="" coords="248,166,309,192"/>
+<area shape="rect" id="node6" href="$genio_8c.html#ac4808cee336684f97be8c356da2d8452" title="putarray" alt="" coords="115,140,185,167"/>
+</map>
