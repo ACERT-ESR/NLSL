@@ -1,0 +1,357 @@
+**********************************************************************          
+file SAMPL2.RUN:  sample NLSL script file                                       
+---                                                                             
+--- Define a series of two spectra that differ in their tilt angle psi          
+--- Read in a datafile for each value of psi in the series (0, 90)              
+--- The order of the datafiles is assumed to correspond to the order            
+--- of psi values specified in the series command. Note that the                
+--- second "data" command retains the settings of the previous one.             
+--- Thus, both data files are ascii, splined to 200 points, are                 
+--- baseline corrected using 20 points at each end, and will allow              
+--- automatic shifting to overlap the calculated spectrum with the              
+--- data.                                                                       
+                                                                                
+**********************************************************************          
+---                                                                             
+--- Specify basis set truncation parameters                                     
+---                                                                             
+
+
+Opening file sampl200.dat                  
+
+   256 raw data points read in ASCII format
+    Field range:   3355.00 to    3455.00
+
+  Data baseline-corrected using linear fit to  20 points at each end
+  Intercept=  .3345631E-02  Slope= -.9918252E-06 Noise:   .6815955E-04
+  Data splined to  200 points
+
+
+Opening file sampl290.dat                  
+
+   256 raw data points read in ASCII format
+    Field range:   3355.00 to    3455.00
+
+  Data baseline-corrected using linear fit to  20 points at each end
+  Intercept=  .1850168E-02  Slope= -.5446383E-06 Noise:   .1023676E-03
+  Data splined to  200 points
+                                                                                
+--- Set magnetic parameters for 5pc spin probe                                  
+                                                                                
+ *** CARTESIAN form assumed for G tensor ***
+ *** CARTESIAN form assumed for A tensor ***
+********************************************                                    
+Magnetic parameters set for 5-PC spin probe                                     
+********************************************                                    
+---                                                                             
+--- Specify spectrometer field and make initial estimates for                   
+--- fitting parameters: log(rotational rate), log(anisotropy), and              
+--- orienting potential coefficients, and inhomogeneous broadening              
+---                                                                             
+ *** SPHERICAL form assumed for R tensor ***
+---                                                                             
+--- Refine initial guesses by carrying out line searches for                    
+--- selected parameters. Line searches stop when the search                     
+--- proceeds outside a specified boundary (default +/- 5 from                   
+--- the starting point). This can be changed using the "bound"                  
+--- keyword                                                                     
+---                                                                             
+
+  Bracketing the minimum in RBAR
+
+----------------------------
+  Itr  RedChSq        RBAR
+----------------------------
+S  1  1004.1        7.50000
+S  2  987.74        7.55000
+S  3  958.05        7.63090
+S  4  910.25        7.76180
+S  5  833.61        7.97361
+S  6  1029.3        8.31631
+
+  Minimum is between   7.76180 and   8.31631
+
+
+----------------------------
+  Itr  RedChSq        RBAR
+----------------------------
+S  1  861.08        8.10451
+S  2  863.49        7.89271
+S  3  831.63        8.00067
+S  4  831.61        7.99067
+
+  Minimum found at RBAR     =  7.99067    
+
+          Residual norm=   576.033    
+          Chi-squared=  331814.         Reduced Chi-sq=  829.535    
+          Correlation =   .64520     Residual index =  .73331
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+
+  Bracketing the minimum in BETAD
+
+----------------------------
+  Itr  RedChSq       BETAD
+----------------------------
+S  1  831.58         .00000
+S  2  801.76        5.00000
+S  3  625.64       13.09017
+S  4  215.58       26.18034
+S  5  864.75       45.00000
+
+  Minimum is between  13.09017 and  45.00000
+
+
+----------------------------
+  Itr  RedChSq       BETAD
+----------------------------
+S  1  266.93       33.36881
+S  2  342.48       21.18034
+S  3  197.26       28.36408
+S  4  195.47       28.67124
+S  5  206.50       30.46555
+S  6  195.64       29.03138
+S  7  195.44       28.82656
+
+  Minimum found at BETAD    =  28.8266    
+
+          Residual norm=   279.248    
+          Chi-squared=  77979.2         Reduced Chi-sq=  194.948    
+          Correlation =   .91898     Residual index =  .37963
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+
+  Bracketing the minimum in C20
+
+----------------------------
+  Itr  RedChSq         C20
+----------------------------
+S  1  195.44        2.00000
+S  2  959.23        7.00000
+S  3  1080.4       -6.09017
+
+  Minimum is between   7.00000 and  -6.09017
+
+
+----------------------------
+  Itr  RedChSq         C20
+----------------------------
+S  1  1152.6       -1.09017
+S  2  954.07        3.90983
+S  3  318.68        1.50978
+S  4  259.54        2.32069
+S  5  194.58        1.97512
+S  6  195.48        1.94834
+S  7  194.50        1.96512
+
+  Minimum found at C20      =  1.96512    
+
+          Residual norm=   278.574    
+          Chi-squared=  77603.6         Reduced Chi-sq=  194.009    
+          Correlation =   .92026     Residual index =  .37871
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+
+  Bracketing the minimum in C22
+
+----------------------------
+  Itr  RedChSq         C22
+----------------------------
+S  1  194.50         .00000
+S  2  1329.2        5.00000
+S  3  1465.9       -8.09017
+
+  Minimum is between   5.00000 and  -8.09017
+
+
+----------------------------
+  Itr  RedChSq         C22
+----------------------------
+S  1  912.03       -3.09017
+S  2  280.56        1.90983
+S  3  216.53         .40938
+S  4  252.85       -1.18034
+S  5  173.63        -.21764
+S  6  165.29        -.58536
+S  7  165.35        -.49733
+
+  Minimum found at C22      = -.585361    
+
+          Residual norm=   256.806    
+          Chi-squared=  65949.5         Reduced Chi-sq=  164.874    
+          Correlation =   .93511     Residual index =  .34369
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+
+  Bracketing the minimum in GIB0
+
+----------------------------
+  Itr  RedChSq        GIB0
+----------------------------
+S  1  165.61        1.00000
+S  2  284.13        6.00000
+S  3  433.16        7.09017
+
+  Minimum is between   6.00000 and   7.09017
+
+
+----------------------------
+  Itr  RedChSq        GIB0
+----------------------------
+S  1  52.293        3.32624
+S  2  151.34        4.76393
+S  3  42.278        2.92959
+S  4  54.075        2.19255
+S  5  41.025        2.77981
+S  6  41.127        2.70590
+S  7  41.027        2.75869
+
+  Minimum found at GIB0     =  2.77981    
+
+          Residual norm=   127.942    
+          Chi-squared=  16369.1         Reduced Chi-sq=  40.9227    
+          Correlation =   .98886     Residual index =  .14790
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+---                                                                             
+--- First attempt minimization by varying only the most important               
+--- parameters                                                                  
+
+----------------------------------------------------
+  Itr  RedChSq        GIB0      RBAR       C20
+----------------------------------------------------
+S  1  41.255        2.77981   7.99067   1.96512
+S  2  5.2195        2.45862   7.93229   2.13607
+S  3  4.5022        2.60865   7.94893   2.16095
+----------------------------------------------------
+
+  ----------------------------------------------------------------------
+
+
+         MINPACK completed: X vector convergence            
+             3 parameters;  400 data points
+              24 function evals (CPU time:   161.333 sec)
+          Residual norm=   42.2775    
+          Chi-squared=  1787.39      Reduced Chi-sq=  4.50223    
+          Correlation=   .99864       Residual index=  .06289
+
+
+  ----------------------------------------------------------------------
+
+
+                        *** Correlation Matrix ***
+
+           GIB0      RBAR      C20       SPCTRM1   SPCTRM2            
+           1.0000     .6246     .4958     .0424    -.2856             
+                     1.0000     .6796     .5518     .3448             
+                               1.0000     .4482     .2572             
+                                         1.0000     .4553             
+                                                   1.0000             
+
+  ----------------------------------------------------------------------
+
+
+         *** Final Parameters ***
+        Parameter      Value             Uncertainty (Chi statistics)
+       ----------------------------------------------
+
+               GIB0 =  2.608649     +/-  .1007022E-01
+               RBAR =  7.948927     +/-  .1326035E-02
+                C20 =  2.160953     +/-  .2778428E-02
+            SPCTRM1 =  .9853415     +/-  .2456345E-02
+            SPCTRM2 =  .9578797     +/-  .2761246E-02
+
+       Confidence=  .683   Del-Chi-Sqr=  1.0013    
+       Del-Chi-Sqr for confidence regions:
+       2 parameters:  2.2977         5 parameters:  5.8907    
+
+          Order parameters for site 1:
+               <D20> =       .4554 +/- 
+               <D22> =      -.0923 +/- 
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl200             5.02   Y     3400.00   3405.02
+            sampl290             4.89   Y     3400.00   3404.89
+
+----------------------------------------------------------------------------------------------------
+  Itr  RedChSq        GIB0      GIB2      RBAR         N     BETAD       C20       C22
+----------------------------------------------------------------------------------------------------
+S  1  5.3239        2.60865    .00000   7.94893    .50000  28.82656   2.16095   -.58536
+S  2  4.8538        2.72949   -.15913   7.95926    .38837  28.00640   2.18939   -.79489
+S  3  2.8768        2.36152    .13065   7.96540    .54655  28.61260   2.39451  -1.15449
+S  4  2.7154        2.24829    .27119   7.96621    .61282  28.88023   2.48654  -1.27847
+S  5  2.6208        2.29651    .24511   7.96432    .58107  28.63950   2.42795  -1.20011
+T  5  2.6208        2.29651    .24511   7.96432    .58107  28.63950   2.42795  -1.20011
+----------------------------------------------------------------------------------------------------
+
+  MINPACK could not find a solution: Max function evaluations reached
+             111 function evals (CPU time:   427.300 sec)
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl200             4.94   Y     3400.00   3404.94
+            sampl290             4.97   Y     3400.00   3404.97
+--- Fit one more time to insure convergence is complete                         
+
+----------------------------------------------------------------------------------------------------
+  Itr  RedChSq        GIB0      GIB2      RBAR         N     BETAD       C20       C22
+----------------------------------------------------------------------------------------------------
+S  1  2.6275        2.29651    .24511   7.96432    .58107  28.63950   2.42795  -1.20011
+S  2  2.6266        2.29972    .24424   7.96366    .57821  28.63470   2.42904  -1.20308
+S  3  2.6205        2.30096    .24627   7.96340    .57849  28.63561   2.42974  -1.20500
+----------------------------------------------------------------------------------------------------
+
+  ----------------------------------------------------------------------
+
+
+         MINPACK completed: X vector convergence            
+             7 parameters;  400 data points
+              48 function evals (CPU time:   299.967 sec)
+          Residual norm=   32.0913    
+          Chi-squared=  1029.85      Reduced Chi-sq=  2.62049    
+          Correlation=   .99895       Residual index=  .05291
+
+
+  ----------------------------------------------------------------------
+
+
+                        *** Correlation Matrix ***
+
+  GIB0      GIB2      RBAR      N         BETAD     C20       C22       SPCTRM1   SPCTRM2            
+  1.0000    -.7315     .6493    -.0450    -.1282     .4549    -.3127    -.1697     .1360             
+            1.0000    -.2989    -.0151    -.0812    -.6517     .5889     .3435    -.4091             
+                      1.0000    -.2052    -.4123     .2996    -.1988     .3994     .3830             
+                                1.0000     .3647    -.5791     .7453    -.3724     .0747             
+                                          1.0000     .1575     .3071    -.1739     .0217             
+                                                    1.0000    -.7731     .1279     .3474             
+                                                              1.0000    -.0208    -.2299             
+                                                                        1.0000     .1731             
+                                                                                  1.0000             
+
+  ----------------------------------------------------------------------
+
+
+         *** Final Parameters ***
+        Parameter      Value             Uncertainty (Chi statistics)
+       ----------------------------------------------
+
+               GIB0 =  2.300958     +/-  .1712393E-01
+               GIB2 =  .2462722     +/-  .1596171E-01
+               RBAR =  7.963399     +/-  .1485791E-02
+                  N =  .5784938     +/-  .6618731E-02
+              BETAD =  28.63561     +/-  .4712736E-01
+                C20 =  2.429741     +/-  .5808824E-02
+                C22 = -1.204998     +/-  .9086097E-02
+            SPCTRM1 =  .9798848     +/-  .2813086E-02
+            SPCTRM2 =  .9704776     +/-  .3061280E-02
+
+       Confidence=  .683   Del-Chi-Sqr=  1.0013    
+       Del-Chi-Sqr for confidence regions:
+       2 parameters:  2.2977         9 parameters:  10.427    
+
+          Order parameters for site 1:
+               <D20> =       .4628 +/- 
+               <D22> =      -.1697 +/- 
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl200             4.94   Y     3400.00   3404.94
+            sampl290             4.97   Y     3400.00   3404.97

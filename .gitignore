@@ -10,3 +10,5 @@ c16pc371e.spc
 nlsl.exe
 BL05CHSA.log
 BL05CHSA.spc
+examples/*.log
+examples/*.spc

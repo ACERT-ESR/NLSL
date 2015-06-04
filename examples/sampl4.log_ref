@@ -1,0 +1,143 @@
+                                                                                
+--- Set magnetic parameters for a generic nitroxide                             
+                                                                                
+ *** CARTESIAN form assumed for G tensor ***
+ *** CARTESIAN form assumed for A tensor ***
+                                                                                
+--- Specify that two components are to be calculated                            
+                                                                                
+                                                                                
+--- Specify basis set truncation parameters                                     
+                                                                                
+                                                                                
+--- Read in the datafile                                                        
+                                                                                
+
+
+Opening file sampl4.dat                    
+
+   256 raw data points read in ASCII format
+    Field range:   3350.00 to    3450.00
+
+  Data baseline-corrected using linear fit to  20 points at each end
+  Intercept=  .2797941E-02  Slope= -.8291340E-06 Noise:   .8662350E-04
+  Data splined to  200 points
+                                                                                
+--- Provide initial estimates for rotation rates for each component             
+--- Parameters for a given component are specified by an index                  
+--- in parentheses following the parameter name                                 
+                                                                                
+ *** SPHERICAL form assumed for R tensor ***
+ *** SPHERICAL form assumed for R tensor ***
+                                                                                
+--- Carry out nonlinear least-squares procedure:                                
+---    (1) Stop after a maximum of 40 iterations                                
+---    (2) Stop after a maximum of 1000 spectral calculations                   
+---    (3) Chi-squared convergence tolerance is 1%                              
+                                                                                
+*** B0(1) outside range of spectrum 1: reset to  3400.5
+
+----------------------------------------------------
+  Itr  RedChSq        GIB0   RBAR(1)   RBAR(2)
+----------------------------------------------------
+S  1  69.576         .50000   7.00000   8.47712
+S  2  57.629        1.03866   7.00028   8.44357
+S  3  44.186        1.51829   7.01236   8.42412
+S  4  31.137        1.90767   7.04101   8.38767
+S  5  18.740        2.07499   7.09999   8.29313
+S  6  8.5740        2.10204   7.20106   8.18930
+S  7  5.4118        2.14361   7.24049   8.12104
+S  8  4.3037        2.26506   7.24475   8.10352
+   9  3.6354        2.29308   7.24139   8.07618
+  10  3.1259        2.29384   7.23443   8.05004
+  11  2.7145        2.28367   7.22635   8.02642
+  12  2.3778        2.26769   7.21845   8.00508
+  13  2.1010        2.24913   7.21101   7.98594
+  14  1.8725        2.22959   7.20408   7.96883
+  15  1.6835        2.20990   7.19764   7.95353
+  16  1.5268        2.19053   7.19166   7.93983
+  17  1.3967        2.17176   7.18612   7.92755
+  18  1.2887        2.15378   7.18098   7.91654
+  19  1.1991        2.13671   7.17622   7.90664
+  20  1.1247        2.12061   7.17182   7.89774
+  21  1.0631        2.10554   7.16775   7.88975
+  22  1.0121        2.09148   7.16402   7.88255
+  23  .96991        2.07846   7.16057   7.87608
+  24  .93513        2.06641   7.15741   7.87026
+  25  .90647        2.05532   7.15451   7.86503
+T 26  .88291        2.04512   7.15186   7.86031
+----------------------------------------------------
+
+  MINPACK could not find a solution: Max function evaluations reached
+            1001 function evals (CPU time:    31.050 sec)
+
+  Scales:           site 1             site 2             site
+                  .7352    ( 73.3%)     .2680    ( 26.7%)  
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl4               -.51   Y     3400.50   3399.99
+                                                                                
+--- fit again for full convergence                                              
+                                                                                
+
+----------------------------------------------------
+  Itr  RedChSq        GIB0   RBAR(1)   RBAR(2)
+----------------------------------------------------
+S  1  .88048        2.04512   7.15186   7.86031
+S  2  .85968        2.03222   7.15027   7.85542
+S  3  .84266        2.02312   7.14827   7.85139
+S  4  .82859        2.01496   7.14634   7.84779
+S  5  .81697        2.00742   7.14456   7.84453
+S  6  .80736        2.00047   7.14293   7.84159
+----------------------------------------------------
+
+  ----------------------------------------------------------------------
+
+
+         MINPACK completed: Chi-squared convergence         
+             3 parameters;  200 data points
+              70 function evals (CPU time:     9.033 sec)
+          Residual norm=   12.5495    
+          Chi-squared=  157.490      Reduced Chi-sq=  .799441    
+          Correlation=   .99925       Residual index=  .05538
+
+
+  ----------------------------------------------------------------------
+
+
+                        *** Correlation Matrix ***
+
+           GIB0      RBAR(1)   RBAR(2)   SITE1     SITE2              
+           1.0000     .3950     .7178    -.6147     .4331             
+                     1.0000     .6792    -.7653     .7556             
+                               1.0000    -.8532     .8894             
+                                         1.0000    -.8932             
+                                                   1.0000             
+
+  ----------------------------------------------------------------------
+
+
+         *** Final Parameters ***
+        Parameter      Value             Uncertainty (Chi statistics)
+       ----------------------------------------------
+
+               GIB0 =  1.994103     +/-  .4809686E-01
+            RBAR(1) =  7.141443     +/-  .6973774E-02
+            RBAR(2) =  7.838921     +/-  .9996377E-02
+              SITE1 =  .7147334     +/-  .1096962E-01
+              SITE2 =  .2852620     +/-  .8256754E-02
+
+       Confidence=  .683   Del-Chi-Sqr=  1.0013    
+       Del-Chi-Sqr for confidence regions:
+       2 parameters:  2.2977         5 parameters:  5.8907    
+
+  Scales:           site 1             site 2             site
+                  .7147    ( 71.5%)     .2853    ( 28.5%)  
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl4               -.51   Y     3400.50   3400.00
+                                                                                
+--- Note that the least-squares scale factors for each component                
+--- are automatically determined. Thus, the population of each                  
+--- species can be determined.                                                  
+                                                                                
