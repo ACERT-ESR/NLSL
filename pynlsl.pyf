@@ -2,7 +2,7 @@
 ! Note: the context of this file is case sensitive.
 
 python module pynlsl ! in 
-    interface  ! in :pynlsl
+    interface 
         subroutine procline(line) ! in :pynlsl:nlsl.f90
             use nlsnam
             use stdio
@@ -22,6 +22,65 @@ python module pynlsl ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
+        module nlsdim ! in :pynlsl:nlsdim.f90
+            integer, parameter,optional :: niprm=24
+            integer, parameter,optional :: mxstep=2000
+            integer, parameter,optional :: mxdim=45000
+            integer, parameter,optional :: nvprm=35
+            integer, parameter,optional :: mxinp=4096
+            integer, parameter,optional :: mxsite=3
+            integer, parameter,optional,depend(mxsite,mxspc) :: mxtdm=12
+            integer, parameter,optional,depend(mxdim) :: mxdim1=45001
+            integer, parameter,optional,depend(mxspc,mxspt) :: mxpt=2048
+            integer, parameter,optional :: nsymtr=3
+            integer, parameter,optional,depend(mxstep,mxsite,mxspc) :: mxtdg=24000
+            integer, parameter,optional :: mxel=50000000
+            integer, parameter,optional :: nfprm=43
+            integer, parameter,optional :: mxsph=4
+            integer, parameter,optional :: mxspc=4
+            integer, parameter,optional,depend(mxsite,mxjcol) :: mxtv=25
+            integer, parameter,optional :: mxfile=4
+            integer, parameter,optional :: nsymbl=5
+            integer, parameter,optional :: nalias=12
+            integer, parameter,optional :: mxvar=10
+            integer, parameter,optional :: mxcmt=16
+            integer, parameter,optional :: mxmts=13
+            integer, parameter,optional,depend(mxsite,mxvar) :: mxjcol=13
+            integer, parameter,optional :: mxspt=512
+        end module nlsdim
+        module lmcom ! in :pynlsl:lmcom.f90
+            use nlsdim
+            integer, save,pointer :: maxev
+            double precision, save,dimension((mxtv),(mxtv)) :: tcov
+            double precision, save,dimension((mxjcol)) :: gnvec
+            integer, save,pointer :: maxitr
+            double precision, save,dimension((mxjcol)) :: gradf
+            double precision, save,target,dimension(4) :: flmprm
+            double precision, save,dimension((mxjcol)) :: qtf
+            integer, save :: lmflag
+            integer, parameter,optional :: nflmpr=4
+            integer, save,target,dimension(4) :: ilmprm
+            double precision, save,dimension((mxjcol),(mxjcol)) :: corr
+            integer, save :: nprint
+            double precision, save,pointer :: xtol
+            double precision, save,dimension((mxpt),(mxjcol)) :: fjac
+            double precision, save,pointer :: ftol
+            integer, save,pointer :: info
+            double precision, save,dimension((mxjcol)) :: x
+            double precision, save,dimension((mxpt)) :: fvec
+            double precision, save,dimension((mxjcol)) :: diag
+            double precision, save,pointer :: gtol
+            integer, save,pointer :: mode
+            integer, parameter,optional :: nilmpr=4
+            double precision, save,pointer :: factor
+            double precision, save,dimension((mxjcol)) :: work1
+            double precision, save,dimension((mxjcol)) :: work2
+            double precision, save,dimension((mxjcol)) :: work3
+            double precision, save,dimension((mxpt)) :: work4
+            integer, save,dimension((mxjcol)) :: ipvt
+            subroutine lmcom_init ! in :pynlsl:lmcom.f90:lmcom
+            end subroutine lmcom_init
+        end module lmcom
     end interface 
 end python module pynlsl
 

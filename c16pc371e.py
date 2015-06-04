@@ -14,9 +14,13 @@ def read_column_data(filename):
 print "about to run nlsl"
 fp = open('c16pc371e.run')
 pynlsl.nlsinit()
+pynlsl.lmcom.lmcom_init()
+print "ilmprm before is",pynlsl.lmcom.ilmprm
 for thisline in fp.readlines():
     pynlsl.procline(thisline)
 fp.close()
+print "ilmprm after is",pynlsl.lmcom.ilmprm
+print "maxitr after is",pynlsl.lmcom.maxitr
 data = read_column_data('c16pc371e.spc')
 fields = data[:,0]
 experimental = data[:,1]
