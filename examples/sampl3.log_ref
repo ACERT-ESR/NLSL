@@ -1,0 +1,220 @@
+                                                                                
+--- Set magnetic parameters for 5PC spin probe                                  
+                                                                                
+********************************************                                    
+Magnetic parameters set for 5-PC spin probe                                     
+********************************************                                    
+                                                                                
+--- Specify spectrometer field and make initial estimates for                   
+--- fitting parameters: log(rotational rate), log(anisotropy), and              
+--- Gaussian inhomogeneous broadening                                           
+                                                                                
+ *** Cannot modify 'RBAR(1)': AXIAL     form has been specified ***
+                                                                                
+--- Use the pruned basis set in file 'sampl2.ind'                               
+                                                                                
+*** File sampl3.ind read ***
+ Lemx=  6 Lomx=  0 K{mn,mx}= {  0,  2} M{mn,mx}= {  0,  4} ipnmx = 2
+                                                                                
+--- Read in ASCII datafile 'sampl3.dat':                                        
+---    (1) Spline interpolate the data to 400 points                            
+---    (2) baseline-correct by fitting a line to 20 points at each end          
+---    (3) allow shifting of B0 to maximize overlap with data                   
+                                                                                
+
+
+Opening file sampl3.dat                    
+
+   256 raw data points read in ASCII format
+    Field range:   3350.00 to    3450.00
+
+  Data baseline-corrected using linear fit to  20 points at each end
+  Intercept=  .2264731      Slope= -.6679236E-04 Noise:   .1134623E-01
+  Data splined to  400 points
+                                                                                
+--- Specify nonlinear parameters to search                                      
+                                                                                
+
+  Bracketing the minimum in RBAR
+
+----------------------------
+  Itr  RedChSq        RBAR
+----------------------------
+S  1  947.87        6.98300
+S  2  707.58        7.03300
+S  3  2038.0        7.11390
+
+  Minimum is between   6.98300 and   7.11390
+
+
+----------------------------
+  Itr  RedChSq        RBAR
+----------------------------
+S  1  1562.1        7.06390
+S  2  768.84        7.01390
+S  3  906.01        7.04300
+
+  Minimum found at RBAR     =  7.03300    
+
+          Residual norm=   531.341    
+          Chi-squared=  282323.         Reduced Chi-sq=  711.141    
+          Correlation =  -.40300     Residual index = 1.15556
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+
+  Bracketing the minimum in C20
+
+----------------------------
+  Itr  RedChSq         C20
+----------------------------
+S  1  707.59        1.00000
+S  2  530.90        1.05000
+S  3  958.39        1.13090
+
+  Minimum is between   1.00000 and   1.13090
+
+
+----------------------------
+  Itr  RedChSq         C20
+----------------------------
+S  1  796.38        1.08090
+S  2  2099.5        1.03090
+S  3  620.51        1.06000
+
+  Minimum found at C20      =  1.05000    
+
+          Residual norm=   460.248    
+          Chi-squared=  211828.         Reduced Chi-sq=  533.572    
+          Correlation =   .26516     Residual index =  .99322
+
+            Goodness of fit from chi-squared (Q)=  .000000E+00
+                                                                                
+--- Carry out nonlinear least-squares procedure:                                
+---    (1) Stop after a maximum of 5 iterations                                 
+---    (2) Stop after a maximum of 40 spectral calculations                     
+---    (3) Chi-squared convergence tolerance is 1 part in 10^3                  
+                                                                                
+
+----------------------------------------------------------------
+  Itr  RedChSq        GIB0      RPRP      RPLL       C20
+----------------------------------------------------------------
+S  1  149.22        1.50000   7.03300   8.01718   1.05000
+S  2  57.795         .13634   7.33388   8.23360   1.03761
+
+  ----------------------------------------------------------------------
+
+
+         MINPACK completed: X vector convergence            
+             4 parameters;  400 data points
+              17 function evals (CPU time:     9.533 sec)
+          Residual norm=   150.778    
+          Chi-squared=  22734.1      Reduced Chi-sq=  57.4093    
+          Correlation=   .95622       Residual index=  .32577
+
+
+  ----------------------------------------------------------------------
+
+
+                        *** Correlation Matrix ***
+
+           GIB0      RPRP      RPLL      C20       SPCTRM1            
+           1.0000     .1268    -.1295     .1780    -.6609             
+                     1.0000    -.9395     .8836    -.0176             
+                               1.0000    -.9804     .0249             
+                                         1.0000    -.0599             
+                                                   1.0000             
+
+  ----------------------------------------------------------------------
+
+
+         *** Final Parameters ***
+        Parameter      Value             Uncertainty (Chi statistics)
+       ----------------------------------------------
+
+               GIB0 =  .4923641E-01 +/-  .1487124    
+               RPRP =  7.334878     +/-  .9744134E-03
+               RPLL =  8.235158     +/-  .1532664E-02
+                C20 =  1.037751     +/-  .6817302E-04
+            SPCTRM1 =  107.2749     +/-  .2918147    
+
+       Confidence=  .683   Del-Chi-Sqr=  1.0013    
+       Del-Chi-Sqr for confidence regions:
+       2 parameters:  2.2977         5 parameters:  5.8907    
+
+          Order parameters for site 1:
+               <D20> =       .2292 +/- 
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl3               -.71   Y     3400.50   3399.79
+                                                                                
+--- Note that the RPLL parameter is very poorly behaved.                        
+--- Since the fit is insensitive to this parmeter, try                          
+--- converting to the spherical representation of the R tensor.                 
+--- Tensor symmetry cannot be converted when tensor elements                    
+--- are being varied, so fix rprp and rpll first.                               
+                                                                                
+                                                                                
+--- Now try adding orientation-dependent linewidth                              
+--- to the parameter list.                                                      
+---                                                                             
+--- Note that fit commands retain the convergence parameters                    
+--- from the previous one (i.e., maxit 40 and maxfun 600 are                    
+--- assumed for the next fit command as well)                                   
+                                                                                
+
+----------------------------------------------------------------
+  Itr  RedChSq        GIB0      GIB2      RBAR       C20
+----------------------------------------------------------------
+S  1  57.409         .04924    .00000   7.63497   1.03775
+
+  ----------------------------------------------------------------------
+
+
+         MINPACK completed: X vector convergence            
+             4 parameters;  400 data points
+              13 function evals (CPU time:    10.517 sec)
+          Residual norm=   150.778    
+          Chi-squared=  22734.1      Reduced Chi-sq=  57.4093    
+          Correlation=   .95622       Residual index=  .32577
+
+
+  ----------------------------------------------------------------------
+
+
+                        *** Correlation Matrix ***
+
+           GIB0      GIB2      RBAR      C20       SPCTRM1            
+           1.0000   -1.0000    -.0418     .1852    -.7117             
+                     1.0000     .0417    -.1852     .7117             
+                               1.0000    -.7845     .0701             
+                                         1.0000    -.1585             
+                                                   1.0000             
+
+  ----------------------------------------------------------------------
+
+
+         *** Final Parameters ***
+        Parameter      Value             Uncertainty (Chi statistics)
+       ----------------------------------------------
+
+               GIB0 =  .4923641E-01 +/-  .9467525    
+               GIB2 =  .0000000E+00 +/-  .6312028    
+               RBAR =  7.634971     +/-  .5328066E-03
+                C20 =  1.037751     +/-  .3986936E-04
+            SPCTRM1 =  107.3405     +/-  .3106706    
+
+       Confidence=  .683   Del-Chi-Sqr=  1.0013    
+       Del-Chi-Sqr for confidence regions:
+       2 parameters:  2.2977         5 parameters:  5.8907    
+
+          Order parameters for site 1:
+               <D20> =       .2292 +/- 
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl3               -.71   Y     3400.50   3399.79
+                                                                                
+--- Note large correlations that result!                                        
+--- gib0 and gib2 cannot be resolved independently                              
+--- for this dataset (Note how different they are from                          
+--- original calculation)                                                       
+                                                                                
