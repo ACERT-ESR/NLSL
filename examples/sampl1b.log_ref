@@ -1,0 +1,111 @@
+                                                                                
+--- Set magnetic parameters for CSL spin probe                                  
+                                                                                
+ *** CARTESIAN form assumed for G tensor ***
+ *** CARTESIAN form assumed for A tensor ***
+********************************************                                    
+Magnetic parameters set for CSL spin probe                                      
+********************************************                                    
+                                                                                
+--- Specify spectrometer field and make initial estimates for                   
+--- fitting parameters using the "let" statement as shown.                      
+--- Note in particular that the rotational rate constants                       
+--- are fit in log space, so that the parameters RPLL and RPRP                  
+--- are log10 of the rate constants for rotation around the                     
+--- axes parallel and perpendicular to the long axis of                         
+--- the molecule, respectively.                                                 
+---                                                                             
+--- Note also that the log function may be used in a let statement.             
+---                                                                             
+--- GIB0 is the Gaussian inhomogeneous broadening.                              
+ *** AXIAL     form assumed for R tensor ***
+                                                                                
+--- Specify basis set truncation parameters                                     
+                                                                                
+                                                                                
+--- Read in ASCII datafile 'sampl1.dat':                                        
+---    (1) Spline interpolate the data to 200 points                            
+---    (2) baseline-correct by fitting a line to 20 points at each end          
+---    (3) allow shifting of B0 to maximize overlap with data                   
+                                                                                
+
+
+Opening file sampl1.dat                    
+
+   512 raw data points read in ASCII format
+    Field range:   3350.00 to    3450.00
+
+  Data baseline-corrected using linear fit to  20 points at each end
+  Intercept=  .3281545E-02  Slope= -.9904030E-06 Noise:   .2969554E-03
+  Data splined to  200 points
+                                                                                
+--- Specify parameters to be varied in fitting procedure                        
+                                                                                
+                                                                                
+--- Carry out nonlinear least-squares procedure:                                
+---    (1) Stop after a maximum of 40 iterations                                
+---    (2) Stop after a maximum of 600 spectral calculations                    
+---    (3) Chi-squared convergence tolerance is 1 part in 10^3                  
+                                                                                
+*** B0(1) outside range of spectrum 1: reset to  3400.5
+
+----------------------------------------------------
+  Itr  RedChSq        GIB0      RPRP      RPLL
+----------------------------------------------------
+S  1  315.75        1.50000   8.00000   8.00000
+
+  *** Warning site 1 spctrm 1: CG did not converge after   104 steps             
+S  2  129.66        2.06124   7.36642   8.63867
+S  3  68.643        1.94583   7.18476   8.45570
+S  4  37.531        2.10895   7.06593   8.34013
+S  5  21.091        2.20645   6.98752   8.24783
+S  6  12.371        2.23169   6.95223   8.18010
+S  7  7.4353        2.20462   6.94999   8.13071
+S  8  4.5672        2.15936   6.96000   8.09411
+   9  2.9494        2.12185   6.96943   8.06737
+  10  2.0760        2.09776   6.97580   8.04822
+  11  1.6325        2.09029   6.97929   8.03569
+  12  1.4109        2.08819   6.98122   8.02711
+  13  1.3018        2.08822   6.98234   8.02122
+----------------------------------------------------
+
+  ----------------------------------------------------------------------
+
+
+         MINPACK completed: X vector convergence            
+             3 parameters;  200 data points
+             288 function evals (CPU time:    30.683 sec)
+          Residual norm=   15.6834    
+          Chi-squared=  245.969      Reduced Chi-sq=  1.24857    
+          Correlation=   .99924       Residual index=  .06472
+
+
+  ----------------------------------------------------------------------
+
+
+                        *** Correlation Matrix ***
+
+                GIB0      RPRP      RPLL      SPCTRM1            
+                1.0000    -.7162     .6002    -.0258             
+                          1.0000    -.2854    -.0608             
+                                    1.0000     .5989             
+                                              1.0000             
+
+  ----------------------------------------------------------------------
+
+
+         *** Final Parameters ***
+        Parameter      Value             Uncertainty (Chi statistics)
+       ----------------------------------------------
+
+               GIB0 =  2.089000     +/-  .2822177E-01
+               RPRP =  6.983003     +/-  .6239933E-02
+               RPLL =  8.017178     +/-  .4061837E-02
+            SPCTRM1 =  3.115805     +/-  .1447471E-01
+
+       Confidence=  .683   Del-Chi-Sqr=  1.0013    
+       Del-Chi-Sqr for confidence regions:
+       2 parameters:  2.2977         4 parameters:  4.7223    
+
+  Shifts:  file                 shift  auto      B0      B0(eff)
+            sampl1               -.52   Y     3400.50   3399.98
