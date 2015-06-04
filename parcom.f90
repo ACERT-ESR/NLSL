@@ -4,9 +4,10 @@ c                    =========================
 c                          module PARCOM
 c                    =========================
 c
-c     Common block containing a list of quantities associated with
-c     each of the fitting parameters being varied (i.e. each parameter
-c     in the x array for LMDER-family programs).
+c>@brief a list of quantities (1) associated with each of the fitting
+c> parameters being varied (i.e. each parameter in the x array for
+c> LMDER-family programs) as well as (2) a set of parameters that don't
+c> fall into this category
 c
 c     NOTE: this module uses nlsdim, so compile nlsdim.f90 first.
 c

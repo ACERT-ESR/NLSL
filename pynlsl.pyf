@@ -9,6 +9,21 @@ python module pynlsl ! in
             use symdef
             character*80 intent(in) :: line
         end subroutine procline
+        subroutine fitl ! in :pynlsl:fitl.f90
+            use expdat
+            use eprprm
+            use parcom
+            use stdio
+            use rnddbl
+            use lpnam
+            use timer
+            use iterat
+            use mspctr
+            use nlsnam
+            use lmcom
+            use errmsg
+            use nlsdim
+        end subroutine fitl
         subroutine nlsinit ! in :pynlsl:nlsl.f90
             use expdat
             use eprprm

@@ -52,7 +52,7 @@ c> >   matrix, and the appropriate scaling factors in the sfac array (both
 c> >   in common /mspctr/ ). The Jacobian matrix is returned in the fjac
 c> >   argument.
 c> > 
-c> >   IFLAG=3
+c> > IFLAG=3
 c> >     Fit is terminating. Output most recent set of parameter values and
 c> >     exit.
 c> @endparblock
