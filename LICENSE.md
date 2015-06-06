@@ -2,7 +2,7 @@ Copyright (c) 2015, ACERT
 All rights reserved.
 
 This software is provided exclusively for the ACERT 2015 workshop, only for use by the attendees at the workshop.
-Distribution in any form is prohibited.  Please see the [ACERT webpage](http://www.acert.cornell.edu/index_files/acert_resources.php)
+Distribution in any form is prohibited; the software is intended for demonstration purposes only. Please see the [ACERT webpage](http://www.acert.cornell.edu/index_files/acert_resources.php)
 to download freely available versions, or wait until this version has been
 properly licensed and released.
 
