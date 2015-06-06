@@ -1,15 +1,15 @@
 !    -*- f90 -*-
 ! Note: the context of this file is case sensitive.
 
-python module pynlsl ! in 
+python module fortrancore ! in 
     interface 
-        subroutine procline(line) ! in :pynlsl:nlsl.f90
+        subroutine procline(line) ! in :fortrancore:nlsl.f90
             use nlsnam
             use stdio
             use symdef
             character*80 intent(in) :: line
         end subroutine procline
-        subroutine fitl ! in :pynlsl:fitl.f90
+        subroutine fitl ! in :fortrancore:fitl.f90
             use expdat
             use eprprm
             use parcom
@@ -24,7 +24,7 @@ python module pynlsl ! in
             use errmsg
             use nlsdim
         end subroutine fitl
-        subroutine nlsinit ! in :pynlsl:nlsl.f90
+        subroutine nlsinit ! in :fortrancore:nlsl.f90
             use expdat
             use eprprm
             use parcom
@@ -37,7 +37,7 @@ python module pynlsl ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
-        module nlsdim ! in :pynlsl:nlsdim.f90
+        module nlsdim ! in :fortrancore:nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000
             integer, parameter,optional :: mxdim=45000
@@ -63,7 +63,7 @@ python module pynlsl ! in
             integer, parameter,optional,depend(mxsite,mxvar) :: mxjcol=13
             integer, parameter,optional :: mxspt=512
         end module nlsdim
-        module lmcom ! in :pynlsl:lmcom.f90
+        module lmcom ! in :fortrancore:lmcom.f90
             use nlsdim
             integer, save,pointer :: maxev
             double precision, save,dimension((mxtv),(mxtv)) :: tcov
@@ -76,7 +76,7 @@ python module pynlsl ! in
             integer, parameter,optional :: nflmpr=4
             integer, save,target,dimension(4) :: ilmprm
             double precision, save,dimension((mxjcol),(mxjcol)) :: corr
-            integer, save :: nprint
+            integer, save, intent(inout) :: nprint
             double precision, save,pointer :: xtol
             double precision, save,dimension((mxpt),(mxjcol)) :: fjac
             double precision, save,pointer :: ftol
@@ -85,6 +85,7 @@ python module pynlsl ! in
             double precision, save,dimension((mxpt)) :: fvec
             double precision, save,dimension((mxjcol)) :: diag
             double precision, save,pointer :: gtol
+            character*10, save,dimension(4) :: flmprm_name
             integer, save,pointer :: mode
             integer, parameter,optional :: nilmpr=4
             double precision, save,pointer :: factor
@@ -93,11 +94,11 @@ python module pynlsl ! in
             double precision, save,dimension((mxjcol)) :: work3
             double precision, save,dimension((mxpt)) :: work4
             integer, save,dimension((mxjcol)) :: ipvt
-            subroutine lmcom_init ! in :pynlsl:lmcom.f90:lmcom
+            subroutine lmcom_init ! in :fortrancore:lmcom.f90:lmcom
             end subroutine lmcom_init
         end module lmcom
     end interface 
-end python module pynlsl
+end python module fortrancore
 
 ! This file was auto-generated with f2py (version:2).
 ! See http://cens.ioc.ee/projects/f2py2e/

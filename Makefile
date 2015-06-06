@@ -101,7 +101,7 @@ else
 all             : nlsl
 clean           :
 	echo "running clean for linux"
-	$(RM) *.o *.mod nlsl
+	$(RM) *.o *.mod nlsl_cmd
 endif
 addprm.o	: addprm.f90 nlsdim.mod eprprm.mod expdat.mod parcom.mod lpnam.mod\
                   lmcom.mod stdio.mod rnddbl.mod
@@ -217,7 +217,7 @@ nlsl.exe: $(NLSO)
 	$(FLINK) -o nlsl $(NLSO) 
 else
 nlsl: $(NLSO) 
-	$(FLINK) -o $@ $(NLSO) $(LIBS)
+	$(FLINK) -o $@_cmd $(NLSO) $(LIBS)
 endif
 
 

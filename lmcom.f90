@@ -30,6 +30,7 @@ c
 c
       integer, target, save  :: ilmprm(NILMPR)
       integer, pointer, save :: maxev, maxitr, mode, info
+      character*10, dimension(NFLMPR), save :: flmprm_name
 c
       contains
 c
@@ -37,9 +38,13 @@ c
       implicit none
 c
       ftol   => flmprm(1)
+      flmprm_name(1) = "ftol"
       gtol   => flmprm(2)
+      flmprm_name(2) = "gtol"
       xtol   => flmprm(3)
+      flmprm_name(3) = "xtol"
       factor => flmprm(4)
+      flmprm_name(4) = "factor"
 c
       maxev  => ilmprm(1)
       maxitr => ilmprm(2)
