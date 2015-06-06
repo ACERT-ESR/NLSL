@@ -425,7 +425,7 @@ c
       use iterat
       use stdio
 c
-      implicit none
+c      implicit none
 c
       integer i,j
 c
