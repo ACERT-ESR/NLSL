@@ -2,10 +2,14 @@
 import setuptools # I think this is needed for the following
 from numpy.distutils.core import Extension,setup
 import os
+import subprocess
 file_list = filter(lambda x: x[x.find('.'):] in ['.f90','.h','.c'],os.listdir('.'))
 file_list.remove('pltx.c')# for future interfacing with qt -- using dummy now
 bad_startstring = 'fortrancore' # generated from the .pyf file, so don't include them a second time!
 file_list = filter(lambda x: not (len(x) > len(bad_startstring) and x[:len(bad_startstring)] == bad_startstring),file_list)
+
+print "first, I'm going to run make, because setup.py doesn't do build order correctly -- if this fails, you need to be sure to call from within the git bash shell"
+subprocess.call('make')
 
 ext_nlsl = Extension(name = 'nlsl.fortrancore',
         sources = ['pynlsl.pyf',]+file_list,
