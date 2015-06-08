@@ -16,7 +16,17 @@
 .PRECIOUS: .f .inc .h .c
 
 LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64 -llapack -lblas 
+UNAME := $(shell uname)
+$(info $$UNAME is [${UNAME}])
+ifneq (,$(findstring MINGW32_NT,$(UNAME)))
+OS := "windows"
+$(info in windows)
+FFLAGS = -c -O2 -g -fopenmp -std=gnu
+else
+OS := "linux"
+$(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
+endif
 F77 = gfortran
 g77 = gfortran
 CFLAGS = -c -O2 -DADD_UNDERSCORE
@@ -81,6 +91,19 @@ LMATOBJS = lmat.o getids.o ipar.o lbasix.o rddat.o setnam.o
 
 .suffixes:
 .suffixes: .o .f
+
+all: 
+ifeq ($(OS),"windows")
+all : bssl.exe eprbl.exe eprcgl.exe eprll.exe lbll.exe lmatrx.exe lvectr.exe momdl.exe order.exe prunel.exe tdll.exe
+clean:
+	echo "running clean for windows"
+	$(RM) *.o *.mod bssl.exe eprbl.exe eprcgl.exe eprll.exe lbll.exe lmatrx.exe lvectr.exe momdl.exe order.exe prunel.exe tdll.exe
+else
+all             : bssl eprbl eprcgl eprll lbll lmatrx lvectr momdl order prunel tdll
+clean           :
+	echo "running clean for linux"
+	$(RM) *.o *.mod 
+endif
 
 #
 #-----------------------------------------------------------------------
@@ -161,8 +184,6 @@ lmat : lmat.f stddim.inc stdio.inc eprmat.inc eprdat.inc indexl.inc\
 #-----------------------------------------------------------------------
 #
 
-all: bssl eprbl eprcgl eprll lbll lmatrx lvectr momdl order prunel tdll
-
 bssl :  $(BSSLOBJS)
 	$(F77) $(LOADFLG) -o $@ $(BSSLOBJS) $(LIB)
 
@@ -202,6 +223,40 @@ prunel : $(PRUNELOBJS)
 
 
 tdll : $(TDLLOBJS)
+	$(F77) $(LOADFLG) -o $@ $(TDLLOBJS) $(LIB)
+
+eprll.exe : $(EPRLLOBJS)
+	$(F77) $(LOADFLG) -o $@ $(EPRLLOBJS) $(LIB)
+
+
+eprcgl.exe : $(EPRCGLOBJS)
+	$(F77) $(LOADFLG) -o $@ $(EPRCGLOBJS) $(LIB)
+
+
+lbll.exe : $(LBLLOBJS)
+	$(F77) $(LOADFLG) -o $@ $(LBLLOBJS) $(LIB)
+
+
+lmatrx.exe : $(LMATRXOBJS)
+	$(F77) $(LOADFLG) -o $@ $(LMATRXOBJS) $(LIB)
+
+
+lvectr.exe : $(LVECTROBJS)
+	$(F77) $(LOADFLG) -o $@ $(LVECTROBJS) $(LIB)
+
+momdl.exe : $(MOMDLOBJS)
+	$(F77) $(LOADFLG) -o $@ $(MOMDLOBJS) $(LIB)
+
+
+order.exe : $(ORDEROBJS)
+	$(F77) $(LOADFLG) -o $@ $(ORDEROBJS) $(LIB)
+
+
+prunel.exe : $(PRUNELOBJS)
+	$(F77) $(LOADFLG) -o $@ $(PRUNELOBJS) $(LIB)
+
+
+tdll.exe : $(TDLLOBJS)
 	$(F77) $(LOADFLG) -o $@ $(TDLLOBJS) $(LIB)
 
 #

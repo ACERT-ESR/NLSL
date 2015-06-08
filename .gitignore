@@ -1,2 +1,13 @@
 *.o
 nlspmc
+bssl
+eprbl
+eprcgl
+eprll
+lbll
+lmatrx
+lvectr
+momdl
+order
+prunel
+tdll
