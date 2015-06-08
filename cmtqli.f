@@ -1,5 +1,11 @@
-c  VERSION 1.0  (NLSPMC version)   2/5/99
+c     Version 1.5  5/2/94
 c**********************************************************************
+c                    =========================
+c                      subroutine CMTQLI
+c                    =========================
+c
+c       (C)omplex (M)atrix (T)ridiagonal (QL) diagonalization with 
+c                    (I)mplicit shifts
 c
 c       This subroutine will diagonalize a complex symmetric 
 c       tridiagonal matrix using the QL algorithm with implicit
@@ -12,27 +18,44 @@ c       Eigenvalue Computations", vol. 2, J. Cullum and R. Willoughby,
 c       Birkhauser, 1985.
 c
 c       written by DJS 26-NOV-87
+c       modified by DEB 27-JUL-1992 to permit sorting by weight factor
+c       (flag isort added: 1 for field sort, 2 for weight sort)
+c
+c       Parameters
+c         n     Dimension of matrix
+c         d     Vector containing matrix diagonal
+c         e     Vector containing matrix superdiagonal
+c         z     Output array containing eigenvector projections on
+c               starting vector
+c         ierr  Zero for normal return. 
+c               <0 : Negative of column where indeterminate rotation occurred
+c               >0 : Column where iteration count was exceed
+c         isort Sorting flag: set to 1 for sort by field (increasing)
+c                             set to 2 for sort by weight (decreasing)
+c                             otherwise no sort
 c
 c       Includes:
-c               nlsdim.inc
 c               rndoff.inc
+c               stddim.inc
 c
 c       Uses:
 c
 c**********************************************************************
 c
-      subroutine cmtqli(n,d,e,z,isort,ierr)
+      subroutine cmtqli(n,d,e,z,ierr,isort)
 c
-      include 'limits.inc'
       include 'rndoff.inc'
 c
-      integer n,ierr
+      integer n,ierr,isort
       complex*16 d,e,z
-      dimension d(mxstep),e(mxstep),z(mxstep)
+      dimension d(n),e(n),z(n)
 c
-      integer i,j,l,m,mml,isort
+      integer i,iter,l,m,mml
       double precision temp,t0,t1,eps
       complex*16 b,c,f,g,p,r,s,w
+c
+      integer mxiter
+      parameter (mxiter=100)
 c
       complex*16 czero,cone
       parameter (czero=(0.0D0,0.0D0),cone=(1.0D0,0.0D0))
@@ -51,7 +74,7 @@ c
  10   continue
 c
       ierr=0
-      if (n.eq.1) go to 180
+      if (n.eq.1) go to 160
 c
 c======================================================================
 c               loop over eigenvalues
@@ -61,7 +84,7 @@ c
 c
       do 140 l=1,n
 c
-        j=0
+        iter=0
 c
 c----------------------------------------------------------------------
 c               find a small subdiagonal matrix element
@@ -76,16 +99,15 @@ c
 c
         m=n
 c
- 40     p=d(l)
-        if (m.ne.l) then
-          if (j.eq.100) go to 170
-          j=j+1
+ 40     if (m.ne.l) then
+          if (iter.ge.mxiter) go to 170
+          iter=iter+1
 c
 c----------------------------------------------------------------------
-c               form shift 
+c      form shift as eigenvalue of (l,l+1) 2x2 matrix closest to d(l)
 c----------------------------------------------------------------------
 c
-          g=(d(l+1)-p)*0.5D0
+          g=(d(l+1)-d(l))*0.5D0
           t0=cdabs(g)
           t1=cdabs(e(l))
 c
@@ -95,9 +117,9 @@ c
             t0=cdabs(w+r)
             t1=cdabs(w-r)
             if (t1.le.t0) then
-              g=d(m)-p+e(l)/(w+r)
+              g=d(m)-d(l)+e(l)/(w+r)
             else
-              g=d(m)-p+e(l)/(w-r)
+              g=d(m)-d(l)+e(l)/(w-r)
             end if
           else
             w=e(l)/g
@@ -105,13 +127,16 @@ c
             t0=cdabs(cone+r)
             t1=cdabs(cone-r)
             if (t1.le.t0) then
-              g=d(m)-p+w*e(l)/(cone+r)
-
+              g=d(m)-d(l)+w*e(l)/(cone+r)
             else
-              g=d(m)-p+w*e(l)/(cone-r)
+              g=d(m)-d(l)+w*e(l)/(cone-r)
             end if
           end if        
 c
+c----------------------------------------------------------------------
+c     g is shifted d(m).
+c     Specify parameters for i=m-1 case, i=m-1,m-2,...,l
+c----------------------------------------------------------------------
           s=cone
           c=-cone
           p=czero
@@ -141,7 +166,7 @@ c
 c
             if (t1.le.eps*t0) then
               ierr=-l
-              go to 180
+              go to 160
             else
               ierr=0
             end if
@@ -189,20 +214,16 @@ c----------------------------------------------------------------------
 c
  140  continue
 c
-      do 145 l=1,n
- 145	z(l)=z(l)*z(l)
-c
 c----------------------------------------------------------------------
-c      sort in the order of increasing magnitude of the eigenvalues
-c      or decreasing order of weighting factor
+c               insertion sort (increasing by field)
 c----------------------------------------------------------------------
 c
-c                           *** sort by eigenvalue ***
-      if (isort.eq.0) then
+      if (isort.eq.1) then
+c
         do 150 l=1,n-1
-          t0=cdabs(d(l))
+          t0=dimag(d(l))
           do 150 m=l+1,n
-            t1=cdabs(d(m))
+            t1=dimag(d(m))
             if (t1.lt.t0) then
               t0=t1
               w=d(m)
@@ -212,12 +233,17 @@ c                           *** sort by eigenvalue ***
               z(m)=z(l)
               z(l)=w
             end if
-  150   continue
-      else
-c                           *** sort by weighting factor ***
-        do 160 l=1,n-1
+ 150      continue
+c
+      else if (isort.eq.2) then
+c
+c----------------------------------------------------------------------
+c               insertion sort (decreasing by weight)
+c----------------------------------------------------------------------
+c
+        do 155 l=1,n-1
           t0=cdabs(z(l))
-          do 160 m=l+1,n
+          do 155 m=l+1,n
             t1=cdabs(z(m))
             if (t1.gt.t0) then
               t0=t1
@@ -228,16 +254,16 @@ c                           *** sort by weighting factor ***
               z(m)=z(l)
               z(l)=w
             end if
-  160   continue
-      end if     
+ 155      continue
+      end if
 c
-      go to 180
+        go to 160
 c
- 170  ierr=l
+ 170    ierr=l
 c
 c----------------------------------------------------------------------
 c       return to caller
 c----------------------------------------------------------------------
 c
- 180  return
-      end
+ 160    return
+        end

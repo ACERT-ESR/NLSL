@@ -1,9 +1,5 @@
-c    Version 1.5 5/2/94
+c     Version 1.5   5/2/94 
 c**********************************************************************
-c
-c                       ====================
-c                        subroutine ZAYPX
-c                       ====================
 c
 c             complex double precision vector scale and add
 c             ---------------------------------------------
@@ -11,7 +7,7 @@ c
 c        This subroutine will update a complex double precision
 c        vector Y by the formula,
 c
-c                         Y=x+a*Y ,
+c                          Y=a*X+Y ,
 c
 c        where a is a complex double precision constant and X is a
 c        complex double presion vector.
@@ -24,14 +20,13 @@ c       Uses:
 c
 c**********************************************************************
 c
-      subroutine zaypx(x,y,scale,ndim)
+      subroutine zaxpy(x,y,scale,ndim)
 c
       include 'stddim.inc'
 c
       integer ndim,iel
       complex*16 x,y,scale
       dimension x(MXDIM),y(MXDIM)
-c
 c
 c*djs      include 'rndoff.inc'
 c*djs      complex*16 CZERO
@@ -40,10 +35,8 @@ c
 c######################################################################
 c
       do iel=1,ndim
-        y(iel)=x(iel)+scale*y(iel)
-c
+        y(iel)=scale*x(iel)+y(iel)
 c*djs        if (abs(y(iel)).lt.RNDOFF) y(iel)=CZERO
-c
       end do
       return
       end

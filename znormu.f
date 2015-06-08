@@ -1,6 +1,7 @@
-c  VERSION 1.0  (NLSPMC version)   2/5/99
+c   Version 1.5 5/2/94
 c**********************************************************************
 c
+c                                ======
 c                                ZNORMU
 c                                ======
 c
@@ -44,8 +45,8 @@ c       ------
 c               1)  The size of the vector v is determined by the 
 c                   parameter MXDIM in the include file stddim.inc.
 c                   In the calling routine, the vector v should be 
-c                   dimensioned as complex*16 v(mxdim), or 
-c                   alternatively as real*8 v(2,mxdim).  
+c                   dimensioned as complex*16 v(MXDIM), or 
+c                   alternatively as real*8 v(2,MXDIM).  
 c                   
 c               2)  The square root of the final value of accum is 
 c                   not calculated using the usual Fortran square root
@@ -60,7 +61,7 @@ c
 c       written by DJS 5-12-87          
 c
 c       Includes:
-c               nlsdim.inc
+c               stddim.inc
 c               rndoff.inc
 c
 c       Uses:
@@ -71,12 +72,12 @@ c
 c
       complex*16 znormu
 c
-      include 'limits.inc'
+      include 'stddim.inc'
       include 'rndoff.inc'
 c
       integer ndim
       double precision v
-      dimension v(2,mxdim)
+      dimension v(2,MXDIM)
 c
       integer ir
       double precision amp,phase,accv,accr,acci
@@ -87,11 +88,11 @@ c
       accr=0.0D0
       acci=0.0D0
 c
-      do 10 ir=1,ndim
-        accv=accv+v(1,ir)*v(1,ir)+v(2,ir)*v(2,ir)
-        accr=accr+v(1,ir)*v(1,ir)-v(2,ir)*v(2,ir)
-        acci=acci+2.0D0*v(1,ir)*v(2,ir)
- 10   continue
+      do ir=1,ndim
+         accv=accv+v(1,ir)*v(1,ir)+v(2,ir)*v(2,ir)
+         accr=accr+v(1,ir)*v(1,ir)-v(2,ir)*v(2,ir)
+         acci=acci+2.0D0*v(1,ir)*v(2,ir)
+      end do
 c
       amp=sqrt(sqrt(accr*accr+acci*acci))
       phase=0.5D0*datan2(acci,accr)

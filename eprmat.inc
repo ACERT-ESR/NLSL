@@ -1,4 +1,4 @@
-c	VERSION	1.0	2/5/99
+c      Version 1.5  5/4/94
 c*********************************************************************
 c
 c	Declarations of common block to hold matrix for EPRLL
@@ -19,10 +19,11 @@ c		   multiplication routine (scmvm.f).
 c
 c	written	by DJS 11-SEP-87
 c
+c      NOTE: File 'stddim.inc' must be included before this file.
 c*********************************************************************
 c
 	 integer izmat,jzmat,kzmat
 	 double	precision zmat,zdiag
 	 common	/scmat/	zmat(MXEL),zdiag(2,MXDIM),
-     #		izmat(MXEL),jzmat(MXDIM+1),kzmat(MXDIM+1)
+     #		izmat(MXEL),jzmat(MXDIM1),kzmat(MXDIM1)
 c

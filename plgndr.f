@@ -1,4 +1,4 @@
-c       VERSION 1.0     2/5/99
+c    Version 1.5  5/2/94
 c*********************************************************************
 c
 c                   ASSOCIATED LEGENDRE FUNCTIONS
@@ -18,11 +18,10 @@ c       Uses:
 c
 c*********************************************************************
 c
-      function plgndr(l,m,z)
-      implicit none
+      double precision function plgndr(l,m,z)
 c
       integer l,m
-      double precision plgndr,z
+      double precision z
 c
       integer i
       double precision pmm,temp1,temp2,pmmp1,pmmp2
@@ -96,8 +95,5 @@ c---------------------------------------------------------------------
 c     exit from program if improper arguments detected
 c---------------------------------------------------------------------
 c
- 9999     write (*,1000) l,m,z
- 1000     format('Improper arguments for PLGNDR: ',
-     #    i3,',',i3,',',g13.6)
-          stop
+ 9999     stop
           end

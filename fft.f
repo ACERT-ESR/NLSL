@@ -1,61 +1,62 @@
-c NLSPMC Version 1.0 2/5/99
-      subroutine fft(data,n)
-c*********************************************************************
-c     This subroutine performs complex fast Fourier transform with
-c     double precision.  It replaces dffcf routine in imsl library.
+c Version 1.5 5/2/94
+c----------------------------------------------------------------------
+c                    ======================
+c                      subroutine FFT
+c                    ======================
 c
-c            data  :  array of length nn
-c            n     :  integer which is power of 2
-c
-c*********************************************************************
-c
+c     Discrete Fast Fourier Transform for a complex-valued array.
+c     Adapted from Numerical Recipes by Press et al.
+c----------------------------------------------------------------------
+      subroutine fft(data,nn,isign)
       implicit none
+      integer i,istep,j,m,mmax,n,nn,isign
+      double precision wr,wi,wpr,wpi,wtemp,tempi,tempr,theta
+      double precision data(2*nn)
 c
-      integer n,m,nd2,nm1,i,j,k,l,le,le1,ip
-      double precision pi,arg
-      complex*16 data(n),u,w,temp
-c
-c#####################################################################
-c
-      pi=4.0D0*datan(1.0D0)
-      m=int(dlog(dfloat(n))/dlog(2.0D0)+1.0D-1)
-      nd2=n/2
-      nm1=n-1
+      n=2*nn
       j=1
-      do 10 i=1,nm1
-        if (i.lt.j) then
-          temp=data(i)
-          data(i)=data(j)
-          data(j)=temp
-        end if
-        k=nd2
+      do i=1,n,2
+         if(j.gt.i)then
+            tempr=data(j)
+            tempi=data(j+1)
+            data(j)=data(i)
+            data(j+1)=data(i+1)
+            data(i)=tempr
+            data(i+1)=tempi
+         endif
+         m=n/2
+1        if ((m.ge.2).and.(j.gt.m)) then
+            j=j-m
+            m=m/2
+            go to 1
+         endif
+         j=j+m
+      end do
 c
-  15    if (k.lt.j) then
-          j=j-k
-          k=k/2
-          go to 15
-        else
-          j=j+k
-        end if
-c
-  10  continue
-c
-      do 20 l=1,m
-        le=2**l
-        le1=le/2
-        u=(1.0D0,0.0D0)
-        arg=pi/le1
-        w=dcmplx(dcos(arg),-dsin(arg))
-        do 30 j=1,le1
-          do 40 i=j,n,le
-            ip=i+le1
-            temp=data(ip)*u
-            data(ip)=data(i)-temp
-            data(i)=data(i)+temp
-  40      continue
-          u=u*w
-  30    continue
-  20  continue
-c
+      mmax=2
+2     if (n.gt.mmax) then
+         istep=2*mmax
+         theta=6.28318530717959d0/(isign*mmax)
+         wpr=-2.d0*dsin(0.5d0*theta)**2
+         wpi=dsin(theta)
+         wr=1.d0
+         wi=0.d0
+         do m=1,mmax,2
+            do i=m,n,istep
+               j=i+mmax
+               tempr=sngl(wr)*data(j)-sngl(wi)*data(j+1)
+               tempi=sngl(wr)*data(j+1)+sngl(wi)*data(j)
+               data(j)=data(i)-tempr
+               data(j+1)=data(i+1)-tempi
+               data(i)=data(i)+tempr
+               data(i+1)=data(i+1)+tempi
+            end do
+            wtemp=wr
+            wr=wr*wpr-wi*wpi+wr
+            wi=wi*wpr+wtemp*wpi+wi
+         end do
+         mmax=istep
+      go to 2
+      endif
       return
       end

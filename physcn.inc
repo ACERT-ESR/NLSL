@@ -1,3 +1,5 @@
+c Version 1.6  8/12/94
+c----------------------------------------------------------------------
 c Physical constants (in cgs/electromagnetic units)
 c    ge:     free-electron g-value
 c    betae:  Bohr magneton

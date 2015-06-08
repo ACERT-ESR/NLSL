@@ -1,4 +1,4 @@
-c	VERSION	1.0	2/5/99
+c      Version 1.5  5/2/94
 c*********************************************************************
 c
 c	declarations of	machine	epsilon	parameter
@@ -55,7 +55,6 @@ c	a=4.0D0/3.0D0
 c30	b=a-1.0D0
 c	c=b+b+b
 c	eps=dabs(c-1.0D0)
-c	if (d.eq.0.0D0)	go to 30
 c
 c	write (*,*) 'second epsilon = ',eps
 c
@@ -64,6 +63,6 @@ c	end
 c
 c***********************************************************************
 c
-	double precision rndoff
-	parameter (rndoff=3.0D-15)
+	double precision RNDOFF
+	parameter (RNDOFF=3.0D-15)
 c

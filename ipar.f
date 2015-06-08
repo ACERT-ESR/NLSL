@@ -1,4 +1,4 @@
-c       VERSION 1.0     2/5/99
+c    Version 1.5  5/2/94
 c*********************************************************************
 c
 c                         SUBROUTINE IPAR
@@ -12,6 +12,7 @@ c
       integer function ipar(num)
 c
       integer num
+c      intrinsic mod
 c
 c#####################################################################
 c
@@ -20,5 +21,8 @@ c
       else
         ipar=-1
       end if
+c
+c      if (ipar.ne.1-2*mod(num,2)) stop 'belly up in ipar'
+c
       return
       end

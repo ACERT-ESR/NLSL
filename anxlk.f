@@ -1,4 +1,4 @@
-c  VERSION 1.0  (NLSPMC version)   2/5/99
+c     Version 1.5  5/2/94
 c**********************************************************************
 c                         ====================
 c                           subroutine ANXLK
@@ -25,9 +25,8 @@ c
 c       written by DEB 8-JUL-92
 c
 c       Includes:
-c               nlsdim.inc
-c               eprprm.inc
 c               rndoff.inc
+c               eprdat.inc
 c
 c       Uses:
 c               w3j.f
@@ -37,9 +36,8 @@ c
       subroutine anxlk(rp,rm,rz)
       implicit none
 c
-      include 'limits.inc'
-      include 'simparm.inc'
       include 'rndoff.inc'
+      include 'eprdat.inc'
 c
       double precision rp,rm,rz
 c
