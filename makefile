@@ -14,13 +14,18 @@
 #F77=gfortran -std=legacy
 F77=gfortran
 #FFLAGS = -c -O2 -g
+UNAME := $(shell uname)
+$(info $$UNAME is [${UNAME}])
+ifneq (,$(findstring MINGW32_NT,$(UNAME)))
+OS := "windows"
+$(info in windows)
+FFLAGS = -c -O2 -g -fopenmp -std=gnu
+else
+OS := "linux"
+$(info not in windows)
 FFLAGS = -c -O2 -g -fopenmp -std=gnu -m64 -mcmodel=medium
-#LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64  -llapack -lblas
+endif
 LIB = -L /usr/X11/lib64 -lX11 -L/usr/X11R6/lib64 
-
-CC = cl
-LIBS = dfor.lib
-#LIBS2  = C:\PROGRA~1\MPIPro\LIB\MPIPro.lib sstatd.lib sstats.lib smathd.lib smaths.lib sf90mp.lib
 
 LIBS2  = C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsl.lib C:\PROGRA~1\Micros~3\DF98\IMSL\LIB\imsls_err.lib
 
@@ -59,6 +64,18 @@ NLSO = nlspmc.o $(NLSC) $(NLSS) $(NLSD) $(NLSF) $(NLSB) nlsinit.o ordrpr.o
 #		Object files
 #-----------------------------------------------------------------------
 
+ifeq ($(OS),"windows")
+all : nlspmc.exe
+clean:
+	echo "running clean for windows"
+	$(RM) *.o *.mod nlspmc.exe
+else
+all             : nlspmc
+clean           :
+	echo "running clean for linux"
+	$(RM) *.o *.mod nlspmc_cmd
+endif
+
 addprm.o	: addprm.f $(CMDI)
 anxlk.o		: anxlk.f limits.inc simparm.inc rndoff.inc
 bessel.o	: bessel.f rndoff.inc pidef.inc
@@ -95,7 +112,6 @@ matrxo.o	: matrxo.f $(MATI) maxl.inc rndoff.inc physcn.inc
 matrxd.o	: matrxd.f $(MATI) maxl.inc rndoff.inc physcn.inc
 mnbrak.o	: mnbrak.f limits.inc parms.inc
 nlsinit.o 	: nlsinit.f $(DATI) parms.inc simparm.inc parmequ.inc lmcomm.inc
-# nlspmc.o	: nlspmc.f $(NLSI) parmequ.inc names.inc parms.inc
 nlspmc.o	: nlspmc.f $(NLSPI) $(NLSPI2)
 ordrpr.o	: ordrpr.f rndoff.inc
 p1pfun.o	: p1pfun.f limits.inc parms.inc datas.inc lmcomm.inc
@@ -135,12 +151,14 @@ xerbla.o        : xerbla.f
 #		Executable files
 #-----------------------------------------------------------------------
 
-
-#nlspmc	: $(NLSO) $(NEWSTF) ftest.o
-#	$(F77) /exe:nlspmc $(NLSO) $(NEWSTF) ftest.o $(LIBS2) $(LIBS)
-
+ifeq ($(OS),"windows")
+nlspmc.exe	: $(NLSO) $(NEWSTF) ftest.o
+	$(F77) -fopenmp $(LOADFLG) $(NEWSTF) ftest.o -o $@ $(NLSO) $(LIB) $(LIB2) -lc
+else
 nlspmc	: $(NLSO) $(NEWSTF) ftest.o
 	$(F77) -fopenmp $(LOADFLG) $(NEWSTF) ftest.o -o $@ $(NLSO) $(LIB) $(LIB2) -lc
+endif
+
 
 #-----------------------------------------------------------------------
 #			Default actions

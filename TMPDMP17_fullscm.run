@@ -1,0 +1,57 @@
+echo off
+echo ****************************************************************
+echo Parameters for TMPDMP17.scm
+echo ****************************************************************
+
+c This is a test1 program to check the simulations
+
+log TMPDMP17_fullscm.log
+components 1
+
+let b0= 33825
+
+let gxx,gyy,gzz= 2.0087, 2.0056, 2.00224
+let in2,axx,ayy,azz= 2,7.2397,7.0754,37.3880
+
+let rprp,rpll= 9.9428, 10.1858
+
+let hwid=0.0
+let mwid=0.0
+
+
+let gib= 0.4553
+let lib=0.0
+
+let oss=5.240
+let t2edi=6.604
+
+
+let ald,bed,gad= 0.0, 0.0, 0.0
+let psi=0.0
+
+
+let lemx,lomx,kmx,mmx,ipnmx=10,7,5,5,2
+basis
+
+let nstep= 1024
+let cgtol= 0.1E-6
+
+let phc1, phc2, phc3, phc4=0.7045,  0.0,  0.9061, -2.0567
+
+
+series iexp=3
+series icomb=-1 
+series npt1=128
+series npt2=128
+series init1=30
+series init2=50
+series stept1=4 
+series stept2=4
+series tfix= 0
+series weight=1
+
+data TMPDMP17.scm shift store
+
+fit maxitr 10 
+
+

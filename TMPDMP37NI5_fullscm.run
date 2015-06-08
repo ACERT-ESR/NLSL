@@ -1,0 +1,56 @@
+echo off
+echo ****************************************************************
+echo Parameters for TMPDMP37NI5.scm
+echo ****************************************************************
+
+c This is a test1 program to check the simulations
+
+log TMPDMP37NI5.log
+components 1
+
+let b0= 33825
+
+let gxx,gyy,gzz= 2.0087, 2.0056, 2.00224
+let in2,axx,ayy,azz= 2,5.6462,5.7544,35.2509
+
+let rprp,rpll= 9.5081,9.2340
+
+let hwid=0.0
+let mwid=0.0
+
+
+let gib= 0.632
+let lib=0.0
+
+let oss=6.950
+let t2edi=7.026
+
+
+let ald,bed,gad= 0.0, 0.0, 0.0
+let psi=0.0
+
+
+let lemx,lomx,kmx,mmx,ipnmx=10,7,6,6,2
+basis
+
+let nstep= 1024
+let cgtol= 0.1E-6
+
+let phc1,phc2,phc3,phc4=  -2.6171,  0.0000,  2.2049, 0.1993
+
+series iexp=3
+series icomb=-1  
+series npt1=128
+series npt2=128
+series init1=30
+series init2=50
+series stept1=4 
+series stept2=4
+series tfix= 20
+series weight=1
+
+data TMPDMP37NI5.scm shift store
+
+fit maxitr 10 
+
+
