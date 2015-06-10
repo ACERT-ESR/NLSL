@@ -4,6 +4,7 @@ from subprocess import Popen, PIPE, STDOUT
 import os
 import nlsl
 import sys
+
 def read_column_data(filename):
     fp = open(filename,'r')
     data = []
@@ -12,6 +13,7 @@ def read_column_data(filename):
     data = array(data,dtype = double)
     fp.close()
     return data
+
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise OSError("This function takes one argument -- the number of the example")
