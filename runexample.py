@@ -2,7 +2,7 @@
 from pylab import *
 from subprocess import Popen, PIPE, STDOUT
 import os
-import pynlsl
+import nlsl
 import sys
 def read_column_data(filename):
     fp = open(filename,'r')
@@ -26,12 +26,12 @@ if __name__ == "__main__":
                 run_file(fp_called)
                 fp_called.close()
             elif thisline[:5] == "data ":
-                pynlsl.procline(thisline)
+                nlsl.procline(thisline)
                 data_files_out.append(thisline[5:].strip().split(' ')[0]) 
             else:
-                pynlsl.procline(thisline)
+                nlsl.procline(thisline)
         thisfp.close()
-    pynlsl.nlsinit()
+    nlsl.nlsinit()
     run_file(open(filename_base+'.run'))
     for thisdatafile in data_files_out:
         fig = figure(figsize = (9,6))
