@@ -97,6 +97,192 @@ python module fortrancore ! in
             subroutine lmcom_init ! in :fortrancore:lmcom.f90:lmcom
             end subroutine lmcom_init
         end module lmcom
+        module eprprm ! in :pynlsl:eprprm.f90
+            use parcom
+            use nlsdim
+            double precision, save,pointer :: alm
+            double precision, save,pointer :: dx
+            integer, parameter,optional :: instep=15
+            double precision, save,pointer :: oss
+            double precision, save,dimension(2,5) :: fam
+            integer, save,pointer :: igflg
+            integer, parameter,optional :: iiderv=17
+            double precision, save :: expkxy
+            integer, save,pointer :: nstep
+            double precision, save,pointer :: wzz
+            integer, save,pointer :: nort
+            integer, save,pointer :: ipdf
+            integer, save :: ldelta
+            integer, parameter,optional :: immx=12
+            character*10, save,dimension(nfprm) :: fepr_name
+            integer, parameter,optional :: iphase=1
+            integer, save,pointer :: iaflg
+            integer, parameter,optional :: igam=28
+            double precision, save,pointer :: djf
+            integer, parameter,optional :: igyy=8
+            double precision, save,pointer :: ald
+            integer, parameter,optional :: iin2=1
+            integer, parameter,optional :: igad=25
+            double precision, save,pointer :: psi
+            integer, parameter,optional :: ijkmn=22
+            integer, save,pointer :: ideriv
+            double precision, save :: g0
+            integer, save :: neltot
+            integer, parameter,optional :: ipml=16
+            integer, parameter,optional :: igaman=37
+            integer, save :: nelv
+            integer, parameter,optional :: ifldi=42
+            double precision, save,pointer :: dz
+            integer, parameter,optional :: irange=41
+            double precision, save,pointer :: dy
+            integer, parameter,optional :: iwzz=6
+            double precision, save,dimension(5) :: faa
+            double precision, save,dimension(2,5) :: fad
+            double precision, save,dimension(5,5) :: xlk
+            integer, parameter,optional :: icgtol=38
+            integer, parameter,optional :: ipmxy=17
+            integer, parameter,optional,depend(iiderv) :: iideriv=17
+            integer, save,pointer :: irflg
+            double precision, save,pointer :: dfld
+            integer, parameter,optional :: igxx=7
+            integer, save :: kband
+            integer, save :: itype
+            double precision, save,pointer :: gib0
+            integer, save,target,dimension((niprm)) :: iepr
+            double precision, save :: expkzz
+            double precision, save,pointer :: b0
+            integer, save,pointer :: jmmn
+            double precision, save :: w0
+            double precision, save,pointer :: pml
+            double precision, save,pointer :: pmzz
+            integer, parameter,optional :: iiwflg=18
+            integer, save,pointer :: kmn
+            integer, parameter,optional :: iwyy=5
+            integer, save :: ncgstp
+            integer, parameter,optional :: idfld=43
+            integer, parameter,optional :: inort=14
+            integer, parameter,optional :: idjfprp=20
+            integer, save,pointer :: kmx
+            integer, parameter,optional :: iipnmx=13
+            integer, save :: lptmx
+            integer, parameter,optional :: ilomx=8
+            integer, save,pointer :: mmx
+            integer, parameter,optional :: idjf=19
+            double precision, save,dimension(5) :: fgm
+            integer, save,pointer :: mmn
+            integer, save,pointer :: in2
+            integer, parameter,optional :: imzz=6
+            integer, parameter,optional :: iirflg=21
+            double precision, save,dimension(2,5) :: fgd
+            double precision, save,pointer :: lb
+            double precision, save,dimension(5,5) :: cpot
+            double precision, save,pointer :: c22
+            double precision, save,dimension(5) :: fwm
+            double precision, save,pointer :: c20
+            integer, parameter,optional :: idz=15
+            integer, parameter,optional :: ipmzz=18
+            integer, parameter,optional :: idx=13
+            integer, parameter,optional :: idy=14
+            double precision, save,dimension(2,5) :: fwd
+            integer, parameter,optional :: immn=11
+            integer, parameter,optional :: idc20=35
+            integer, parameter,optional :: iiaflg=20
+            integer, save,pointer :: ist
+            integer, save :: itm
+            double precision, save,pointer :: range
+            integer, parameter,optional :: igzz=9
+            double precision, save,pointer :: cgtol
+            integer, save,pointer :: lomx
+            integer, save,pointer :: ndim
+            integer, save :: kdelta
+            double precision, save,pointer :: c40
+            integer, parameter,optional :: ijmmn=23
+            integer, parameter,optional :: iml=4
+            double precision, save,pointer :: pmxy
+            double precision, save,pointer :: phase
+            double precision, save,pointer :: gib2
+            integer, parameter,optional :: ishift=39
+            integer, save :: ipt
+            integer, parameter,optional :: iayy=11
+            double precision, save,pointer :: gxx
+            double precision, save,pointer :: gyy
+            double precision, save,pointer :: ayy
+            integer, save :: nelim
+            integer, parameter,optional :: ib0=36
+            integer, parameter,optional :: iipdf=2
+            integer, parameter,optional :: igib2=3
+            integer, parameter,optional :: igib0=2
+            integer, parameter,optional :: iazz=12
+            double precision, save,pointer :: gam
+            integer, parameter,optional :: imxy=5
+            integer, save,pointer :: nfld
+            integer, parameter,optional :: ilb=34
+            integer, parameter,optional :: ioss=21
+            double precision, save,pointer :: gad
+            integer, parameter,optional :: iaxx=10
+            double precision, save,pointer :: c44
+            integer, save :: lband
+            double precision, save,pointer :: c42
+            double precision, save,pointer :: bem
+            integer, save :: ipsi0
+            integer, save,pointer :: ml
+            double precision, save,pointer :: bed
+            integer, parameter,optional :: iwxx=4
+            double precision, save,pointer :: azz
+            integer, save,pointer :: iwflg
+            double precision, save :: expl
+            double precision, save,pointer :: gzz
+            double precision, save,pointer :: shifti
+            integer, parameter,optional :: iist=3
+            integer, parameter,optional :: indim=24
+            integer, parameter,optional :: iald=23
+            double precision, save,pointer :: fldi
+            integer, parameter,optional,depend(ishift) :: ishiftr=39
+            integer, parameter,optional :: ikmx=10
+            integer, parameter,optional :: ialm=26
+            integer, parameter,optional :: ic22=30
+            integer, parameter,optional :: infld=16
+            integer, save,pointer :: lemx
+            integer, parameter,optional :: ishifti=40
+            integer, parameter,optional,depend(igaman) :: igamman=37
+            integer, save,pointer :: jkmn
+            integer, parameter,optional :: ibem=27
+            double precision, save,pointer :: dc20
+            integer, parameter,optional :: ibed=24
+            integer, save,pointer :: mxy
+            double precision, save,pointer :: wxx
+            integer, save :: itd
+            double precision, save,pointer :: shiftr
+            character*10, save,dimension(niprm) :: iepr_name
+            integer, save :: kptmx
+            integer, parameter,optional :: ikmn=9
+            integer, parameter,optional :: ic40=31
+            integer, parameter,optional :: ic42=32
+            integer, parameter,optional :: ic44=33
+            integer, parameter,optional :: ic20=29
+            integer, save,pointer :: mzz
+            double precision, save :: a0
+            double precision, save,pointer :: djfprp
+            integer, parameter,optional :: iigflg=19
+            double precision, save,pointer :: gamman
+            integer, parameter,optional :: ilemx=7
+            integer, parameter,optional :: ipsi=22
+            double precision, save,pointer :: axx
+            double precision, save,pointer :: wyy
+            integer, save :: nelre
+            double precision, save,target,dimension((nfprm)) :: fepr
+            integer, save,pointer :: ipnmx
+            subroutine prm_ptr_init ! in :pynlsl:eprprm.f90:eprprm
+            end subroutine prm_ptr_init
+        end module eprprm
+        module mspctr ! in :pynlsl:mspctr.f90
+            use nlsdim
+            integer, save,dimension((mxsite)) :: iscal
+            double precision, save,dimension((mxsite),(mxspc)) :: sfac
+            double precision, save,dimension((mxpt),(mxsite)) :: spectr
+            integer, save :: iscglb
+            double precision, save,dimension((mxpt),(mxsite)) :: wspec
+        end module mspctr
     end interface 
 end python module fortrancore
 

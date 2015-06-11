@@ -50,10 +50,13 @@ c***********************************************************************
 c
       module eprprm
       use parcom
+      use nlsdim
       implicit none
 c
       double precision, target, save :: fepr(NFPRM)
+      character*10, dimension(NFPRM), save:: fepr_name
       integer, target, save :: iepr(NIPRM)
+      character*10, dimension(NIPRM), save:: iepr_name
 
       double precision, pointer, save :: phase,gib0,gib2,
      #         wxx,wyy,wzz,
@@ -145,73 +148,140 @@ c      end subroutine select_site
       implicit none
 
       phase => fepr(IPHASE)
+      fepr_name(IPHASE) = "phase"
       gib0 => fepr(IGIB0)
+      fepr_name(IGIB0) = "gib0"
       gib2 => fepr(IGIB2)
+      fepr_name(IGIB2) = "gib2"
       wxx => fepr(IWXX)
+      fepr_name(IWXX) = "wxx"
       wyy => fepr(IWYY)
+      fepr_name(IWYY) = "wyy"
       wzz => fepr(IWZZ)
+      fepr_name(IWZZ) = "wzz"
       gxx => fepr(IGXX)
+      fepr_name(IGXX) = "gxx"
       gyy => fepr(IGYY)
+      fepr_name(IGYY) = "gyy"
       gzz => fepr(IGZZ)
+      fepr_name(IGZZ) = "gzz"
       axx => fepr(IAXX)
+      fepr_name(IAXX) = "axx"
       ayy => fepr(IAYY)
+      fepr_name(IAYY) = "ayy"
       azz => fepr(IAZZ)
+      fepr_name(IAZZ) = "azz"
       dx => fepr(IDX)
+      fepr_name(IDX) = "dx"
       dy => fepr(IDY)
+      fepr_name(IDY) = "dy"
       dz => fepr(IDZ)
+      fepr_name(IDZ) = "dz"
       pml => fepr(IPML)
+      fepr_name(IPML) = "pml"
       pmxy => fepr(IPMXY)
+      fepr_name(IPMXY) = "pmxy"
       pmzz => fepr(IPMZZ)
+      fepr_name(IPMZZ) = "pmzz"
       djf => fepr(IDJF)
+      fepr_name(IDJF) = "djf"
       djfprp => fepr(IDJFPRP)
+      fepr_name(IDJFPRP) = "djfprp"
       oss => fepr(IOSS)
+      fepr_name(IOSS) = "oss"
       psi => fepr(IPSI)
+      fepr_name(IPSI) = "psi"
       ald => fepr(IALD)
+      fepr_name(IALD) = "ald"
       bed => fepr(IBED)
+      fepr_name(IBED) = "bed"
       gad => fepr(IGAD)
+      fepr_name(IGAD) = "gad"
       alm => fepr(IALM)
+      fepr_name(IALM) = "alm"
       bem => fepr(IBEM)
+      fepr_name(IBEM) = "bem"
       gam => fepr(IGAM)
+      fepr_name(IGAM) = "gam"
       c20 => fepr(IC20)
+      fepr_name(IC20) = "c20"
       c22 => fepr(IC22)
+      fepr_name(IC22) = "c22"
       c40 => fepr(IC40)
+      fepr_name(IC40) = "c40"
       c42 => fepr(IC42)
+      fepr_name(IC42) = "c42"
       c44 => fepr(IC44)
+      fepr_name(IC44) = "c44"
       lb => fepr(ILB)
+      fepr_name(ILB) = "lb"
       dc20 => fepr(IDC20)
+      fepr_name(IDC20) = "dc20"
       b0 => fepr(IB0)
+      fepr_name(IB0) = "b0"
       gamman => fepr(IGAMMAN)
+      fepr_name(IGAMMAN) = "gamman"
       cgtol => fepr(ICGTOL)
+      fepr_name(ICGTOL) = "cgtol"
       shiftr => fepr(ISHIFTR)
+      fepr_name(ISHIFTR) = "shiftr"
       shifti => fepr(ISHIFTI)
+      fepr_name(ISHIFTI) = "shifti"
       range => fepr(IRANGE)
+      fepr_name(IRANGE) = "range"
       fldi  => fepr(IFLDI)
+      fepr_name(IFLDI) = "fldi"
       dfld => fepr(IDFLD)
+      fepr_name(IDFLD) = "dfld"
 
       in2 => iepr(IIN2)
+      iepr_name(IIN2) = "in2"
       ipdf => iepr(IIPDF)
+      iepr_name(IIPDF) = "ipdf"
       ist => iepr(IIST)
+      iepr_name(IIST) = "ist"
       ml => iepr(IML)
+      iepr_name(IML) = "ml"
       mxy => iepr(IMXY)
+      iepr_name(IMXY) = "mxy"
       mzz => iepr(IMZZ)
+      iepr_name(IMZZ) = "mzz"
       lemx => iepr(ILEMX)
+      iepr_name(ILEMX) = "lemx"
       lomx => iepr(ILOMX)
+      iepr_name(ILOMX) = "lomx"
       kmn => iepr(IKMN)
+      iepr_name(IKMN) = "kmn"
       kmx => iepr(IKMX)
+      iepr_name(IKMX) = "kmx"
       mmn => iepr(IMMN)
+      iepr_name(IMMN) = "mmn"
       mmx => iepr(IMMX)
+      iepr_name(IMMX) = "mmx"
       ipnmx => iepr(IIPNMX)
+      iepr_name(IIPNMX) = "ipnmx"
       nort => iepr(INORT)
+      iepr_name(INORT) = "nort"
       nstep => iepr(INSTEP)
+      iepr_name(INSTEP) = "nstep"
       nfld => iepr(INFLD)
+      iepr_name(INFLD) = "nfld"
       ideriv => iepr(IIDERV)
+      iepr_name(IIDERV) = "ideriv"
       iwflg => iepr(IIWFLG)
+      iepr_name(IIWFLG) = "iwflg"
       igflg => iepr(IIGFLG)
+      iepr_name(IIGFLG) = "igflg"
       iaflg => iepr(IIAFLG)
+      iepr_name(IIAFLG) = "iaflg"
       irflg => iepr(IIRFLG)
+      iepr_name(IIRFLG) = "irflg"
       jkmn => iepr(IJKMN)
+      iepr_name(IJKMN) = "jkmn"
       jmmn => iepr(IJMMN)
+      iepr_name(IJMMN) = "jmmn"
       ndim => iepr(INDIM)
+      iepr_name(INDIM) = "ndim"
 
       end subroutine prm_ptr_init
 	  

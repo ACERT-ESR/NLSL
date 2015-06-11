@@ -10,22 +10,22 @@ def procline(val):
     "process a line of a traditional format text NLSL runfile"
     _fortrancore.procline(val)
 
-class parameter_class (object):
+class _parameter_class (object):
     def __init__(self):
         _x = 0
     @property
-    def param1(self):
-        pass
-        return
-    @param1.setter
-    def param1(self,value):
-        print "you tried to set param1 to",value
-    @param1.getter
-    def param1(self):
-        "This is param 1 it does stuff"
-        print "you tried to get param1"
+    def asdict(self):#this is the getter
+        "A dictionary containing the various floating-point ESR parameters"
+        self._listofparms = _fortrancore.eprprm.fepr_name.T.reshape(-1,10).view(dtype="|S10")[:,0].tolist()
+        self._listofparms = [x[0:x.find(' ')] for x in self._listofparms]
+        self._asdict = dict(zip(self._listofparms,_fortrancore.eprprm.fepr))
+        # this is not the full array yet, needs to be adjusted
+        return self._asdict
+    @asdict.setter
+    def asdict(self,value):
+        print "not supported to set from here yet"
 
-parameters = parameter_class()
+parameters = _parameter_class()
 
 __all__ = filter(lambda x: x[0] != '_',dir())
 #print "all is",__all__# on import, this generates a reasonable result, proving there is no craziness, ad also that the init function above is run

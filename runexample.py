@@ -36,6 +36,7 @@ if __name__ == "__main__":
         thisfp.close()
     nlsl.nlsinit()
     run_file(open(filename_base+'.run'))
+    print "result:",nlsl.parameters.asdict
     fig = figure(figsize = (10,5*len(data_files_out)))
     fig.subplots_adjust(left=0.15)
     fig.subplots_adjust(right=0.6)
