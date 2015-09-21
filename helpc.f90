@@ -18,7 +18,7 @@ c
       call gettkn( line, cat2, lth2 )
       if (lth1.ne.0) call touppr(cat1,lth1) 
       if (lth2.ne.0) call touppr(cat2,lth2) 
-      open (ludisk,file='/home/daveb/bin/nlshlp.txt',
+      open (ludisk,file='nlshlp.txt',
      #     status='old',access='sequential',iostat=ioerr)
       if (ioerr.ne.0) then
          write (luttyo,1002)
