@@ -1,4 +1,4 @@
-#!/c/Python27/python
+#!/usr/bin/python
 from pylab import *
 from subprocess import Popen, PIPE, STDOUT
 import os
