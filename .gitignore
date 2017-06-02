@@ -12,3 +12,6 @@ BL05CHSA.log
 BL05CHSA.spc
 examples/*.log
 examples/*.spc
+fortrancore-f2pywrappers2.f90
+fortrancoremodule.c
+nlsl/__init__.pyc
