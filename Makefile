@@ -239,5 +239,5 @@ testclean:
 	$(CC) $(CFLAGS) $*.c
 
 %.o %.mod : %.f90
-	if [ -a $*.mod ] ; then rm -f $*.mod ; fi
+	if [ -e $*.mod ] ; then rm -f $*.mod ; fi
 	$(F90) $(FFLAGS) -ffixed-form $*.f90
