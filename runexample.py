@@ -18,7 +18,7 @@ def read_column_data(filename):
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise OSError("This function takes one argument -- the number of the example")
-    print "about to run nlsl"
+    print("about to run nlsl")
     filename_base = 'sampl'+sys.argv[1]
     os.chdir('examples/')
     data_files_out = []

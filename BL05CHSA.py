@@ -11,7 +11,7 @@ def read_column_data(filename):
     data = array(data,dtype = double)
     fp.close()
     return data
-print "about to run nlsl"
+print("about to run nlsl")
 fp = open('BL05CHSA.run')
 pynlsl.nlsinit()
 for thisline in fp.readlines():

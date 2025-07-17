@@ -93,7 +93,7 @@ class Worker(QThread):
             alpha = random.randrange(0, 256)
             
             painter = QPainter()
-            print "yes, the painter is called"
+            print("yes, the painter is called")
             painter.begin(image)
             painter.setRenderHint(QPainter.Antialiasing)
             painter.setPen(Qt.NoPen)
