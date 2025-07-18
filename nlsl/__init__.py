@@ -18,14 +18,14 @@ class _parameter_class (object):
         "A dictionary containing the various floating-point ESR parameters"
         self._listofparms = _fortrancore.eprprm.fepr_name.T.reshape(-1,10).view(dtype="|S10")[:,0].tolist()
         self._listofparms = [x[0:x.find(' ')] for x in self._listofparms]
-        self._asdict = dict(zip(self._listofparms,_fortrancore.eprprm.fepr))
+        self._asdict = dict(list(zip(self._listofparms,_fortrancore.eprprm.fepr)))
         # this is not the full array yet, needs to be adjusted
         return self._asdict
     @asdict.setter
     def asdict(self,value):
-        print "not supported to set from here yet"
+        print("not supported to set from here yet")
 
 parameters = _parameter_class()
 
-__all__ = filter(lambda x: x[0] != '_',dir())
+__all__ = [x for x in dir() if x[0] != '_']
 #print "all is",__all__# on import, this generates a reasonable result, proving there is no craziness, ad also that the init function above is run
