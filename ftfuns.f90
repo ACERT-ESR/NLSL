@@ -10,6 +10,7 @@ c----------------------------------------------------------------------
       integer j,n,n2
       double precision data1(n),data2(n)
       double complex fft1(n),fft2(n),h1,h2,c1,c2
+      double precision rfft1(2*n)
 c
       intrinsic dcmplx,dreal,dimag,dconjg
 c
@@ -22,8 +23,13 @@ c
       c2=dcmplx(ZERO,-0.5d0)
       do 11 j=1,n
         fft1(j)=dcmplx(data1(j),data2(j))
+        rfft1(2*j-1)=data1(j)
+        rfft1(2*j)=data2(j)
 11    continue
-      call four1(fft1,n,1)
+      call four1(rfft1,n,1)
+      do 21 j=1,n
+        fft1(j)=dcmplx(rfft1(2*j-1),rfft1(2*j))
+21    continue
       fft2(1)=dcmplx(dimag(fft1(1)),ZERO)
       fft1(1)=dcmplx(dreal(fft1(1)),ZERO)
       n2=n+2
