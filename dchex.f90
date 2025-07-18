@@ -1,7 +1,7 @@
       subroutine dchex(r,ldr,p,k,l,z,ldz,nz,c,s,job)
       integer ldr,p,k,l,ldz,nz,job
-      double precision r(ldr,1),z(ldz,1),s(1)
-      double precision c(1)
+      double precision r(ldr,*),z(ldz,*),s(*)
+      double precision c(*)
 c
 c     dchex updates the cholesky factorization
 c

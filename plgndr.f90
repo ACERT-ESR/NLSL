@@ -51,10 +51,11 @@ c
       if (m.gt.0) then
         temp1=sqrt((1.0D0-z)*(1.0D0+z))
         temp2=1.0D0
-        do 10 i=1,m
+        do i=1,m
           pmm=-pmm*temp1*temp2
- 10       temp2=temp2+2.0D0
-        end if
+          temp2=temp2+2.0D0
+        end do
+      end if
 c
 c---------------------------------------------------------------------
 c       
@@ -78,12 +79,13 @@ c
           if (l.eq.m+1) then
             plgndr=pmmp1
           else
-            do 20 i=m+2,l
+            do i=m+2,l
               pmmp2=(z*(2*i-1)*pmmp1-(i+m-1)*pmm)/(i-m)
               pmm=pmmp1
- 20           pmmp1=pmmp2
+              pmmp1=pmmp2
               plgndr=pmmp2
-            end if
+            end do
+          end if
           end if
 c
 c---------------------------------------------------------------------
