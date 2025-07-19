@@ -138,7 +138,7 @@ c ======================================================================
         ainsc  = (cnc1*sa + cnc2*t4 +cnc3*sc + cnc4*sd)*h
         diff    = dabs(rombrg-ainsc)
 
-        if ( rombrg .ne. 0.0D0 .and. ainsc .ne. 0.0D0) then
+        if ( abs(rombrg) .gt. 0.0D0 .and. abs(ainsc) .gt. 0.0D0) then
            if ( diff .gt. cvgtol
      #     .and. diff/dabs( 0.5D0*(rombrg+ainsc) ) .gt. cvgtol*1.0D-2 )
      #     go to 10
@@ -165,7 +165,7 @@ c ======================================================================
      #           + dabs(0.5d0*(t4+t8)+t5+t7-t6-t10) )*h*64.d0/945.d0
         if ( ccerr .gt. diff ) diff = ccerr
 
-        if ( rombrg .ne. 0.0D0 .and. acl7 .ne. 0.0D0) then
+        if ( abs(rombrg) .gt. 0.0D0 .and. abs(acl7) .gt. 0.0D0) then
           if ( diff .gt. cvgtol
      #    .and.diff/dabs(0.5d0*(acl7+rombrg)) .gt. cvgtol/1.0D2) goto 10
         endif
@@ -347,7 +347,7 @@ c ======================================================================
         ainsc  = (cnc1*sa + cnc2*t4 +cnc3*sc + cnc4*sd)*h
         diff    = dabs(rombrg-ainsc)
 
-        if ( rombrg .ne. 0.0D0 .and. ainsc .ne. 0.0D0) then
+        if ( abs(rombrg) .gt. 0.0D0 .and. abs(ainsc) .gt. 0.0D0) then
            if ( diff .gt. cvgtol
      #     .and. diff/dabs( 0.5D0*(rombrg+ainsc) ) .gt. cvgtol*1.0D-2 )
      #     go to 10
@@ -374,7 +374,7 @@ c ======================================================================
      #           + dabs(0.5d0*(t4+t8)+t5+t7-t6-t10) )*h*64.d0/945.d0
         if ( ccerr .gt. diff ) diff = ccerr
 
-        if ( rombrg .ne. 0.0D0 .and. acl7 .ne. 0.0D0) then
+        if ( abs(rombrg) .gt. 0.0D0 .and. abs(acl7) .gt. 0.0D0) then
           if ( diff .gt. cvgtol
      #    .and.diff/dabs(0.5d0*(acl7+rombrg)) .gt. cvgtol/1.0D2) goto 10
         endif

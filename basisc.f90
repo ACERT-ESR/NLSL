@@ -27,7 +27,7 @@ c
       implicit none
       character*80 line
 c
-      integer i,ierr,isi,isp,ival,ixsp1,ixsp2,ixsi1,ixsi2,ixss(2),
+      integer i,ierr,isi,isp,ixsp1,ixsp2,ixsi1,ixsi2,ixss(2),
      #        lth,maxb,new
       character token*30,ixname*30
 c
@@ -154,7 +154,7 @@ c
       character*80 line
 c
       integer istrt,isi,isp,ixsm,ival,lth,i,j,k,m
-      character token*30,ixname*30
+      character token*30
 c
       logical itoken
       integer isfind

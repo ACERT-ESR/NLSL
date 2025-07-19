@@ -74,8 +74,8 @@ c
       character*30 filen
       character*80 comment(MXCMT)
 c
-      integer i,k,iret,npts,nend
-      double precision anorm,c0,c1,yntgrl,ybase
+      integer i,iret,npts
+      double precision anorm,c0,c1
 c
       integer getasc,getbin
 
@@ -173,7 +173,7 @@ c     first-derivative data) to unity
 c----------------------------------------------------------------------
       if (norm.ne.0) then
          call normlz( spndat,nspln,delb,ideriv,lumsg,anorm )
-         if (anorm.ne.0.0d0) stddev=stddev/anorm
+         if (abs(anorm) .gt. 0.0d0) stddev=stddev/anorm
       end if
 c
       getdat=0
@@ -505,7 +505,7 @@ c
         goto 2
         endif
         h=xa(khi)-xa(klo)
-        if (h .eq. 0.0D0) then
+        if (abs(h) .le. 0.0D0) then
           print *, 'SPLNAY: Bad XA input.'
           print *, '[execution paused, press enter to continue]'
           read (*,*)
@@ -579,7 +579,7 @@ c        -------------------------------------------------------------------
       end if
 c
       if (lumsg.ne.0) write (lumsg,1012) anorm
-      if (anorm.ne.0.0D0) then
+      if (abs(anorm).gt.0.0D0) then
          do i=1,n
             arry(i)=arry(i)/anorm
          end do

@@ -22,12 +22,12 @@ c
       integer nfld,nft
       double precision spectr(nfld),wline,dfld
 c
-      integer i,k,no2
+      integer i,no2
       double precision df,f,g,gnorm
 c
-      double precision EIGHT,EPS,ONE,TWO,THIRD,ZERO
+      double precision EIGHT,EPS,ONE,TWO,ZERO
       parameter ( EIGHT=8.0D0,ONE=1.0D0,TWO=2.0D0,ZERO=0.0D0,
-     #            EPS=1.0D-6,THIRD=0.33333333333333D0 )
+     #            EPS=1.0D-6 )
 c
 c######################################################################
 c

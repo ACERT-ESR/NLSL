@@ -67,7 +67,7 @@ c     double precision spectr(iepr(INFLD))
       logical matrix,start
 c
       double precision cgerr,wline,gib
-      integer i,m,n,no2,nstp
+      integer i,nstp
 c
       double precision dblint
       external dblint
