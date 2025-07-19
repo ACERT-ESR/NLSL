@@ -1,0 +1,76 @@
+echo off
+echo **********************************************************************
+echo file SAMPL1.RUN:  sample NLSL script file
+echo
+echo   Illustrates fitting of anisotropic rotation of CSL spin probe 
+echo   in an isotropic solvent at X-band.
+echo
+echo   Test data in file SAMPL1.DAT calculated with the following parameters:
+echo               {g}   = 2.0089, 2.0021, 2.0058
+echo               {A}   = 5.6, 33.8, 5.3  (gauss)
+echo               betad = 15 degrees
+echo               Rpll  = 1e7
+echo               Rperp = 1e8
+echo               B0    = 3400 G
+echo               GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)
+echo **********************************************************************
+
+echo
+echo   --- Open file 'sampl1.log' to save a record of this session
+echo
+
+log sampl1
+
+echo
+echo   --- Set magnetic parameters for CSL spin probe 
+echo
+
+call csl.par
+
+echo
+echo   --- Specify spectrometer field and make initial estimates for
+echo   --- fitting parameters using the "let" statement as shown.
+echo   --- Note in particular that the rotational rate constants
+echo   --- are fit in log space, so that the parameters RPLL and RPRP
+echo   --- are log10 of the rate constants for rotation around the 
+echo   --- axes parallel and perpendicular to the long axis of
+echo   --- the molecule, respectively. 
+echo   ---
+echo   --- Note also that the log function may be used in a let statement.
+echo   ---
+echo   --- GIB0 is the Gaussian inhomogeneous broadening.
+
+let rpll, rprp = log(1.0e8), 8.0
+let gib0 = 1.5
+
+echo
+echo   --- Specify basis set truncation parameters
+echo
+
+let lemx,lomx,kmx,mmx=6,5,4,2,2
+
+echo
+echo    --- Read in ASCII datafile 'sampl1.dat':
+echo    ---    (1) Spline interpolate the data to 200 points
+echo    ---    (2) baseline-correct by fitting a line to 20 points at each end
+echo    ---    (3) allow shifting of B0 to maximize overlap with data
+echo
+
+data sampl1 ascii nspline 200 bc 20 shift
+
+echo
+echo    --- Specify parameters to be varied in fitting procedure
+echo
+
+vary rpll, rprp, gib0
+
+echo
+echo    --- Carry out nonlinear least-squares procedure:
+echo    ---    (1) Stop after a maximum of 40 iterations
+echo    ---    (2) Stop after a maximum of 600 spectral calculations
+echo    ---    (3) Chi-squared convergence tolerance is 1 part in 10^3
+echo
+
+fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3
+
+
