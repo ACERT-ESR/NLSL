@@ -35,7 +35,7 @@ c     root found by Brent's method (function zbrent).
 c----------------------------------------------------------------------
       function chi( p, nu )
       implicit none
-      double precision ts, p, chi
+      double precision p, chi
       integer nu
 c
       double precision x1,x2
@@ -218,8 +218,8 @@ c
      #                 qam,tem
 c
       integer ITMAX
-      double precision ONE,TWO,ZERO,EPS
-      parameter(ITMAX=100,EPS=3.0d-7,ONE=1.0d0,TWO=2.0d0,ZERO=0.0D0)
+      double precision ONE,EPS
+      parameter(ITMAX=100,EPS=3.0d-7,ONE=1.0d0)
 c
       am=ONE
       bm=ONE
@@ -270,7 +270,7 @@ c
 
       function alphat(t)
       implicit none
-      double precision alphat,t,xnu
+      double precision alphat,t
 c
       double precision a,b,alpha
       common /bcom/ a,b,alpha

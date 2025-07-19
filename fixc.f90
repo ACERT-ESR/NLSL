@@ -25,7 +25,7 @@ c
       character*80 line
 c
       integer i,ibd,ix,ix2,j,lth
-      double precision fval,prmn,prmx,prsc,step
+      double precision prmn,prmx,prsc,step
       character token*30,prmID*9
 c
       integer ipfind,indtkn

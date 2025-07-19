@@ -33,7 +33,7 @@ c
 c
       implicit none
 c
-      character line*80, token*30, ident*9, varstr*9, tnstr*9
+      character line*80, token*30, varstr*9, tnstr*9
       integer i,iflg,ix,ixa,ixf,ixten,ix2,j,jx,jx1,jx2,lth,k
 c
       integer ipfind,indtkn,itrim

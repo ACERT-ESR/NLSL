@@ -96,7 +96,7 @@ c
 c
       implicit none
       double precision t(3)
-      integer x,y,z,iflg
+      integer iflg
 c
       double precision TWO,ZERO
       parameter (TWO=2.0D0,ZERO=0.0D0)

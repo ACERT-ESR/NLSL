@@ -40,7 +40,7 @@ c
       double precision v(2,MXDIM)
       integer ierr
 c
-      logical evenk,fmpi0
+      logical fmpi0
       integer i,iparkr,iparlr,jkr,jmr,nup,id,nrow,krmn,krmx,krsgn,
      #     ipnr,ipnrmx,ipnrmn,ipnrsg,iqnr,iqnrmx,iqnrmn,mr,mrmn,mrmx,
      #     mrsgn

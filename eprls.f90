@@ -57,10 +57,8 @@ c     which the Gaussian convolution function needs to be calculated,
 c     exp(-2*TOLEXP).  
 c
       implicit none
-      double precision EIGHT,ONE,THIRD,TWO,ZERO,EPS
       double complex CZERO
-      parameter (ZERO=0.0D0,ONE=1.0D0,THIRD=0.333333333333333D0,
-     #           TWO=2.0D0,EIGHT=8.0D0,EPS=1.0D-3,CZERO=(0.0D0,0.0D0))
+      parameter (CZERO=(0.0D0,0.0D0))
 c
       integer bss(5,MXDIM),ndone,icalc,ierr,iprune,nft
 c     double precision spectr(iepr(INFLD))
@@ -68,7 +66,7 @@ c     double precision spectr(iepr(INFLD))
       double complex al(MXDIM),be(MXDIM)
       logical matrix,start
 c
-      double precision cgerr,wline,df,f,g,gib,gnorm
+      double precision cgerr,wline,gib
       integer i,m,n,no2,nstp
 c
       double precision dblint

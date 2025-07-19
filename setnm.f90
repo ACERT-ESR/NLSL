@@ -27,7 +27,6 @@ c
       character*30 fileid
 c
       integer iend,iroot
-      character*1 chr
       external iroot
 c
 c######################################################################
@@ -72,7 +71,6 @@ c
       character*30 dataid
 c
       integer iend,iroot
-      character*1 chr
       external iroot
 c
 c######################################################################

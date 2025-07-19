@@ -4,13 +4,13 @@ c
       integer iflag,iter
       double precision brent,ax,bx,cx,f,tol,ftol,xmin
       double precision a,b,d,e,etemp,fu,fv,fw,fx,r,q,p,tol1,tol2,u,v,w,
-     #     x,xm,fdmy,fb0
+     #     x,xm,fb0
 c
       external f
 c
       integer ITMAX
-      double precision CGOLD,ZEPS
-      parameter (ITMAX=100,CGOLD=.3819660d0,ZEPS=1.0d-10)
+      double precision CGOLD
+      parameter (ITMAX=100,CGOLD=.3819660d0)
 c
 c     a is lower bound
 c     b is upper bound 

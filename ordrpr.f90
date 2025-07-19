@@ -47,7 +47,7 @@ c
       double precision ZERO,ONE,SMALL
       parameter(ZERO=0.0D0,ONE=1.0D0,SMALL=1.0D-16)
 c
-      integer i,npt,nup,id
+      integer npt,nup,id
       double precision fz,pfn
 c
       integer kount

@@ -71,7 +71,7 @@ c
       use maxl
 c
       implicit none
-      integer i,j,l,kdi,ksi,li,ierr
+      integer i,l,kdi,ksi,li,ierr
       integer lr,lrprod,iparlr,kr,krmx,mr,mrmx,
      #     ipnr,ipnrmn,ipnrmx,iqnr,iqnrmn,iqnrmx,
      #     lc,lcmax,iparlc,ld,ldabs,kc,kcmn,kcmx,kd,ks,

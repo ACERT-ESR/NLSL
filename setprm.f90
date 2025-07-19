@@ -151,7 +151,7 @@ c
       implicit none
       integer ixparm,ixsite,ival
 c
-      integer i,ixmax,ixp,j,jx,jx1,jx2
+      integer i,ixmax,ixp,jx,jx1,jx2
 c
       integer itrim
       logical spcpar,spcprm

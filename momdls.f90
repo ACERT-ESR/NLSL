@@ -63,11 +63,11 @@ c      use prmeqv
 c
       implicit none
       integer bss(5,MXDIM),iparmi(NIPRM),ntotal,icalc,ierr,iprune,
-     #        nft,isi
+     #        nft
 c     double precision fparmi(NFPRM),spectr(iparmi(INFLD)),
 c    #                 work(iparmi(INFLD)),cgerr
       double precision fparmi(NFPRM),spectr(*),
-     #                 work(*),cgerr
+     #                 work(*)
       double complex al(ntotal),be(ntotal)
 c
       integer i,id,ixt,j,nptr,nstp,nevl

@@ -23,7 +23,7 @@ c
       double precision spectr(nfld),wline,dfld
 c
       integer i,k,no2
-      double precision df,f,g,gib,gnorm
+      double precision df,f,g,gnorm
 c
       double precision EIGHT,EPS,ONE,TWO,THIRD,ZERO
       parameter ( EIGHT=8.0D0,ONE=1.0D0,TWO=2.0D0,ZERO=0.0D0,

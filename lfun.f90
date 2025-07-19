@@ -86,7 +86,7 @@ c
 c
       double precision x(n),fvec(m),fjac(ldfjac,n+nsite+nspc)
       integer i,icalc,ierr,ise,isi,isp,ix,ixb,ixs,ixt,j,k,ld,lastsp,nj
-      double precision cgerr,fieldi,shift,snm,wdth,xtemp,dummy
+      double precision fieldi,shift,snm,wdth,xtemp,dummy
       character dashes*132,tmpnam*10,shftnd*1
       logical shiftOK,glbscal,sppar
 c

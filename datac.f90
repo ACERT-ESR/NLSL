@@ -43,7 +43,7 @@ c
       integer NKEYWD
       parameter (NKEYWD=9)
 c
-      integer i,iret,ispc,ival,ix,ixs,j,lth,ncmts,normlz
+      integer i,iret,ispc,ival,ix,ixs,j,lth,ncmts
       character*80 comment(MXCMT)
 c
       logical itoken

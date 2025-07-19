@@ -56,7 +56,7 @@ c
       double precision qtd(MXSITE),qraux(MXSITE),rdiag(MXSITE),
      #                 tmpfac(MXSITE),wa1(MXSITE),wa2(MXSITE)
 c
-      integer i,info,j,jtmp,k,m,mneg,nscl
+      integer i,j,jtmp,k,m,mneg,nscl
       double precision smin,sumc2,sumdc,tmp
 c
       double precision ZERO

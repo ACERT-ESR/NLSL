@@ -207,7 +207,6 @@ c
      #       10x,'Chi-squared=',g13.6,2x,'Reduced Chi-sq=',g13.6/
      #       10x,'Correlation= ',f8.5,7x,'Residual index=',f8.5/)
  2037 format(12x,i4,' function evals (CPU time: ',f9.3,' sec)')
- 2038 format(10x,'No data files were specified')
       end
 c
 c----------------------------------------------------------------------

@@ -25,7 +25,7 @@ c
       implicit none
       character*80 line
 c
-      integer i,ibn,isi,isp,ival,ixsi1,ixsi2,ixsm,ixsp1,ixsp2,
+      integer ibn,isi,isp,ixsi1,ixsi2,ixsm,ixsp1,ixsp2,
      #        ixss(2),lth
       character*30 token
 c

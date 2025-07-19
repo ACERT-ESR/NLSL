@@ -41,7 +41,7 @@ c
       implicit none
       character*80 line
 c
-      integer i,iact,iflag,ival,ixsm,jx,jx1,jx2,lth
+      integer i,iact,iflag,ival,jx,jx1,jx2,lth
       double precision fval
       character*30 token
 c

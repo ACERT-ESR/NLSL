@@ -52,7 +52,7 @@ c
      #                 tmpclc(2*nft),wspec(ldspct,nsi),work(2*nft),
      #                 sfac(nsi),srange,ctol,err
 c
-      integer i,info,irng,isi,ixmx,ixw1,ixw2,ixw3,j,jtmp,k,mneg,
+      integer i,irng,isi,ixmx,ixw1,ixw2,ixw3,j,jtmp,k,mneg,
      #        mnrng,mxrng
       integer jpvt(MXSITE)
       double precision a,approx,asum,b,c,c1m,d1m,dummy,ovmax,

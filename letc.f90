@@ -29,7 +29,7 @@ c
       integer MXLFT
       parameter (MXLFT=10)
 c
-      integer i,ileft,irt,ival,ixf,ixr,ixr2,ixs,ixt,ixxa,
+      integer i,ileft,irt,ival,ixr,ixr2,ixs,ixt,ixxa,
      #        lth,llth,left(MXLFT),leftx(MXLFT)
       double precision fval
       character token*30,prmID*9

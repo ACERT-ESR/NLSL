@@ -10,9 +10,8 @@ c
 c
       implicit none
       character hlptxt*132,line*80, cat1*30, cat2*30, hlpcat*30
-      integer ioerr,ibar,iblk,lth1,lth2,nlines,LINES
+      integer ioerr,ibar,iblk,lth1,lth2,nlines
       logical found1,found2,kywrd1,kywrd2,match1,noncmd
-      parameter(LINES=23)
 c
       call gettkn( line, cat1, lth1 )
       call gettkn( line, cat2, lth2 )

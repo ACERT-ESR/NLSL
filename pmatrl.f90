@@ -95,7 +95,7 @@ c
      #     ipnr,ipnrmn,ipnrmx,iqnr,iqnrmn,iqnrmx,
      #     lc,lcmax,ld,ldabs,kc,kcmn,kcmx,kd,ks,
      #     kdabs,ksabs,mc,mcmn,mcmx,md,ms,mdabs,msabs,
-     #     ipnc,ipncmn,ipncmx,iqnc,iqncmn,iqncmx,
+     #     ipnc,ipncmx,iqnc,iqncmn,iqncmx,
      #     ipnd,ipns,ipndab,ipnsab,iqnd,iqns,iqndab,
      #     kip,nrow,ncol,nelr,neli,nel
       integer ioldlr,ioldkr,ioldmr,ioldpnr,ioldlc,ioldkc,ioldmc,

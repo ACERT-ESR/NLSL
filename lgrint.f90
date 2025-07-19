@@ -39,7 +39,7 @@ c
       double precision fn(5),err
 c
       integer iter,j,m,npol
-      double precision cdx,ctmp,dxold,eps,yy,zz
+      double precision ctmp,dxold,eps,yy,zz
       double complex a(4)
       double complex x,dx,x1,b,d,f,g,h,sq,gp,gm,g2,zero,xx,ww
 c

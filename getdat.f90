@@ -313,7 +313,7 @@ c----------------------------------------------------------------------
       function sglint( arry, n )
       implicit none
       integer i,n
-      double precision arry(n), dx, sglint
+      double precision arry(n), sglint
 
       sglint=0.0D0
       do 10 i=1,n
@@ -336,7 +336,7 @@ c----------------------------------------------------------------------
       function dblint( arry, n )
       implicit none
       integer i,n
-      double precision arry(n),dx,sglint,dblint
+      double precision arry(n),sglint,dblint
 
       sglint=0.0D0
       dblint=0.0D0

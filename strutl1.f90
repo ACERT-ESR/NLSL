@@ -80,7 +80,7 @@ c
 c
       character line*80,token*30,chr*1
 c
-      integer i,j,ichr,ichar
+      integer i,j,ichar
 c
 c *** Function definitions
 c
