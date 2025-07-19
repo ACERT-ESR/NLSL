@@ -19,7 +19,9 @@ if __name__ == "__main__":
     # run only the first example
     print("about to run nlsl example 1")
     filename_base = 'sampl1'
-    os.chdir('examples/')
+    # move to the directory containing this script so relative paths work
+    script_dir = os.path.abspath(os.path.dirname(__file__))
+    os.chdir(script_dir)
     data_files_out = []
     def run_file(thisfp):
         for thisline in thisfp.readlines():
@@ -43,6 +45,8 @@ if __name__ == "__main__":
     if len(data_files_out) == 1:
         fig.subplots_adjust(bottom=0.15)
     fig.subplots_adjust(top=0.95)
+    rms_sq_total = 0.0
+    exp_sq_total = 0.0
     for j,thisdatafile in enumerate(data_files_out):
         subplot(len(data_files_out),1,j+1)
         #fig.add_axes([0.1,0.1,0.6,0.8]) # l b w h
@@ -79,4 +83,10 @@ if __name__ == "__main__":
                         transform=ax.transAxes)
         show_spc(thisdatafile+'.spc')
         #show_spc(thisdatafile+'.spc_ref',linestyles = ['g--','b--'],show_components = False)
+        data_calc = read_column_data(thisdatafile+'.spc')
+        exp_sq_total += sum(data_calc[:,1]**2)
+        rms_sq_total += sum((data_calc[:,2]-data_calc[:,1])**2)
+    if exp_sq_total > 0:
+        relative_rms = sqrt(rms_sq_total)/sqrt(exp_sq_total)
+        print('rms error / norm(experimental) = %0.3g' % relative_rms)
     show()
