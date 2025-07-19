@@ -85,7 +85,7 @@ python module fortrancore ! in
             double precision, save,dimension((mxpt)) :: fvec
             double precision, save,dimension((mxjcol)) :: diag
             double precision, save,pointer :: gtol
-            character(len=10), save,dimension(4) :: flmprm_name
+            character(len=10), dimension(4) :: flmprm_name
             integer, save,pointer :: mode
             integer, parameter,optional :: nilmpr=4
             double precision, save,pointer :: factor
@@ -114,7 +114,7 @@ python module fortrancore ! in
             integer, save,pointer :: ipdf
             integer, save :: ldelta
             integer, parameter,optional :: immx=12
-            character(len=10), save,dimension(nfprm) :: fepr_name
+            character(len=10), dimension(nfprm) :: fepr_name
             integer, parameter,optional :: iphase=1
             integer, save,pointer :: iaflg
             integer, parameter,optional :: igam=28
@@ -253,7 +253,7 @@ python module fortrancore ! in
             double precision, save,pointer :: wxx
             integer, save :: itd
             double precision, save,pointer :: shiftr
-            character(len=10), save,dimension(niprm) :: iepr_name
+            character(len=10), dimension(niprm) :: iepr_name
             integer, save :: kptmx
             integer, parameter,optional :: ikmn=9
             integer, parameter,optional :: ic40=31
