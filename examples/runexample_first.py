@@ -1,7 +1,6 @@
 #!/usr/bin/python
 from pylab import *
 from subprocess import Popen, PIPE, STDOUT
-import os
 import nlsl
 import sys
 rc('font',size=18)
@@ -19,9 +18,6 @@ if __name__ == "__main__":
     # run only the first example
     print("about to run nlsl example 1")
     filename_base = 'sampl1'
-    # move to the directory containing this script so relative paths work
-    script_dir = os.path.abspath(os.path.dirname(__file__))
-    os.chdir(script_dir)
     data_files_out = []
     def run_file(thisfp):
         for thisline in thisfp.readlines():
