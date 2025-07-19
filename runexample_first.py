@@ -1,0 +1,82 @@
+#!/usr/bin/python
+from pylab import *
+from subprocess import Popen, PIPE, STDOUT
+import os
+import nlsl
+import sys
+rc('font',size=18)
+
+def read_column_data(filename):
+    fp = open(filename,'r')
+    data = []
+    for j in fp.readlines():
+        data.append(j.split())
+    data = array(data,dtype = double)
+    fp.close()
+    return data
+
+if __name__ == "__main__":
+    # run only the first example
+    print("about to run nlsl example 1")
+    filename_base = 'sampl1'
+    os.chdir('examples/')
+    data_files_out = []
+    def run_file(thisfp):
+        for thisline in thisfp.readlines():
+            if thisline[:5] == "call ":
+                fp_called = open(thisline[5:].strip())
+                run_file(fp_called)
+                fp_called.close()
+            elif thisline[:5] == "data ":
+                nlsl.procline(thisline)
+                data_files_out.append(thisline[5:].strip().split(' ')[0]) 
+            else:
+                nlsl.procline(thisline)
+        thisfp.close()
+    nlsl.nlsinit()
+    run_file(open(filename_base+'.run'))
+    #print "result:",nlsl.parameters.asdict
+    fig = figure(figsize = (10,5*len(data_files_out)))
+    fig.subplots_adjust(left=0.15)
+    fig.subplots_adjust(right=0.6)
+    fig.subplots_adjust(hspace=0.3)
+    if len(data_files_out) == 1:
+        fig.subplots_adjust(bottom=0.15)
+    fig.subplots_adjust(top=0.95)
+    for j,thisdatafile in enumerate(data_files_out):
+        subplot(len(data_files_out),1,j+1)
+        #fig.add_axes([0.1,0.1,0.6,0.8]) # l b w h
+        def show_spc(filename,linestyles = ['k','r'],show_components = True):
+            data = read_column_data(filename)
+            fields = data[:,0]
+            experimental = data[:,1]
+            fit = data[:,2]
+            integral_of_spectrum = cumsum(experimental)
+            normalization = abs(sum(integral_of_spectrum))
+            if data.shape[1] > 3:
+                components = data[:,3:]
+            else:
+                components = None
+            plot(fields,experimental/normalization,linestyles[0],linewidth = 1,label = 'experimental')
+            plot(fields,fit/normalization,linestyles[1],alpha = 0.5,linewidth = 2,label = 'fit ('+filename+')')
+            max_of_fit = max(fit)/normalization
+            if components is not None and show_components:
+                plot(fields,components/normalization,alpha = 0.3,linewidth = 1,label = 'component')
+            ax = gca()
+            ylims = ax.get_ylim()
+            scale_integral = max_of_fit/max(integral_of_spectrum)
+            plot(fields,integral_of_spectrum * scale_integral,'k:',alpha = 0.5,linewidth = 1,label = '%0.2g $*\int \int$'%scale_integral)
+            legend(bbox_to_anchor=(1.05,0,0.5,1), # bounding box l b w h
+                    loc = 2, # upper left (of the bounding box)
+                    borderaxespad=0.)
+            ax.set_ylim(ylims)
+            setp(ax.get_xticklabels(),rotation = 45)
+            if show_components:# if showing the components, also show rms
+                rms = mean((fit/normalization-experimental/normalization)**2)
+                ax.text(0.75, 0.75, 'rms = %0.2g'%rms,
+                        horizontalalignment='center',
+                        verticalalignment='top',
+                        transform=ax.transAxes)
+        show_spc(thisdatafile+'.spc')
+        #show_spc(thisdatafile+'.spc_ref',linestyles = ['g--','b--'],show_components = False)
+    show()
