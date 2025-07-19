@@ -43,4 +43,4 @@ if __name__ == "__main__":
 
     if exp_sq_total > 0:
         relative_rms = np.sqrt(rms_sq_total) / np.sqrt(exp_sq_total)
-        print('rms error / norm(experimental) = %0.3g' % relative_rms)
+        assert relative_rms < 0.0404*1.01, ('rms error / norm(experimental) = %0.3g' % relative_rms)
