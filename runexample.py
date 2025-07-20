@@ -4,6 +4,7 @@ from subprocess import Popen, PIPE, STDOUT
 import os
 import nlsl
 import sys
+import numpy as np
 rc('font',size=18)
 
 def read_column_data(filename):
@@ -36,6 +37,18 @@ if __name__ == "__main__":
         thisfp.close()
     nlsl.nlsinit()
     run_file(open(filename_base+'.run'))
+
+    # Compute overall relative RMS error across all output spectra
+    rms_sq_total = 0.0
+    exp_sq_total = 0.0
+    for thisdatafile in data_files_out:
+        data_calc = read_column_data(thisdatafile + '.spc')
+        exp_sq_total += np.sum(data_calc[:, 1] ** 2)
+        rms_sq_total += np.sum((data_calc[:, 2] - data_calc[:, 1]) ** 2)
+    if exp_sq_total > 0:
+        rel_rms = np.sqrt(rms_sq_total) / np.sqrt(exp_sq_total)
+        print(f"relative rms = {rel_rms:.5g}")
+
     #print "result:",nlsl.parameters.asdict
     fig = figure(figsize = (10,5*len(data_files_out)))
     fig.subplots_adjust(left=0.15)
