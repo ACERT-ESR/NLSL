@@ -102,6 +102,7 @@ all             : nlsl
 clean           :
 	echo "running clean for linux"
 	$(RM) *.o *.mod nlsl_cmd
+	$(RM) nlsl/*.so
 endif
 addprm.o	: addprm.f90 nlsdim.mod eprprm.mod expdat.mod parcom.mod lpnam.mod\
                   lmcom.mod stdio.mod rnddbl.mod
