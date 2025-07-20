@@ -5,18 +5,18 @@ import nlsl
 
 
 def read_column_data(filename):
-    with open(filename, 'r') as fp:
+    with open(filename, "r") as fp:
         data = [line.split() for line in fp]
     return np.array(data, dtype=np.double)
 
 
-def run_example():
-    """Run the first NLSL example and return the relative RMS error."""
-    print("about to run nlsl example 1")
-    # Ensure files are read relative to this directory
-    os.chdir(os.path.dirname(__file__))
+def run_example(example, allowed_rel_rms=None):
+    """Run the numbered NLSL example and return the relative RMS error."""
+    print(f"about to run nlsl example {example}")
+    examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
+    os.chdir(examples_dir)
 
-    filename_base = 'sampl1'
+    filename_base = f"sampl{example}"
     data_files_out = []
 
     def run_file(thisfp):
@@ -44,11 +44,12 @@ def run_example():
 
     if exp_sq_total > 0:
         relative_rms = np.sqrt(rms_sq_total) / np.sqrt(exp_sq_total)
-        assert relative_rms < 0.0404 * 1.01, (
-            'rms error / norm(experimental) = %0.3g' % relative_rms
-        )
+        if allowed_rel_rms is not None:
+            assert relative_rms < allowed_rel_rms * 1.01, (
+                'rms error / norm(experimental) = %0.3g' % relative_rms
+            )
         return relative_rms
 
 
 if __name__ == "__main__":
-    run_example()
+    run_example(1)
