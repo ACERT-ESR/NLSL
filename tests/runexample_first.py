@@ -10,7 +10,8 @@ def read_column_data(filename):
     return np.array(data, dtype=np.double)
 
 
-if __name__ == "__main__":
+def run_example():
+    """Run the first NLSL example and return the relative RMS error."""
     print("about to run nlsl example 1")
     # Ensure files are read relative to this directory
     os.chdir(os.path.dirname(__file__))
@@ -43,4 +44,11 @@ if __name__ == "__main__":
 
     if exp_sq_total > 0:
         relative_rms = np.sqrt(rms_sq_total) / np.sqrt(exp_sq_total)
-        assert relative_rms < 0.0404*1.01, ('rms error / norm(experimental) = %0.3g' % relative_rms)
+        assert relative_rms < 0.0404 * 1.01, (
+            'rms error / norm(experimental) = %0.3g' % relative_rms
+        )
+        return relative_rms
+
+
+if __name__ == "__main__":
+    run_example()
