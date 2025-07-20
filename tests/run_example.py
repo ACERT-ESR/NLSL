@@ -52,4 +52,16 @@ def run_example(example, allowed_rel_rms=None):
 
 
 if __name__ == "__main__":
-    run_example(1)
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run an NLSL example")
+    parser.add_argument("example", type=int, nargs="?", default=1,
+                        help="example number to run")
+    parser.add_argument("--allowed-rel-rms", type=float, dest="allowed",
+                        default=None,
+                        help="fail if relative RMS exceeds this value")
+    args = parser.parse_args()
+
+    rms = run_example(args.example, allowed_rel_rms=args.allowed)
+    if rms is not None:
+        print(f"relative rms = {rms:.5g}")
