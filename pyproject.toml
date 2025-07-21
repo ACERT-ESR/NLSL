@@ -1,5 +1,9 @@
 [build-system]
-requires = ["meson-python>=0.18", "numpy"]
+requires = [
+    "meson-python>=0.18",
+    "meson>=1.2",
+    "numpy",
+]
 build-backend = "mesonpy"
 
 [project]
@@ -16,3 +20,6 @@ dependencies = [
     "matplotlib",
     "tables",
 ]
+
+[tool.meson-python]
+setup-args = ["--buildtype=release"]
