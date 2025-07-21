@@ -15,3 +15,5 @@ examples/*.spc
 fortrancore-f2pywrappers2.f90
 fortrancoremodule.c
 nlsl/__init__.pyc
+nlsl/fortrancore*.so
+__pycache__/

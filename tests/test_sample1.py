@@ -1,0 +1,119 @@
+import os
+import math
+import numpy as np
+import pytest
+
+
+def run_sample1_manual():
+    print("**********************************************************************")
+    print("file SAMPL1.RUN:  sample NLSL script file")
+    print()
+    print("  Illustrates fitting of anisotropic rotation of CSL spin probe")
+    print("  in an isotropic solvent at X-band.")
+    print()
+    print("  Test data in file SAMPL1.DAT calculated with the following parameters:")
+    print("               {g}   = 2.0089, 2.0021, 2.0058")
+    print("               {A}   = 5.6, 33.8, 5.3  (gauss)")
+    print("               betad = 15 degrees")
+    print("               Rpll  = 1e7")
+    print("               Rperp = 1e8")
+    print("               B0    = 3400 G")
+    print("               GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)")
+    print("**********************************************************************")
+    print()
+    print("  --- Open file 'sampl1.log' to save a record of this session")
+    print()
+
+    examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
+    os.chdir(examples_dir)
+
+    import sys, importlib
+    root = os.path.dirname(os.path.dirname(__file__))
+    if root not in sys.path:
+        sys.path.insert(0, root)
+    nlsl = importlib.import_module("nlsl")
+    nlsl.nlsinit()
+    data_files_out = []
+
+    def procline(cmd):
+        if cmd.startswith("data "):
+            nlsl.procline(cmd)
+            data_files_out.append(cmd[5:].strip().split(' ')[0])
+        else:
+            nlsl.procline(cmd)
+
+    procline("log sampl1")
+    print()
+    print("  --- Set magnetic parameters for CSL spin probe")
+    print()
+    procline("call csl.par")
+    print()
+    print("  --- Specify spectrometer field and make initial estimates for")
+    print("  --- fitting parameters using the \"let\" statement as shown.")
+    print("  --- Note in particular that the rotational rate constants")
+    print("  --- are fit in log space, so that the parameters RPLL and RPRP")
+    print("  --- are log10 of the rate constants for rotation around the")
+    print("  --- axes parallel and perpendicular to the long axis of")
+    print("  --- the molecule, respectively.")
+    print("  ---")
+    print("  --- Note also that the log function may be used in a let statement.")
+    print("  ---")
+    print("  --- GIB0 is the Gaussian inhomogeneous broadening.")
+    params = nlsl.parameters.asdict
+    params['rpll'] = math.log(1.0e8)
+    params['rprp'] = 8.0
+    params['gib0'] = 1.5
+    params['lemx'] = 6
+    params['lomx'] = 5
+    params['kmx'] = 4
+    params['mmx'] = 2
+    nlsl.parameters.asdict = params
+    print()
+    print("  --- Specify basis set truncation parameters")
+    print()
+    print("   --- Read in ASCII datafile 'sampl1.dat':")
+    print("   ---    (1) Spline interpolate the data to 200 points")
+    print("   ---    (2) baseline-correct by fitting a line to 20 points at each end")
+    print("   ---    (3) allow shifting of B0 to maximize overlap with data")
+    procline("data sampl1 ascii nspline 200 bc 20 shift")
+    print()
+    print("   --- Specify parameters to be varied in fitting procedure")
+    print()
+    procline("vary rpll, rprp, gib0")
+    print()
+    print("   --- Carry out nonlinear least-squares procedure:")
+    print("   ---    (1) Stop after a maximum of 40 iterations")
+    print("   ---    (2) Stop after a maximum of 600 spectral calculations")
+    print("   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3")
+    procline("fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3")
+
+    rel_rms_list = []
+    for fname in data_files_out:
+        data = np.loadtxt(fname + '.spc')
+        exp_sq = np.sum(data[:, 1] ** 2)
+        rms_sq = np.sum((data[:, 2] - data[:, 1]) ** 2)
+        if exp_sq > 0:
+            rel_rms_list.append(math.sqrt(rms_sq) / math.sqrt(exp_sq))
+
+    final_params = nlsl.parameters.asdict
+    return rel_rms_list, final_params
+
+
+def test_sample1_only_manual():
+    try:
+        rel_rms, params = run_sample1_manual()
+    except ImportError as e:
+        pytest.skip(f"required module missing: {e}")
+
+    assert rel_rms and all(r < 0.0404 * 1.01 for r in rel_rms)
+
+    expected = {
+        "gib0": 2.088995,
+        "rprp": 6.982988,
+        "rpll": 8.017160,
+        "spctrm1": 3.115812,
+    }
+
+    for key, val in expected.items():
+        assert key in params
+        assert math.isclose(params[key], val, rel_tol=1e-4)
