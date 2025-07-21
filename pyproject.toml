@@ -1,0 +1,27 @@
+[build-system]
+requires = [
+    "meson-python>=0.15",
+    "meson>=1.2",
+    "numpy",
+]
+build-backend = "mesonpy"
+
+[project]
+name = "NLSL"
+version = "0.1.0"
+description = "the ACERT NLSL package, now wrapped up in python!"
+readme = "README.rst"
+license = {file = "LICENSE.md"}
+authors = [{name = "NLSL development team"}]
+dependencies = [
+    "sympy",
+    "numpy",
+    "scipy",
+    "matplotlib",
+    "tables",
+]
+
+[tool.meson-python]
+# Meson arguments used when building from a wheel or editable install
+[tool.meson-python.args]
+setup = []
