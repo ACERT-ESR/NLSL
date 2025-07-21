@@ -21,6 +21,7 @@ dependencies = [
     "tables",
 ]
 
-# Meson-Python configuration is handled via command line arguments during
-# packaging. The older version available in the build environment does not
-# support the `[tool.meson-python]` table, so it is omitted here.
+[tool.meson-python]
+# Meson arguments used when building from a wheel or editable install
+[tool.meson-python.args]
+setup = []
