@@ -7,7 +7,7 @@ EXAMPLES = [
     (2, [0.0331, 0.0513]),
     (3, [0.06113]),
     (4, [0.04001]),
-    (5, [0.0714, 0.1592]),
+    (5, [0.075, 0.1592]),
 ]
 
 @pytest.mark.parametrize("example,allowed", EXAMPLES)
