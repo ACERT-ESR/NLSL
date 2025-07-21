@@ -5,7 +5,7 @@ import os
 import nlsl
 import sys
 import numpy as np
-rc('font',size=18)
+rc('font', size=18)
 
 def read_column_data(filename):
     fp = open(filename,'r')
@@ -20,8 +20,9 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise OSError("This function takes one argument -- the number of the example")
     print("about to run nlsl")
-    filename_base = 'sampl'+sys.argv[1]
-    os.chdir('examples/')
+    filename_base = 'sampl' + sys.argv[1]
+    examples_dir = os.path.dirname(__file__)
+    os.chdir(examples_dir)
     data_files_out = []
     def run_file(thisfp):
         for thisline in thisfp.readlines():
@@ -38,16 +39,23 @@ if __name__ == "__main__":
     nlsl.nlsinit()
     run_file(open(filename_base+'.run'))
 
-    # Compute overall relative RMS error across all output spectra
+    # Compute relative RMS error for each output spectrum
+    rms_values = []
     rms_sq_total = 0.0
     exp_sq_total = 0.0
     for thisdatafile in data_files_out:
         data_calc = read_column_data(thisdatafile + '.spc')
-        exp_sq_total += np.sum(data_calc[:, 1] ** 2)
-        rms_sq_total += np.sum((data_calc[:, 2] - data_calc[:, 1]) ** 2)
-    if exp_sq_total > 0:
+        exp_sq = np.sum(data_calc[:, 1] ** 2)
+        rms_sq = np.sum((data_calc[:, 2] - data_calc[:, 1]) ** 2)
+        exp_sq_total += exp_sq
+        rms_sq_total += rms_sq
+        if exp_sq > 0:
+            rms = np.sqrt(rms_sq) / np.sqrt(exp_sq)
+            rms_values.append((thisdatafile, rms))
+            print(f"{thisdatafile}: relative rms = {rms:.5g}")
+    if exp_sq_total > 0 and len(rms_values) > 1:
         rel_rms = np.sqrt(rms_sq_total) / np.sqrt(exp_sq_total)
-        print(f"relative rms = {rel_rms:.5g}")
+        print(f"overall relative rms = {rel_rms:.5g}")
 
     #print "result:",nlsl.parameters.asdict
     fig = figure(figsize = (10,5*len(data_files_out)))
