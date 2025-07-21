@@ -1,6 +1,6 @@
 [build-system]
 requires = [
-    "meson-python>=0.18",
+    "meson-python>=0.15",
     "meson>=1.2",
     "numpy",
 ]
@@ -21,5 +21,6 @@ dependencies = [
     "tables",
 ]
 
-[tool.meson-python]
-setup-args = ["--buildtype=release"]
+# Meson-Python configuration is handled via command line arguments during
+# packaging. The older version available in the build environment does not
+# support the `[tool.meson-python]` table, so it is omitted here.
