@@ -18,7 +18,7 @@ class _parameter_class(object):
     def asdict(self):  # this is the getter
         """A dictionary containing the various floating-point ESR parameters"""
         try:
-            names = _fortrancore.eprprm.fepr_name.T.reshape(-1, 10).view(dtype="|S10")[:, 0].tolist()
+            names = _fortrancore.eprprm.fepr_name.T.reshape(-1, _fortrancore.eprprm.nfprm).view(dtype=f"|S{_fortrancore.eprprm.nfprm}")[:, 0].tolist()
             names = [x[: x.find(" ")] for x in names]
             values = _fortrancore.eprprm.fepr
             self._asdict = dict(zip(names, values))
