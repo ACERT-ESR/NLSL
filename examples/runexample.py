@@ -24,6 +24,8 @@ if __name__ == "__main__":
     examples_dir = os.path.dirname(__file__)
     os.chdir(examples_dir)
     data_files_out = []
+    n = nlsl.nlsl()
+
     def run_file(thisfp):
         for thisline in thisfp.readlines():
             if thisline[:5] == "call ":
@@ -31,12 +33,11 @@ if __name__ == "__main__":
                 run_file(fp_called)
                 fp_called.close()
             elif thisline[:5] == "data ":
-                nlsl.procline(thisline)
-                data_files_out.append(thisline[5:].strip().split(' ')[0]) 
+                n.procline(thisline)
+                data_files_out.append(thisline[5:].strip().split(' ')[0])
             else:
-                nlsl.procline(thisline)
+                n.procline(thisline)
         thisfp.close()
-    nlsl.nlsinit()
     run_file(open(filename_base+'.run'))
 
     # Compute relative RMS error for each output spectrum
