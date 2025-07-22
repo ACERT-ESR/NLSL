@@ -7,7 +7,7 @@ requires = [
 build-backend = "mesonpy"
 
 [project]
-name = "NLSL"
+name = "nlsl"
 version = "0.1.0"
 description = "the ACERT NLSL package, now wrapped up in python!"
 readme = "README.rst"

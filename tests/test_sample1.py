@@ -126,10 +126,7 @@ def run_sample1_manual():
 
 
 def test_sample1_only_manual():
-    try:
-        rel_rms, params = run_sample1_manual()
-    except ImportError as e:
-        pytest.skip(f"required module missing: {e}")
+    rel_rms, params = run_sample1_manual()
 
     assert rel_rms and all(r < 0.0404 * 1.02 for r in rel_rms)
 

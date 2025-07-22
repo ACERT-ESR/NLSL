@@ -12,8 +12,5 @@ EXAMPLES = [
 
 @pytest.mark.parametrize("example,allowed", EXAMPLES)
 def test_runexample(example, allowed):
-    try:
-        rel_rms = run_example(example, allowed_rel_rms=allowed)
-    except ImportError as e:
-        pytest.skip(f"required module missing: {e}")
+    rel_rms = run_example(example, allowed_rel_rms=allowed)
     assert rel_rms and all(r < a * 1.01 for r, a in zip(rel_rms, allowed))
