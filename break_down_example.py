@@ -3,7 +3,8 @@ import os
 import nlsl
 import sys
 
-nlsl.nlsinit()
+# create a fresh NLSL instance
+n = nlsl.nlsl()
 print('off')
 print('**********************************************************************')
 print('file SAMPL1.RUN:  sample NLSL script file\n')
@@ -19,16 +20,22 @@ print('              B0    = 3400 G')
 print('              GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)')
 print('**********************************************************************\n')
 print('  --- Open file "sampl1.log" to save a record of this session\n')
-nlsl.procline("log sampl1")
+n.procline("log sampl1")
 print()
 print('  --- Set magnetic parameters for CSL spin probe \n')
 print('********************************************')
 print('Magnetic parameters for CSL spin probe')
 print('********************************************')
-nlsl.procline("let gxx,gyy,gzz=2.0089,2.0021,2.0058")
-nlsl.procline("let in2=2")
-nlsl.procline("let axx,ayy,azz=5.6,33.8,5.3")
-nlsl.procline("let betad=15")
+n.update({
+    'gxx': 2.0089,
+    'gyy': 2.0021,
+    'gzz': 2.0058,
+    'in2': 2,
+    'axx': 5.6,
+    'ayy': 33.8,
+    'azz': 5.3,
+    'betad': 15,
+})
 print('********************************************')
 print('CSL spin probe parameters loaded')
 print('********************************************\n')
@@ -43,24 +50,27 @@ print('  ---')
 print('  --- Note also that the log function may be used in a let statement.')
 print('  ---')
 print('  --- GIB0 is the Gaussian inhomogeneous broadening.')
-nlsl.procline("let rpll, rprp = log(1.0e8), 8.0")
-nlsl.procline("let gib0 = 1.5")
+n.update({
+    'rpll': log(1.0e8),
+    'rprp': 8.0,
+    'gib0': 1.5,
+})
 print()
 print('  --- Specify basis set truncation parameters\n')
-nlsl.procline("let lemx,lomx,kmx,mmx=6,5,4,2,2")
+n.update({'lemx': 6, 'lomx': 5, 'kmx': 4, 'mmx': (2, 2)})
 print()
 print('   --- Read in ASCII datafile "sampl1.dat":')
 print('   ---    (1) Spline interpolate the data to 200 points')
 print('   ---    (2) baseline-correct by fitting a line to 20 points at each end')
 print('   ---    (3) allow shifting of B0 to maximize overlap with data\n')
-nlsl.procline("data sampl1 ascii nspline 200 bc 20 shift")
+n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 print()
 print('   --- Specify parameters to be varied in fitting procedure\n')
-nlsl.procline("vary rpll, rprp, gib0")
+n.procline("vary rpll, rprp, gib0")
 print()
 print('   --- Carry out nonlinear least-squares procedure:')
 print('   ---    (1) Stop after a maximum of 40 iterations')
 print('   ---    (2) Stop after a maximum of 600 spectral calculations')
 print('   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3\n')
-nlsl.procline("fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3")
-print(nlsl.parameters.asdict)
+n.procline("fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3")
+print(dict(n.items()))

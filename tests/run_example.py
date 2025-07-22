@@ -1,7 +1,6 @@
 #!/usr/bin/python
 import os
 import numpy as np
-import nlsl
 
 
 def read_column_data(filename):
@@ -12,12 +11,18 @@ def read_column_data(filename):
 
 def run_example(example, allowed_rel_rms=None):
     """Run the numbered NLSL example and return list of relative RMS errors."""
+    try:
+        import nlsl
+    except ImportError:
+        raise
+
     print(f"about to run nlsl example {example}")
     examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
     os.chdir(examples_dir)
 
     filename_base = f"sampl{example}"
     data_files_out = []
+    n = nlsl.nlsl()
 
     def run_file(thisfp):
         for thisline in thisfp.readlines():
@@ -26,13 +31,12 @@ def run_example(example, allowed_rel_rms=None):
                 run_file(fp_called)
                 fp_called.close()
             elif thisline[:5] == "data ":
-                nlsl.procline(thisline)
+                n.procline(thisline)
                 data_files_out.append(thisline[5:].strip().split(' ')[0])
             else:
-                nlsl.procline(thisline)
+                n.procline(thisline)
         thisfp.close()
 
-    nlsl.nlsinit()
     run_file(open(filename_base + '.run'))
 
     rel_rms_list = []
