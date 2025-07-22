@@ -48,6 +48,7 @@ c     **********
       s3 = zero
       x1max = zero
       x3max = zero
+      enorm = 0.0d0
       floatn = n
       agiant = rgiant/floatn
       do 90 i = 1, n

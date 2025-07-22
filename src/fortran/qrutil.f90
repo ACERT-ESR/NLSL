@@ -49,8 +49,8 @@ c
       end do
 c
       do j=1,n
+         qtemp=q(j,j)
          if (qraux(j).ne.ZERO) then
-            qtemp=q(j,j)
             q(j,j)=qraux(j)
             sum=ZERO
             do i=j,m

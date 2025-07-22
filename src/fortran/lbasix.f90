@@ -47,7 +47,7 @@ c
       integer lthb,maxb,new,ierr,bss(5,lthb),mts(MXMTS)
 c
       integer i,ioerr,ipnr,ipnrmx,ipnrmn,iqnr,iqnrmx,iqnrmn,j,kr,
-     #        krmx,kdel,ldel,lth,lr,mr,mrmx,n,nrow,iparlr,krmn,mrmn
+     #        krmx,lth,lr,mr,mrmx,nrow,iparlr,krmn,mrmn
 c
       logical fexist
       integer ipar,iroot

@@ -48,9 +48,9 @@ c
       implicit none
       integer ierr
 c
-      integer i,itmp,j 
+      integer i,j
       integer inlemx,inlomx,inkmn,inkmx,inmmn,inmmx,inpnmx
-      double precision gmax,gmin,hmax,davg,dn
+      double precision gmax,gmin,hmax
       double precision d2km(2,5,5)
       logical axiala,axialg,axialw,axialr
 c

@@ -310,6 +310,7 @@ c
 c
       if(q+1.gt.nb) then
         write (*,1000) j1,j2,j3,m1,m2,m3
+        wig3j=0.0d0
         return
       endif
 c

@@ -14,6 +14,11 @@ c
       logical found1,found2,kywrd1,kywrd2,match1,noncmd
       parameter(LINES=23)
 c
+      ibar=1
+      iblk=1
+      hlpcat=''
+      match1=.false.
+
       call gettkn( line, cat1, lth1 )
       call gettkn( line, cat2, lth2 )
       if (lth1.ne.0) call touppr(cat1,lth1) 

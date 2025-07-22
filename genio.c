@@ -187,7 +187,6 @@ int getarray( array, arrylth, maxpts )
 double array[];
 long int arrylth, maxpts;
 {
-double dummy;
 int i, lastel, nxtarry;
    nxtarry = 0;
    do {
@@ -196,8 +195,8 @@ int i, lastel, nxtarry;
 	 if (nxtarry<maxpts) 
 	   array[nxtarry++] = getreal();
 	 else {
-	   nxtarry++;
-	   dummy = getreal();
+          nxtarry++;
+          getreal();
 	 }
          if (feof(inputfile)) break;
        }
@@ -238,7 +237,7 @@ char filename[], comment[][MAXLINLTH];
 double xarry[], yarry[];
 long int *npoints, *ncmts, *maxpts;
 {
-int cmtlns, i, iret, ncol;
+int cmtlns, i, iret;
    i = 0; 
                       
    while ((filename[i++] != ' ') && (i <= MAXLINLTH)); /* trim end blanks */
@@ -268,7 +267,7 @@ int cmtlns, i, iret, ncol;
 
   i = getrecsize();
   *npoints = getint();
-  ncol     = getint();
+  (void)getint();
   if (i != getrecsize()) return array_err("Bad npoints, ncol record");
 
 /* Read X data (Field) */

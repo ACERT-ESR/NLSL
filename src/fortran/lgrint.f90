@@ -33,15 +33,15 @@ c   maximum
 c
 c----------------------------------------------------------------------
 c
-      function lgrint(fn,err)
+      function lgrint(fn)
       implicit none
       double complex lgrint
-      double precision fn(5),err
+      double precision fn(5)
 c
-      integer iter,j,m,npol
-      double precision cdx,ctmp,dxold,eps,yy,zz
+      integer iter,j,m
+      double precision ctmp,eps,yy,zz
       double complex a(4)
-      double complex x,dx,x1,b,d,f,g,h,sq,gp,gm,g2,zero,xx,ww
+      double complex x,dx,x1,b,d,f,g,h,sq,gp,gm,g2,xx,ww
 c
       integer MAXIT
       double precision TINY

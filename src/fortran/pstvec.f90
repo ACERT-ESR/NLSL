@@ -56,6 +56,17 @@ c
       integer ipar
       double precision fz
       external fz,ipar
+
+      cnl=ZERO
+      stv=ZERO
+      stvlk=ZERO
+      stvm=ZERO
+      evenl=.false.
+      evenk=.false.
+      mr=0
+      jmr=0
+      jkr=0
+      iparlr=0
 c
 c######################################################################
 c

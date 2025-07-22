@@ -50,7 +50,7 @@ c
       integer iarr,ideriv,ldspct,nsi,npt,nft,noneg
       double precision spct(ldspct,nsi),data(npt),tmpdat(2*nft),
      #                 tmpclc(2*nft),wspec(ldspct,nsi),work(2*nft),
-     #                 sfac(nsi),srange,ctol,err
+     #                 sfac(nsi),srange,ctol
 c
       integer i,info,irng,isi,ixmx,ixw1,ixw2,ixw3,j,jtmp,k,mneg,
      #        mnrng,mxrng
@@ -229,7 +229,7 @@ c      end if
 c
       iarr=max(ixmx-2,mnrng)
       iarr=min(iarr,mxrng-4)
-      xfrac=lgrint(tmpclc(iarr),err)
+      xfrac=dble(lgrint(tmpclc(iarr)))
 c
       shift=dble(ixmx-(nft/2)-1)+xfrac
 c

@@ -67,7 +67,7 @@ c
       double precision prmn,prmx,prsc,step
       character*9 ident
 c
-      integer i,isi,ixabs,j,jx,jx1,jx2,k,k1,l,lu,nadd,nmov
+      integer i,ixabs,j,jx,jx1,jx2,k,k1,l,lu,nadd,nmov
 c
       integer itrim
       logical spcpar,tcheck
