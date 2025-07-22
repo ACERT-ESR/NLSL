@@ -46,7 +46,18 @@ def run_sample1_manual():
     print()
     print("  --- Set magnetic parameters for CSL spin probe")
     print()
-    procline("call csl.par")
+    params = nlsl.parameters.asdict
+    params.update({
+        "gxx": 2.0089,
+        "gyy": 2.0021,
+        "gzz": 2.0058,
+        "in2": 2,
+        "axx": 5.6,
+        "ayy": 33.8,
+        "azz": 5.3,
+        "betad": 15,
+    })
+    nlsl.parameters.asdict = params
     print()
     print("  --- Specify spectrometer field and make initial estimates for")
     print("  --- fitting parameters using the \"let\" statement as shown.")
@@ -60,13 +71,13 @@ def run_sample1_manual():
     print("  ---")
     print("  --- GIB0 is the Gaussian inhomogeneous broadening.")
     params = nlsl.parameters.asdict
-    params['rpll'] = math.log(1.0e8)
+    params['rpll'] = math.log10(1.0e8)
     params['rprp'] = 8.0
     params['gib0'] = 1.5
     params['lemx'] = 6
     params['lomx'] = 5
     params['kmx'] = 4
-    params['mmx'] = 2
+    params['mmx'] = (2, 2)
     nlsl.parameters.asdict = params
     print()
     print("  --- Specify basis set truncation parameters")
@@ -86,6 +97,7 @@ def run_sample1_manual():
     print("   ---    (2) Stop after a maximum of 600 spectral calculations")
     print("   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3")
     procline("fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3")
+    procline("log end")
 
     rel_rms_list = []
     for fname in data_files_out:
@@ -95,7 +107,23 @@ def run_sample1_manual():
         if exp_sq > 0:
             rel_rms_list.append(math.sqrt(rms_sq) / math.sqrt(exp_sq))
 
-    final_params = nlsl.parameters.asdict
+    final_params = {}
+    import re
+    with open("sampl1.log") as fp:
+        lines = fp.readlines()
+    start = None
+    for i, line in enumerate(lines):
+        if "Final Parameters" in line:
+            start = i + 4  # skip header lines
+            break
+    if start is not None:
+        for line in lines[start:]:
+            if not line.strip() or line.lstrip().startswith("Confidence"):
+                break
+            m = re.match(r"\s*(\w+)\s*=\s*([-0-9.Ee+]+)", line)
+            if m:
+                final_params[m.group(1).lower()] = float(m.group(2))
+
     return rel_rms_list, final_params
 
 
