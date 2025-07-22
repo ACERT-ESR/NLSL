@@ -35,7 +35,7 @@ c     root found by Brent's method (function zbrent).
 c----------------------------------------------------------------------
       function chi( p, nu )
       implicit none
-      double precision ts, p, chi
+      double precision p, chi
       integer nu
 c
       double precision x1,x2
@@ -47,6 +47,7 @@ c
       double precision pchi,zbrent
       external pchi,zbrent
 c
+      chi=0.0d0
       halfnu=0.5d0*nu
       conf=p
       x1=1.0d0
@@ -270,7 +271,7 @@ c
 
       function alphat(t)
       implicit none
-      double precision alphat,t,xnu
+      double precision alphat,t
 c
       double precision a,b,alpha
       common /bcom/ a,b,alpha
@@ -520,6 +521,7 @@ c
       b=x2
       fa=func(a)
       fb=func(b)
+      e=0.0d0
       if((fa.gt.0..and.fb.gt.0.).or.(fa.lt.0..and.fb.lt.0.))
      *  call pausex('root must be bracketed for zbrent')
       c=b

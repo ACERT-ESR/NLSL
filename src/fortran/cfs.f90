@@ -105,7 +105,7 @@ c
 c    -----------------------------------------------------------
 c     Special check to eliminate spikes near center of spectrum
 c    -----------------------------------------------------------
-      ictr=1.5d0-z0/dz
+      ictr=int(1.5d0-z0/dz)
       if(ictr .gt. 1 .and. ictr .lt. iz-1) then
         if ( abs(val(ictr)-val(ictr-1))+abs(val(ictr)-val(ictr+1))
      #    .gt. 3.0d0*abs(val(ictr+1)-val(ictr-1)) )

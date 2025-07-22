@@ -161,7 +161,9 @@ c
       end if
 c
 c   --- Discrete jump motion
-      if (iparm(IIPDF,jx).ne.2 .and. iparm(IIST,jx).ne.0 .and. 
+c
+      npotn=0
+      if (iparm(IIPDF,jx).ne.2 .and. iparm(IIST,jx).ne.0 .and.
      #    npotn.gt.0) write (lu,1010) hdr,iparm(IIST,jx),fparm(IDJF,jx)
 c
 c    ----------------------

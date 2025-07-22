@@ -42,9 +42,10 @@ c
 c
       implicit none
       double precision TWO,THREE,t(3),t1,t2,t3
-      integer x,y,z,iflg
+      integer iflg
+      integer, parameter :: x=1,y=2,z=3
 c
-      parameter (TWO=2.0D0,THREE=3.0D0,x=1,y=2,z=3)
+      parameter (TWO=2.0D0,THREE=3.0D0)
 c
       if (iflg.eq.CARTESIAN) return
       if (iflg.eq.AXIAL) then

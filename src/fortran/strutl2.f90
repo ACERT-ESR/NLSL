@@ -22,7 +22,7 @@ c
       implicit none
       character(len=*) :: string
       character(len=1) :: chr
-      integer :: i, ich, ichar, lth
+      integer :: i, ich, lth
 c
       do i=1,lth
          chr=string(i:i)

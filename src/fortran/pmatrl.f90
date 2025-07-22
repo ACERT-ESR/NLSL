@@ -117,9 +117,12 @@ c
       double precision ZERO,ONE
       parameter (ZERO=0.0D0,ONE=1.0D0)
 c
-      integer ipar 
+      integer ipar
       double precision w3j
       external ipar,w3j
+      ra=ZERO
+      rg=ZERO
+      rw=ZERO
 c
 c######################################################################
 c

@@ -320,7 +320,7 @@ c
 c
       implicit none
 c
-      integer i,j
+      integer i
       character line*80
 c
       logical getlin

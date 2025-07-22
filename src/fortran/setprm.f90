@@ -48,7 +48,9 @@ c
 c
       logical spcpar,spcprm
       external spcpar
-c   
+c
+      jx1=1
+      jx2=1
       spcprm=spcpar(ixparm)
       if (spcprm) then
          ixmax=MXSPC
@@ -151,12 +153,14 @@ c
       implicit none
       integer ixparm,ixsite,ival
 c
-      integer i,ixmax,ixp,j,jx,jx1,jx2
+      integer i,ixmax,ixp,jx,jx1,jx2
 c
       integer itrim
       logical spcpar,spcprm
       external itrim,spcpar
 c
+      jx1=1
+      jx2=1
       ixp=abs(mod(ixparm,100))
       spcprm=spcpar(ixparm)
 c
@@ -346,6 +350,7 @@ c
       logical spcpar,spcprm
       external spcpar
 c   
+      getprm=0.0D0
       spcprm=spcpar(ixparm)
       if (spcprm) then
          ixmax=nser

@@ -114,7 +114,7 @@ c     blas drotg
 c     fortran min0
 c
       integer i,ii,il,iu,j,jj,km1,kp1,lmk,lm1
-      double precision rjp1j,t
+      double precision t
 c
 c     initialize
 c
