@@ -47,8 +47,8 @@ c
 c      double precision prmax,prmin,prscl,serval,xfdstp,xerr,fparm,
 c     #                 ctol,ptol,pftol,pstep,pbound,srange
 c      integer iparm,ibnd,ixpr,ixst,ixx,iser,nser,nsite,nprm,njcol,
-c     #        nshift,noneg,ixp1p,ixs1p,mxpitr,itridg,iitrfl,jacobi,
-c     #        output
+c     #        shift_flag,neg_flag,ixp1p,ixs1p,mxpitr,tridiag_flag,
+c     #        iterates_flag,jacobi,write_flag
 c      logical mtxclc
 c      character*9 tag
 c
@@ -62,8 +62,8 @@ c
 c
       integer, save :: ixx(NFPRM,MXSITE),
      #                ibnd(MXVAR),ixpr(MXVAR),ixst(MXVAR),
-     #                iser,nser,nsite,nprm,njcol,nshift,noneg,itridg,
-     #                iitrfl,jacobi,ixp1p,ixs1p,mxpitr,output
+     #                iser,nser,nsite,nprm,njcol,shift_flag,neg_flag,tridiag_flag,
+     #                iterates_flag,jacobi,ixp1p,ixs1p,mxpitr,write_flag
       logical, save :: mtxclc
       character*9, save :: tag(MXJCOL)
 c

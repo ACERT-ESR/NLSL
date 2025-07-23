@@ -3,7 +3,7 @@
 \subsection*{Functions/\+Subroutines}
 \begin{DoxyCompactItemize}
 \item 
-double precision function \hyperlink{sshift_8f90_a2688fe3d7ac81ecd0fa061c6657bf7e3}{sshift} (data, spct, ldspct, nsi, npt, nft, ideriv, srange, ctol, noneg, tmpdat, tmpclc, wspec, work, sfac)
+double precision function \hyperlink{sshift_8f90_a2688fe3d7ac81ecd0fa061c6657bf7e3}{sshift} (data, spct, ldspct, nsi, npt, nft, ideriv, srange, ctol, neg_flag, tmpdat, tmpclc, wspec, work, sfac)
 \end{DoxyCompactItemize}
 
 
@@ -21,7 +21,7 @@ double precision function \hyperlink{sshift_8f90_a2688fe3d7ac81ecd0fa061c6657bf7
 \item[{integer}]{ideriv, }
 \item[{double precision}]{srange, }
 \item[{double precision}]{ctol, }
-\item[{integer}]{noneg, }
+\item[{integer}]{neg_flag, }
 \item[{double precision, dimension(2$\ast$nft)}]{tmpdat, }
 \item[{double precision, dimension(2$\ast$nft)}]{tmpclc, }
 \item[{double precision, dimension(ldspct,nsi)}]{wspec, }

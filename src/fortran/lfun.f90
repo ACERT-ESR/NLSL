@@ -130,7 +130,7 @@ c           -----------------------------------
 c
             if (luout.ne.luttyo) then
                if (ld.gt.0)write (luttyo,1006) dashes(:ld)
-               if (iwflag.ne.0) then
+               if (weighted_flag.ne.0) then
                   write (luttyo,1007) (tag(i)(:itrim(tag(i))),i=1,n)
                else
                   write (luttyo,1010) (tag(i)(:itrim(tag(i))),i=1,n)
@@ -139,7 +139,7 @@ c
             end if
 c
             if (ld.gt.0)write (luout,1006)  dashes(:ld)
-            if (iwflag.ne.0) then
+            if (weighted_flag.ne.0) then
                write (luout,1007) (tag(i)(:itrim(tag(i))),i=1,n)
             else
                write (luout,1010) (tag(i)(:itrim(tag(i))),i=1,n)
@@ -147,13 +147,13 @@ c
             if (ld.gt.0)write (luout,1008)  dashes(:ld)
          end if
 c
-         if (ishglb.ne.0 .and. (nshift.eq.0 .or.iter.le.nshift) ) then
+         if (ishglb.ne.0 .and. (shift_flag.eq.0 .or.iter.le.shift_flag) ) then
             shftnd='S'
          else
             shftnd=' '
          end if
 c
-         if (iwflag.ne.0) then
+         if (weighted_flag.ne.0) then
             rdchsq=fnorm*fnorm/float(m-n)
             write (luout,1009) shftnd,iter,rdchsq,(x(i),i=1,n)
             if (luout.ne.luttyo) 
@@ -167,8 +167,8 @@ c
 c        ------------------------------------------------------------
 c        Output any other requested information regarding iterates
 c        ------------------------------------------------------------
-         if (iitrfl.ne.0) call wrfun(iter)
-         if (itridg.ne.0) call wrtrdg(iter)
+         if (iterates_flag.ne.0) call wrfun(iter)
+         if (tridiag_flag.ne.0) call wrtrdg(iter)
          if (jacobi.ne.0) call wrjac(iter)
 c
 c**********************************************************************
@@ -186,7 +186,7 @@ c
             call setprm(ixpr(i),ixst(i),x(i))
          end do
 c
-         shiftOK = (nshift.eq.0 .or. iter.le.nshift)
+         shiftOK = (shift_flag.eq.0 .or. iter.le.shift_flag)
          call tdsqz()
 c
 c       -----------------------------------
@@ -248,7 +248,7 @@ c             -----------------------------------------------------------
 c
                   shift=sshift( data(ixs),spectr(ixs,1),MXPT,nsite,
      #                  npts(ise),nft(ise),idrv(ise),srange,ctol,
-     #                  noneg,tmpdat,tmpclc,wspec,work,sfac(1,ise) )
+     #                  neg_flag,tmpdat,tmpclc,wspec,work,sfac(1,ise) )
                   tmpshft(ise)=shift*sdb(ise)
 c
 c                 --------------------------------------------------------
@@ -306,7 +306,7 @@ c                 problems must be scaled globally, outside loop over spectra
 c                -----------------------------------------------------------
                   if (.not. glbscal)
      #                call sscale( data(ixs),spectr(ixs,1),wspec,MXPT,
-     #                             work,nsite,npts(ise),ctol,noneg,
+     #                             work,nsite,npts(ise),ctol,neg_flag,
      #                             iscal,sfac(1,ise),fvec(ixs) )
 c
 c                      *** End of "if (shifting allowed)...else..."
@@ -337,7 +337,7 @@ c        --------------------------------------------------------------
          if (glbscal) then
 c
             call sscale( data,spectr,wspec,MXPT,work,nsite,m,ctol,
-     #                   noneg,iscal,sfac,fvec )
+     #                   neg_flag,iscal,sfac,fvec )
 c
 c          --------------------------------------------
 c           Copy the global scale factors to all spectra
@@ -374,7 +374,7 @@ c     For weighted residual fit, normalize differences in fvec
 c     to the spectral noise (then |fvec|^2 will approximate 
 c     the true chi^2)
 c     ----------------------------------------------------------
-         if (iwflag.ne.0) then
+         if (weighted_flag.ne.0) then
             do isp=1,nspc
                ixs=ixsp(isp)
                do j=1,npts(isp)
@@ -470,7 +470,7 @@ c
 c                    ------------------------------------------
 c                     Add in difference spectrum for this site
 c                    ------------------------------------------
-                     if (iwflag.ne.0) then
+                     if (weighted_flag.ne.0) then
 c                                               --- weighted ---
                         do j=1,npts(isp)
                            k=ixs+j-1
@@ -524,7 +524,7 @@ c        ------------------------------------------------------------
                   do j=1,npts(isp)
                      k=ixs+j-1
                      fjac(k,nj)=spectr(k,isi)
-                     if (iwflag.ne.0) fjac(k,nj)=fjac(k,nj)/rmsn(isp)
+                     if (weighted_flag.ne.0) fjac(k,nj)=fjac(k,nj)/rmsn(isp)
                   end do
                end do
             end do
@@ -537,7 +537,7 @@ c        ------------------------------------------------------------
                end do
                do j=ixsp(isp),lastsp
                   fjac(j,nj)=spectr(j,1)
-                  if (iwflag.ne.0) fjac(j,nj)=fjac(j,nj)/rmsn(isp)
+                  if (weighted_flag.ne.0) fjac(j,nj)=fjac(j,nj)/rmsn(isp)
                end do
                do j=lastsp+1,m
                   fjac(j,nj)=ZERO
@@ -560,7 +560,7 @@ c        Print final parameters if termination is by convergence
 c        --------------------------------------------------------
          if (iflag.lt.0) then
 
-            if (iwflag.ne.0) then
+            if (weighted_flag.ne.0) then
                rdchsq=fnorm*fnorm/float(m-n)
                write (luout,1009) 'T',iter,rdchsq,(x(i),i=1,n)
                if (luout.ne.luttyo) 

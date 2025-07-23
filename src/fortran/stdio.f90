@@ -30,7 +30,7 @@ c
       integer, parameter :: lulog=4, luttyi=5, luttyo=6,
      #                      lutrc=7, ludisk=8
 c
-      integer, save :: lucmd, luecho, luout, hltcmd, hltfit, itrace
+      integer, save :: lucmd, luecho, luout, hltcmd, hltfit, trace
       logical, save :: warn, exitprog
 c
       end module stdio

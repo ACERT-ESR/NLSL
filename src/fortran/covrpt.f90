@@ -59,7 +59,7 @@ c
          call covar( njcol,fjac,MXPT,ipvt,xtol*xtol,work1 )
          covarOK=.true.
 c                                    --- weighted residual fit
-         if (iwflag.ne.0) then
+         if (weighted_flag.ne.0) then
             delchi1=chi(confid,1)
             ch2bnd=chi(confid,2)
             chnbnd=chi(confid,njcol)
@@ -94,7 +94,7 @@ c     For weighted residuals, use chi-squared statistics
 c     For unweighted residuals use t-statistics
 c----------------------------------------------------------------------
             if (i.eq.j) then
-               if (iwflag.ne.0) then
+               if (weighted_flag.ne.0) then
                   xerr(i)=sqrt(delchi1*fjac(i,i))
                else
                   xerr(i)=tbound*fnorm*sqrt(fjac(i,i))
@@ -114,7 +114,7 @@ c    --------------------------------
 c     output final fit of parameters 
 c    --------------------------------
       write (lu,1000)
-      if (iwflag.ne.0) then
+      if (weighted_flag.ne.0) then
          write (lu,2004) 'Chi'
       else
          write(lu,2004) 'T'
@@ -123,7 +123,7 @@ c
       write (lu,2007) (tag(i)(:itrim(tag(i))),x(i),xerr(i),i=1,njcol)
 c
 c                              --- weighted residual fit ---
-      if (iwflag.ne.0) then
+      if (weighted_flag.ne.0) then
          write (lu,2008) confid,delchi1,ch2bnd,njcol,chnbnd
 c
 c                              --- weighted residual fit ---

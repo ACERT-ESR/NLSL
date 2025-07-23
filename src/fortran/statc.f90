@@ -150,20 +150,20 @@ c     parameters for fit command
 c----------------------------------------------------------------------
       write(lu,1000)
       write(lu,1001) xtol,ftol,gtol
-      write(lu,1002) maxitr,maxev,factor
+      write(lu,1002) maxitr,maxfun,bound
 c
 c----------------------------------------------------------------------
 c     Options for fit command
 c----------------------------------------------------------------------
-      if (nshift.lt.0) write (lu,1005)
-      if (nshift.eq.0) write (lu,1006) 100.0d0*srange
-      if (nshift.gt.0) write (lu,1007) nshift,nshift,100.0d0*srange
-      if (noneg.eq.0) write (lu,1008)
-      if (noneg.ne.0) write (lu,1009)
-      if (output.eq.1) write (lu,1014)
-      if (itrace.eq.1) write (lu,1015)
+      if (shift_flag.lt.0) write (lu,1005)
+      if (shift_flag.eq.0) write (lu,1006) 100.0d0*srange
+      if (shift_flag.gt.0) write (lu,1007) shift_flag,shift_flag,100.0d0*srange
+      if (neg_flag.eq.0) write (lu,1008)
+      if (neg_flag.ne.0) write (lu,1009)
+      if (write_flag.eq.1) write (lu,1014)
+      if (trace.eq.1) write (lu,1015)
 c
-      if (iwflag.ne.0) then
+      if (weighted_flag.ne.0) then
          write (lu,1013) 'WEIGHTED'
       else
          write (lu,1013) 'UNWEIGHTED'
@@ -187,7 +187,7 @@ c
       if (info.lt.0) info=0
       if (info.gt.10) info=10
       if (lmflag.ne.0) then
-         if (iwflag.ne.0) then
+         if (weighted_flag.ne.0) then
             chisqr=fnorm*fnorm
             rdchsq=chisqr/dfloat(ndatot-nprm)
          else
