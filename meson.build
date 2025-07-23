@@ -182,3 +182,8 @@ py.extension_module(
 )
 
 py.install_sources('nlsl/__init__.py', subdir: 'nlsl')
+
+# Install the Python test suite alongside the package so editable installs
+# can locate the extension module without modifying sys.path in tests.
+install_subdir('tests',
+    install_dir: join_paths(py.get_install_dir(), 'nlsl', 'tests'))
