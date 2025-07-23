@@ -26,10 +26,10 @@ c
       integer, parameter :: NFLMPR=4, NILMPR=4
 c
       double precision, target, save  :: flmprm(NFLMPR)
-      double precision, pointer, save :: ftol, gtol, xtol, factor
+      double precision, pointer, save :: ftol, gtol, xtol, bound
 c
       integer, target, save  :: ilmprm(NILMPR)
-      integer, pointer, save :: maxev, maxitr, mode, info
+      integer, pointer, save :: maxfun, maxitr, mode, info
       character*10, dimension(NFLMPR), save :: flmprm_name
 c
       contains
@@ -43,10 +43,10 @@ c
       flmprm_name(2) = "gtol"
       xtol   => flmprm(3)
       flmprm_name(3) = "xtol"
-      factor => flmprm(4)
-      flmprm_name(4) = "factor"
+      bound  => flmprm(4)
+      flmprm_name(4) = "bound"
 c
-      maxev  => ilmprm(1)
+      maxfun => ilmprm(1)
       maxitr => ilmprm(2)
       mode   => ilmprm(3)
       info   => ilmprm(4)

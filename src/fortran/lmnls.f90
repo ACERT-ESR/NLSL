@@ -29,9 +29,9 @@ c   (also note that fnorm and iter have been moved to common /iterat/)
       use iterat
       use stdio
 c
-      integer m,n,ldfjac,maxfev,maxitr,nprint,info,istep,nfev,njev
+      integer m,n,ldfjac,maxfun,maxitr,nprint,info,istep,nfev,njev
       integer ipvt(n)
-      double precision ftol,xtol,gtol,factor
+      double precision ftol,xtol,gtol,bound
       double precision x(n),fvec(m),fjac(ldfjac,njcol),diag(njcol),
      *       scale(njcol),qtf(njcol),gnvec(njcol),gradf(njcol),
      *       wa1(njcol),wa2(njcol),wa3(njcol),wa4(m)
@@ -316,10 +316,10 @@ c----------------------------------------------------------------------
                if (diag(j).eq.ZERO) diag(j)=ONE
             end do
 c
-            if (itrace.ne.0) then
-               write(itrace,1000) (tag(j)(:itrim(tag(j))),j=1,n)
-               write(itrace,1001) (wa2(j),j=1,n)
-               write(itrace,1002) (diag(j),j=1,n)
+            if (trace.ne.0) then
+               write(trace,1000) (tag(j)(:itrim(tag(j))),j=1,n)
+               write(trace,1001) (wa2(j),j=1,n)
+               write(trace,1002) (diag(j),j=1,n)
             end if
 c
 c----------------------------------------------------------------------
@@ -332,7 +332,7 @@ c----------------------------------------------------------------------
           xnorm=enorm(n,wa3)
           delta=factor*xnorm
           if (delta.eq.ZERO) delta=factor
-          if (itrace.ne.0) write(itrace,1003) xnorm,delta,factor
+          if (trace.ne.0) write(trace,1003) xnorm,delta,factor
        end if
 c
 c----------------------------------------------------------------------
@@ -430,9 +430,9 @@ c----------------------------------------------------------------------
                delta=dmin1(delta,pnorm)
            end if
 c
-           if (istep.eq.0 .and. itrace.ne.0) then
-              write (itrace,1012) iter,(tag(j),j=1,n)
-              write (itrace,1013) fnorm,(x(j),j=1,n)
+           if (istep.eq.0 .and. trace.ne.0) then
+              write (trace,1012) iter,(tag(j),j=1,n)
+              write (trace,1013) fnorm,(x(j),j=1,n)
            end if
 c
 c----------------------------------------------------------------------
@@ -516,7 +516,7 @@ c----------------------------------------------------------------------
               end if
             end if
 c
-            if (itrace.ne.0) write (itrace,1014) istep,par,ratio,
+            if (trace.ne.0) write (trace,1014) istep,par,ratio,
      #                       ONE/temp,trstr,fnorm1,(wa2(j)-x(j),j=1,n)
 c
 c----------------------------------------------------------------------
@@ -538,11 +538,11 @@ c
                xnorm=enorm(n,wa2)
                fnorm=fnorm1
                iter=iter+1
-               if (itrace.ne.0) then
-                  write(itrace,1006) (diag(j),j=1,n)
-                  if (grdclc) write(itrace,1007) (gradf(j),j=1,n)
-                  write(itrace,1008) (gnvec(j),j=1,n)
-                  write (itrace,1015) delta
+               if (trace.ne.0) then
+                  write(trace,1006) (diag(j),j=1,n)
+                  if (grdclc) write(trace,1007) (gradf(j),j=1,n)
+                  write(trace,1008) (gnvec(j),j=1,n)
+                  write (trace,1015) delta
                end if
 c
             end if

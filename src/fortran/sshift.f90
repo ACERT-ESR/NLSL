@@ -17,7 +17,7 @@ c       nft                Array length for FFT (next power of 2 > npt)
 c       ideriv             Flag =1 for 1st derivative data
 c       srange             Allowed range for shifting (fraction of npt)
 c       ctol               Tolerance for linearly independent components
-c       noneg              Flag =1: zero any negative coeffients
+c       neg_flag              Flag =1: zero any negative coeffients
 c       tmpdat(2*nft)      Temporary storage for 0-padded data (for FFT) 
 c       tmpclc(2*nft)      Temporary storage for 0-padded spectrum (for FFT) 
 c       wspec(ldspct,nsi)  Work array used to store correlation functions
@@ -40,14 +40,14 @@ c       fmomnt Returns first moment of an array (in index units)
 c
 c----------------------------------------------------------------------
       function sshift( data,spct,ldspct,nsi,npt,nft,ideriv,srange,
-     #     ctol,noneg,tmpdat,tmpclc,wspec,work,sfac )
+     #     ctol,neg_flag,tmpdat,tmpclc,wspec,work,sfac )
 c
       use nlsdim
 c
       implicit none
       double precision sshift
 c
-      integer iarr,ideriv,ldspct,nsi,npt,nft,noneg
+      integer iarr,ideriv,ldspct,nsi,npt,nft,neg_flag
       double precision spct(ldspct,nsi),data(npt),tmpdat(2*nft),
      #                 tmpclc(2*nft),wspec(ldspct,nsi),work(2*nft),
      #                 sfac(nsi),srange,ctol
@@ -269,7 +269,7 @@ c
 c     (But don't truncate the last spectrum!)
 c    ------------------------------------------------------------
 c            
-      if (noneg.ne.0.and.k.gt.1) then
+      if (neg_flag.ne.0.and.k.gt.1) then
          smin=ZERO
          mneg=0
          do i=1,k

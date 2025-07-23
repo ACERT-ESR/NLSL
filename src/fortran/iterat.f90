@@ -11,7 +11,7 @@ c
       module iterat
       implicit none
 c
-      integer, save :: iter, iwflag
+      integer, save :: iter, weighted_flag
       double precision , save :: fnorm, chisqr, rdchsq, 
      #                ch2bnd, chnbnd, confid, delchi1,
      #                qfit, f2bnd, fnbnd, tbound, fnmin

@@ -45,16 +45,16 @@ c      external dtime
 c
 c######################################################################
 c
-        snglclc = maxitr.lt.1 .or. maxev.le.1 
+        snglclc = maxitr.lt.1 .or. maxfun.le.1
      #           .or. nprm.le.0 .or. nspc.le.0
 c
 c      ------------------------------
 c       Open trace file (if desired)
 c      ------------------------------
-        if (itrace.ne.0) then
+        if (trace.ne.0) then
           open(lutrc,file=trname(:lthfnm),status='unknown',
      #         access='sequential',form='formatted')
-          itrace=lutrc
+          trace=lutrc
         end if
 c
         call catchc( hltfit )
@@ -71,7 +71,7 @@ c          cpu=dtime(tarray)
 c          cpu=dtime(tarray)
            lmflag=1
            info=11
-           if (itridg.ne.0) call wrtrdg(0)
+           if (tridiag_flag.ne.0) call wrtrdg(0)
 
 c
            if (nspc.gt.0) then
@@ -82,7 +82,7 @@ c
 c
               fnorm=enorm(ndatot,fvec)
 c                                         --- weighted residual fit ---
-              if (iwflag.ne.0) then
+              if (weighted_flag.ne.0) then
                  chisqr=fnorm*fnorm
                  rdchsq=chisqr/float(ndatot)
 c                                         --- unweighted residual fit ---
@@ -118,7 +118,7 @@ c
 c          cpu=dtime(tarray)
 c     
            call lmnls( lfun,ndatot,nprm,x,fvec,fjac,MXPT,ftol,xtol,gtol,
-     1          maxev,maxitr,diag,prscl,factor,nprint,info,nfev,njev,
+     1          maxfun,maxitr,diag,prscl,bound,nprint,info,nfev,njev,
      2          ipvt,qtf,gnvec,gradf,work1,work2,work3,work4 )
 c
            lmflag=1
@@ -133,13 +133,13 @@ c                                         *** MINPACK error return
                  write (luttyo,2034) minerr(info)
                  write (luttyo,2037) nfev,cpu 
               end if
-              if (itrace.ne.0)  write (lutrc,2034) minerr(info)
+              if (trace.ne.0)  write (lutrc,2034) minerr(info)
 c
 c                                         *** Normal return
            else
 c
               fnorm=enorm(ndatot,fvec)
-              if (iwflag.ne.0) then
+              if (weighted_flag.ne.0) then
                  chisqr=fnorm*fnorm
                  rdchsq=chisqr/float(ndatot-nprm)
               else
@@ -160,7 +160,7 @@ c
      #                              residx()
               end if
 c
-              if (itrace.ne.0) then
+              if (trace.ne.0) then
                  write(lutrc,2035) minerr(info),nprm,ndatot
                  write(lutrc,2037) nfev,cpu 
                  write(lutrc,2036) fnorm,chisqr,rdchsq,corrl(),
@@ -180,7 +180,7 @@ c     ------------------------------------------------------------------
 c     Optionally output splined data and calculated spectrum/spectra
 c     for each datafile
 c     ------------------------------------------------------------------
-      if ((convrg .or. output.ne.0).and. written.eq.0) call wrspc()
+      if ((convrg .or. write_flag.ne.0).and. written.eq.0) call wrspc()
 c
 c     ----------------------------------------
 c     Report shifting and scaling information 
@@ -191,7 +191,7 @@ c
 c     ----------------------
 c     Close files and return
 c     ----------------------
-      if (itrace.ne.0) close (lutrc)
+      if (trace.ne.0) close (lutrc)
       call uncatchc( hltfit )
       return
 c   

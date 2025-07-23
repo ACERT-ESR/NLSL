@@ -115,7 +115,7 @@ c
 c                                *** Multiple sites
             if (nsite.gt.1) then
 c                                        *** weighted residuals
-               if (iwflag.ne.0) then
+               if (weighted_flag.ne.0) then
                   write(ludisk,1045) field,data(k),
      #                 data(k)-rmsn(i)*fvec(k),
      #                 (sfac(l,i)*spectr(k,l),l=1,nsite)
@@ -130,7 +130,7 @@ c                                        *** unweighted residuals
 c                                *** Single site
             else
 c                                        *** weighted residuals
-               if (iwflag.ne.0) then
+               if (weighted_flag.ne.0) then
                   write(ludisk,1045) field,data(k),
      #                 data(k)-rmsn(i)*fvec(k)
 

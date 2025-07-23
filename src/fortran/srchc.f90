@@ -229,7 +229,7 @@ c
          fnorm=fmin
          call setprm( ixpr(1), ixst(1), pmin )
 c
- 14      if (iwflag.ne.0) then
+ 14      if (weighted_flag.ne.0) then
             chisqr=fnorm*fnorm
             rdchsq=chisqr/float(ndatot-nprm)
             qfit=gammq( 0.5d0*(ndatot-nprm), 0.5*chisqr )
@@ -239,7 +239,7 @@ c
          end if
 c
          write(luout,2036) fnorm,chisqr,rdchsq,corrl(),residx()
-         if (iwflag.ne.0) write (luout,2038) qfit
+         if (weighted_flag.ne.0) write (luout,2038) qfit
 c 
          if (luout.ne.luttyo)
      #         write(luttyo,2036) fnorm,chisqr,rdchsq,corrl(),

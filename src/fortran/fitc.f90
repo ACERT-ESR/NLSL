@@ -4,8 +4,8 @@ c                    =========================
 c                       subroutine FITC
 c                    =========================
 c
-c   fit      { trace xtol <xtol> ftol <ftol> gtol <ftol> 
-c              maxfun <mxf> maxitr <mxi> bound <factor> }
+c   fit      { trace xtol <xtol> ftol <ftol> gtol <ftol>
+c              maxfun <mxf> maxitr <mxi> bound <bound> }
 c
 c          trace:  Specifies that a ".trc" file should be produced for
 c                  the fit
@@ -15,7 +15,7 @@ c          gtol:   Convergence tolerance for gradient of chi-squared with
 c                  respect to the fitting parameters
 c          mxf:    Maximum number of function calls allowed
 c          mxi:    Maximum number of iterations allowed
-c          factor: Factor defining initial step bound used in parameter search
+c          bound:  Factor defining initial step bound used in parameter search
 c
 c----------------------------------------------------------------------
       subroutine fitc( line )
@@ -52,7 +52,7 @@ c######################################################################
 c
 c  -- Reset "non-sticky" flags for fitting procedure
 c
-      output=0
+      write_flag=0
 c
 c----------------------------------------------------------------------
 c  Look for a keyword
@@ -92,7 +92,7 @@ c                                        *** No value given
           if (lth.eq.0) then
 c                                        *** default 0 for SHIFT keyword
              if (i.eq.7) then
-                nshift=0
+                shift_flag=0
 c                                        *** otherwise, error 
              else
                 write(luttyo,1003) keywrd(i)(:itrim(keywrd(i)))
@@ -112,16 +112,16 @@ c                                          *** XTOL keyword
                 xtol=fval
 c                                          *** BOUND keyword
              else if (i.eq.4) then
-                factor=fval
+                bound=fval
 c                                          *** MAXFUN keyword
              else if (i.eq.5) then
-                maxev=int(fval)
+                maxfun=int(fval)
 c                                          *** MAXITR keyword
              else if (i.eq.6) then
                 maxitr=int(fval)
 c                                          *** SHIFT keyword
              else if (i.eq.7) then
-                nshift=int(fval)
+                shift_flag=int(fval)
 c                                          *** SRANGE keyword
              else if (i.eq.8) then
                 srange=fval/1.0D2
@@ -131,7 +131,7 @@ c                                          *** SRANGE keyword
 c                                      *** Illegal numeric value
           else
              if (i.eq.7) then
-                nshift=0
+                shift_flag=0
                 call ungett(token,lth,line)
              else
                 write(luttyo,1001) token(:lth)
@@ -141,37 +141,37 @@ c                                          *** TRACE keyword
        else if (i.eq.9) then
           if (luout.eq.luttyo) then
              write (luttyo,1050)
-             itrace=0
+             trace=0
           else
-             itrace=1
+             trace=1
           end if
 c                                          *** JACOBI keyword
        else if (i.eq.10) then
           jacobi=1
 c                                          *** NOSHIFT keyword
        else if (i.eq.11) then
-          nshift=-1
+          shift_flag=-1
 c                                          *** NEG keyword
        else if (i.eq.12) then
-          noneg=0
+          neg_flag=0
 c                                          *** NONEG keyword
        else if (i.eq.13) then
-          noneg=1
+          neg_flag=1
 c                                          *** TRIDIAG keyword
        else if (i.eq.14) then
-          itridg=1
+          tridiag_flag=1
 c                                          *** ITERATES keyword
        else if (i.eq.15) then
-          iitrfl=1
+          iterates_flag=1
 c                                          *** WRITE keyword
        else if (i.eq.16) then
-          output=1
+          write_flag=1
 c                                          *** WEIGHTED keyword
        else if (i.eq.17) then
-          iwflag=1
+          weighted_flag=1
 c                                          *** UNWEIGHT keyword
        else if (i.eq.18) then
-          iwflag=0
+          weighted_flag=0
 c                                          *** CTOL keyword
        else if (i.eq.19) then
           ctol=fval

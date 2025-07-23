@@ -538,15 +538,15 @@ c------------------------------------------------------
       xtol=1.0d-4
       ftol=1.0d-4
       gtol=1.0d-6
-      factor=1.0d2
+      bound=1.0d2
       maxitr=10
-      nshift=8
-      noneg=1
+      shift_flag=8
+      neg_flag=1
       srange=0.5d0
-      maxev=100
-      itrace=0
+      maxfun=100
+      trace=0
       lmflag=0
-      iwflag=1
+      weighted_flag=1
       confid=0.683
       ctol=1.0d-3
 c

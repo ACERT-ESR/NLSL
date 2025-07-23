@@ -49,13 +49,13 @@ integer, save \hyperlink{namespaceparcom_a087075ea388867415ec6747b3d1e5e30}{nprm
 \item 
 integer, save \hyperlink{namespaceparcom_ae152e6df96a96c098de374533a3eeb02}{njcol}
 \item 
-integer, save \hyperlink{namespaceparcom_a13574ff0354be5dab15965688a8fbcba}{nshift}
+integer, save \hyperlink{namespaceparcom_a13574ff0354be5dab15965688a8fbcba}{shift_flag}
 \item 
-integer, save \hyperlink{namespaceparcom_af57a89353368c00dfc9a9e9985471136}{noneg}
+integer, save \hyperlink{namespaceparcom_af57a89353368c00dfc9a9e9985471136}{neg_flag}
 \item 
-integer, save \hyperlink{namespaceparcom_a4e5efe25f0484638d26b39ce12a1d40b}{itridg}
+integer, save \hyperlink{namespaceparcom_a4e5efe25f0484638d26b39ce12a1d40b}{tridiag_flag}
 \item 
-integer, save \hyperlink{namespaceparcom_a6f2b6f48c4f2a572e85a65eaad4f9c6b}{iitrfl}
+integer, save \hyperlink{namespaceparcom_a6f2b6f48c4f2a572e85a65eaad4f9c6b}{iterates_flag}
 \item 
 integer, save \hyperlink{namespaceparcom_aabd66e40a419df3064d43bad386f7dd3}{jacobi}
 \item 
@@ -65,7 +65,7 @@ integer, save \hyperlink{namespaceparcom_aa1e421fbf784e351b44a2b78a8a9cdd7}{ixs1
 \item 
 integer, save \hyperlink{namespaceparcom_aefb8712658e3d1ef618f31fe9b76ef15}{mxpitr}
 \item 
-integer, save \hyperlink{namespaceparcom_a95a2284ffab9ed1afe87268fb4f1813d}{output}
+integer, save \hyperlink{namespaceparcom_a95a2284ffab9ed1afe87268fb4f1813d}{write_flag}
 \item 
 logical, save \hyperlink{namespaceparcom_aae5402c1531a4da7b32416c1c8f629a8}{mtxclc}
 \item 
@@ -95,9 +95,9 @@ Definition at line 54 of file parcom.\+f90.
 
 Definition at line 62 of file parcom.\+f90.
 
-\hypertarget{namespaceparcom_a6f2b6f48c4f2a572e85a65eaad4f9c6b}{}\index{parcom@{parcom}!iitrfl@{iitrfl}}
-\index{iitrfl@{iitrfl}!parcom@{parcom}}
-\subsubsection[{iitrfl}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::iitrfl}\label{namespaceparcom_a6f2b6f48c4f2a572e85a65eaad4f9c6b}
+\hypertarget{namespaceparcom_a6f2b6f48c4f2a572e85a65eaad4f9c6b}{}\index{parcom@{parcom}!iterates_flag@{iterates_flag}}
+\index{iterates_flag@{iterates_flag}!parcom@{parcom}}
+\subsubsection[{iterates_flag}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::iterates_flag}\label{namespaceparcom_a6f2b6f48c4f2a572e85a65eaad4f9c6b}
 
 
 Definition at line 62 of file parcom.\+f90.
@@ -116,9 +116,9 @@ Definition at line 60 of file parcom.\+f90.
 
 Definition at line 62 of file parcom.\+f90.
 
-\hypertarget{namespaceparcom_a4e5efe25f0484638d26b39ce12a1d40b}{}\index{parcom@{parcom}!itridg@{itridg}}
-\index{itridg@{itridg}!parcom@{parcom}}
-\subsubsection[{itridg}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::itridg}\label{namespaceparcom_a4e5efe25f0484638d26b39ce12a1d40b}
+\hypertarget{namespaceparcom_a4e5efe25f0484638d26b39ce12a1d40b}{}\index{parcom@{parcom}!tridiag_flag@{tridiag_flag}}
+\index{tridiag_flag@{tridiag_flag}!parcom@{parcom}}
+\subsubsection[{tridiag_flag}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::tridiag_flag}\label{namespaceparcom_a4e5efe25f0484638d26b39ce12a1d40b}
 
 
 Definition at line 62 of file parcom.\+f90.
@@ -186,9 +186,9 @@ Definition at line 62 of file parcom.\+f90.
 
 Definition at line 62 of file parcom.\+f90.
 
-\hypertarget{namespaceparcom_af57a89353368c00dfc9a9e9985471136}{}\index{parcom@{parcom}!noneg@{noneg}}
-\index{noneg@{noneg}!parcom@{parcom}}
-\subsubsection[{noneg}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::noneg}\label{namespaceparcom_af57a89353368c00dfc9a9e9985471136}
+\hypertarget{namespaceparcom_af57a89353368c00dfc9a9e9985471136}{}\index{parcom@{parcom}!neg_flag@{neg_flag}}
+\index{neg_flag@{neg_flag}!parcom@{parcom}}
+\subsubsection[{neg_flag}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::neg_flag}\label{namespaceparcom_af57a89353368c00dfc9a9e9985471136}
 
 
 Definition at line 62 of file parcom.\+f90.
@@ -207,9 +207,9 @@ Definition at line 62 of file parcom.\+f90.
 
 Definition at line 62 of file parcom.\+f90.
 
-\hypertarget{namespaceparcom_a13574ff0354be5dab15965688a8fbcba}{}\index{parcom@{parcom}!nshift@{nshift}}
-\index{nshift@{nshift}!parcom@{parcom}}
-\subsubsection[{nshift}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::nshift}\label{namespaceparcom_a13574ff0354be5dab15965688a8fbcba}
+\hypertarget{namespaceparcom_a13574ff0354be5dab15965688a8fbcba}{}\index{parcom@{parcom}!shift_flag@{shift_flag}}
+\index{shift_flag@{shift_flag}!parcom@{parcom}}
+\subsubsection[{shift_flag}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::shift_flag}\label{namespaceparcom_a13574ff0354be5dab15965688a8fbcba}
 
 
 Definition at line 62 of file parcom.\+f90.
@@ -221,9 +221,9 @@ Definition at line 62 of file parcom.\+f90.
 
 Definition at line 62 of file parcom.\+f90.
 
-\hypertarget{namespaceparcom_a95a2284ffab9ed1afe87268fb4f1813d}{}\index{parcom@{parcom}!output@{output}}
-\index{output@{output}!parcom@{parcom}}
-\subsubsection[{output}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::output}\label{namespaceparcom_a95a2284ffab9ed1afe87268fb4f1813d}
+\hypertarget{namespaceparcom_a95a2284ffab9ed1afe87268fb4f1813d}{}\index{parcom@{parcom}!write_flag@{write_flag}}
+\index{write_flag@{write_flag}!parcom@{parcom}}
+\subsubsection[{write_flag}]{\setlength{\rightskip}{0pt plus 5cm}integer, save parcom\+::write_flag}\label{namespaceparcom_a95a2284ffab9ed1afe87268fb4f1813d}
 
 
 Definition at line 62 of file parcom.\+f90.

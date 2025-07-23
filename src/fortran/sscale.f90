@@ -19,14 +19,14 @@ c       npt                # points in data/spectra arrays
 c       ctol               Tolerance for linearly independent components
 c       iscal              Flags =1 for automatic scaling of each site
 c                          (otherwise used fixed value passed in sfac)
-c       noneg              Flag =1: zero any negative coeffients
+c       neg_flag              Flag =1: zero any negative coeffients
 c       work(npt)          Temporary work array used in QR solution
 c
 c    Output:
 c       sfac               Array of scaling factors
 c                          Scale factors corresponding to spectra that
 c                          were eliminated on the basis of linear dependence
-c                          or were negative (if noneg=1)
+c                          or were negative (if neg_flag=1)
 c
 c       resid              Residuals (data minus scaled calculated spectra)
 c             
@@ -41,13 +41,13 @@ c     dchex    Update QR factors for column permutation of design matrix
 c  
 c---------------------------------------------------------------------- 
       subroutine sscale( data,spct,wspct,ldspct,work,nsite,npt,ctol,
-     #                   noneg,iscal,sfac,resid )
+     #                   neg_flag,iscal,sfac,resid )
 c
       use nlsdim
 c
       implicit none
 c
-      integer ldspct,noneg,npt,nsite
+      integer ldspct,neg_flag,npt,nsite
       integer iscal(nsite)
       double precision data(npt),work(npt),spct(ldspct,nsite),
      #                 wspct(ldspct,nsite),resid(npt),sfac(nsite),ctol
@@ -152,7 +152,7 @@ c         with negative coefficients into the truncated part of the QR
 c         factorization and re-solve the problem
 c         (But don't truncate the last spectrum!)
 c        ------------------------------------------------------------    
-         if (noneg.ne.0.and.k.gt.1) then
+         if (neg_flag.ne.0.and.k.gt.1) then
             smin=ZERO
             mneg=0
             do i=1,k

@@ -3,7 +3,7 @@
 \subsection*{Functions/\+Subroutines}
 \begin{DoxyCompactItemize}
 \item 
-subroutine \hyperlink{sscale_8f90_a39da067b8870667b582ba329d60d0e04}{sscale} (data, spct, wspct, ldspct, work, nsite, npt, ctol, noneg, iscal, sfac, resid)
+subroutine \hyperlink{sscale_8f90_a39da067b8870667b582ba329d60d0e04}{sscale} (data, spct, wspct, ldspct, work, nsite, npt, ctol, neg_flag, iscal, sfac, resid)
 \end{DoxyCompactItemize}
 
 
@@ -20,7 +20,7 @@ subroutine \hyperlink{sscale_8f90_a39da067b8870667b582ba329d60d0e04}{sscale} (da
 \item[{integer}]{nsite, }
 \item[{integer}]{npt, }
 \item[{double precision}]{ctol, }
-\item[{integer}]{noneg, }
+\item[{integer}]{neg_flag, }
 \item[{integer, dimension(nsite)}]{iscal, }
 \item[{double precision, dimension(nsite)}]{sfac, }
 \item[{double precision, dimension(npt)}]{resid}
