@@ -2,7 +2,8 @@
 requires = [
     "meson-python>=0.15",
     "meson>=1.2",
-    "numpy>=1.26.5",
+    "ninja>=1.11",        # ensure ninja is available in the build env
+    "numpy>=1.26.5"
 ]
 build-backend = "mesonpy"
 
@@ -20,8 +21,3 @@ dependencies = [
     "matplotlib",
     "tables",
 ]
-
-[tool.meson-python]
-# Meson arguments used when building from a wheel or editable install
-[tool.meson-python.args]
-setup = []
