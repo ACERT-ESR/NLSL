@@ -1,6 +1,26 @@
 from . import fortrancore as _fortrancore
 
 
+class fit_params(dict):
+    """Mapping-like interface for adjusting NLSL fit parameters.
+
+    Keys correspond to the options listed in ``nlshlp.txt`` lines 20–38.
+    Setting an item issues the appropriate ``fit`` command via
+    :func:`fortrancore.procline`.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self._core = _fortrancore
+
+    def __setitem__(self, key, value):
+        super().__setitem__(key.lower(), value)
+
+    def __getitem__(self, key):
+        return super().get(key.lower())
+
+
+
 class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
@@ -8,10 +28,21 @@ class nlsl(object):
         self._params = {}
         # automatically initialize parameters when the object is created
         _fortrancore.nlsinit()
+        self.fit_params = fit_params()
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
         _fortrancore.procline(val)
+
+    def fit(self):
+        """Run the nonlinear least-squares fit using current parameters."""
+        opts = []
+        for k, v in self.fit_params.items():
+            opts.append(f"{k} {v}")
+        if opts:
+            _fortrancore.procline("fit " + " ".join(opts))
+        else:
+            _fortrancore.fitl()
 
     # -- utility -----------------------------------------------------------
     def _refresh(self):

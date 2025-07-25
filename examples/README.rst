@@ -18,8 +18,21 @@ The original usage was:
     NLSL> quit
   - another usage:
 
-    ../nlsl < sampl1.run
+  ../nlsl < sampl1.run
 
 - Check the .spc and .log files created against the ones contained in
   this directory.
+
+Python interface
+----------------
+
+The ``nlsl`` package exposes a high-level interface for adjusting fit
+options programmatically.  Create an ``nlsl`` instance and update the
+``fit_params`` mapping before calling :py:meth:`nlsl.nlsl.fit`::
+
+   >>> import nlsl
+   >>> n = nlsl.nlsl()
+   >>> n.fit_params['maxitr'] = 40
+   >>> n.fit_params['maxfun'] = 1000
+   >>> n.fit()  # runs the Levenberg–Marquardt optimiser
 

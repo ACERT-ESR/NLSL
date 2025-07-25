@@ -97,6 +97,39 @@ python module fortrancore ! in
             subroutine lmcom_init ! in :fortrancore:lmcom.f90:lmcom
             end subroutine lmcom_init
         end module lmcom
+        module parcom ! in :parcom:src/fortran/parcom.f90
+            use nlsdim
+            double precision, save,target,dimension(nfprm,mxsite) :: fparm
+            double precision, save,dimension(mxvar) :: prmax
+            double precision, save,dimension(mxvar) :: prmin
+            integer, save,target,dimension(niprm,mxsite) :: iparm
+            integer, save,dimension(nfprm,mxsite) :: ixx
+            logical, save :: mtxclc
+            character*9, save,dimension(mxjcol) :: tag
+        end module parcom
+        module iterat ! in :iterat:src/fortran/iterat.f90
+            integer, save :: iter
+            integer, save :: iwflag
+            double precision, save :: fnorm
+            double precision, save :: chisqr
+            double precision, save :: rdchsq
+            logical, save :: newitr
+            logical, save :: covarok
+            logical, save :: xreset
+        end module iterat
+        module stdio ! in :stdio:src/fortran/stdio.f90
+            integer, parameter,optional :: lulog=4
+            integer, parameter,optional :: luttyi=5
+            integer, parameter,optional :: luttyo=6
+            integer, save :: lucmd
+            integer, save :: luecho
+            integer, save :: luout
+            integer, save :: hltcmd
+            integer, save :: hltfit
+            integer, save :: itrace
+            logical, save :: warn
+            logical, save :: exitprog
+        end module stdio
         module eprprm ! in :pynlsl:eprprm.f90
             use parcom
             use nlsdim
