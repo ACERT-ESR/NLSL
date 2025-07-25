@@ -1,4 +1,45 @@
 from . import fortrancore as _fortrancore
+import re
+from pathlib import Path
+
+
+def _parse_eprprm_names():
+    """Fallback parser for fepr_name and iepr_name from the Fortran source."""
+    fe_names = []
+    ie_names = []
+    src = Path(__file__).resolve().parent.parent / 'src' / 'fortran' / 'eprprm.f90'
+    if not src.exists():
+        return fe_names, ie_names
+
+    dimsrc = Path(__file__).resolve().parent.parent / 'src' / 'fortran' / 'nlsdim.f90'
+    dims = {}
+    if dimsrc.exists():
+        dims = {name: int(val) for name, val in re.findall(r"(NFPRM|NIPRM)=([0-9]+)", dimsrc.read_text())}
+
+    text = src.read_text()
+    # map constant names to indices
+    consts = {
+        name: int(val)
+        for name, val in re.findall(r"(\w+)=([0-9]+)", text)
+    }
+
+    fe_names = [''] * dims.get('NFPRM', 0)
+    ie_names = [''] * dims.get('NIPRM', 0)
+
+    for m in re.finditer(r"fepr_name\((\w+)\)\s*=\s*\"(\w+)\"", text):
+        idx = consts.get(m.group(1))
+        if idx:
+            fe_names[idx - 1] = m.group(2).lower()
+
+    for m in re.finditer(r"iepr_name\((\w+)\)\s*=\s*\"(\w+)\"", text):
+        idx = consts.get(m.group(1))
+        if idx:
+            ie_names[idx - 1] = m.group(2).lower()
+
+    # remove empty placeholders
+    fe_names = [n for n in fe_names if n]
+    ie_names = [n for n in ie_names if n]
+    return fe_names, ie_names
 
 
 class fit_params(dict):
@@ -74,14 +115,24 @@ class nlsl(object):
         # initialize the Fortran core so the parameter name arrays are set
         _fortrancore.nlsinit()
 
-        self._fepr_names = [
-            name.strip().lower()
-            for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
-        ]
-        self._iepr_names = [
-            name.strip().lower()
-            for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
-        ]
+        try:
+            self._fepr_names = [
+                name.strip().lower()
+                for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
+            ]
+            self._iepr_names = [
+                name.strip().lower()
+                for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
+            ]
+        except AttributeError:
+            # allow import of the high level API even if low level
+            # modules were not compiled successfully
+            self._fepr_names, self._iepr_names = _parse_eprprm_names()
+            self._fepr = _fortrancore.parcom.fparm[:, 0]
+            self._iepr = _fortrancore.parcom.iparm[:, 0]
+        else:
+            self._fepr = _fortrancore.eprprm.fepr
+            self._iepr = _fortrancore.eprprm.iepr
 
         self.fit_params = fit_params()
 
@@ -97,9 +148,9 @@ class nlsl(object):
     def __getitem__(self, key):
         key = key.lower()
         if key in self._fepr_names:
-            return _fortrancore.eprprm.fepr[self._fepr_names.index(key)]
+            return self._fepr[self._fepr_names.index(key)]
         if key in self._iepr_names:
-            return _fortrancore.eprprm.iepr[self._iepr_names.index(key)]
+            return self._iepr[self._iepr_names.index(key)]
         raise KeyError(key)
 
     def __setitem__(self, key, value):
@@ -108,16 +159,16 @@ class nlsl(object):
             idx = self._fepr_names.index(key)
             if isinstance(value, (list, tuple)):
                 for i, v in enumerate(value):
-                    _fortrancore.eprprm.fepr[idx + i] = v
+                    self._fepr[idx + i] = v
             else:
-                _fortrancore.eprprm.fepr[idx] = value
+                self._fepr[idx] = value
         elif key in self._iepr_names:
             idx = self._iepr_names.index(key)
             if isinstance(value, (list, tuple)):
                 for i, v in enumerate(value):
-                    _fortrancore.eprprm.iepr[idx + i] = v
+                    self._iepr[idx + i] = v
             else:
-                _fortrancore.eprprm.iepr[idx] = value
+                self._iepr[idx] = value
         else:
             raise KeyError(key)
 
