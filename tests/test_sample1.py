@@ -90,7 +90,11 @@ def run_sample1_manual():
     print("   ---    (1) Stop after a maximum of 40 iterations")
     print("   ---    (2) Stop after a maximum of 600 spectral calculations")
     print("   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3")
-    procline("fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3")
+    n.fit_params['maxitr'] = 40
+    n.fit_params['maxfun'] = 1000
+    n.fit_params['ftol'] = 1e-3
+    n.fit_params['xtol'] = 1e-3
+    n.fit()
     procline("log end")
 
     rel_rms_list = []
