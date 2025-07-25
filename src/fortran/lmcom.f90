@@ -45,7 +45,7 @@ c
       xtol   => flmprm(3)
       flmprm_name(3) = "xtol"
       factor => flmprm(4)
-      flmprm_name(4) = "factor"
+      flmprm_name(4) = "bound"
 c
       maxev  => ilmprm(1)
       ilmprm_name(1) = "maxfun"

@@ -70,11 +70,11 @@ python module fortrancore ! in
             double precision, save,dimension((mxjcol)) :: gnvec
             integer, save,pointer :: maxitr
             double precision, save,dimension((mxjcol)) :: gradf
-            double precision, save,target,dimension(4) :: flmprm
+            double precision, save,target,dimension(nflmpr) :: flmprm
             double precision, save,dimension((mxjcol)) :: qtf
             integer, save :: lmflag
             integer, parameter,optional :: nflmpr=4
-            integer, save,target,dimension(4) :: ilmprm
+            integer, save,target,dimension(nilmpr) :: ilmprm
             double precision, save,dimension((mxjcol),(mxjcol)) :: corr
             integer, save, intent(inout) :: nprint
             double precision, save,pointer :: xtol
@@ -85,8 +85,8 @@ python module fortrancore ! in
             double precision, save,dimension((mxpt)) :: fvec
             double precision, save,dimension((mxjcol)) :: diag
             double precision, save,pointer :: gtol
-            character*10, save,dimension(4) :: flmprm_name
-            character*10, save,dimension(4) :: ilmprm_name
+            character*10, save,dimension(nflmpr) :: flmprm_name
+            character*10, save,dimension(nilmpr) :: ilmprm_name
             integer, save,pointer :: mode
             integer, parameter,optional :: nilmpr=4
             double precision, save,pointer :: factor
