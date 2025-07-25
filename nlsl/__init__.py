@@ -39,8 +39,10 @@ class nlsl(object):
         opts = []
         for k, v in self.fit_params.items():
             opts.append(f"{k} {v}")
-        cmd = "fit " + " ".join(opts)
-        _fortrancore.procline(cmd)
+        if opts:
+            _fortrancore.procline("fit " + " ".join(opts))
+        else:
+            _fortrancore.fitl()
 
     # -- utility -----------------------------------------------------------
     def _refresh(self):

@@ -124,8 +124,15 @@ fortran_sources = files(
 # generate f2py wrappers
 c_wrappers = custom_target(
     'f2py_wrappers',
-    # only the main source is needed for interface generation
-    input: ['pynlsl.pyf', 'src/fortran/nlsl.f90'],
+    # interface blocks require the modules containing fit variables
+    input: [
+        'pynlsl.pyf',
+        'src/fortran/nlsl.f90',
+        'src/fortran/lmcom.f90',
+        'src/fortran/parcom.f90',
+        'src/fortran/iterat.f90',
+        'src/fortran/stdio.f90',
+    ],
     output: ['fortrancoremodule.c', 'fortrancore-f2pywrappers2.f90'],
     command: [py, '-m', 'numpy.f2py', '@INPUT@', '-m', 'fortrancore', '--lower'],
     build_by_default: true,
