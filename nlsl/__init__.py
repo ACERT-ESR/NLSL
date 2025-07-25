@@ -5,19 +5,39 @@ class fit_params(dict):
     """Mapping-like interface for adjusting NLSL fit parameters.
 
     Keys correspond to the options listed in ``nlshlp.txt`` lines 20–38.
-    Setting an item issues the appropriate ``fit`` command via
-    :func:`fortrancore.procline`.
+    The values are mirrored directly to the low level ``lmcom`` module so
+    that no ``procline`` call is needed.
     """
 
     def __init__(self):
         super().__init__()
         self._core = _fortrancore
+        self._fl_map = {
+            name.strip().lower(): i
+            for i, name in enumerate(self._core.lmcom.flmprm_name.tolist())
+        }
+        self._il_map = {
+            name.strip().lower(): i
+            for i, name in enumerate(self._core.lmcom.ilmprm_name.tolist())
+        }
 
     def __setitem__(self, key, value):
-        super().__setitem__(key.lower(), value)
+        key = key.lower()
+        if key in self._fl_map:
+            self._core.lmcom.flmprm[self._fl_map[key]] = value
+        elif key in self._il_map:
+            self._core.lmcom.ilmprm[self._il_map[key]] = value
+        else:
+            raise KeyError(key)
+        super().__setitem__(key, value)
 
     def __getitem__(self, key):
-        return super().get(key.lower())
+        key = key.lower()
+        if key in self._fl_map:
+            return self._core.lmcom.flmprm[self._fl_map[key]]
+        elif key in self._il_map:
+            return self._core.lmcom.ilmprm[self._il_map[key]]
+        raise KeyError(key)
 
 
 
@@ -25,9 +45,22 @@ class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
-        self._params = {}
-        # automatically initialize parameters when the object is created
+        # initialize the Fortran core so the parameter name arrays are set
         _fortrancore.nlsinit()
+
+        self._fepr_map = {
+            name.strip().lower(): i
+            for i, name in enumerate(
+                _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
+            )
+        }
+        self._iepr_map = {
+            name.strip().lower(): i
+            for i, name in enumerate(
+                _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
+            )
+        }
+
         self.fit_params = fit_params()
 
     def procline(self, val):
@@ -36,68 +69,57 @@ class nlsl(object):
 
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
-        opts = []
-        for k, v in self.fit_params.items():
-            opts.append(f"{k} {v}")
-        if opts:
-            _fortrancore.procline("fit " + " ".join(opts))
-        else:
-            _fortrancore.fitl()
-
-    # -- utility -----------------------------------------------------------
-    def _refresh(self):
-        """Refresh the cached parameter dictionary from the Fortran core."""
-        try:
-            names = (
-                _fortrancore.eprprm.fepr_name.T.reshape(
-                    -1, _fortrancore.eprprm.nfprm
-                )
-                .view(dtype=f"|S{_fortrancore.eprprm.nfprm}")[:, 0]
-                .tolist()
-            )
-            names = [x[: x.find(" ")] for x in names]
-            values = _fortrancore.eprprm.fepr
-            self._params = dict(zip(names, values))
-        except AttributeError:
-            # if low level arrays are unavailable, return cached values
-            pass
+        _fortrancore.fitl()
 
     # -- mapping protocol -------------------------------------------------
     def __getitem__(self, key):
-        self._refresh()
-        return self._params[key]
+        key = key.lower()
+        if key in self._fepr_map:
+            return _fortrancore.eprprm.fepr[self._fepr_map[key]]
+        if key in self._iepr_map:
+            return _fortrancore.eprprm.iepr[self._iepr_map[key]]
+        raise KeyError(key)
 
     def __setitem__(self, key, value):
-        if isinstance(value, (list, tuple)):
-            val_str = ", ".join(str(v) for v in value)
+        key = key.lower()
+        if key in self._fepr_map:
+            idx = self._fepr_map[key]
+            if isinstance(value, (list, tuple)):
+                for i, v in enumerate(value):
+                    _fortrancore.eprprm.fepr[idx + i] = v
+            else:
+                _fortrancore.eprprm.fepr[idx] = value
+        elif key in self._iepr_map:
+            idx = self._iepr_map[key]
+            if isinstance(value, (list, tuple)):
+                for i, v in enumerate(value):
+                    _fortrancore.eprprm.iepr[idx + i] = v
+            else:
+                _fortrancore.eprprm.iepr[idx] = value
         else:
-            val_str = str(value)
-        _fortrancore.procline(f"let {key} = {val_str}")
-        self._params[key] = value
+            raise KeyError(key)
 
     def __contains__(self, key):
-        self._refresh()
-        return key in self._params
+        key = key.lower()
+        return key in self._fepr_map or key in self._iepr_map
 
     def __iter__(self):
-        self._refresh()
-        return iter(self._params)
+        return iter(self.keys())
 
     def keys(self):
-        self._refresh()
-        return self._params.keys()
+        return list(self._fepr_map.keys()) + list(self._iepr_map.keys())
 
     def items(self):
-        self._refresh()
-        return self._params.items()
+        return [(k, self[k]) for k in self.keys()]
 
     def values(self):
-        self._refresh()
-        return self._params.values()
+        return [self[k] for k in self.keys()]
 
     def get(self, key, default=None):
-        self._refresh()
-        return self._params.get(key, default)
+        try:
+            return self[key]
+        except KeyError:
+            return default
 
     def update(self, other):
         """Update multiple parameters at once."""

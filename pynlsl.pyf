@@ -86,6 +86,7 @@ python module fortrancore ! in
             double precision, save,dimension((mxjcol)) :: diag
             double precision, save,pointer :: gtol
             character*10, save,dimension(4) :: flmprm_name
+            character*10, save,dimension(4) :: ilmprm_name
             integer, save,pointer :: mode
             integer, parameter,optional :: nilmpr=4
             double precision, save,pointer :: factor

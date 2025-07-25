@@ -31,6 +31,7 @@ c
       integer, target, save  :: ilmprm(NILMPR)
       integer, pointer, save :: maxev, maxitr, mode, info
       character*10, dimension(NFLMPR), save :: flmprm_name
+      character*10, dimension(NILMPR), save :: ilmprm_name
 c
       contains
 c
@@ -47,9 +48,13 @@ c
       flmprm_name(4) = "factor"
 c
       maxev  => ilmprm(1)
+      ilmprm_name(1) = "maxfun"
       maxitr => ilmprm(2)
+      ilmprm_name(2) = "maxitr"
       mode   => ilmprm(3)
+      ilmprm_name(3) = "mode"
       info   => ilmprm(4)
+      ilmprm_name(4) = "info"
 c
       end subroutine lmcom_init
 c
