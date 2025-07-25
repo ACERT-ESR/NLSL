@@ -51,6 +51,8 @@ python module fortrancore ! in
             integer, parameter,optional,depend(mxstep,mxsite,mxspc) :: mxtdg=24000
             integer, parameter,optional :: mxel=50000000
             integer, parameter,optional :: nfprm=43
+            integer, parameter,optional :: nflmpr=4
+            integer, parameter,optional :: nilmpr=4
             integer, parameter,optional :: mxsph=4
             integer, parameter,optional :: mxspc=4
             integer, parameter,optional,depend(mxsite,mxjcol) :: mxtv=25
@@ -65,36 +67,21 @@ python module fortrancore ! in
         end module nlsdim
         module lmcom ! in :fortrancore:lmcom.f90
             use nlsdim
-            integer, save,pointer :: maxev
             double precision, save,dimension((mxtv),(mxtv)) :: tcov
             double precision, save,dimension((mxjcol)) :: gnvec
-            integer, save,pointer :: maxitr
             double precision, save,dimension((mxjcol)) :: gradf
             double precision, save,target,dimension(nflmpr) :: flmprm
             double precision, save,dimension((mxjcol)) :: qtf
             integer, save :: lmflag
-            integer, parameter,optional :: nflmpr=4
             integer, save,target,dimension(nilmpr) :: ilmprm
             double precision, save,dimension((mxjcol),(mxjcol)) :: corr
             integer, save, intent(inout) :: nprint
-            double precision, save,pointer :: xtol
             double precision, save,dimension((mxpt),(mxjcol)) :: fjac
-            double precision, save,pointer :: ftol
-            integer, save,pointer :: info
             double precision, save,dimension((mxjcol)) :: x
             double precision, save,dimension((mxpt)) :: fvec
             double precision, save,dimension((mxjcol)) :: diag
-            double precision, save,pointer :: gtol
             character*10, save,dimension(nflmpr) :: flmprm_name
             character*10, save,dimension(nilmpr) :: ilmprm_name
-            integer, save,pointer :: mode
-            integer, parameter,optional :: nilmpr=4
-            double precision, save,pointer :: factor
-            double precision, save,dimension((mxjcol)) :: work1
-            double precision, save,dimension((mxjcol)) :: work2
-            double precision, save,dimension((mxjcol)) :: work3
-            double precision, save,dimension((mxpt)) :: work4
-            integer, save,dimension((mxjcol)) :: ipvt
             subroutine lmcom_init ! in :fortrancore:lmcom.f90:lmcom
             end subroutine lmcom_init
         end module lmcom

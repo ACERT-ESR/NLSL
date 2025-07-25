@@ -55,6 +55,8 @@ c
      #           MXMTS=13
 c
       integer, parameter :: NFPRM=43,
+     #           NFLMPR=4,
+     #           NILMPR=4,
      #           NVPRM=35,
      #           NIPRM=24,
      #           NALIAS=12,

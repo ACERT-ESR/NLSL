@@ -23,8 +23,6 @@ c
 c
       integer, save :: ipvt(MXJCOL), nprint, lmflag
 c
-      integer, parameter :: NFLMPR=4, NILMPR=4
-c
       double precision, target, save  :: flmprm(NFLMPR)
       double precision, pointer, save :: ftol, gtol, xtol, factor
 c
