@@ -20,7 +20,7 @@ def run_example(example, allowed_rel_rms=None):
     """Run the numbered NLSL example and return list of relative RMS errors."""
 
     print(f"about to run nlsl example {example}")
-    runfile_location = os.path.join(os.path.dirname(__file__))
+    runfile_location  = os.path.dirname(__file__)
     os.chdir(runfile_location)
 
     filename_base = f"sampl{example}"
@@ -40,6 +40,7 @@ def run_example(example, allowed_rel_rms=None):
                 n.procline(thisline)
         thisfp.close()
 
+    print(os.getcwd())
     run_file(open(filename_base + '.run'))
 
     rel_rms_list = []
@@ -58,7 +59,6 @@ def run_example(example, allowed_rel_rms=None):
                 f'rms error / norm(experimental) = {rms}, but only {allowed*1.01} allowed'
             )
     return rel_rms_list
-
 
 @pytest.mark.parametrize("example,allowed", EXAMPLES)
 def test_runexample(example, allowed):
