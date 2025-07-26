@@ -12,8 +12,8 @@ class fit_params(dict):
     def __init__(self):
         super().__init__()
         self._core = _fortrancore
-        self._fl_names = [n.strip().lower() for n in self._core.lmcom.flmprm_name.tolist()]
-        self._il_names = [n.strip().lower() for n in self._core.lmcom.ilmprm_name.tolist()]
+        self._fl_names = [n.decode('ascii').strip().lower() for n in self._core.lmcom.flmprm_name.tolist()]
+        self._il_names = [n.decode('ascii').strip().lower() for n in self._core.lmcom.ilmprm_name.tolist()]
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -75,11 +75,11 @@ class nlsl(object):
         _fortrancore.nlsinit()
 
         self._fepr_names = [
-            name.strip().lower()
+            name.decode('ascii').strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
         self._iepr_names = [
-            name.strip().lower()
+            name.decode('ascii').strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
         self._fepr = _fortrancore.eprprm.fepr
