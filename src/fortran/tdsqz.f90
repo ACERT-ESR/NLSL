@@ -1,36 +1,36 @@
-c NLSL Version 1.3.2 2/22/94
-c----------------------------------------------------------------------
-c                    =========================
-c                        subroutine TDSQZ
-c                    =========================
-c
-c   Loops through blocks stored in common /tridag/ and moves tridiagonal
-c   matrices that may be re-used to the bottom of the storage space
-c
-c----------------------------------------------------------------------
-c
+! NLSL Version 1.3.2 2/22/94
+!----------------------------------------------------------------------
+!                    =========================
+!                        subroutine TDSQZ
+!                    =========================
+!
+!   Loops through blocks stored in common /tridag/ and moves tridiagonal
+!   matrices that may be re-used to the bottom of the storage space
+!
+!----------------------------------------------------------------------
+!
       subroutine tdsqz()
-c
+!
       use nlsdim
       use expdat
       use tridag
       use stdio
-c
+!
       implicit none
       integer i,j,next,isp,isi,ixt,k,n
-c
+!
       next=1
       n=0
       do i=1,ntd
          isi=tdsite(i)
          isp=tdspec(i)
-c
-c        Check whether next tridiagonal matrix may be kept
-c
+!
+!        Check whether next tridiagonal matrix may be kept
+!
          if (modtd(isi,isp).eq.0) then
-c
-c           Move the block to lowest available storage location
-c
+!
+!           Move the block to lowest available storage location
+!
             ixt=ixtd(isi,isp)
             if (ixt.gt.next) then
                ixtd(isi,isp)=next
@@ -49,13 +49,13 @@ c
             tdsite(n)=isi
             tdspec(n)=isp
          end if
-c
+!
       end do
       nexttd=next
       ntd=n
-c
+!
  1005 format('*** Error in tridiagonal matrix storage ***')
-c 
+! 
       return
       end
 

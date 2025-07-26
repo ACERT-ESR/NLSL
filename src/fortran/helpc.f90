@@ -1,19 +1,19 @@
-c Version 1.2
-c----------------------------------------------------------------------
-c                  =========================
-c                      subroutine HELPC
-c                  =========================
-c----------------------------------------------------------------------
+! Version 1.2
+!----------------------------------------------------------------------
+!                  =========================
+!                      subroutine HELPC
+!                  =========================
+!----------------------------------------------------------------------
       subroutine helpc(line)
-c
+!
       use stdio
-c
+!
       implicit none
       character hlptxt*132,line*80, cat1*30, cat2*30, hlpcat*30
       integer ioerr,ibar,iblk,lth1,lth2,nlines,LINES
       logical found1,found2,kywrd1,kywrd2,match1,noncmd
       parameter(LINES=23)
-c
+!
       ibar=1
       iblk=1
       hlpcat=''
@@ -29,13 +29,13 @@ c
          write (luttyo,1002)
          return
       end if
-c
+!
       found1=.false.
       found2=.false.
       nlines=0
-c
-c  Search through lines in the help text file
-c
+!
+!  Search through lines in the help text file
+!
  1    read (ludisk,'(a)',end=4,iostat=ioerr) hlptxt
       if (ioerr.ne.0) then
          write (luttyo,1003) hlpcat(:ibar),hlptxt(:iblk)
@@ -47,25 +47,25 @@ c
          ibar=ibar+1
          go to 2
       end if
-c
+!
       kywrd1=hlptxt(1:1).eq.'*'
       kywrd2=hlptxt(1:1).eq.'>'
       noncmd=hlptxt(1:1).eq.' '
       hlpcat=hlptxt(2:ibar-1)
       hlptxt=hlptxt(ibar+1:)
       ibar=ibar-2
-c
-c     Find last nonblank character in help text line
-c
+!
+!     Find last nonblank character in help text line
+!
       iblk=132
  3    if (hlptxt(iblk:iblk).eq.' ') then
          iblk=iblk-1
          go to 3
       end if
-c
-c     If help text entry represents a major category, check the
-c     first keyword specified in the help command (if any) against it 
-c
+!
+!     If help text entry represents a major category, check the
+!     first keyword specified in the help command (if any) against it 
+!
       if (kywrd1) then
          match1=.false.
          if (lth1.eq.0) then
@@ -77,9 +77,9 @@ c
             match1=.true.
             found1=.true.
          end if
-c
-c     If help text entry represents a subcategory, check the
-c     second keyword specified in the help command (if any) against it 
+!
+!     If help text entry represents a subcategory, check the
+!     second keyword specified in the help command (if any) against it 
 
       else if (kywrd2) then
          if (match1.and.lth2.eq.0) then
@@ -90,7 +90,7 @@ c     second keyword specified in the help command (if any) against it
             write(luttyo,1004) hlpcat(:ibar),hlptxt(:iblk)
             found2=.true.
          end if
-c
+!
       else if (noncmd .and. lth1.ne.0) then
          if (cat1(:lth1).eq.hlpcat(:lth1)) then
             call linchk(nlines)
@@ -99,14 +99,14 @@ c
          end if
       end if
       go to 1
-c
+!
  4    if ((lth1.ne.0 .and. .not.found1) .or. 
      #    (lth2.ne.0 .and. .not.found2)) 
      #     write (luttyo,1001) cat1(:lth1),cat2(:lth2)
-c
+!
       close(ludisk)
       return
-c
+!
  1000 format(a,t22,a)
  1001 format('*** No help available for ''',a,' ',a,''' ***')
  1002 format('*** File ''nlshlp.txt'' not available ***')
@@ -116,14 +116,14 @@ c
 
 
       subroutine linchk( nlines )
-c
+!
       use stdio
-c
+!
       implicit none
       integer nlines,MXLINES
       character dummy*1
       parameter(MXLINES=20)
-c
+!
       if (luttyo.ne.luttyo) return
       if (nlines.eq.0) write (luttyo,1001)
       nlines=nlines+1

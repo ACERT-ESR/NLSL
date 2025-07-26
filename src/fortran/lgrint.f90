@@ -1,57 +1,57 @@
-c NLSL Version 1.5 7/1/95
-c----------------------------------------------------------------------
-c                    =========================
-c                       function LGRINT
-c                    =========================
-c
-c Given an array of five points corresponding to a function fn
-c tabulated at equally spaced abscissae x(-2),x(-1),x(0),x(1),x(2),
-c such that there is a maximum in fn at one of the internal point
-c of the array, this routine finds a value p such that fn(x(0)+p)
-c is the extremum, where p is given as a multiple of the spacing
-c between the x-values.
-c
-c The minimization is based on the 5-point Lagrange formula for
-c polynomial interpolation using equally-spaced x-values [formula
-c 25.2.15 in Abramowitz and Stegun, Handbook of Mathematical Functions,
-c Dover, 2nd edition (1978).]
-c
-c The extremum is found by setting the first derivative of formula
-c 25.2.15 w.r.t. p equal to zero and finding the root of the 
-c resulting polynomial using a method based on the polynomial
-c root-finding algorithm given in Numerical Recipes by Press. et al.
-c
-c The starting point for the root search is assumed to be x(0) (p=0).
-c
-c Inputs:
-c   fn   5-vector with function values
-c
-c Output:
-c   err  is set to error estimate given by Abramowitz and Stegun
-c   Function return is value of p corresponding to the function
-c   maximum
-c
-c----------------------------------------------------------------------
-c
+! NLSL Version 1.5 7/1/95
+!----------------------------------------------------------------------
+!                    =========================
+!                       function LGRINT
+!                    =========================
+!
+! Given an array of five points corresponding to a function fn
+! tabulated at equally spaced abscissae x(-2),x(-1),x(0),x(1),x(2),
+! such that there is a maximum in fn at one of the internal point
+! of the array, this routine finds a value p such that fn(x(0)+p)
+! is the extremum, where p is given as a multiple of the spacing
+! between the x-values.
+!
+! The minimization is based on the 5-point Lagrange formula for
+! polynomial interpolation using equally-spaced x-values [formula
+! 25.2.15 in Abramowitz and Stegun, Handbook of Mathematical Functions,
+! Dover, 2nd edition (1978).]
+!
+! The extremum is found by setting the first derivative of formula
+! 25.2.15 w.r.t. p equal to zero and finding the root of the 
+! resulting polynomial using a method based on the polynomial
+! root-finding algorithm given in Numerical Recipes by Press. et al.
+!
+! The starting point for the root search is assumed to be x(0) (p=0).
+!
+! Inputs:
+!   fn   5-vector with function values
+!
+! Output:
+!   err  is set to error estimate given by Abramowitz and Stegun
+!   Function return is value of p corresponding to the function
+!   maximum
+!
+!----------------------------------------------------------------------
+!
       function lgrint(fn)
       implicit none
       double complex lgrint
       double precision fn(5)
-c
+!
       integer iter,j,m
       double precision ctmp,eps,yy,zz
       double complex a(4)
       double complex x,dx,x1,b,d,f,g,h,sq,gp,gm,g2,xx,ww
-c
+!
       integer MAXIT
       double precision TINY
       double complex CZERO
       parameter (CZERO=(0.,0.),TINY=1.e-15,MAXIT=100)
-c
-c ---------------------------------------------------------------
-c Define coefficients for polynomial that is the first-derivative
-c of the 5-point Lagrange polynomial with respect to p
-c ---------------------------------------------------------------
+!
+! ---------------------------------------------------------------
+! Define coefficients for polynomial that is the first-derivative
+! of the 5-point Lagrange polynomial with respect to p
+! ---------------------------------------------------------------
       ctmp = ((fn(1)-fn(5))-8.0d0*(fn(2)-fn(4)))/12.0d0
       a(1) = dcmplx(ctmp,0.0d0)
       ctmp = ( -(fn(1)+fn(5))+16.0d0*(fn(2)+fn(4))-30.0d0*fn(3))/12.0d0
@@ -60,19 +60,19 @@ c ---------------------------------------------------------------
       a(3) = dcmplx(ctmp,0.0d0)
       ctmp = ( 2.0*(fn(1)+fn(5))-8.0d0*(fn(2)+fn(4)))/12.0d0+fn(3)
       a(4) = dcmplx(ctmp,0.0d0)
-c
+!
       x=CZERO
       eps=1.0d-6
       m=3
-c
-c   --------------------------------------------------------------------
-c   Start of polynomial root-finding 
-c   Given the degree m and the m+1 complex coefficients a of the
-c   fitting polynomial, and given eps, the desired fractional accuracy,
-c   and given a complex value x as the seed for the search, the
-c   following routine improves x by Laguerre's method until it converges
-c   to a root of the polynomial.
-c   --------------------------------------------------------------------
+!
+!   --------------------------------------------------------------------
+!   Start of polynomial root-finding 
+!   Given the degree m and the m+1 complex coefficients a of the
+!   fitting polynomial, and given eps, the desired fractional accuracy,
+!   and given a complex value x as the seed for the search, the
+!   following routine improves x by Laguerre's method until it converges
+!   to a root of the polynomial.
+!   --------------------------------------------------------------------
       do iter=1,MAXIT
          b=a(m+1)
          d=CZERO
@@ -82,7 +82,7 @@ c   --------------------------------------------------------------------
             d=x*d+b
             b=x*b+a(j)
          end do
-c
+!
          if(abs(b).le.TINY) then
             dx=CZERO
          else if(abs(d).le.TINY.and.abs(f).le.TINY)then
@@ -92,8 +92,8 @@ c
             g2=g*g
             h=g2-2.*f/b
             xx=(m-1)*(m*h-g2)
-c           yy=abs(real(xx))
-c           zz=abs(aimag(xx))
+!           yy=abs(real(xx))
+!           zz=abs(aimag(xx))
             yy=abs(DBLE(xx))
             zz=abs(DIMAG(xx))
             if(yy.lt.TINY.and.zz.lt.TINY) then
@@ -115,7 +115,7 @@ c           zz=abs(aimag(xx))
             lgrint=x
             return
          endif
-c
+!
          x=x1
          if(abs(dx).le.eps*abs(x))then
             lgrint=x

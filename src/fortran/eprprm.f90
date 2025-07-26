@@ -1,58 +1,58 @@
-c NLSL Version 1.9.0 beta 2/6/15
-c----------------------------------------------------------------------
-c                    =========================
-c                          module EPRPRM
-c                    =========================
-c
-c  Definitions of variables and pointer-aliases for NLSL fitting of
-c  experimental spectra using LBLL-family slow-motional calculations.
-c
-c  This module supersedes various F77 common blocks and equivalences,
-c  in particular those that were in the files eprprm.inc and prmeqv.inc.
-c
-c
-c IMPORTANT NOTES (mostly taken from version 1.5.1 beta, 2/3/96): 
-c
-c   The order in which the parameters appear in fparm and iparm is critical 
-c   to the proper functioning of the NLSL program. If the parameter order is
-c   to be changed, the following rules must be observed:
-c
-c   (1) To permit alias names to be used for the g, A, and diffusion
-c       tensors, the parameters gxx,gyy,gzz,axx,ayy,azz,dx,dy,dz,wxx,wyy,wzz
-c       should appear contiguously in that order in fparm.
-c
-c   (2) The parameters igsph,iasph,irsph,iwsph should appear contiguously
-c       in that order in iparm. (See function tcheck in file tensym.f90.)
-c
-c   (3) The order in which the parameters appear in module eprprm must
-c       be consistent with the order of names defined in module lpnam.
-c       This enables function ipfind to work properly, among other things.
-c
-c   (4) The residence times tl,tkxy,tkzz have been replaced with the
-c       parameters pml, pmxy, pmzz. This is to facilitate fitting using
-c       non-Brownian models where it is desirable to vary the residence
-c       time and the diffusion rate constant together (i.e. keeping the
-c       product, which is related to the rms jump angle, constant).
-c
-c   (5) The non-Brownian model flags have been changed to ml, mzz, and
-c       mxy for perpendicular, parallel, and internal motions, respectively.
-c       The flags may be set to 0, 1, and 2 for Brownian, free, and
-c       jump diffusion, respectively.
-c
-c   (6) The old "wint" parameters have been changed to "gib", and
-c       now the additional width refers to Gaussian inhomogeneous width
-c       rather than an additional Lorentzian width
-c
-c   (7) A new spectral linewidth broadening parameter, "lb", has been
-c       added
-c
-c***********************************************************************
-c
+! NLSL Version 1.9.0 beta 2/6/15
+!----------------------------------------------------------------------
+!                    =========================
+!                          module EPRPRM
+!                    =========================
+!
+!  Definitions of variables and pointer-aliases for NLSL fitting of
+!  experimental spectra using LBLL-family slow-motional calculations.
+!
+!  This module supersedes various F77 common blocks and equivalences,
+!  in particular those that were in the files eprprm.inc and prmeqv.inc.
+!
+!
+! IMPORTANT NOTES (mostly taken from version 1.5.1 beta, 2/3/96): 
+!
+!   The order in which the parameters appear in fparm and iparm is critical 
+!   to the proper functioning of the NLSL program. If the parameter order is
+!   to be changed, the following rules must be observed:
+!
+!   (1) To permit alias names to be used for the g, A, and diffusion
+!       tensors, the parameters gxx,gyy,gzz,axx,ayy,azz,dx,dy,dz,wxx,wyy,wzz
+!       should appear contiguously in that order in fparm.
+!
+!   (2) The parameters igsph,iasph,irsph,iwsph should appear contiguously
+!       in that order in iparm. (See function tcheck in file tensym.f90.)
+!
+!   (3) The order in which the parameters appear in module eprprm must
+!       be consistent with the order of names defined in module lpnam.
+!       This enables function ipfind to work properly, among other things.
+!
+!   (4) The residence times tl,tkxy,tkzz have been replaced with the
+!       parameters pml, pmxy, pmzz. This is to facilitate fitting using
+!       non-Brownian models where it is desirable to vary the residence
+!       time and the diffusion rate constant together (i.e. keeping the
+!       product, which is related to the rms jump angle, constant).
+!
+!   (5) The non-Brownian model flags have been changed to ml, mzz, and
+!       mxy for perpendicular, parallel, and internal motions, respectively.
+!       The flags may be set to 0, 1, and 2 for Brownian, free, and
+!       jump diffusion, respectively.
+!
+!   (6) The old "wint" parameters have been changed to "gib", and
+!       now the additional width refers to Gaussian inhomogeneous width
+!       rather than an additional Lorentzian width
+!
+!   (7) A new spectral linewidth broadening parameter, "lb", has been
+!       added
+!
+!***********************************************************************
+!
       module eprprm
       use parcom
       use nlsdim
       implicit none
-c
+!
       double precision, target, save :: fepr(NFPRM)
       character*10, dimension(NFPRM), save:: fepr_name
       integer, target, save :: iepr(NIPRM)
@@ -73,11 +73,11 @@ c
      #         ml,mxy,mzz,lemx,lomx,kmn,kmx,mmn,mmx,ipnmx,
      #         nort,nstep,nfld,ideriv,iwflg,igflg,iaflg,irflg,jkmn,jmmn,
      #         ndim
-c
-c     The following are not declared with the pointer attribute,
-c     as they are not special names that are used to point into
-c     another array, like the variables above
-c
+!
+!     The following are not declared with the pointer attribute,
+!     as they are not special names that are used to point into
+!     another array, like the variables above
+!
       double precision, save ::
      #         a0,g0,w0,expl,expkxy,expkzz,faa(5),fgm(5),fwm(5),
      #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5)
@@ -86,12 +86,12 @@ c
      #         itype,ipt,itm,itd,ipsi0,lband,kband,ldelta,
      #         kdelta,lptmx,kptmx,neltot,nelv,nelre,nelim,ncgstp
 
-c
-c *** The following constants identify the position of many of the
-c     parameters within the fepr/iepr (and fparm/iparm) arrays.
-c     THESE CONSTANTS *MUST* BE REDEFINED IF THE PARAMETER ORDER 
-c     IN EPRPRM IS CHANGED!!!
-c
+!
+! *** The following constants identify the position of many of the
+!     parameters within the fepr/iepr (and fparm/iparm) arrays.
+!     THESE CONSTANTS *MUST* BE REDEFINED IF THE PARAMETER ORDER 
+!     IN EPRPRM IS CHANGED!!!
+!
       integer, parameter :: IPHASE=1,IGIB0=2,IGIB2=3,
      #         IWXX=4,IWZZ=6,IGXX=7,IGZZ=9,
      #         IAXX=10,IAZZ=12,IDX=13,
@@ -100,49 +100,28 @@ c
      #         IGAD=25,IALM=26,IGAM=28,IC20=29,IC44=33,ILB=34,IDC20=35,
      #         IB0=36,IGAMAN=37,ICGTOL=38,ISHIFT=39,IRANGE=41,IFLDI=42,
      #         IDFLD=43
-c
+!
       integer, parameter :: IIN2=1,IIPDF=2,IIST=3,IML=4,
      #         ILEMX=7,INORT=14,INSTEP=15,
      #         INFLD=16,IIDERV=17,IIWFLG=18,IIGFLG=19,IIAFLG=20,
      #         IIRFLG=21,INDIM=24
 
-c     The following constants were absent from the original lists.
-c     They are now included for consistency.  
+!     The following constants were absent from the original lists.
+!     They are now included for consistency.  
       integer, parameter :: IWYY=5,IGYY=8,IAYY=11,IDY=14,
      #         IBEM=27,IC22=30,IC40=31,IC42=32,ISHIFTI=40,
      #         IMXY=5,IMZZ=6,
      #         ILOMX=8,IKMN=9,IKMX=10,IMMN=11,IMMX=12,IIPNMX=13,
      #         IJKMN=22,IJMMN=23
 
-c     In the original lists, IGAMAN, ISHIFT, IIDERV had odd spellings.
-c     The following extra constants conform to the typical pattern.
+!     In the original lists, IGAMAN, ISHIFT, IIDERV had odd spellings.
+!     The following extra constants conform to the typical pattern.
       integer, parameter :: IGAMMAN=IGAMAN,ISHIFTR=ISHIFT,
      #         IIDERIV=IIDERV
-c
-c      integer, save :: current_site
+!
+!      integer, save :: current_site
 
       contains
-
-c      subroutine select_site(isite)
-c      implicit none
-c
-c      Possible future subroutine...
-c      Instead of copying a column of fparm into fepr, or copying a
-c      column of iparm into iepr, it may be possible to make fepr
-c      and iepr into pointers to the heads of the relevant columns.
-c      Currently, though, fepr and iepr are treated as temp arrays
-c      whose values can change, so making them into pointers would
-c      have undesirable effects on global arrays fparm and iparm. 
-c
-c      integer :: isite
-c      current_site = isite
-c              ------------------------------------------------
-c              After call momdls, all eprprm parameters point
-c              to the current site via call select_site(isi)
-c              ------------------------------------------------
-c      fepr => fparm(:,isite)
-c      iepr => iparm(:,isite)
-c      end subroutine select_site
 
       subroutine prm_ptr_init
       implicit none

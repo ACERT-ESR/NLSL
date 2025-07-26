@@ -1,12 +1,12 @@
-c Version 1.5.1b 11/6/95
+! Version 1.5.1b 11/6/95
       subroutine procline(line)
-c> @brief
-c>  processes the command line for the main nlsl program
-c> @details
-c>  it's separated out to facilitate wrapping with python
-c>
-c>
-c>
+!> @brief
+!>  processes the command line for the main nlsl program
+!> @details
+!>  it's separated out to facilitate wrapping with python
+!>
+!>
+!>
       use stdio
       use nlsnam
       use symdef
@@ -15,62 +15,62 @@ c>
       character fileID*30,token*30,scratch*30
       logical fexist
       integer ioerr,lth
-c######################################################################
-c
+!######################################################################
+!
          call gettkn(line,token,lth)
          call touppr(token,lth)
          if (lth.eq.0 .or. token.eq.'C' .or. token.eq.'/*') return
-c
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
          if (token.eq.'ASSIGN') then
             call assgnc(line)
-c
-c----------------------------------------------------------------------
-c         AXIAL command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         AXIAL command
+!----------------------------------------------------------------------
          else if (token.eq.'AXIAL') then
             call convtc(line,AXIAL)
-c
-c----------------------------------------------------------------------
-c        BASIS command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        BASIS command
+!----------------------------------------------------------------------
          else if (token.eq.'BASIS') then
             call basisc(line)
-c
-c----------------------------------------------------------------------
-c         CARTESIAN command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         CARTESIAN command
+!----------------------------------------------------------------------
          else if (token.eq.'CARTESIAN' .or. token.eq.'CART') then
             call convtc(line,CARTESIAN)
-c
-c----------------------------------------------------------------------
-c         CONFIDENCE command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         CONFIDENCE command
+!----------------------------------------------------------------------
          else if (token.eq.'CONFIDENCE' .or. token .eq. 'CONF') then
             call confc(line)
-c
-c----------------------------------------------------------------------
-c         CONFIDENCE command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         CONFIDENCE command
+!----------------------------------------------------------------------
          else if (token.eq.'CORRELATION' .or. token .eq. 'CORR') then
             call covrpt(luttyo)
-c
-c----------------------------------------------------------------------
-c         DATA command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         DATA command
+!----------------------------------------------------------------------
          else if (token.eq.'DATA') then
             call datac(line)
-c
-c----------------------------------------------------------------------
-c         DELETE command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         DELETE command
+!----------------------------------------------------------------------
          else if (token.eq.'DELETE' .or. token.eq.'DEL' ) then
             call deletc(line)
 
-c
-c----------------------------------------------------------------------
-c         ECHO command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         ECHO command
+!----------------------------------------------------------------------
          else if (token.eq.'ECHO') then
             call gettkn(line,token,lth)
             if (lth.gt.0) then
@@ -88,41 +88,41 @@ c----------------------------------------------------------------------
                write(luttyo,1060) line
                if (luout.ne.luttyo) write (luout,1060) line
             end if
-c
-c----------------------------------------------------------------------
-c        FIT command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        FIT command
+!----------------------------------------------------------------------
          else if (token.eq.'FIT') then
             call fitc(line)
-c
-c----------------------------------------------------------------------
-c         FIX command (alias REMOVE)
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         FIX command (alias REMOVE)
+!----------------------------------------------------------------------
          else if (token.eq.'FIX' .or. token.eq.'REMOVE') then
             call fixc(line)
-c
-c----------------------------------------------------------------------
-c         HELP command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         HELP command
+!----------------------------------------------------------------------
          else if (token.eq.'HELP') then
             call helpc(line)
-c
-c----------------------------------------------------------------------
-c         LET command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         LET command
+!----------------------------------------------------------------------
          else if (token.eq.'LET') then
             call letc(line)
-c
-c----------------------------------------------------------------------
-c           LOG command: Set log file identification
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!           LOG command: Set log file identification
+!----------------------------------------------------------------------
          else if (token.eq.'LOG') then
             call gettkn(line,fileID,lth)
             if (lth.eq.0) then
-c
-c                              *** File name not specified
+!
+!                              *** File name not specified
                write (luttyo,1020)
-c     
+!     
             else if (fileID.eq.'END' .or. fileID.eq.'end') then
                if (luout.eq.luttyo) then
                   write (luttyo,1021)
@@ -130,7 +130,7 @@ c
                   close(lulog)
                   luout=luttyo
                end if
-c     
+!     
             else
                call setfil( fileID )
                open(lulog,file=lgname(:lthfnm),status='unknown',
@@ -142,35 +142,35 @@ c
                   luout=lulog
                end if
             end if
-c
-c----------------------------------------------------------------------
-c           PARMS command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!           PARMS command
+!----------------------------------------------------------------------
          else if (token.eq.'PARMS') then
             call parc(line)
-c
-c----------------------------------------------------------------------
-c           QUIT command (alias EXIT)
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!           QUIT command (alias EXIT)
+!----------------------------------------------------------------------
          else if (token.eq.'QUIT'.or.token.eq.'EXIT') then
              exitprog = .true.
              return
-c
-c----------------------------------------------------------------------
-c           READ command (alias CALL)
-c           open a new input file and set I/O units appropriately
-c----------------------------------------------------------------------
-c
+!
+!----------------------------------------------------------------------
+!           READ command (alias CALL)
+!           open a new input file and set I/O units appropriately
+!----------------------------------------------------------------------
+!
          else if (token.eq.'READ' .or. token.eq.'CALL') then
-c
-c       --- get filename
-c
+!
+!       --- get filename
+!
             call gettkn(line,fileID,lth)
-c
+!
             if (lth.ne.0) then
-c     
-c        --- open input file if possible
-c
+!     
+!        --- open input file if possible
+!
                if (nfiles.ge.MXFILE) then
                   write (luttyo,1050) fileID(:lth),MXFILE
                else
@@ -180,10 +180,10 @@ c
                   if (fexist) open(lucmd,file=fileID(:lth),
      #                 status='old',access='sequential',
      #                 form='formatted',iostat=ioerr)
-c
+!
                   if ((.not.fexist) .or. ioerr.ne.0) then
-c
-c                                               *** open error
+!
+!                                               *** open error
                      write (luttyo,1030) fileID(:lth)
                      nfiles=nfiles-1
                      if (nfiles.eq.0) then
@@ -191,87 +191,87 @@ c                                               *** open error
                      else
                         lucmd=lucmd-1
                      end if
-c
+!
                   else
                      files(nfiles)=fileID
                      call catchc( hltcmd )
                   end if
                end if
-c
-c                              *** File name not specified
+!
+!                              *** File name not specified
             else
                write (luttyo,1020) 
             end if
-c
-c----------------------------------------------------------------------
-c        RESET command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        RESET command
+!----------------------------------------------------------------------
          else if (token.eq.'RESET') then
             call nlsinit
-c
-c----------------------------------------------------------------------
-c        SCALE command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        SCALE command
+!----------------------------------------------------------------------
          else if (token.eq.'SCALE') then
             call scalec(line)
-c
-c----------------------------------------------------------------------
-c        SEARCH command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        SEARCH command
+!----------------------------------------------------------------------
          else if (token.eq.'SEARCH') then
             call srchc(line)
 
-c----------------------------------------------------------------------
-c        SERIES command
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!        SERIES command
+!----------------------------------------------------------------------
          else if (token.eq.'SERIES') then
             call series(line)
-c     
-c----------------------------------------------------------------------
-c        SHIFT command
-c----------------------------------------------------------------------
+!     
+!----------------------------------------------------------------------
+!        SHIFT command
+!----------------------------------------------------------------------
          else if (token.eq.'SHIFT') then
             call shiftc(line)
-c
-c----------------------------------------------------------------------
-c        SITES command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        SITES command
+!----------------------------------------------------------------------
          else if (token.eq.'SITES') then
             call sitec(line)
-c
-c----------------------------------------------------------------------
-c         SPHERICAL command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         SPHERICAL command
+!----------------------------------------------------------------------
          else if (token.eq.'SPHERICAL' .or. token.eq.'SPHER') then
             call convtc(line,SPHERICAL)
-c
-c----------------------------------------------------------------------
-c        STATUS command 
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        STATUS command 
+!----------------------------------------------------------------------
          else if (token.eq.'STATUS') then
             call statc(line)
-c
-c----------------------------------------------------------------------
-c        VARY command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        VARY command
+!----------------------------------------------------------------------
          else if (token.eq.'VARY') then
             call varyc(line)
-c
-c----------------------------------------------------------------------
-c        WRITE command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        WRITE command
+!----------------------------------------------------------------------
          else if (token.eq.'WRITE') then
             call writec( line )
-c
-c----------------------------------------------------------------------
-c        Unknown command  
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!        Unknown command  
+!----------------------------------------------------------------------
          else
             write(luttyo,1040) token(:lth)
          end if
-c
-c## format statements ###############################################
-c
+!
+!## format statements ###############################################
+!
  1020 format('*** File name must be specified ***'/)
  1021 format('*** Log file is not open ***')
  1022 format('*** Error',i3,' opening file ',a,' ***')
@@ -281,34 +281,34 @@ c
      #       ' read files ***')
  1060 format(a)
       end
-c----------------------------------------------------------------------
-c                  =========================
-c                        program NLSL
-c                  =========================
-c
-c     Main program for a nonlinear least-squares fit using an 
-c     EPRLL-family slow-motional calculation. The options in running
-c     this program are too numerous to detail here. Read the manual...
-c     or better yet, wait until the movie comes  out.  DB 
-c
-c     Updated by DC and DEB to include graphical interface by
-c     calls in this program, subroutine GETDAT, and subroutine LFUN.
-c
-c
-c     Modules needed:      Additional modules needed by NLSINIT:
-c        nlsdim.mod           basis.mod
-c        nlsnam.mod           iterat.mod
-c        eprprm.mod           mspct.mod
-c        expdat.mod           tridag.mod
-c        lmcom.mod
-c        parcom.mod
-c        symdef.mod
-c        stdio.mod
-c
-c######################################################################
-c
+!----------------------------------------------------------------------
+!                  =========================
+!                        program NLSL
+!                  =========================
+!
+!     Main program for a nonlinear least-squares fit using an 
+!     EPRLL-family slow-motional calculation. The options in running
+!     this program are too numerous to detail here. Read the manual...
+!     or better yet, wait until the movie comes  out.  DB 
+!
+!     Updated by DC and DEB to include graphical interface by
+!     calls in this program, subroutine GETDAT, and subroutine LFUN.
+!
+!
+!     Modules needed:      Additional modules needed by NLSINIT:
+!        nlsdim.mod           basis.mod
+!        nlsnam.mod           iterat.mod
+!        eprprm.mod           mspct.mod
+!        expdat.mod           tridag.mod
+!        lmcom.mod
+!        parcom.mod
+!        symdef.mod
+!        stdio.mod
+!
+!######################################################################
+!
       program nlsl
-c
+!
       use nlsdim
       use nlsnam
       use eprprm
@@ -317,32 +317,32 @@ c
       use parcom
       use symdef
       use stdio
-c
+!
       implicit none
-c
+!
       integer i
       character line*80
-c
+!
       logical getlin
       external getlin
-c
+!
       write (luttyo,1000)
       write (luttyo,1010)
-c
-c    ----------------------
-c    Initialize NLS system
-c    ----------------------
-c
+!
+!    ----------------------
+!    Initialize NLS system
+!    ----------------------
+!
       call nlsinit
-c
-c----------------------------------------------------------------------
-c     Get next command from input stream (skip comments)
-c----------------------------------------------------------------------
-c
-c Check for ^C during command input from indirect files.
-c If detected, close all files and return to tty mode
-c
-c The following line is the start of the main loop
+!
+!----------------------------------------------------------------------
+!     Get next command from input stream (skip comments)
+!----------------------------------------------------------------------
+!
+! Check for ^C during command input from indirect files.
+! If detected, close all files and return to tty mode
+!
+! The following line is the start of the main loop
  25   if (hltcmd.ne.0 .and. nfiles.gt.0) then
          do 26 i=1,nfiles
             close(ludisk+i)
@@ -351,14 +351,14 @@ c The following line is the start of the main loop
          lucmd=luttyi
          call uncatchc( hltcmd )
       end if
-c
+!
       if (getlin(line)) then
           call procline(line)
-c----------------------------------------------------------------------
-c    No more lines (getlin returned .false.)
-c    Close current input unit; if there are no open files, stop program
-c----------------------------------------------------------------------
-c
+!----------------------------------------------------------------------
+!    No more lines (getlin returned .false.)
+!    Close current input unit; if there are no open files, stop program
+!----------------------------------------------------------------------
+!
       else
          if (nfiles.eq.0) then
             write(luttyo,1000)
@@ -375,23 +375,23 @@ c
          end if
       end if
       go to 25
-c
-c----------------------------------------------------------------------
-c       Exit program
-c----------------------------------------------------------------------
-c
-c
-c
-c     -----------------------------------
-c      Close all windows before exiting
-c     -----------------------------------
-c      call shutwindows()
+!
+!----------------------------------------------------------------------
+!       Exit program
+!----------------------------------------------------------------------
+!
+!
+!
+!     -----------------------------------
+!      Close all windows before exiting
+!     -----------------------------------
+!      call shutwindows()
       call shtwndws()
       stop
-c
-c
-c## format statements ###############################################
-c
+!
+!
+!## format statements ###############################################
+!
  1000 format(//,2x,70('#'),//)
  1010 format(25x,'PROGRAM : NLSL'/20x,'*** Version 1.5.1 beta ***'/
      #26x,'Mod 05/18/96'/
@@ -401,18 +401,18 @@ c
 
 
 
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine NLSINIT
-c                    =========================
-c
-c     Initializes the following:
-c       Data arrays
-c       NLS parameter arrays
-c       NLS convergence criteria
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine NLSINIT
+!                    =========================
+!
+!     Initializes the following:
+!       Data arrays
+!       NLS parameter arrays
+!       NLS convergence criteria
+!----------------------------------------------------------------------
       subroutine nlsinit
-c
+!
       use nlsdim
       use nlsnam
       use eprprm
@@ -424,14 +424,14 @@ c
       use lmcom
       use iterat
       use stdio
-c
-c      implicit none
-c
+!
+!      implicit none
+!
       integer i,j
-c
-c----------------------------------------------------------------------
-c    Initializations
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!    Initializations
+!----------------------------------------------------------------------
       exitprog=.false.
       nfiles=0
       lucmd=luttyi
@@ -444,52 +444,52 @@ c----------------------------------------------------------------------
       nser=1
       nsite=1
       nwin=0
-c
-c----------------------------------------
-c     Initialize parameter arrays
-c----------------------------------------
+!
+!----------------------------------------
+!     Initialize parameter arrays
+!----------------------------------------
       do j=1,MXSITE
          do i=1,NVPRM
             fparm(i,j)=0.0d0
             ixx(i,j)=0
          end do
-c
+!
          do i=1,NIPRM
             iparm(i,j)=0
          end do
-c
+!
          do i=1,MXSPC
             sfac(j,i)=1.0d0
          end do
-c
-c----------------------------------------------------------
-c     Initialize pointers to serve as meaningful aliases
-c     for the various parameters stored in lengthy arrays
-c----------------------------------------------------------
+!
+!----------------------------------------------------------
+!     Initialize pointers to serve as meaningful aliases
+!     for the various parameters stored in lengthy arrays
+!----------------------------------------------------------
       call prm_ptr_init
-c
-c--------------------------------------------------
-c  Put in defaults for often-forgotten parameters
-c--------------------------------------------------
+!
+!--------------------------------------------------
+!  Put in defaults for often-forgotten parameters
+!--------------------------------------------------
          fparm(ICGTOL,j)=1.0D-3
          fparm(ISHIFT,j)=1.0D-3
-c
-c------------------------------------------------------------
-c  Define an all-purpose default MTS 
-c  (caveat: this is a conservative set, corresponding
-c   to pretty slow motions at X-band!, and long calculation
-c   times!)
-c------------------------------------------------------------
+!
+!------------------------------------------------------------
+!  Define an all-purpose default MTS 
+!  (caveat: this is a conservative set, corresponding
+!   to pretty slow motions at X-band!, and long calculation
+!   times!)
+!------------------------------------------------------------
          iparm(ILEMX,j)=10
          iparm(ILEMX+1,j)=9
          iparm(ILEMX+3,j)=6
          iparm(ILEMX+5,j)=2
          iparm(ILEMX+6,j)=2
       end do
-c
-c-------------------------------------------------------
-c  Initialize tridiagonal matrix and basis index space
-c-------------------------------------------------------
+!
+!-------------------------------------------------------
+!  Initialize tridiagonal matrix and basis index space
+!-------------------------------------------------------
       do j=1,MXSPC
          do i=1,MXSITE
             modtd(i,j)=1
@@ -501,10 +501,10 @@ c-------------------------------------------------------
       nextbs=1
       ntd=0
       nbas=0
-c
-c------------------------------------------------------------
-c    Initialize data array parameters
-c------------------------------------------------------------
+!
+!------------------------------------------------------------
+!    Initialize data array parameters
+!------------------------------------------------------------
       do i=1,MXSPC
          sbi(i)=0.0d0
          sdb(i)=0.0d0
@@ -521,19 +521,19 @@ c------------------------------------------------------------
          idrv(i)=1
       end do
       ishglb=0
-c
-c----------------------------------------
-c  -- Enable autoscaling for all sites
-c----------------------------------------
+!
+!----------------------------------------
+!  -- Enable autoscaling for all sites
+!----------------------------------------
       do i=1,MXSITE
          iscal(i)=1
       end do
       iscglb=1
-c
-c------------------------------------------------------
-c  -- Set initial values for NLS convergence criteria
-c  -- First, call the routine to initalize F90 pointers
-c------------------------------------------------------
+!
+!------------------------------------------------------
+!  -- Set initial values for NLS convergence criteria
+!  -- First, call the routine to initalize F90 pointers
+!------------------------------------------------------
       call lmcom_init
       xtol=1.0d-4
       ftol=1.0d-4
@@ -549,28 +549,28 @@ c------------------------------------------------------
       iwflag=1
       confid=0.683
       ctol=1.0d-3
-c
-c--------------------------------------------------
-c  -- Set initial values for line search parameters
-c--------------------------------------------------
+!
+!--------------------------------------------------
+!  -- Set initial values for line search parameters
+!--------------------------------------------------
       pstep=0.05d0
       ptol=0.01d0
       pftol=0.1d0
       pbound=5.0d0
       mxpitr=100
-c
-c--------------------------------------------------
-c  -- Set initial values for data input
-c--------------------------------------------------
+!
+!--------------------------------------------------
+!  -- Set initial values for data input
+!--------------------------------------------------
       inform=0
       bcmode=0
       shftflg=1
       drmode=1
       normflg=0
-c
-c      call shutwindows
+!
+!      call shutwindows
         call shtwndws()
-c      call initwindows
-c
+!      call initwindows
+!
       return
       end

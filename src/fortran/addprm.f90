@@ -1,57 +1,57 @@
-c  NLSL Version 1.5 beta 11/23/95
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine ADDPRM
-c                    =========================
-c
-c>@brief Add a parameter to list of parameters being varied for nonlinear
-c> least-squares. Also maintain the lists of 
-c>
-c> 1. ixst    : secondary parameter index (for multiple sites/spectra)
-c> 2. ibnd    : boundary flag for variable parameter
-c> 3. prmin   : minimum for variable parameter
-c> 4. prmax   : maximum for variable parameter
-c> 5. prscl   : desired accuracy for given parameter
-c> 6. xfdstp  : Size of forward-differences step
-c> 7. tag     : Name of the parameter (character*9)
-c> 8. ixx     : index of each element in the fparm array into the x vector
-c>  
-c> The values of these parameters for the given variable parameter
-c> are passed to ADDPRM:
-c>      subroutine parameter |kept in list
-c>      ---------------------|------------
-c>      ix2                  |ixst
-c>      ibd                  |ibnd
-c>      prmn                 |prmin
-c>      prmx                 |prmax
-c>      prsc                 |prscl
-c>      step                 |xfdstp
-c>      ident                |tag
-c> 
-c> Notes: 
-c> 
-c>  - Each addition to the list is included in sort order with respect to
-c>     the index ix. This is an artifact of the original implementation
-c>     of the program, and no longer required.
-c> 
-c>  - If ix2 = -1, the parameter specified by ix is to be varied individually
-c>     for EACH existing site/spectrum
-c>     If ix2 =  0, the parameter is to be varied for ALL sites/spectra at once
-c 
-c     Includes:  
-c        nlsdim.inc
-c        eprprm.inc
-c        expdat.inc
-c        parcom.inc
-c        lpnam.inc
-c        lmcom.inc
-c        stdio.inc
-c        rndoff.inc
-c        prmeqv.inc
-c
-c----------------------------------------------------------------------
+!  NLSL Version 1.5 beta 11/23/95
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine ADDPRM
+!                    =========================
+!
+!>@brief Add a parameter to list of parameters being varied for nonlinear
+!> least-squares. Also maintain the lists of 
+!>
+!> 1. ixst    : secondary parameter index (for multiple sites/spectra)
+!> 2. ibnd    : boundary flag for variable parameter
+!> 3. prmin   : minimum for variable parameter
+!> 4. prmax   : maximum for variable parameter
+!> 5. prscl   : desired accuracy for given parameter
+!> 6. xfdstp  : Size of forward-differences step
+!> 7. tag     : Name of the parameter (character*9)
+!> 8. ixx     : index of each element in the fparm array into the x vector
+!>  
+!> The values of these parameters for the given variable parameter
+!> are passed to ADDPRM:
+!>      subroutine parameter |kept in list
+!>      ---------------------|------------
+!>      ix2                  |ixst
+!>      ibd                  |ibnd
+!>      prmn                 |prmin
+!>      prmx                 |prmax
+!>      prsc                 |prscl
+!>      step                 |xfdstp
+!>      ident                |tag
+!> 
+!> Notes: 
+!> 
+!>  - Each addition to the list is included in sort order with respect to
+!>     the index ix. This is an artifact of the original implementation
+!>     of the program, and no longer required.
+!> 
+!>  - If ix2 = -1, the parameter specified by ix is to be varied individually
+!>     for EACH existing site/spectrum
+!>     If ix2 =  0, the parameter is to be varied for ALL sites/spectra at once
+! 
+!     Includes:  
+!        nlsdim.inc
+!        eprprm.inc
+!        expdat.inc
+!        parcom.inc
+!        lpnam.inc
+!        lmcom.inc
+!        stdio.inc
+!        rndoff.inc
+!        prmeqv.inc
+!
+!----------------------------------------------------------------------
       subroutine addprm(ix,ix2,ibd,prmn,prmx,prsc,step,ident)
-c
+!
       use nlsdim
       use eprprm
       use expdat
@@ -60,34 +60,34 @@ c
       use lmcom
       use stdio
       use rnddbl
-c      use prmeqv
-c
+!      use prmeqv
+!
       implicit none
       integer ix,ix2,ibd
       double precision prmn,prmx,prsc,step
       character*9 ident
-c
+!
       integer i,ixabs,j,jx,jx1,jx2,k,k1,l,lu,nadd,nmov
-c
+!
       integer itrim
       logical spcpar,tcheck
       external itrim,spcpar,tcheck
-c
-c######################################################################
-c
-c
-c  --- Check index bounds
-c
+!
+!######################################################################
+!
+!
+!  --- Check index bounds
+!
       if (    (spcpar(ix) .and. ix2.gt.MXSPC)
      #    .or. (.not.spcpar(ix) .and. ix2.gt.MXSITE) ) then 
         write (luttyo,1002) 
         return
       end if
-c
-c----------------------------------------------------------------------
-c ix2= -1: vary the parameter individually for EACH exiting site/spectrum
-c ix2=  0: vary the same parameter for ALL existing sites/spectra
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! ix2= -1: vary the parameter individually for EACH exiting site/spectrum
+! ix2=  0: vary the same parameter for ALL existing sites/spectra
+!----------------------------------------------------------------------
       if (ix2.lt.0) then
          jx1=1
          if (spcpar(ix)) then
@@ -99,51 +99,51 @@ c----------------------------------------------------------------------
          jx1=ix2
          jx2=ix2
       end if
-c
+!
       nadd=jx2-jx1+1
-c
-c----------------------------------------------------------------------
-c See if there is enough room in the parameter list
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! See if there is enough room in the parameter list
+!----------------------------------------------------------------------
       if (nprm+nadd.gt.MXVAR) then
         write(luttyo,1001) MXVAR
         return
       end if
-c
-c----------------------------------------------------------------------
-c Loop over all parameters to be added
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! Loop over all parameters to be added
+!----------------------------------------------------------------------
       lu=luttyo
       do 21 jx=jx1,jx2
-c
+!
       if (.not.tcheck(ix,jx,ident,lu)) return
       lu=0
-c
-c----------------------------------------------------------------------
-c Search parameter list to see if parameter is already there
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! Search parameter list to see if parameter is already there
+!----------------------------------------------------------------------
         ixabs=abs(mod(ix,100))
         do i=1,nprm
-c                                        *** parameter already in list
+!                                        *** parameter already in list
            if (ixpr(i).eq.ixabs .and. ixst(i).eq.jx) then
               write(luttyo,1000) tag(i)
               return
            end if
-c                                        *** parameter not in list
+!                                        *** parameter not in list
            if ( ixpr(i).gt.ixabs .or. 
      #          (ixpr(i).eq.ixabs.and.ixst(i).gt.jx) ) go to 14
         end do
-c
-c----------------------------------------------------------------------
-c Reached end of list: parameter will be added to the end
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! Reached end of list: parameter will be added to the end
+!----------------------------------------------------------------------
         i=nprm+1
         nprm=nprm+1
         go to 18
-c
-c----------------------------------------------------------------------
-c Found proper location for new parameter: move top of list up
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! Found proper location for new parameter: move top of list up
+!----------------------------------------------------------------------
    14 nmov=nprm-i+1
         do j=1,nmov
            k=nprm-j+1
@@ -164,13 +164,13 @@ c----------------------------------------------------------------------
            else
               ixx(ixpr(k1),ixst(k1))=k1
            end if
-c
+!
        end do
        nprm=nprm+1
-c
-c----------------------------------------------------------------------
-c  Add new parameter(s) to proper location in list
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!  Add new parameter(s) to proper location in list
+!----------------------------------------------------------------------
  18     if (jx.eq.0) then
            x(i)=fparm(ixabs,1)
            do l=1,MXSITE
@@ -189,19 +189,19 @@ c----------------------------------------------------------------------
         if(dabs(xfdstp(i)).lt.RNDOFF) xfdstp(i)=step
         ibnd(i)=ibd
         tag(i)=ident
-c
+!
         if (jx.ne.0) then
            k=itrim(tag(i))
            write(tag(i)(k+1:),2000) jx
         end if
-c
+!
  21   continue
-c
+!
       write(luttyo,1003) nprm
       return
-c
-c #### format statements ###########################################
-c
+!
+! #### format statements ###########################################
+!
  1000 format('*** Parameter ''',a,''' is already being varied ***')
  1001 format('*** Limit of',i2,' variable parameters exceeded ***')
  1002 format('*** Index out of range ***')

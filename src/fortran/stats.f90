@@ -1,52 +1,52 @@
-c Version 1.5.1 beta 2/3/96
-c----------------------------------------------------------------------
-c     This file contains various functions for making statistical
-c     inferences from the residuals and curvature matrix returned
-c     by the least-squares procedure. (Subroutines marked with *)
-c
-c       chi       Returns chi-squared for given confidence, degrees freedom
-c       pchi      Chi-squared probability function
-c       residx    Returns residual index of fit vs. data
-c       corrl     Returns correlation coefficient of fit vs. data
-c       gammq     Incomplete gamma function
-c     * gcf       Continued-fraction approximation to incomplete gamma fn
-c     * gser      Series approximation of incomplete gamma function
-c       gammln    Returns ln( gamma )
-c     * zbrac     Bracketing routine for Brent root-finder
-c       zbrent    Brent's method for finding root of function pchi
-c
-c     Auxiliary functions:   betai, betacf, alphat, alphaf, ts, fs
-c     Auxiliary subroutine:  pausex
-c
-c----------------------------------------------------------------------
-c                    =========================
-c                         function CHI
-c                    =========================
-c     Finds delta-chi for a given confidence level p and number of
-c     degrees of freedom, nu.
-c
-c     This is done by finding the value of the chi-squared probability
-c     function, gammq( nu/2, chi^2/2 ) corresponding to the desired
-c     confidence level for a given number of degrees of freedom. The
-c     value is obtained by finding the root of function pchi (coded
-c     below), which returns the confidence level p as a function of 
-c     chi. The root is first bracketed using routine zbrac, and the
-c     root found by Brent's method (function zbrent).
-c----------------------------------------------------------------------
+! Version 1.5.1 beta 2/3/96
+!----------------------------------------------------------------------
+!     This file contains various functions for making statistical
+!     inferences from the residuals and curvature matrix returned
+!     by the least-squares procedure. (Subroutines marked with *)
+!
+!       chi       Returns chi-squared for given confidence, degrees freedom
+!       pchi      Chi-squared probability function
+!       residx    Returns residual index of fit vs. data
+!       corrl     Returns correlation coefficient of fit vs. data
+!       gammq     Incomplete gamma function
+!     * gcf       Continued-fraction approximation to incomplete gamma fn
+!     * gser      Series approximation of incomplete gamma function
+!       gammln    Returns ln( gamma )
+!     * zbrac     Bracketing routine for Brent root-finder
+!       zbrent    Brent's method for finding root of function pchi
+!
+!     Auxiliary functions:   betai, betacf, alphat, alphaf, ts, fs
+!     Auxiliary subroutine:  pausex
+!
+!----------------------------------------------------------------------
+!                    =========================
+!                         function CHI
+!                    =========================
+!     Finds delta-chi for a given confidence level p and number of
+!     degrees of freedom, nu.
+!
+!     This is done by finding the value of the chi-squared probability
+!     function, gammq( nu/2, chi^2/2 ) corresponding to the desired
+!     confidence level for a given number of degrees of freedom. The
+!     value is obtained by finding the root of function pchi (coded
+!     below), which returns the confidence level p as a function of 
+!     chi. The root is first bracketed using routine zbrac, and the
+!     root found by Brent's method (function zbrent).
+!----------------------------------------------------------------------
       function chi( p, nu )
       implicit none
       double precision p, chi
       integer nu
-c
+!
       double precision x1,x2
       logical success
-c
+!
       double precision halfnu, conf
       common /chicom/ halfnu, conf
-c
+!
       double precision pchi,zbrent
       external pchi,zbrent
-c
+!
       chi=0.0d0
       halfnu=0.5d0*nu
       conf=p
@@ -58,43 +58,43 @@ c
       end
 
 
-c----------------------------------------------------------------------
-c                    =========================
-c                         function PCHI
-c                    =========================
-c     Returns the chi-squared probability function given chi-squared
-c     and the number degrees of freedom, nu.
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                         function PCHI
+!                    =========================
+!     Returns the chi-squared probability function given chi-squared
+!     and the number degrees of freedom, nu.
+!----------------------------------------------------------------------
       function pchi(chi)
       implicit none
       double precision pchi,chi
-c
+!
       double precision halfnu, conf
       common /chicom/ halfnu, conf
-c
+!
       double precision gammq
       external gammq
-c
+!
       pchi = gammq( halfnu, 0.5d0*chi ) - 1.0d0 + conf
       return
       end
-c----------------------------------------------------------------------
-c                    =========================
-c                       function RESIDX
-c                    =========================
-c     Returns the residual index between experimental data
-c     and calculated fit function in common blocks /expdat/ and /lmcom/
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       function RESIDX
+!                    =========================
+!     Returns the residual index between experimental data
+!     and calculated fit function in common blocks /expdat/ and /lmcom/
+!----------------------------------------------------------------------
       function residx()
-c
+!
       use nlsdim
       use expdat
       use lmcom
-c
+!
       implicit none
       integer i,j,k
       double precision osum,residx,rsum,yc,yo
-c
+!
       osum=0.0d0
       rsum=0.0d0
       do i=1,nspc
@@ -110,23 +110,23 @@ c
       return
       end
 
-c----------------------------------------------------------------------
-c                    =========================
-c                       function CORRL
-c                    =========================
-c     Returns the correlation function between experimental data
-c     and calculated fit function in common blocks /expdat/ and /lmcom/
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       function CORRL
+!                    =========================
+!     Returns the correlation function between experimental data
+!     and calculated fit function in common blocks /expdat/ and /lmcom/
+!----------------------------------------------------------------------
       function corrl()
-c
+!
       use nlsdim
       use expdat
       use lmcom
-c
+!
       implicit none
       integer i,j,k
       double precision cbar,cdsum,c2sum,dbar,dc,dd,d2sum,corrl
-c
+!
       dbar=0.0d0
       cbar=0.0d0
       do i=1,nspc
@@ -138,7 +138,7 @@ c
       end do
       dbar=dbar/float(ndatot)
       cbar=cbar/float(ndatot)
-c
+!
       cdsum=0.0d0
       d2sum=0.0d0
       c2sum=0.0d0
@@ -153,56 +153,56 @@ c
          end do
       end do
       corrl=cdsum/sqrt(d2sum*c2sum)
-c
+!
       return
       end
-c----------------------------------------------------------------------
-c                        =========================
-c                             function BETAI
-c                        =========================
-c     Incomplete beta function, used in calculation of t-distribution
-c     and F-distribution used in statistical analysis of parameters
-c     in NLS fits.
-c
-c     Function returns the function I_x(A,B)
-c      
-c     From Numerical Recipes by W.H. Press et al.
-c----------------------------------------------------------------------
-c
+!----------------------------------------------------------------------
+!                        =========================
+!                             function BETAI
+!                        =========================
+!     Incomplete beta function, used in calculation of t-distribution
+!     and F-distribution used in statistical analysis of parameters
+!     in NLS fits.
+!
+!     Function returns the function I_x(A,B)
+!      
+!     From Numerical Recipes by W.H. Press et al.
+!----------------------------------------------------------------------
+!
       function betai(a,b,x)
       implicit none
       double precision betai,a,b,x,bt
-c
+!
       double precision ONE,TWO,ZERO
       parameter(ONE=1.0d0,TWO=2.0d0,ZERO=0.0D0)
-c
+!
       double precision betacf,gammln
       external betacf,gammln
-c
+!
       if (x.lt.ZERO .or. x.gt.ONE) then
          call pausex('bad argument X in BETAI')
       end if
       if (x.eq.ZERO .or. x.eq.ONE) then
          bt=ZERO
       else
-c
-c        ----------------------------------------------------
-c        Calculate factors in front of the continued fraction 
-c        ----------------------------------------------------
+!
+!        ----------------------------------------------------
+!        Calculate factors in front of the continued fraction 
+!        ----------------------------------------------------
          bt=dexp( gammln(a+b)-gammln(a)-gammln(b)
      #          +a*dlog(x)+b*dlog(ONE-x) )
       end if
-c
-c     --------------------------------
-c     Use continued fraction directly
-c     --------------------------------
+!
+!     --------------------------------
+!     Use continued fraction directly
+!     --------------------------------
       if (x.lt.(a+ONE)/(a+b+TWO)) then
          betai=bt*betacf(a,b,x)/a
          return
-c
-c     ----------------------------------------------------------------
-c     Use continued fraction after making the symmetry transformation  
-c     ----------------------------------------------------------------
+!
+!     ----------------------------------------------------------------
+!     Use continued fraction after making the symmetry transformation  
+!     ----------------------------------------------------------------
       else
          betai=ONE-bt*betacf(b,a,ONE-x)/b
          return
@@ -213,15 +213,15 @@ c     ----------------------------------------------------------------
       function betacf(a,b,x)
       implicit none
       double precision betacf,a,b,x
-c
+!
       integer m
       double precision am,aold,ap,app,az,bp,bm,bpp,bz,d,em,qab,qap,
      #                 qam,tem
-c
+!
       integer ITMAX
       double precision ONE,TWO,ZERO,EPS
       parameter(ITMAX=100,EPS=3.0d-7,ONE=1.0d0,TWO=2.0d0,ZERO=0.0D0)
-c
+!
       am=ONE
       bm=ONE
       az=ONE
@@ -232,39 +232,39 @@ c
       do m=1,ITMAX
          EM=m
          tem=em+em
-c
-c        ----------------------------
-c        Even step of the recurrence
-c        ----------------------------
+!
+!        ----------------------------
+!        Even step of the recurrence
+!        ----------------------------
          d=em*(b-m)*x/((qam+tem)*(a+tem))
          ap=az+d*am
          bp=bz+d*bm
-c
-c        ----------------------------
-c        Odd step of the recurrence
-c        ----------------------------
+!
+!        ----------------------------
+!        Odd step of the recurrence
+!        ----------------------------
          d=-(a+em)*(qab+em)*x/((a+tem)*(qap+tem))
          app=ap+d*az
          bpp=bp+d*bz
-c
-c        ----------------------------------------------------
-c        Save old answer and renormalize to prevent overflow
-c        ----------------------------------------------------
+!
+!        ----------------------------------------------------
+!        Save old answer and renormalize to prevent overflow
+!        ----------------------------------------------------
          aold=az
          am=ap/bpp
          bm=bp/bpp
          az=app/bpp
          bz=ONE
-c
-c        ----------------------
-c        Check for convergence
-c        ----------------------
+!
+!        ----------------------
+!        Check for convergence
+!        ----------------------
          if (abs(az-aold).lt.EPS*abs(az)) goto 1
       end do
-c
+!
       write(*,1000) abs((az-aold)/az)
  1000 format('BETACF: ITMAX exceeded, final error was ',g11.3)
-c
+!
     1 betacf=az
       return
       end
@@ -272,13 +272,13 @@ c
       function alphat(t)
       implicit none
       double precision alphat,t
-c
+!
       double precision a,b,alpha
       common /bcom/ a,b,alpha
-c
+!
       double precision betai
       external betai
-c
+!
       alphat = alpha - 0.5*betai( a, b, a/(a+0.5D0*t*t) )
       return
       end
@@ -287,13 +287,13 @@ c
       function alphaf(f)
       implicit none
       double precision alphaf,f
-c
+!
       double precision a,b,alpha
       common /bcom/ a,b,alpha
-c
+!
       double precision betai
       external betai
-c
+!
       alphaf = betai( b, a, b/(b+a*f) ) - alpha
       return
       end
@@ -302,16 +302,16 @@ c
       implicit none
       double precision ts, al
       integer nu
-c
+!
       double precision x1,x2
       logical success
-c
+!
       double precision a, b, alpha
       common /bcom/ a, b, alpha
-c
+!
       double precision alphat,zbrent
       external alphat,zbrent
-c
+!
       alpha=al
       a=0.5d0*nu
       b=0.5d0
@@ -327,16 +327,16 @@ c
       implicit none
       double precision fs, al
       integer nu1,nu2
-c
+!
       double precision x1,x2
       logical success
-c
+!
       double precision a, b, alpha
       common /bcom/ a, b, alpha
-c
+!
       double precision alphaf,zbrent
       external alphaf,zbrent
-c
+!
       alpha=al
       a=0.5D0*nu1
       b=0.5D0*nu2
@@ -347,15 +347,15 @@ c
       return
       end
 
-c----------------------------------------------------------------------
-c                    =========================
-c                        function GAMMQ
-c                    =========================
-c
-c  Incomplete gamma function. From Numerical Recipes by Press, et al.
-c
-c----------------------------------------------------------------------
-c
+!----------------------------------------------------------------------
+!                    =========================
+!                        function GAMMQ
+!                    =========================
+!
+!  Incomplete gamma function. From Numerical Recipes by Press, et al.
+!
+!----------------------------------------------------------------------
+!
       FUNCTION gammq(a,x)
       IMPLICIT none
       DOUBLE PRECISION a,gammq,x
@@ -371,16 +371,16 @@ CU    USES gcf,gser
       endif
       return
       END
-c
-c----------------------------------------------------------------------
-c                    =========================
-c                        function GCF
-c                    =========================
-c
-c  Continued-fraction calculation of incomplete gamma function. 
-c  From Numerical Recipes by Press, et al.
-c
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!                    =========================
+!                        function GCF
+!                    =========================
+!
+!  Continued-fraction calculation of incomplete gamma function. 
+!  From Numerical Recipes by Press, et al.
+!
+!----------------------------------------------------------------------
       SUBROUTINE gcf(gammcf,a,x,gln)
       IMPLICIT none
       INTEGER ITMAX
@@ -411,15 +411,15 @@ C     USES gammln
       return
       END
 
-c----------------------------------------------------------------------
-c                    =========================
-c                        function GSER
-c                    =========================
-c
-c  Series approximation of incomplete gamma function. 
-c  From Numerical Recipes by Press, et al.
-c
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                        function GSER
+!                    =========================
+!
+!  Series approximation of incomplete gamma function. 
+!  From Numerical Recipes by Press, et al.
+!
+!----------------------------------------------------------------------
       SUBROUTINE gser(gamser,a,x,gln)
       IMPLICIT none
       INTEGER ITMAX
@@ -447,16 +447,16 @@ C     USES gammln
 1     gamser=sum*exp(-x+a*log(x)-gln)
       return
       END
-c
-c----------------------------------------------------------------------
-c                    =========================
-c                        function GAMMLN
-c                    =========================
-c
-c  Returns the value ln(gamma(xx) for xx>1, with full accuracy for xx>1
-c  From Numerical Recipes by Press, et al.
-c
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!                    =========================
+!                        function GAMMLN
+!                    =========================
+!
+!  Returns the value ln(gamma(xx) for xx>1, with full accuracy for xx>1
+!  From Numerical Recipes by Press, et al.
+!
+!----------------------------------------------------------------------
       FUNCTION gammln(xx)
       IMPLICIT none
       DOUBLE PRECISION gammln,xx
@@ -479,9 +479,9 @@ c----------------------------------------------------------------------
       return
       END
 
-c
-c######################################################################
-c
+!
+!######################################################################
+!
       SUBROUTINE zbrac(func,x1,x2,succes)
       IMPLICIT none
       INTEGER NTRY
