@@ -1,11 +1,11 @@
       subroutine drotg(da,db,c,s)
-c
-c     construct givens plane rotation.
-c     jack dongarra, linpack, 3/11/78.
-c                    modified 9/27/86.
-c
+!
+!     construct givens plane rotation.
+!     jack dongarra, linpack, 3/11/78.
+!                    modified 9/27/86.
+!
       double precision da,db,c,s,roe,scale,r,z
-c
+!
       roe = db
       if( dabs(da) .gt. dabs(db) ) roe = da
       scale = dabs(da) + dabs(db)

@@ -3,13 +3,13 @@
 
 python module fortrancore ! in 
     interface 
-        subroutine procline(line) ! in :fortrancore:nlsl.f90
+        subroutine procline(line) ! in :fortrancore:src/fortran/nlsl.f90
             use nlsnam
             use stdio
             use symdef
             character*80 intent(in) :: line
         end subroutine procline
-        subroutine fitl ! in :fortrancore:fitl.f90
+        subroutine fitl ! in :fortrancore:src/fortran/fitl.f90
             use expdat
             use eprprm
             use parcom
@@ -24,7 +24,7 @@ python module fortrancore ! in
             use errmsg
             use nlsdim
         end subroutine fitl
-        subroutine nlsinit ! in :fortrancore:nlsl.f90
+        subroutine nlsinit ! in :fortrancore:src/fortran/nlsl.f90
             use expdat
             use eprprm
             use parcom
@@ -37,7 +37,7 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
-        module nlsdim ! in :fortrancore:nlsdim.f90
+        module nlsdim ! in :fortrancore:src/fortran/nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000
             integer, parameter,optional :: mxdim=45000
@@ -65,7 +65,7 @@ python module fortrancore ! in
             integer, parameter,optional,depend(mxsite,mxvar) :: mxjcol=13
             integer, parameter,optional :: mxspt=512
         end module nlsdim
-        module lmcom ! in :fortrancore:lmcom.f90
+        module lmcom ! in :fortrancore:src/fortran/lmcom.f90
             use nlsdim
             double precision, save,dimension((mxtv),(mxtv)) :: tcov
             double precision, save,dimension((mxjcol)) :: gnvec
@@ -82,10 +82,10 @@ python module fortrancore ! in
             double precision, save,dimension((mxjcol)) :: diag
             character*10, save,dimension(nflmpr) :: flmprm_name
             character*10, save,dimension(nilmpr) :: ilmprm_name
-            subroutine lmcom_init ! in :fortrancore:lmcom.f90:lmcom
+            subroutine lmcom_init ! in :fortrancore:src/fortran/lmcom.f90
             end subroutine lmcom_init
         end module lmcom
-        module parcom ! in :parcom:src/fortran/parcom.f90
+        module parcom ! in :fortrancore:src/fortran/parcom.f90
             use nlsdim
             double precision, save,target,dimension(nfprm,mxsite) :: fparm
             double precision, save,dimension(mxvar) :: prmax
@@ -95,7 +95,7 @@ python module fortrancore ! in
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
-        module iterat ! in :iterat:src/fortran/iterat.f90
+        module iterat ! in :fortrancore:src/fortran/iterat.f90
             integer, save :: iter
             integer, save :: iwflag
             double precision, save :: fnorm
@@ -105,7 +105,7 @@ python module fortrancore ! in
             logical, save :: covarok
             logical, save :: xreset
         end module iterat
-        module stdio ! in :stdio:src/fortran/stdio.f90
+        module stdio ! in :fortrancore:src/fortran/stdio.f90
             integer, parameter,optional :: lulog=4
             integer, parameter,optional :: luttyi=5
             integer, parameter,optional :: luttyo=6
@@ -118,18 +118,30 @@ python module fortrancore ! in
             logical, save :: warn
             logical, save :: exitprog
         end module stdio
-        module eprprm ! in :pynlsl:eprprm.f90
+        module eprprm ! in :eprprm:eprprm.f90
             use parcom
             use nlsdim
-            ! expose only the parameters required by the Python wrapper
             double precision, save,target,dimension(nfprm) :: fepr
             character*10, save,dimension(nfprm) :: fepr_name
             integer, save,target,dimension(niprm) :: iepr
             character*10, save,dimension(niprm) :: iepr_name
-            subroutine prm_ptr_init ! in :pynlsl:eprprm.f90:eprprm
+            integer, parameter,optional :: iphase=1
+            integer, parameter,optional :: igib0=2
+            integer, parameter,optional :: igib2=3
+            integer, parameter,optional :: iin2=1
+            integer, parameter,optional :: iipdf=2
+            integer, parameter,optional :: iist=3
+            integer, parameter,optional :: iml=4
+            integer, parameter,optional :: iwyy=5
+            integer, parameter,optional :: igyy=8
+            integer, parameter,optional :: iayy=11
+            integer, parameter,optional :: idy=14
+            integer, parameter,optional :: igamman=igaman
+            integer, parameter,optional :: ishiftr=ishift
+            subroutine prm_ptr_init ! in :eprprm:eprprm.f90:eprprm
             end subroutine prm_ptr_init
         end module eprprm
-        module mspctr ! in :pynlsl:mspctr.f90
+        module mspctr ! in :fortrancore:src/fortran/mspctr.f90
             use nlsdim
             integer, save,dimension((mxsite)) :: iscal
             double precision, save,dimension((mxsite),(mxspc)) :: sfac

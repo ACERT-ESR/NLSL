@@ -1,55 +1,55 @@
-c Version 1.5.1 beta 2/3/96
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine STATC
-c                    =========================
-c
-c  Prints out the current status of the fitting procedure to the given
-c  logical unit number. Includes information on fitting variables and
-c  user-specified convergence tolerances, etc.
-c
-c  Includes:
-c     nlsdim.inc
-c     eprprm.inc
-c     expdat.inc
-c     parcom.inc
-c     lmcom.inc
-c
-c----------------------------------------------------------------------
+! Version 1.5.1 beta 2/3/96
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine STATC
+!                    =========================
+!
+!  Prints out the current status of the fitting procedure to the given
+!  logical unit number. Includes information on fitting variables and
+!  user-specified convergence tolerances, etc.
+!
+!  Includes:
+!     nlsdim.inc
+!     eprprm.inc
+!     expdat.inc
+!     parcom.inc
+!     lmcom.inc
+!
+!----------------------------------------------------------------------
       subroutine statc( line )
-c
+!
       use nlsdim
       use eprprm
       use expdat
       use parcom
       use lmcom
       use stdio
-c
+!
       implicit none
       character*80 line
-c
+!
       integer NKEYWD
       parameter(NKEYWD=7)
-c
+!
       integer i,lth
       logical fitflg,datflg,basflg,tdgflg,sclflg
       character*8 keywrd(NKEYWD)
       character*30 token
-c
+!
       integer itrim
       external itrim
-c
+!
       fitflg=.false.
       datflg=.false.
       basflg=.false.
       tdgflg=.false.
       sclflg=.false.
-c
+!
       data keywrd /'FIT','DATA','BASIS','TRIDIAG','SHIFT','SCALE','ALL'/
-c
-c----------------------------------------------------------------------
-c         Look for a keyword
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!         Look for a keyword
+!----------------------------------------------------------------------
  5    call gettkn(line,token,lth)
       if (lth.ne.0) then
          lth=min(lth,8)
@@ -60,7 +60,7 @@ c----------------------------------------------------------------------
          write (luout,1000) token(:itrim(token))
          if (luout.ne.luttyo) write (luttyo,1000) token(:itrim(token))
          go to 5
-c
+!
  7       if (i.eq.1) then
             fitflg=.true.
          else if (i.eq.2) then
@@ -80,7 +80,7 @@ c
          end if
          go to 5
       end if
-c
+!
       fitflg = .not.(datflg.or.basflg.or.tdgflg.or.sclflg)
       if (fitflg) then
          call fitstt( luout )
@@ -90,44 +90,44 @@ c
             call sclstt( luttyo )
          end if
       end if
-c
+!
       if (sclflg.and..not.fitflg) then
          call sclstt( luout )
          if (luout.ne.luttyo) call sclstt( luttyo )
       end if
-c
+!
       if (datflg) then
          call datstt( luout )
          if (luout.ne.luttyo) call datstt( luttyo )
       end if
-c
+!
       if (basflg) then
          call basstt( luout )
          if (luout.ne.luttyo) call basstt( luttyo )
       end if
-c
+!
       if (tdgflg) then
          call tdgstt( luout )
          if (luout.ne.luttyo) call tdgstt( luttyo )
       end if
-c
+!
       return
-c
-c######################################################################
-c
+!
+!######################################################################
+!
  1000 format(' *** unrecognized STATUS keyword: ''',a,''' ***')
       end
 
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine FITSTT  
-c                    =========================
-c
-c   Output status report for NLS fitting parameters on logical unit lu
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine FITSTT  
+!                    =========================
+!
+!   Output status report for NLS fitting parameters on logical unit lu
+!----------------------------------------------------------------------
 
       subroutine fitstt( lu )
-c
+!
       use nlsdim
       use eprprm
       use expdat
@@ -136,25 +136,25 @@ c
       use errmsg
       use iterat
       use stdio
-c
+!
       implicit none
       integer lu
-c
+!
       integer i
-c
+!
       double precision wtdres
       external wtdres
-c
-c----------------------------------------------------------------------
-c     parameters for fit command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!     parameters for fit command
+!----------------------------------------------------------------------
       write(lu,1000)
       write(lu,1001) xtol,ftol,gtol
       write(lu,1002) maxitr,maxev,factor
-c
-c----------------------------------------------------------------------
-c     Options for fit command
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!     Options for fit command
+!----------------------------------------------------------------------
       if (nshift.lt.0) write (lu,1005)
       if (nshift.eq.0) write (lu,1006) 100.0d0*srange
       if (nshift.gt.0) write (lu,1007) nshift,nshift,100.0d0*srange
@@ -162,20 +162,20 @@ c----------------------------------------------------------------------
       if (noneg.ne.0) write (lu,1009)
       if (output.eq.1) write (lu,1014)
       if (itrace.eq.1) write (lu,1015)
-c
+!
       if (iwflag.ne.0) then
          write (lu,1013) 'WEIGHTED'
       else
          write (lu,1013) 'UNWEIGHTED'
       end if
-c
-c----------------------------------------------------------------------
-c     variable information
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!     variable information
+!----------------------------------------------------------------------
       if (nprm.ge.1) then
          write(lu,1010) nprm
          write(lu,1011)
-c
+!
          call xpack(x,nprm)
          do i=1,nprm
             write(lu,1012) tag(i),x(i),prscl(i),xfdstp(i)
@@ -183,7 +183,7 @@ c
       else
          write(lu,1020)
       end if
-c
+!
       if (info.lt.0) info=0
       if (info.gt.10) info=10
       if (lmflag.ne.0) then
@@ -200,9 +200,9 @@ c
          write(lu,1031)
       end if
       return
-c
-c# formats ##############################################################
-c
+!
+!# formats ##############################################################
+!
  1000 format(/,2x,20('#'),' FIT status ',20('#'))
  1001 format(5x,'xtol = ',1p,e8.1,3x,'ftol = ',1p,e8.1,3x,'gtol = ',
      #       1p,e8.1)
@@ -228,29 +228,29 @@ c
  1031 format(/,2x,'No fit has been completed')
       end
 
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine DATSTT  
-c                    =========================
-c
-c   Output status report for NLS datafile space on logical unit lu
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine DATSTT  
+!                    =========================
+!
+!   Output status report for NLS datafile space on logical unit lu
+!----------------------------------------------------------------------
 
       subroutine datstt( lu )
-c
+!
       use nlsdim
       use expdat
       use parcom
-c
+!
       implicit none
       integer lu
-c
+!
       character*2 shftopt,normopt
       integer i
-c
+!
       character*6 formopt(2)
       data formopt/'ASCII','BINARY'/
-c
+!
       write (lu,1000) nspc,ndatot,MXPT-ndatot
       if (nspc.lt.nser) write (lu,1004) nser
       if (nspc.gt.0) then
@@ -264,16 +264,16 @@ c
      #                      shftopt,normopt,sb0(i),shft(i),rmsn(i) 
          end do
       end if
-c
+!
       shftopt=' '
       normopt=' '
       if (shftflg.eq.0) shftopt='NO'
       if (normflg.eq.0) normopt='NO'
       write (lu,1003) bcmode,nspline,shftopt,normopt,formopt(inform+1)
       return
-c
-c######################################################################
-c
+!
+!######################################################################
+!
  1000 format(/2x,25('#'),' Datafile status ',25('#')//
      # i2,' data files and',i4,' data points in buffer'/
      # 'Space available for',i5,' points ')
@@ -290,27 +290,27 @@ c
 
 
 
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine BASSTT  
-c                    =========================
-c
-c   Output status report for NLS datafile space on logical unit lu
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine BASSTT  
+!                    =========================
+!
+!   Output status report for NLS datafile space on logical unit lu
+!----------------------------------------------------------------------
 
       subroutine basstt( lu )
-c
+!
       use nlsdim
       use expdat
       use parcom
       use basis
       use mtsdef
-c
+!
       implicit none
       integer lu
-c
+!
       integer i,j
-c
+!
       write (lu,1000) nbas,MXDIM-nextbs+1
       if (nbas.gt.0) then
          write (lu,1001)
@@ -318,19 +318,19 @@ c
             write (lu,1002) i,basisID(i),ltbas(i),(mts(j,i),j=1,NTRC)
      #                  
          end do
-c
+!
          write (lu,1003) (i,i=1,nsite)
          do j=1,nser
             write(lu,1004) dataID(j),(basno(i,j),i=1,nsite)
          end do
-c
+!
       end if
-c
+!
       write(lu,'(/)')
       return
-c
-c######################################################################
-c
+!
+!######################################################################
+!
  1000 format(/2x,i2,' BASIS SETS in buffer; Space for ',i6,' elements'/)
  1001 format(2x,'Set   Identification       ndim    Trunc. indices'/
      #2x,60('-'))
@@ -341,27 +341,27 @@ c
 
 
 
-c----------------------------------------------------------------------
-c                    =========================
-c                        subroutine TDGSTT
-c                    =========================
-c
-c
-c   Output status report for NLS datafile space on logical unit lu
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                        subroutine TDGSTT
+!                    =========================
+!
+!
+!   Output status report for NLS datafile space on logical unit lu
+!----------------------------------------------------------------------
 
       subroutine tdgstt( lu )
-c
+!
       use nlsdim
       use expdat
       use parcom
       use tridag
-c
+!
       implicit none
       integer lu
-c
+!
       integer i,isi,isp
-c
+!
       write (lu,1000) ntd,MXTDG-nexttd+1
       if (ntd.gt.0) then
          write (lu,1001)
@@ -375,12 +375,12 @@ c
             end if
          end do
       end if
-c
+!
       write(lu,'(/)')
       return
-c
-c######################################################################
-c
+!
+!######################################################################
+!
  1000 format(/2x,i2,' TRIDIAGONAL MATRICES in buffer; Space for',i6,
      #       ' elements'/)
  1001 format(2x,'Matrix  Site  Spectrum           Lth'/2x,40('-'))
@@ -390,60 +390,60 @@ c
 
 
 
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine SCLSTT
-c                    =========================
-c
-c   Output shifting and scaling information to specified logical unit
-c----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine SCLSTT
+!                    =========================
+!
+!   Output shifting and scaling information to specified logical unit
+!----------------------------------------------------------------------
       subroutine sclstt(lu)
-c
+!
       use nlsdim
       use parcom
       use expdat
       use mspctr
       use nlsnam
-c
+!
       implicit none
       integer lu
-c
+!
       integer i,j,k,nsp
       double precision stot(MXSPC)
       character*1 shflg(MXSPC),scflg(MXSITE)
-c
-c     ----------------------------------------------------------------
-c     Calculate total of scaling factor in order to report percentages 
-c     Set flags showing which spectra are enabled for shifting
-c     ----------------------------------------------------------------
+!
+!     ----------------------------------------------------------------
+!     Calculate total of scaling factor in order to report percentages 
+!     Set flags showing which spectra are enabled for shifting
+!     ----------------------------------------------------------------
       do j=1,nspc
          shflg(j)='N'
          if (ishft(j).ne.0) shflg(j)='Y'
-c
+!
          stot(j)=0.0d0
          do i=1,nsite
             stot(j)=stot(j)+sfac(i,j)
          end do
          stot(j)=stot(j)/1.0d2
       end do
-c
-c     ---------------------------------------------
-c     Set flags showing which sites are autoscaled
-c     ---------------------------------------------
+!
+!     ---------------------------------------------
+!     Set flags showing which sites are autoscaled
+!     ---------------------------------------------
       do i=1,nsite
          scflg(i)=' '
          if (iscal(i).ne.0) scflg(i)='*'
       end do
-c
+!
       if (nsite.gt.1.and.nspc.gt.1) then
          nsp=1
       else
          nsp=nspc
       end if
-c
-c     -----------------------------------------------------
-c     Print out scaling information for each spectrum/site
-c     -----------------------------------------------------
+!
+!     -----------------------------------------------------
+!     Print out scaling information for each spectrum/site
+!     -----------------------------------------------------
       if (nspc.gt.0) then
          if (nsite.gt.1) then
               write(lu,1047) (i,i=1,nsite)
@@ -451,18 +451,18 @@ c     -----------------------------------------------------
               write(lu,1048) (sfac(i,j),sfac(i,j)/stot(j), i=1,nsite)
             end do
          end if
-c
-c     --------------------------------------------------
-c      Print out shifting information for each spectrum
-c     --------------------------------------------------
+!
+!     --------------------------------------------------
+!      Print out shifting information for each spectrum
+!     --------------------------------------------------
          k=lthdnm-4
          write (lu,1049) (dataid(j)(:k),shft(j),shflg(j),sb0(j),
      #                    sb0(j)+shft(j),j=1,nspc)
       endif
       return
-c
-c ##### formats ######################################################
-c
+!
+! ##### formats ######################################################
+!
  1047 format(/2x,'Scales:',t10,5(11x,'site',i2,2x))
  1048 format(12x,t16,5(g12.4,'(',f5.1,'%)  '))
  1049 format(/2x,'Shifts:  file',t33,'shift',2x,'auto',2x,4x,'B0',

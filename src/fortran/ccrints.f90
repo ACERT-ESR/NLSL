@@ -1,33 +1,33 @@
-c NLSL Version 1.5
-c----------------------------------------------------------------------
-c This file contains two copies of subroutine CCRINT named CCRIN1 and
-c for use with double integration problems (e.g. integration over
-c the polar angles in rigid limit EPR calculation programs)
-c----------------------------------------------------------------------
-c
-c                    ======================
-c                      subroutine CCRINT
-c                    ======================
-c
-c  Clenshaw-Curtis-Romberg integration method according to algorithm
-c  of O'Hara and Smith [Computer J. 12 (1969) 179-82]
-c  Adapted from G. Bruno thesis, Cornell Univ. (see p. 554 Bruno thesis)
-c  Code rearranged clarified, and re-commented by D. Budil, 1/16/90
-c
-c  The function to be integrated is supplied as a double precision function 
-c  whose name is passed to the program (external function f)  
-c
-c   Parameters:
-c       bndlow          Lower bound of integration
-c       bndhi           Upper bound of integration
-c       epsiln          Tolerance (absolute) for convergence of integral
-c                       Relative tolerance ratio is taken to be epsiln/100
-c       small           Smallest permissible step, as fraction of (x range)/4
-c
-c   Returns:
-c       neval           Number of function evaluations
-c       id              Error flag (1 for normal, -1 for stack overflow)
-c----------------------------------------------------------------------
+! NLSL Version 1.5
+!----------------------------------------------------------------------
+! This file contains two copies of subroutine CCRINT named CCRIN1 and
+! for use with double integration problems (e.g. integration over
+! the polar angles in rigid limit EPR calculation programs)
+!----------------------------------------------------------------------
+!
+!                    ======================
+!                      subroutine CCRINT
+!                    ======================
+!
+!  Clenshaw-Curtis-Romberg integration method according to algorithm
+!  of O'Hara and Smith [Computer J. 12 (1969) 179-82]
+!  Adapted from G. Bruno thesis, Cornell Univ. (see p. 554 Bruno thesis)
+!  Code rearranged clarified, and re-commented by D. Budil, 1/16/90
+!
+!  The function to be integrated is supplied as a double precision function 
+!  whose name is passed to the program (external function f)  
+!
+!   Parameters:
+!       bndlow          Lower bound of integration
+!       bndhi           Upper bound of integration
+!       epsiln          Tolerance (absolute) for convergence of integral
+!                       Relative tolerance ratio is taken to be epsiln/100
+!       small           Smallest permissible step, as fraction of (x range)/4
+!
+!   Returns:
+!       neval           Number of function evaluations
+!       id              Error flag (1 for normal, -1 for stack overflow)
+!----------------------------------------------------------------------
         subroutine ccrint(bndlow,bndhi,epsiln,small,sum,neval,f,id)
         external f
 
@@ -42,30 +42,30 @@ c----------------------------------------------------------------------
      #         x0, x1, x2, x3, x4, x5, x6, x7, x8, xx
         double precision dabs, f
 
-c ======================================================================
-c Coefficients for 2*(5 point Newton-Cotes) integration
-c 14/45, 28/45, 24/45, 64/45
-c ======================================================================
+! ======================================================================
+! Coefficients for 2*(5 point Newton-Cotes) integration
+! 14/45, 28/45, 24/45, 64/45
+! ======================================================================
 
         data cnc1 /0.3111111111111111d0 /
      #       cnc2 /0.6222222222222222d0 /
      #       cnc3 /0.5333333333333333d0 /
      #       cnc4 /1.4222222222222222d0 /
 
-c ======================================================================
-c Coefficients for 8 point Romberg formula
-c 868/2835, 1744/2835, 1408/2835, 4096/2835
-c ======================================================================
+! ======================================================================
+! Coefficients for 8 point Romberg formula
+! 868/2835, 1744/2835, 1408/2835, 4096/2835
+! ======================================================================
 
         data c8r1 /0.3061728395061728d0 /
      #       c8r2 /0.6151675485008818d0 /
      #       c8r3 /0.4966490299823633d0 /
      #       c8r4 /1.444797178130511d0  /
 
-c ======================================================================
-c Coefficients for 7 point Clenshaw-Curtis formula
-c 36/315, 656/315, 576/315, 320/315
-c ======================================================================
+! ======================================================================
+! Coefficients for 7 point Clenshaw-Curtis formula
+! 36/315, 656/315, 576/315, 320/315
+! ======================================================================
 
         data c7l1 /0.1142857142857143d0 /
      #       c7l2 /2.082539682539683d0  /
@@ -74,9 +74,9 @@ c ======================================================================
 
         data rt3  /1.732050807568877d0 /
 
-c ======================================================================
-c Set initial domain to be the entire domain from lower to upper bound
-c ======================================================================
+! ======================================================================
+! Set initial domain to be the entire domain from lower to upper bound
+! ======================================================================
 
         id = 1
         h  = (bndhi-bndlow)*0.25d0
@@ -98,12 +98,12 @@ c ======================================================================
         nstack = 0
         hmin   = small*h
 
-c ======================================================================
-c Beginning of an iteration: divide step size in half.
-c (assumed that current domain is only a small fraction of the total)
-c Supplied with a (sub)domain defined by the x values x0,x2,x4,x6,x8,
-c interpolate the points x1, x3, x5, x7 and calculate f at these points
-c ======================================================================
+! ======================================================================
+! Beginning of an iteration: divide step size in half.
+! (assumed that current domain is only a small fraction of the total)
+! Supplied with a (sub)domain defined by the x values x0,x2,x4,x6,x8,
+! interpolate the points x1, x3, x5, x7 and calculate f at these points
+! ======================================================================
 
 4       h = 0.5d0*h
         if (dabs(h) .le. dabs(hmin)) go to 9
@@ -121,14 +121,14 @@ c ======================================================================
         cvgtol = err*0.1D0
         if (nstack.eq.0) cvgtol = err
 
-c ======================================================================
-c First convergence test:
-c Compare results of Newton-Cotes and Romberg quadratures.
-c If absolute AND relative differences are too large, the current domain
-c must be subdivided
-c
-c *** Modified 22-May-90: proceed if the integrated function is zero -DEB
-c ======================================================================
+! ======================================================================
+! First convergence test:
+! Compare results of Newton-Cotes and Romberg quadratures.
+! If absolute AND relative differences are too large, the current domain
+! must be subdivided
+!
+! *** Modified 22-May-90: proceed if the integrated function is zero -DEB
+! ======================================================================
 
         sa=t0+t8
         sc=t2+t6
@@ -144,15 +144,15 @@ c ======================================================================
      #     go to 10
         endif
 
-c ======================================================================
-c Second convergence test:
-c Compare 8 pt. Romberg with 7 pt. Clenshaw-Curtis quadratures.
-c (Use error estimate for Clenshaw-Curtis quadrature if it is larger)
-c If absolute AND relative differences are too large, the current domain
-c needs to be subdivided
-c
-c *** Modified 22-May-90: proceed if the integrated function is zero -DEB
-c ======================================================================
+! ======================================================================
+! Second convergence test:
+! Compare 8 pt. Romberg with 7 pt. Clenshaw-Curtis quadratures.
+! (Use error estimate for Clenshaw-Curtis quadrature if it is larger)
+! If absolute AND relative differences are too large, the current domain
+! needs to be subdivided
+!
+! *** Modified 22-May-90: proceed if the integrated function is zero -DEB
+! ======================================================================
 
         xx  = rt3*h
         t9  = f(x2-xx) + f(x2+xx)
@@ -170,11 +170,11 @@ c ======================================================================
      #    .and.diff/dabs(0.5d0*(acl7+rombrg)) .gt. cvgtol/1.0D2) goto 10
         endif
 
-c ======================================================================
-c Convergence achieved for this subdomain: add integral into result
-c Replace current subdomain with the top subdomain on the stack for next
-c iteration (Integration is complete if the stack is empty)
-c ======================================================================
+! ======================================================================
+! Convergence achieved for this subdomain: add integral into result
+! Replace current subdomain with the top subdomain on the stack for next
+! iteration (Integration is complete if the stack is empty)
+! ======================================================================
 
         sum = sum + acl7
 
@@ -198,12 +198,12 @@ c ======================================================================
         nstack = nstack-1
         go to 4
 
-c ======================================================================
-c Push upper half of current subdomain (points x5, x6, x7, x8)
-c and function values onto the stack (error return if stack overflows)
-c Replace current subdomain (points x0, x2, x4, x6, x8) and function values
-c with its lower half (points x0, x1, x2, x3, x4) for next iteration
-c ======================================================================
+! ======================================================================
+! Push upper half of current subdomain (points x5, x6, x7, x8)
+! and function values onto the stack (error return if stack overflows)
+! Replace current subdomain (points x0, x2, x4, x6, x8) and function values
+! with its lower half (points x0, x1, x2, x3, x4) for next iteration
+! ======================================================================
 
  10     nstack=nstack+1
         if(nstack.gt.30) then
@@ -229,12 +229,12 @@ c ======================================================================
         go to 4
         end
 
-c ======================================================================
-c                    =========================
-c                      Subroutine CCRIN1
-c                    =========================
-c  Duplicate of subroutine ccrint used for two-dimensional integration.
-c ======================================================================
+! ======================================================================
+!                    =========================
+!                      Subroutine CCRIN1
+!                    =========================
+!  Duplicate of subroutine ccrint used for two-dimensional integration.
+! ======================================================================
 
         subroutine ccrin1(bndlow,bndhi,epsiln,small,sum,neval,f,id)
         external f
@@ -250,30 +250,30 @@ c ======================================================================
      #         x0, x1, x2, x3, x4, x5, x6, x7, x8, xx
         double precision dabs, f
 
-c ======================================================================
-c Coefficients for 2*(5 point Newton-Cotes) integration
-c 14/45, 28/45, 24/45, 64/45
-c ======================================================================
+! ======================================================================
+! Coefficients for 2*(5 point Newton-Cotes) integration
+! 14/45, 28/45, 24/45, 64/45
+! ======================================================================
 
         data cnc1 /0.3111111111111111d0 /
      #       cnc2 /0.6222222222222222d0 /
      #       cnc3 /0.5333333333333333d0 /
      #       cnc4 /1.4222222222222222d0 /
 
-c ======================================================================
-c Coefficients for 8 point Romberg formula
-c 868/2835, 1744/2835, 1408/2835, 4096/2835
-c ======================================================================
+! ======================================================================
+! Coefficients for 8 point Romberg formula
+! 868/2835, 1744/2835, 1408/2835, 4096/2835
+! ======================================================================
 
         data c8r1 /0.3061728395061728d0 /
      #       c8r2 /0.6151675485008818d0 /
      #       c8r3 /0.4966490299823633d0 /
      #       c8r4 /1.444797178130511d0  /
 
-c ======================================================================
-c Coefficients for 7 point Clenshaw-Curtis formula
-c 36/315, 656/315, 576/315, 320/315
-c ======================================================================
+! ======================================================================
+! Coefficients for 7 point Clenshaw-Curtis formula
+! 36/315, 656/315, 576/315, 320/315
+! ======================================================================
 
         data c7l1 /0.1142857142857143d0 /
      #       c7l2 /2.082539682539683d0  /
@@ -282,9 +282,9 @@ c ======================================================================
 
         data rt3  /1.732050807568877d0 /
 
-c ======================================================================
-c Set initial domain to be the entire domain from lower to upper bound
-c ======================================================================
+! ======================================================================
+! Set initial domain to be the entire domain from lower to upper bound
+! ======================================================================
 
         id = 1
         h  = (bndhi-bndlow)*0.25d0
@@ -306,13 +306,13 @@ c ======================================================================
         nstack = 0
         hmin   = small*h
 
-c ======================================================================
-c Beginning of an iteration: divide step size in half.
-c Skip integration formulae if the step size h is too small.
-c (assumed that current domain is only a small fraction of the total)
-c Supplied with a (sub)domain defined by the x values x0,x2,x4,x6,x8,
-c interpolate the points x1, x3, x5, x7 and calculate f at these points
-c ======================================================================
+! ======================================================================
+! Beginning of an iteration: divide step size in half.
+! Skip integration formulae if the step size h is too small.
+! (assumed that current domain is only a small fraction of the total)
+! Supplied with a (sub)domain defined by the x values x0,x2,x4,x6,x8,
+! interpolate the points x1, x3, x5, x7 and calculate f at these points
+! ======================================================================
 
 4       h = 0.5d0*h
         if (dabs(h) .le. dabs(hmin)) go to 9
@@ -330,14 +330,14 @@ c ======================================================================
         cvgtol = err*0.1D0
         if (nstack.eq.0) cvgtol = err
 
-c ======================================================================
-c First convergence test:
-c Compare results of Newton-Cotes and Romberg quadratures.
-c If absolute AND relative differences are too large, the current domain
-c must be subdivided
-c
-c *** Modified 22-May-90: proceed if the integrated function is zero -DEB
-c ======================================================================
+! ======================================================================
+! First convergence test:
+! Compare results of Newton-Cotes and Romberg quadratures.
+! If absolute AND relative differences are too large, the current domain
+! must be subdivided
+!
+! *** Modified 22-May-90: proceed if the integrated function is zero -DEB
+! ======================================================================
 
         sa=t0+t8
         sc=t2+t6
@@ -353,15 +353,15 @@ c ======================================================================
      #     go to 10
         endif
 
-c ======================================================================
-c Second convergence test:
-c Compare 8 pt. Romberg with 7 pt. Clenshaw-Curtis quadratures.
-c (Use error estimate for Clenshaw-Curtis quadrature if it is larger)
-c If absolute AND relative differences are too large, the current domain
-c needs to be subdivided
-c
-c *** Modified 22-May-90: proceed if the integrated function is zero -DEB
-c ======================================================================
+! ======================================================================
+! Second convergence test:
+! Compare 8 pt. Romberg with 7 pt. Clenshaw-Curtis quadratures.
+! (Use error estimate for Clenshaw-Curtis quadrature if it is larger)
+! If absolute AND relative differences are too large, the current domain
+! needs to be subdivided
+!
+! *** Modified 22-May-90: proceed if the integrated function is zero -DEB
+! ======================================================================
 
         xx  = rt3*h
         t9  = f(x2-xx) + f(x2+xx)
@@ -379,11 +379,11 @@ c ======================================================================
      #    .and.diff/dabs(0.5d0*(acl7+rombrg)) .gt. cvgtol/1.0D2) goto 10
         endif
 
-c ======================================================================
-c Convergence achieved for this subdomain: add integral into result
-c Replace current subdomain with the top subdomain on the stack for next
-c iteration (Integration is complete if the stack is empty)
-c ======================================================================
+! ======================================================================
+! Convergence achieved for this subdomain: add integral into result
+! Replace current subdomain with the top subdomain on the stack for next
+! iteration (Integration is complete if the stack is empty)
+! ======================================================================
 
         sum = sum + acl7
 
@@ -407,12 +407,12 @@ c ======================================================================
         nstack = nstack-1
         go to 4
 
-c ======================================================================
-c Push upper half of current subdomain (points x5, x6, x7, x8)
-c and function values onto the stack (error return if stack overflows)
-c Replace current subdomain (points x0, x2, x4, x6, x8) and function values
-c with its lower half (points x0, x1, x2, x3, x4) for next iteration
-c ======================================================================
+! ======================================================================
+! Push upper half of current subdomain (points x5, x6, x7, x8)
+! and function values onto the stack (error return if stack overflows)
+! Replace current subdomain (points x0, x2, x4, x6, x8) and function values
+! with its lower half (points x0, x1, x2, x3, x4) for next iteration
+! ======================================================================
 
  10     nstack=nstack+1
         if(nstack.gt.30) then
