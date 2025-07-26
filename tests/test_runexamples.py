@@ -5,10 +5,10 @@ import nlsl
 
 EXAMPLES = [
     (1, [0.0404]),
-    #(2, [0.0331, 0.0513]),
-    #(3, [0.06113]),
-    #(4, [0.04001]),
-    #(5, [0.075, 0.1592]),
+    (2, [0.0331, 0.0513]),
+    (3, [0.06113]),
+    (4, [0.04001]),
+    (5, [0.075, 0.1592]),
 ]
 
 def read_column_data(filename):
@@ -45,7 +45,6 @@ def run_example(example, allowed_rel_rms=None):
 
     rel_rms_list = []
     for thisdatafile in data_files_out:
-        print("checking datafile",thisdatafile)
         data_calc = read_column_data(thisdatafile + '.spc')
         exp_sq = np.sum(data_calc[:, 1] ** 2)
         rms_sq = np.sum((data_calc[:, 2] - data_calc[:, 1]) ** 2)
