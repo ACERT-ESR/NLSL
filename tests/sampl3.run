@@ -1,0 +1,107 @@
+echo off
+echo  **********************************************************************
+echo file SAMPL3.RUN:  sample NLSL script file
+echo
+echo   Illustrates fitting of spectum exhibiting Microscopic Order, but
+echo   Macroscopic Disorder (MOMD). Sample calculation is for 5-PC chain-
+echo   labeled lipid in a membrane dispersion.
+echo
+echo   Test data in file SAMPL3.DAT calculated with the following parameters:
+echo               {g}   = 2.0089, 2.0058, 2.0021
+echo               {A}   = 4.9, 4.9, 33.0 (Gauss)
+echo               Rpll  = 5.0e7
+echo               Rperp = 5.0e8
+echo               c20   = 2.0
+echo               nort  = 15   (orientations used in integration)
+echo               B0    = 3400 G
+echo               GIB0  = 2.0 G (p-p width of isotropic Gaussian inhomog.)
+echo               GIB2  = 0.5 G (p-p width of orientation-dependent GIB)
+echo
+echo **********************************************************************
+echo
+echo   --- Open file 'sampl3.log' to save a record of this session
+echo
+
+log sampl3
+
+echo
+echo   --- Set magnetic parameters for 5PC spin probe 
+echo
+
+call 5pc.par
+
+echo
+echo   --- Specify spectrometer field and make initial estimates for
+echo   --- fitting parameters: log(rotational rate), log(anisotropy), and 
+echo   --- Gaussian inhomogeneous broadening
+echo
+
+let nort=20
+let rbar = 8.0
+let c20 = 1.0
+let gib0 = 1.5
+
+echo
+echo   --- Use the pruned basis set in file 'sampl2.ind'
+echo
+
+basis sampl3
+
+echo
+echo    --- Read in ASCII datafile 'sampl3.dat':
+echo    ---    (1) Spline interpolate the data to 400 points
+echo    ---    (2) baseline-correct by fitting a line to 20 points at each end
+echo    ---    (3) allow shifting of B0 to maximize overlap with data
+echo
+
+data sampl3 ascii nspline 400 bc 20 shift
+
+echo
+echo    --- Specify nonlinear parameters to search
+echo
+
+search rbar
+search c20
+axial r
+
+vary rpll,rprp,c20,gib0
+
+echo
+echo    --- Carry out nonlinear least-squares procedure:
+echo    ---    (1) Stop after a maximum of 5 iterations
+echo    ---    (2) Stop after a maximum of 40 spectral calculations
+echo    ---    (3) Chi-squared convergence tolerance is 1 part in 10^3
+echo
+
+fit maxit 40 maxfun 400 ftol 1e-3 xtol 1e-3
+echo
+echo    --- Note that the RPLL parameter is very poorly behaved.
+echo    --- Since the fit is insensitive to this parmeter, try
+echo    --- converting to the spherical representation of the R tensor.
+echo    --- Tensor symmetry cannot be converted when tensor elements
+echo    --- are being varied, so fix rprp and rpll first.
+echo
+
+fix rpll
+fix rprp
+spherical r
+vary rbar
+
+echo
+echo    --- Now try adding orientation-dependent linewidth
+echo    --- to the parameter list.
+echo    ---
+echo    --- Note that fit commands retain the convergence parameters
+echo    --- from the previous one (i.e., maxit 40 and maxfun 600 are
+echo    --- assumed for the next fit command as well)
+echo
+
+vary gib2
+fit
+
+echo
+echo    --- Note large correlations that result!
+echo    --- gib0 and gib2 cannot be resolved independently
+echo    --- for this dataset (Note how different they are from
+echo    --- original calculation)
+echo
