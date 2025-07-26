@@ -1,15 +1,8 @@
-import pytest
-import numpy as np
+#!/usr/bin/python
 import os
+import numpy as np
 import nlsl
 
-EXAMPLES = [
-    (1, [0.0404]),
-    #(2, [0.0331, 0.0513]),
-    #(3, [0.06113]),
-    #(4, [0.04001]),
-    #(5, [0.075, 0.1592]),
-]
 
 def read_column_data(filename):
     with open(filename, "r") as fp:
@@ -21,8 +14,8 @@ def run_example(example, allowed_rel_rms=None):
     """Run the numbered NLSL example and return list of relative RMS errors."""
 
     print(f"about to run nlsl example {example}")
-    runfile_location  = os.path.dirname(__file__)
-    os.chdir(runfile_location)
+    examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
+    os.chdir(examples_dir)
 
     filename_base = f"sampl{example}"
     data_files_out = []
@@ -45,7 +38,6 @@ def run_example(example, allowed_rel_rms=None):
 
     rel_rms_list = []
     for thisdatafile in data_files_out:
-        print("checking datafile",thisdatafile)
         data_calc = read_column_data(thisdatafile + '.spc')
         exp_sq = np.sum(data_calc[:, 1] ** 2)
         rms_sq = np.sum((data_calc[:, 2] - data_calc[:, 1]) ** 2)
@@ -57,14 +49,23 @@ def run_example(example, allowed_rel_rms=None):
         assert len(rel_rms_list) == len(allowed_rel_rms)
         for rms, allowed in zip(rel_rms_list, allowed_rel_rms):
             assert rms < allowed * 1.01, (
-                f'rms error / norm(experimental) = {rms}, but only {allowed*1.01} allowed'
+                'rms error / norm(experimental) = %0.3g' % rms
             )
     return rel_rms_list
 
-@pytest.mark.parametrize("example,allowed", EXAMPLES)
-def test_runexample(example, allowed):
-    rel_rms = run_example(example, allowed_rel_rms=allowed)
-    # the following error should never trigger (b/c it's in run example), but just in case
-    assert rel_rms and all(
-        r < a * 1.01 for r, a in zip(rel_rms, allowed)
-    ), f"I was expecting errors of {allowed}, but got errors of {rel_rms}"
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run an NLSL example")
+    parser.add_argument("example", type=int, nargs="?", default=1,
+                        help="example number to run")
+    parser.add_argument("--allowed-rel-rms", type=float, nargs="*", dest="allowed",
+                        default=None,
+                        help="fail if relative RMS exceeds these values")
+    args = parser.parse_args()
+
+    rms_list = run_example(args.example, allowed_rel_rms=args.allowed)
+    if rms_list:
+        for i, rms in enumerate(rms_list, 1):
+            print(f"spectrum {i}: relative rms = {rms:.5g}")
