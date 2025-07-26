@@ -83,9 +83,9 @@ class nlsl(object):
             name.decode('ascii').strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
-        self._fepr = _fortrancore.parcom.fparm
-        self._iepr = _fortrancore.parcom.iparm
-        self._nsites = self._fepr.shape[1]
+        self._fparm = _fortrancore.parcom.fparm
+        self._iparm = _fortrancore.parcom.iparm
+        self._nsites = self._fparm.shape[1]
 
         self.fit_params = fit_params()
 
@@ -104,13 +104,13 @@ class nlsl(object):
         key = key.lower()
         if key in self._fepr_names:
             idx = self._fepr_names.index(key)
-            vals = self._fepr[idx, :self._nsites]
+            vals = self._fparm[idx, :self._nsites]
             if np.allclose(vals, vals[0]):
                 return vals[0]
             return vals
         if key in self._iepr_names:
             idx = self._iepr_names.index(key)
-            vals = self._iepr[idx, :self._nsites]
+            vals = self._iparm[idx, :self._nsites]
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
@@ -123,17 +123,17 @@ class nlsl(object):
             if isinstance(value, (list, tuple, np.ndarray)):
                 for i, v in enumerate(value):
                     if i < self._nsites:
-                        self._fepr[idx, i] = v
+                        self._fparm[idx, i] = v
             else:
-                self._fepr[idx, :self._nsites] = value
+                self._fparm[idx, :self._nsites] = value
         elif key in self._iepr_names:
             idx = self._iepr_names.index(key)
             if isinstance(value, (list, tuple, np.ndarray)):
                 for i, v in enumerate(value):
                     if i < self._nsites:
-                        self._iepr[idx, i] = v
+                        self._iparm[idx, i] = v
             else:
-                self._iepr[idx, :self._nsites] = value
+                self._iparm[idx, :self._nsites] = value
         else:
             raise KeyError(key)
 
