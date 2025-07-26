@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 import os
 import nlsl
 
@@ -19,8 +20,8 @@ def run_example(example, allowed_rel_rms=None):
     """Run the numbered NLSL example and return list of relative RMS errors."""
 
     print(f"about to run nlsl example {example}")
-    examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
-    os.chdir(examples_dir)
+    runfile_location = os.path.join(os.path.dirname(__file__))
+    os.chdir(runfile_location)
 
     filename_base = f"sampl{example}"
     data_files_out = []
