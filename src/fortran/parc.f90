@@ -1,15 +1,15 @@
-c NLSL Version 1.5 beta 11/25/95
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine PARC 
-c                    =========================
-c
-c  Prints out a list of parameter values on the given logical unit
-c  number.
-c
-c----------------------------------------------------------------------
+! NLSL Version 1.5 beta 11/25/95
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine PARC 
+!                    =========================
+!
+!  Prints out a list of parameter values on the given logical unit
+!  number.
+!
+!----------------------------------------------------------------------
       subroutine parc( line )
-c
+!
       use nlsdim
       use eprprm
       use expdat
@@ -19,34 +19,34 @@ c
       use rnddbl
       use symdef
       use mtsdef
-c
+!
       implicit none
       character line*80,hdr*4,shdr*4,fileID*30
-c
+!
       integer i,ioerr,isym,jx,lth,lu,ntmp,npotn
-c
+!
       integer itrim
       external itrim
-c
+!
       character*2 nonbr(3)
       data nonbr/ 'l', 'xy', 'zz'/
-c
-c......................................................................
-c
+!
+!......................................................................
+!
       call gettkn(line,fileID,lth)
-c
-c----------------------------------------------------------------------
-c     No name specified: output to terminal 
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+!     No name specified: output to terminal 
+!----------------------------------------------------------------------
       if (lth.eq.0) then
          lu=luttyo
          hdr=' '
          shdr=' '
       else
-c
-c     ------------------------------------------------
-c      Set output of "let" commands to specified file 
-c     ------------------------------------------------
+!
+!     ------------------------------------------------
+!      Set output of "let" commands to specified file 
+!     ------------------------------------------------
          open(ludisk,file=fileID(:lth),status='unknown',
      #        access='sequential',form='formatted',iostat=ioerr)
          if (ioerr.ne.0) then
@@ -57,35 +57,35 @@ c     ------------------------------------------------
          hdr='let '
          shdr='c '
       end if
-c
-c     --------------------
-c     Series command
-c     --------------------
+!
+!     --------------------
+!     Series command
+!     --------------------
       if (iser.ne.0) then 
          write(lu,1023) parnam(iser)(:itrim(parnam(iser))),
      #        (serval(i),i=1,nser)
       else
          write(lu,2023) shdr
       end if
-c
+!
       ntmp=max0(nser,1)
       write(lu,1024) (hdr,jx,sb0(jx),jx=1,ntmp)
       write(lu,1021) (hdr,jx,slb(jx),jx=1,ntmp)
       write(lu,1025) (hdr,jx,spsi(jx),jx=1,ntmp)
       write(lu,1026) (hdr,jx,sphs(jx),jx=1,ntmp)
-c
+!
       write (lu,1018) nsite
-c
+!
 
-c ========================================
-c     Loop over site parameters
-c ========================================
+! ========================================
+!     Loop over site parameters
+! ========================================
       do 10 jx=1,nsite
          write (lu,1019) shdr,jx
-c
-c     -----------
-c      g-tensor
-c     -----------
+!
+!     -----------
+!      g-tensor
+!     -----------
          isym = iparm(IIGFLG,jx)
          if (lu.ne.luttyo) write (lu,2002) symstr(isym), 'g'
          if (isym.eq.AXIAL) then
@@ -95,10 +95,10 @@ c     -----------
          else
             write (lu,1000) hdr,(fparm(IGXX+i,jx),i=0,2)
          end if
-c
-c    -----------------------------------
-c     Nuclear spin and hyperfine tensor
-c    -----------------------------------
+!
+!    -----------------------------------
+!     Nuclear spin and hyperfine tensor
+!    -----------------------------------
       if (iparm(IIN2,jx).ne.0) then
          isym=iparm(IIAFLG,jx) 
          if (lu.ne.luttyo) write (lu,2002) symstr(isym), 'A' 
@@ -112,10 +112,10 @@ c    -----------------------------------
       else
          write (lu,1002) hdr,iparm(IIN2,jx)
       end if
-c
-c   -------------------
-c     Linewidth tensor 
-c   -------------------
+!
+!   -------------------
+!     Linewidth tensor 
+!   -------------------
       isym=iparm(IIWFLG,jx) 
       if (lu.ne.luttyo) write (lu,2002) symstr(isym), 'W'
       if (isym.eq.AXIAL) then
@@ -125,10 +125,10 @@ c   -------------------
       else
         write (lu,3001) hdr,(fparm(IWXX+i,jx),i=0,2)
       end if
-c
-c     -------------------
-c       Diffusion tensor 
-c     -------------------
+!
+!     -------------------
+!       Diffusion tensor 
+!     -------------------
       isym=iparm(IIRFLG,jx)
       if (lu.ne.luttyo) write (lu,2002) symstr(isym), 'R'
       if (isym.eq.AXIAL) then
@@ -138,37 +138,37 @@ c     -------------------
       else
          write(lu,1005) hdr,(fparm(IDX+i,jx),i=0,2)
       end if
-c
-c    ------------------------------------------
-c      Gaussian inhomogeneous broadening
-c    ------------------------------------------
+!
+!    ------------------------------------------
+!      Gaussian inhomogeneous broadening
+!    ------------------------------------------
       write (lu,1022) hdr, fparm(IGIB0,jx), fparm(IGIB2,jx)
-c
-c    -------------------------------------------
-c      Non-Brownian rotational model parameters
-c     ------------------------------------------
+!
+!    -------------------------------------------
+!      Non-Brownian rotational model parameters
+!     ------------------------------------------
       write (lu,1007) hdr,iparm(IIPDF,jx)
       if (iparm(IIPDF,jx).eq.1) then
         do i=0,2
             write(lu,1008) hdr,nonbr(i+1),nonbr(i+1),iparm(IML+i,jx),
      #                     fparm(IPML+i,jx)
          end do
-c
-c   -- Anisotropic viscosity
-c
+!
+!   -- Anisotropic viscosity
+!
       else if (iparm(IIPDF,jx).eq.2) then
         write (lu,1009) hdr,fparm(IDJF,jx),fparm(IDJFPRP,jx)
       end if
-c
-c   --- Discrete jump motion
-c
+!
+!   --- Discrete jump motion
+!
       npotn=0
       if (iparm(IIPDF,jx).ne.2 .and. iparm(IIST,jx).ne.0 .and.
      #    npotn.gt.0) write (lu,1010) hdr,iparm(IIST,jx),fparm(IDJF,jx)
-c
-c    ----------------------
-c      Orienting potential 
-c    ----------------------
+!
+!    ----------------------
+!      Orienting potential 
+!    ----------------------
       npotn=0
       do i=0,4
         if (dabs(fparm(IC20+i,jx)).gt.RNDOFF) npotn=i+1
@@ -177,33 +177,33 @@ c    ----------------------
         write (lu,1011) hdr,(fparm(IC20+i,jx),i=0,4)
         if (iparm(INORT,jx).gt.0) write (lu,1012) hdr,iparm(INORT,jx)
       end if
-c
-c    --------------------
-c    Heisenberg exchange
-c    --------------------
+!
+!    --------------------
+!    Heisenberg exchange
+!    --------------------
       if (dabs(fparm(IOSS,jx)).gt.RNDOFF) 
      #    write (lu,1013) hdr,fparm(IOSS,jx)
-c
-c    -----------------
-c      Diffusion tilt 
-c    -----------------
+!
+!    -----------------
+!      Diffusion tilt 
+!    -----------------
       if (dabs(fparm(IBED,jx)).gt.RNDOFF) 
      #    write (lu,1014) hdr,fparm(IBED,jx)
-c
-c    -----------------------------
-c     Basis set and CG parameters
-c    -----------------------------
+!
+!    -----------------------------
+!     Basis set and CG parameters
+!    -----------------------------
       write (lu,1016) hdr,(iparm(ILEMX+i,jx),i=0,NTRC-1)
       write (lu,1017) hdr,iparm(INSTEP,jx),fparm(ICGTOL,jx),
      #                fparm(ISHIFT,jx),fparm(ISHIFT+1,jx)
-c
+!
    10 continue
-c
-c
+!
+!
       return
-c
-c######################################################################
-c   
+!
+!######################################################################
+!   
  1000 format(a,'gxx,gyy,gzz = ',2(f9.6,','),f9.6)
  1001 format(a,'g1,g2,g3 = ',2(f9.6,','),f9.6)
  2001 format(a,'gprp,gpll = ',f9.6,',',f9.6)

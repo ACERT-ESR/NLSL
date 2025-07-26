@@ -1,15 +1,15 @@
-c NLSL Version 1.5 beta 11/23/95
-c----------------------------------------------------------------------
-c                    =========================
-c                       subroutine COVRPT  
-c                    =========================
-c
-c    Produces a report of the covariance matrix and parameter 
-c    uncertainties on the specified logical unit.
-c----------------------------------------------------------------------
-c
+! NLSL Version 1.5 beta 11/23/95
+!----------------------------------------------------------------------
+!                    =========================
+!                       subroutine COVRPT  
+!                    =========================
+!
+!    Produces a report of the covariance matrix and parameter 
+!    uncertainties on the specified logical unit.
+!----------------------------------------------------------------------
+!
       subroutine covrpt( lu )
-c
+!
       use nlsdim
       use eprprm
       use expdat
@@ -20,22 +20,22 @@ c
       use iterat
       use rnddbl
       use stdio
-c
+!
       implicit none
       integer lu
-c
+!
       integer i,isi,isp,j,k,mrgn
       double precision denom,s(5,MXSITE)
       character*132 line
       logical potflg
-c
+!
       integer itrim
       double precision chi,ts,fs
       external itrim,chi,ts,fs
-c
-c     ---------------------------------------------
-c      Append labels for scale factors to tag array
-c     ---------------------------------------------
+!
+!     ---------------------------------------------
+!      Append labels for scale factors to tag array
+!     ---------------------------------------------
       if (nsite.gt.1) then
          do isi=1,nsite
             write(tag(nprm+isi),1010) isi
@@ -47,23 +47,23 @@ c     ---------------------------------------------
             x(nprm+isp)=sfac(1,isp)
          end do
       end if
-c
-c-----------------------------------------------------------------------
-c  Calculate residuals and covariance matrix
-c  COVAR calculates covariance matrix from the R matrix of QR 
-c  factorization, which lmder stored in upper triangular form in fjac 
-c  ipvt is permutation array returned by lmder
-c------------------------------------------------------------------------
-c
+!
+!-----------------------------------------------------------------------
+!  Calculate residuals and covariance matrix
+!  COVAR calculates covariance matrix from the R matrix of QR 
+!  factorization, which lmder stored in upper triangular form in fjac 
+!  ipvt is permutation array returned by lmder
+!------------------------------------------------------------------------
+!
       if (.not.covarOK) then
          call covar( njcol,fjac,MXPT,ipvt,xtol*xtol,work1 )
          covarOK=.true.
-c                                    --- weighted residual fit
+!                                    --- weighted residual fit
          if (iwflag.ne.0) then
             delchi1=chi(confid,1)
             ch2bnd=chi(confid,2)
             chnbnd=chi(confid,njcol)
-c                                    --- unweighted residual fit
+!                                    --- unweighted residual fit
          else
             tbound=ts( (1.0D0-confid)/2.0D0, ndatot-nprm )
             f2bnd=2.0D0*fs( 1.0D0-confid, 2, ndatot-2 )*fnorm*fnorm/
@@ -71,28 +71,28 @@ c                                    --- unweighted residual fit
             fnbnd=float(njcol)*fs( 1.0D0-confid, njcol, ndatot-njcol )*
      #            fnorm*fnorm/float(ndatot-njcol)
          end if
-c
+!
       end if
-c
-c     ------------------------------------------------------------ 
-c     Calculate correlation matrix from covariance and output it
-c     ------------------------------------------------------------ 
+!
+!     ------------------------------------------------------------ 
+!     Calculate correlation matrix from covariance and output it
+!     ------------------------------------------------------------ 
       line=' '
       mrgn=35-5*njcol
       if (mrgn.lt.1) mrgn=1
       write (lu,2000) 
       write(line(mrgn:),2002) (tag(i),i=1,njcol)
       write(lu,2001) line(:10*(njcol+1)+mrgn)
-c
+!
       do i=1,njcol
          line=' '
          do j=i,njcol
-c
-c----------------------------------------------------------------------
-c Estimate of error bounds:
-c     For weighted residuals, use chi-squared statistics
-c     For unweighted residuals use t-statistics
-c----------------------------------------------------------------------
+!
+!----------------------------------------------------------------------
+! Estimate of error bounds:
+!     For weighted residuals, use chi-squared statistics
+!     For unweighted residuals use t-statistics
+!----------------------------------------------------------------------
             if (i.eq.j) then
                if (iwflag.ne.0) then
                   xerr(i)=sqrt(delchi1*fjac(i,i))
@@ -109,38 +109,38 @@ c----------------------------------------------------------------------
          end do
          write (lu,2001) line(:10*(njcol+1)+mrgn)
       end do
-c     
-c    --------------------------------
-c     output final fit of parameters 
-c    --------------------------------
+!     
+!    --------------------------------
+!     output final fit of parameters 
+!    --------------------------------
       write (lu,1000)
       if (iwflag.ne.0) then
          write (lu,2004) 'Chi'
       else
          write(lu,2004) 'T'
       end if
-c
+!
       write (lu,2007) (tag(i)(:itrim(tag(i))),x(i),xerr(i),i=1,njcol)
-c
-c                              --- weighted residual fit ---
+!
+!                              --- weighted residual fit ---
       if (iwflag.ne.0) then
          write (lu,2008) confid,delchi1,ch2bnd,njcol,chnbnd
-c
-c                              --- weighted residual fit ---
+!
+!                              --- weighted residual fit ---
       else
          write (lu,2009) confid,tbound,f2bnd,njcol,fnbnd
       end if
-c
-c     --------------------------------------------------------
-c     Calculate and output order parameters for each site if
-c     appropriate
-c     --------------------------------------------------------
+!
+!     --------------------------------------------------------
+!     Calculate and output order parameters for each site if
+!     appropriate
+!     --------------------------------------------------------
       do isi=1,nsite
          potflg=.false.
          do j=0,4
             potflg=potflg.or.(abs(fparm(IC20+j,isi)).gt.RNDOFF)
          end do
-c      
+!      
          if (potflg) then
             call ordrpr( fparm(IC20,isi),s(1,isi) )
             write (lu,1060) isi
@@ -152,11 +152,11 @@ c
          end if
 
       end do
-c
+!
       return
-c
-c##### Formats #########################################################
-c
+!
+!##### Formats #########################################################
+!
  1000 format(/,2x,70('-'),/)
  1010 format('SITE',i1)
  1011 format('SPCTRM',i1)
@@ -176,7 +176,7 @@ c
      #        7x,'2 parameters: ',g11.5,4x,i2,' parameters: ',g11.5)
  1060 format(/10x,'Order parameters for site',i2,':')
  1070 format(15x,'<D',a2,'> =  ',f10.4,' +/- ')
-c
+!
       end
 
 

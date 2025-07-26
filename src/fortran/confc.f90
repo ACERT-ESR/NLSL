@@ -1,24 +1,24 @@
-c Version 1.4 1/1/95
-c----------------------------------------------------------------------
-c                    =========================
-c                      subroutine CONFC
-c                    =========================
-c----------------------------------------------------------------------
+! Version 1.4 1/1/95
+!----------------------------------------------------------------------
+!                    =========================
+!                      subroutine CONFC
+!                    =========================
+!----------------------------------------------------------------------
       subroutine confc( line )
-c
+!
       use iterat
       use stdio
-c
+!
       implicit none
       character*80 line
-c
+!
       character*30 token
       double precision fval
       integer lth
-c
+!
       logical ftoken
       external ftoken
-c
+!
       call gettkn(line,token,lth)
       if (lth.eq.0) then
          write (luttyo,1000)
@@ -33,9 +33,9 @@ c
          write (luttyo,1003) token(:lth)
       end if
       return
-c
-c ##### Formats ##################################################
-c
+!
+! ##### Formats ##################################################
+!
  1000 format(' *** Confidence level missing ***')
  1002 format(' *** Confidence level must be between 0 and 1 ***')
  1003 format(' *** Illegal floating point value: ''',a,''' ***')
