@@ -172,11 +172,11 @@ c      end subroutine select_site
       azz => fepr(IAZZ)
       fepr_name(IAZZ) = "azz"
       dx => fepr(IDX)
-      fepr_name(IDX) = "dx"
+      fepr_name(IDX) = "rx"
       dy => fepr(IDY)
-      fepr_name(IDY) = "dy"
+      fepr_name(IDY) = "ry"
       dz => fepr(IDZ)
-      fepr_name(IDZ) = "dz"
+      fepr_name(IDZ) = "rz"
       pml => fepr(IPML)
       fepr_name(IPML) = "pml"
       pmxy => fepr(IPMXY)
@@ -192,17 +192,17 @@ c      end subroutine select_site
       psi => fepr(IPSI)
       fepr_name(IPSI) = "psi"
       ald => fepr(IALD)
-      fepr_name(IALD) = "ald"
+      fepr_name(IALD) = "alphad"
       bed => fepr(IBED)
-      fepr_name(IBED) = "bed"
+      fepr_name(IBED) = "betad"
       gad => fepr(IGAD)
-      fepr_name(IGAD) = "gad"
+      fepr_name(IGAD) = "gammad"
       alm => fepr(IALM)
-      fepr_name(IALM) = "alm"
+      fepr_name(IALM) = "alpham"
       bem => fepr(IBEM)
-      fepr_name(IBEM) = "bem"
+      fepr_name(IBEM) = "betam"
       gam => fepr(IGAM)
-      fepr_name(IGAM) = "gam"
+      fepr_name(IGAM) = "gammam"
       c20 => fepr(IC20)
       fepr_name(IC20) = "c20"
       c22 => fepr(IC22)
@@ -230,9 +230,9 @@ c      end subroutine select_site
       range => fepr(IRANGE)
       fepr_name(IRANGE) = "range"
       fldi  => fepr(IFLDI)
-      fepr_name(IFLDI) = "fldi"
+      fepr_name(IFLDI) = ""
       dfld => fepr(IDFLD)
-      fepr_name(IDFLD) = "dfld"
+      fepr_name(IDFLD) = ""
 
       in2 => iepr(IIN2)
       iepr_name(IIN2) = "in2"
@@ -265,23 +265,23 @@ c      end subroutine select_site
       nstep => iepr(INSTEP)
       iepr_name(INSTEP) = "nstep"
       nfld => iepr(INFLD)
-      iepr_name(INFLD) = "nfld"
+      iepr_name(INFLD) = "nfield"
       ideriv => iepr(IIDERV)
       iepr_name(IIDERV) = "ideriv"
       iwflg => iepr(IIWFLG)
-      iepr_name(IIWFLG) = "iwflg"
+      iepr_name(IIWFLG) = ""
       igflg => iepr(IIGFLG)
-      iepr_name(IIGFLG) = "igflg"
+      iepr_name(IIGFLG) = ""
       iaflg => iepr(IIAFLG)
-      iepr_name(IIAFLG) = "iaflg"
+      iepr_name(IIAFLG) = ""
       irflg => iepr(IIRFLG)
-      iepr_name(IIRFLG) = "irflg"
+      iepr_name(IIRFLG) = ""
       jkmn => iepr(IJKMN)
-      iepr_name(IJKMN) = "jkmn"
+      iepr_name(IJKMN) = ""
       jmmn => iepr(IJMMN)
-      iepr_name(IJMMN) = "jmmn"
+      iepr_name(IJMMN) = ""
       ndim => iepr(INDIM)
-      iepr_name(INDIM) = "ndim"
+      iepr_name(INDIM) = ""
 
       end subroutine prm_ptr_init
 	  
