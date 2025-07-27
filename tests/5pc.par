@@ -1,0 +1,10 @@
+c
+c NLSL script file to set magnetic parameters for 5PC spin probe
+c
+echo off
+let gxx,gyy,gzz=2.0089,2.0058,2.0021
+let in2=2
+let axx,ayy,azz=4.9,4.9,33.0
+echo ********************************************
+echo Magnetic parameters set for 5-PC spin probe
+echo ********************************************

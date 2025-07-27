@@ -1,4 +1,5 @@
 from . import fortrancore as _fortrancore
+import numpy as np
 
 
 class fit_params(dict):
@@ -82,14 +83,17 @@ class nlsl(object):
             name.decode('ascii').strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
-        self._fepr = _fortrancore.eprprm.fepr
-        self._iepr = _fortrancore.eprprm.iepr
+        self._fparm = _fortrancore.parcom.fparm
+        self._iparm = _fortrancore.parcom.iparm
+        self._nsites = self._fparm.shape[1]
 
         self.fit_params = fit_params()
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
         _fortrancore.procline(val)
+        for i in range(1, self._nsites + 1):
+            _fortrancore.setspc(i, 1)
 
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
@@ -99,27 +103,37 @@ class nlsl(object):
     def __getitem__(self, key):
         key = key.lower()
         if key in self._fepr_names:
-            return self._fepr[self._fepr_names.index(key)]
+            idx = self._fepr_names.index(key)
+            vals = self._fparm[idx, :self._nsites]
+            if np.allclose(vals, vals[0]):
+                return vals[0]
+            return vals
         if key in self._iepr_names:
-            return self._iepr[self._iepr_names.index(key)]
+            idx = self._iepr_names.index(key)
+            vals = self._iparm[idx, :self._nsites]
+            if np.all(vals == vals[0]):
+                return vals[0]
+            return vals
         raise KeyError(key)
 
     def __setitem__(self, key, value):
         key = key.lower()
         if key in self._fepr_names:
             idx = self._fepr_names.index(key)
-            if isinstance(value, (list, tuple)):
+            if isinstance(value, (list, tuple, np.ndarray)):
                 for i, v in enumerate(value):
-                    self._fepr[idx + i] = v
+                    if i < self._nsites:
+                        self._fparm[idx, i] = v
             else:
-                self._fepr[idx] = value
+                self._fparm[idx, :self._nsites] = value
         elif key in self._iepr_names:
             idx = self._iepr_names.index(key)
-            if isinstance(value, (list, tuple)):
+            if isinstance(value, (list, tuple, np.ndarray)):
                 for i, v in enumerate(value):
-                    self._iepr[idx + i] = v
+                    if i < self._nsites:
+                        self._iparm[idx, i] = v
             else:
-                self._iepr[idx] = value
+                self._iparm[idx, :self._nsites] = value
         else:
             raise KeyError(key)
 

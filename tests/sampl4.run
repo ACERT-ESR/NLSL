@@ -1,0 +1,90 @@
+echo off
+echo **********************************************************************
+echo file SAMPL4.RUN:  sample NLSL script file
+echo
+echo   Illustrates fitting of a single spectrum with two components having
+echo   different mobilities. 
+echo
+echo   Test data in file SAMPL4.DAT
+echo   Test spectrum was calculated with the following parameters:
+echo               {g}   = 2.0089, 2.0063, 2.0021
+echo               {A}   = 5.0, 5.0, 33.0
+echo               B0    = 3400 G
+echo               GIB0  = 2.0 G (p-p width of Gaussian inhomog. linewidth)
+echo
+echo   The two components have different mobilities (isotropic motion 
+echo   is assumed):
+echo 
+echo      Component 1: R =  (relative population: 30%)
+echo      Component 2: R =  (relative population: 70%)
+echo **********************************************************************
+echo
+echo   --- Open file 'sampl4.log' to save a record of this session
+echo
+
+log sampl4
+
+echo
+echo   --- Set magnetic parameters for a generic nitroxide
+echo
+
+let gxx,gyy,gzz = 2.0089,2.0063,2.0021
+let in2=2
+let axx,ayy,azz = 5.0, 5.0, 33.0
+
+echo
+echo   --- Specify that two components are to be calculated
+echo
+
+sites 2
+
+echo
+echo   --- Specify basis set truncation parameters
+echo
+
+let lemx,lomx,kmx,mmx,ipnmx=12,10,7,7,2
+
+echo
+echo    --- Read in the datafile
+echo
+
+data sampl4 ascii nspline 200 bc 20 shift
+
+echo
+echo   --- Provide initial estimates for rotation rates for each component
+echo   --- Parameters for a given component are specified by an index
+echo   --- in parentheses following the parameter name
+echo
+
+let rbar(1) = log(1.0e7)
+let rbar(2) = log(3.0e8)
+let gib0=0.5
+
+vary gib0, rbar(1), rbar(2)
+
+echo
+echo    --- Carry out nonlinear least-squares procedure:
+echo    ---    (1) Stop after a maximum of 40 iterations
+echo    ---    (2) Stop after a maximum of 1000 spectral calculations
+echo    ---    (3) Chi-squared convergence tolerance is 1%
+echo
+
+fit maxit 40 maxfun 1000 ftol .01
+
+echo 
+echo	--- fit again for full convergence
+echo
+
+fit
+
+echo
+echo    --- Note that the least-squares scale factors for each component
+echo    --- are automatically determined. Thus, the population of each
+echo    --- species can be determined.
+echo
+
+
+
+
+
+

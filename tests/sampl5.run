@@ -1,0 +1,101 @@
+echo off
+echo **********************************************************************
+echo file SAMPL5.RUN:  sample NLSL script file
+echo
+echo   Illustrates simultaneous fitting of two spectra each with two components
+echo   Data are experimental spectra obtained by David Hanauer in the Freed
+echo   group.  Sample is CSL spin probe in aligned multibilayers of a
+echo   mixture of POPC and dioctyl glycerol (DOG). Samples exhibit two
+echo   phases, one of which is a phase exhibiting microscopic order but
+echo   macroscopic disorder (MOMD) that appears reversibly with higher 
+echo   temperature. Spectra are obtained for two different orientations
+echo   (0 degrees and 90) of the membrane normal to the field.
+echo
+echo   Test data in file SAMPL500.DAT (PSI=0) and SAMPL590.DAT (PSI=90)
+echo
+echo   Since these were experimental datafiles, "true" spectral
+echo   values are unknown.
+echo
+echo **********************************************************************
+
+echo
+echo   --- Open file 'sampl5.log' to save a record of this session
+echo
+
+log sampl5
+
+echo
+echo   --- Set magnetic parameters for 5-PC spin probe 
+echo
+
+call csl.par
+
+echo
+echo   --- Define two spectra for tilt angles of 0 and 90 degrees
+echo   --- each of which exhibits two components.
+echo   --- Dynamic parameters and scaling factors for each site will
+echo   --- be determined globally for this case
+
+sites 2
+series psi 0 90
+
+echo
+echo   --- Specify spectrometer field and make initial estimates for
+echo   --- fitting parameters: log(rotational rate), log(anisotropy), 
+echo   --- ordering potential coefficients (different for the two sites)
+echo   --- and Gaussian inhomogeneous broadening. Second site is assumed
+echo   --- to be a disordered (MOMD) component using 10 orientations to
+echo   --- calculate the macroscopic spectrum
+echo
+
+let b0=3405
+let rbar,n = 7.5,1
+let c20(1), c22(1) = 4, 1
+let c20(2), c22(2) = 0.2, 0
+let betad = 15
+let gib0=3
+let nort(2)=10
+
+echo   --- Use a pruned basis index file (calculated using the EPRBL V1.6
+echo   --- program) to improve efficiency for the MOMD calculation.
+
+basis sampl5
+
+echo   --- Read in data files: ASCII format, spline to 200 points,
+echo   --- fit 20 baseline points at each end, and allow spectral shifting
+echo   --- to maximize overlap for both datafiles
+
+data sampl500 ascii nspline 200 bc 20 shift
+data sampl590
+
+echo
+echo --- The wildcard index means to vary the given parameter for EACH
+echo --- currently defined site. Specifying a parameter name without
+echo --- an index would mean to vary it for all sites at once
+echo --- Get rough fit by adjusting linewidth and rotational rate
+
+vary gib0(*) rbar(*)
+fit maxi 40 maxfun 1000
+
+echo --- Improve fit by including main ordering term (c20 coefficient)
+
+vary c20(*)
+fit
+
+echo --- Refine fit by varying rotational anisotropy and higher order
+echo --- potential coefficients
+
+vary n(*) c22(*)
+fit
+
+search gib2(1)
+search gib2(2)
+
+echo --- Fit can still be improved at this point by line searches, or by
+echo --- varying subsets of parameters (e.g., only the parameters for site 2)
+echo --- as is done here
+
+search rbar(2)
+fix all
+vary rbar(2) n(2) c20(2) c22(2) gib0(2)
+fit

@@ -37,6 +37,20 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
+        subroutine setspc(isite,ise) ! in :fortrancore:src/fortran/setspc.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use parcom
+            use basis
+            use errmsg
+            use iterat
+            use rnddbl
+            use stdio
+            use pidef
+            integer intent(in) :: isite
+            integer intent(in) :: ise
+        end subroutine setspc
         module nlsdim ! in :fortrancore:src/fortran/nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000
@@ -95,6 +109,19 @@ python module fortrancore ! in
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
+        module expdat ! in :fortrancore:src/fortran/expdat.f90
+            use nlsdim
+            double precision, save,target,dimension((mxspc)) :: sbi
+            double precision, save,target,dimension((mxspc)) :: sdb
+            double precision, save,target,dimension((mxspc)) :: srng
+            double precision, save,target,dimension((mxspc)) :: sb0
+            double precision, save,target,dimension((mxspc)) :: sphs
+            double precision, save,target,dimension((mxspc)) :: spsi
+            double precision, save,target,dimension((mxspc)) :: slb
+            integer, save,target,dimension((mxspc)) :: npts
+            integer, save,target,dimension((mxspc)) :: nft
+            integer, save,target,dimension((mxspc)) :: idrv
+        end module expdat
         module iterat ! in :fortrancore:src/fortran/iterat.f90
             integer, save :: iter
             integer, save :: iwflag

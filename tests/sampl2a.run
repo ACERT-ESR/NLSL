@@ -1,0 +1,78 @@
+echo off
+
+echo
+echo   --- Open file 'sampl2.log' to save a record of this session
+echo
+
+log sampl2
+
+echo **********************************************************************
+echo file SAMPL2.RUN:  sample NLSL script file
+echo ---
+echo --- Define a series of two spectra that differ in their tilt angle psi
+echo --- Read in a datafile for each value of psi in the series (0, 90)
+echo --- The order of the datafiles is assumed to correspond to the order
+echo --- of psi values specified in the series command. Note that the
+echo --- second "data" command retains the settings of the previous one.
+echo --- Thus, both data files are ascii, splined to 200 points, are
+echo --- baseline corrected using 20 points at each end, and will allow
+echo --- automatic shifting to overlap the calculated spectrum with the
+echo --- data.
+echo
+echo **********************************************************************
+
+echo ---
+echo --- Specify basis set truncation parameters                               
+echo ---
+
+let lemx,lomx,kmx,mmx,ipnmx = 6,5,4,4,2
+
+
+series psi = 0, 90
+data sampl200 ascii nspline 200
+data sampl290
+
+echo
+echo   --- Set magnetic parameters for 5pc spin probe
+echo
+
+call 5pc.par
+
+echo ---
+echo --- Specify spectrometer field and make initial estimates for
+echo --- fitting parameters: log(rotational rate), log(anisotropy), and
+echo --- orienting potential coefficients, and inhomogeneous broadening
+echo ---
+
+let b0 = 3400
+let rbar, n = 7.5, 0.5
+let c20 = 2
+let gib0 = 1
+
+echo ---
+echo --- Refine initial guesses by carrying out line searches for
+echo --- selected parameters. Line searches stop when the search
+echo --- proceeds outside a specified boundary (default +/- 5 from
+echo --- the starting point). This can be changed using the "bound"
+echo --- keyword
+echo ---
+
+search rbar
+search betad step 5 bound 45
+search c20
+search c22
+search gib0
+
+echo ---
+echo --- First attempt minimization by varying only the most important
+echo --- parameters
+
+vary gib0, rbar, c20
+fit
+
+
+vary gib2, n, c22, betad
+fit
+
+echo --- Fit one more time to insure convergence is complete
+fit
