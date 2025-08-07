@@ -1,6 +1,23 @@
 from . import fortrancore as _fortrancore
 import numpy as np
+import ctypes
 
+try:
+    _lib = ctypes.CDLL(_fortrancore.__file__)
+    _ipfind = _lib.ipfind_
+    _ipfind.restype = ctypes.c_int
+except Exception:  # pragma: no cover - ipfind may not be available
+    _ipfind = None
+
+
+def _ipfind_wrapper(name: str) -> int:
+    """Call the Fortran ipfind routine via ctypes."""
+    if _ipfind is None:
+        return 0
+    buf = ctypes.create_string_buffer(30)
+    buf.value = name.encode("ascii")
+    lth = ctypes.c_int(len(name))
+    return _ipfind(buf, ctypes.byref(lth), 30)
 
 class fit_params(dict):
     """Mapping-like interface for adjusting NLSL fit parameters.
@@ -100,6 +117,7 @@ class nlsl(object):
         _fortrancore.fitl()
 
     # -- mapping protocol -------------------------------------------------
+
     def __getitem__(self, key):
         key = key.lower()
         if key in self._fepr_names:
@@ -114,7 +132,27 @@ class nlsl(object):
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
-        raise KeyError(key)
+        res = _ipfind_wrapper(key.upper())
+        if res == 0:
+            raise KeyError(key)
+        if res > 100:
+            # ipfind returns values >100 for integer parameters in iparm
+            idx = res - 101
+            vals = self._iparm[idx, :self._nsites]
+            if np.all(vals == vals[0]):
+                return vals[0]
+            return vals
+        else:
+            if res > 0:
+                idx = res - 1
+            elif res > -100:
+                idx = -res - 1
+            else:
+                idx = -res - 101
+            vals = self._fparm[idx, :self._nsites]
+            if np.allclose(vals, vals[0]):
+                return vals[0]
+            return vals
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -135,11 +173,32 @@ class nlsl(object):
             else:
                 self._iparm[idx, :self._nsites] = value
         else:
-            raise KeyError(key)
+            res = _ipfind_wrapper(key.upper())
+            if res == 0:
+                raise KeyError(key)
+            if res > 100:
+                idx = res - 101
+                arr = self._iparm
+            else:
+                if res > 0:
+                    idx = res - 1
+                elif res > -100:
+                    idx = -res - 1
+                else:
+                    idx = -res - 101
+                arr = self._fparm
+            if isinstance(value, (list, tuple, np.ndarray)):
+                for i, v in enumerate(value):
+                    if i < self._nsites:
+                        arr[idx, i] = v
+            else:
+                arr[idx, :self._nsites] = value
 
     def __contains__(self, key):
         key = key.lower()
-        return key in self._fepr_names or key in self._iepr_names
+        if key in self._fepr_names or key in self._iepr_names:
+            return True
+        return _ipfind_wrapper(key.upper()) != 0
 
     def __iter__(self):
         return iter(self.keys())

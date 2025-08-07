@@ -130,6 +130,7 @@ c_wrappers = custom_target(
         'src/fortran/eprprm.f90',
         'src/fortran/lmcom.f90',
         'src/fortran/parcom.f90',
+        'src/fortran/lpnam.f90',
         'src/fortran/expdat.f90',
         'src/fortran/iterat.f90',
         'src/fortran/stdio.f90',
