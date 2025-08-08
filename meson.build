@@ -133,12 +133,13 @@ c_wrappers = custom_target(
         'src/fortran/lpnam.f90',
         'src/fortran/expdat.f90',
         'src/fortran/iterat.f90',
+        'src/fortran/fitl.f90',
         'src/fortran/stdio.f90',
         'src/fortran/mspctr.f90',
         'src/fortran/nlsl.f90',
         'src/fortran/setspc.f90',
     ],
-    output: ['fortrancoremodule.c', 'fortrancore-f2pywrappers2.f90'],
+    output: ['fortrancoremodule.c', 'fortrancore-f2pywrappers.f', 'fortrancore-f2pywrappers2.f90'],
     command: [py, '-m', 'numpy.f2py', '@INPUT@', '-m', 'fortrancore', '--lower'],
     build_by_default: true,
 )
@@ -155,7 +156,7 @@ mod_dir = join_paths(meson.current_build_dir(), 'libnlsl_fixed.a.p')
 
 wrapper_lib = static_library(
     'nlsl_wrapper',
-    c_wrappers[1],
+    [c_wrappers[1], c_wrappers[2]],
     fortran_args: ['-O2','-g','-fopenmp','-std=gnu', '-I' + mod_dir],
     dependencies: [python_dep],
     pic: true,
