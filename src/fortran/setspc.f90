@@ -58,6 +58,7 @@
       fparm(IPHASE,isite) = sphs(ise)
       fparm(IPSI,  isite) = spsi(ise)
       fparm(IB0,   isite) = sb0(ise)
+      fparm(IRANGE,isite) = srng(ise)
       fparm(IFLDI, isite) = sbi(ise)-shft(ise)-tmpshft(ise)
       fparm(IDFLD, isite) = sdb(ise)
       iparm(INFLD, isite) = npts(ise)

@@ -1,13 +1,25 @@
 from . import fortrancore as _fortrancore
+import importlib
 import numpy as np
 import ctypes
 
-try:
-    _lib = ctypes.CDLL(_fortrancore.__file__)
-    _ipfind = _lib.ipfind_
-    _ipfind.restype = ctypes.c_int
-except Exception:  # pragma: no cover - ipfind may not be available
-    _ipfind = None
+_lib = None
+_ipfind = None
+
+
+def _reload_core():
+    """Reload the Fortran core to clear any lingering state."""
+    global _fortrancore, _lib, _ipfind
+    _fortrancore = importlib.reload(_fortrancore)
+    try:
+        _lib = ctypes.CDLL(_fortrancore.__file__)
+        _ipfind = _lib.ipfind_
+        _ipfind.restype = ctypes.c_int
+    except Exception:  # pragma: no cover - ipfind may not be available
+        _ipfind = None
+
+
+_reload_core()
 
 
 def _ipfind_wrapper(name: str) -> int:
@@ -89,7 +101,8 @@ class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
-        # initialize the Fortran core so the parameter name arrays are set
+        # ensure a fresh Fortran core for each instance
+        _reload_core()
         _fortrancore.nlsinit()
 
         self._fepr_names = [
