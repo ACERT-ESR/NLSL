@@ -59,6 +59,41 @@ python module fortrancore ! in
             character*30 intent(in) :: token
             integer intent(in) :: lth
         end function ipfind
+        subroutine setprm(ixparm,ixsite,fval) ! in :fortrancore:src/fortran/setprm.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use tridag
+            use parcom
+            use symdef
+            use stdio
+            integer intent(in) :: ixparm
+            integer intent(in) :: ixsite
+            double precision intent(in) :: fval
+        end subroutine setprm
+        subroutine setipr(ixparm,ixsite,ival) ! in :fortrancore:src/fortran/setprm.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use parcom
+            use tridag
+            use basis
+            use stdio
+            integer intent(in) :: ixparm
+            integer intent(in) :: ixsite
+            integer intent(in) :: ival
+        end subroutine setipr
+        double precision function getprm(ixparm,ixsite) ! in :fortrancore:src/fortran/setprm.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use tridag
+            use parcom
+            use symdef
+            use stdio
+            integer intent(in) :: ixparm
+            integer intent(in) :: ixsite
+        end function getprm
         module nlsdim ! in :fortrancore:src/fortran/nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000

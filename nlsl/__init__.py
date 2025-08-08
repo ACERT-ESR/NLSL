@@ -5,7 +5,8 @@ import numpy as np
 
 def _ipfind_wrapper(name: str) -> int:
     """Call the Fortran ``ipfind`` routine if available."""
-    return int(_fortrancore.ipfind(name.upper()))
+    upper = name.upper()
+    return int(_fortrancore.ipfind(upper, len(upper)))
 
 
 class fit_params(dict):
@@ -108,79 +109,44 @@ class nlsl(object):
 
     def __getitem__(self, key):
         key = key.lower()
-        if key in self._fepr_names:
-            idx = self._fepr_names.index(key)
-            vals = self._fparm[idx, :self._nsites]
-            if np.allclose(vals, vals[0]):
-                return vals[0]
-            return vals
-        if key in self._iepr_names:
-            idx = self._iepr_names.index(key)
-            vals = self._iparm[idx, :self._nsites]
-            if np.all(vals == vals[0]):
-                return vals[0]
-            return vals
         res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
         if res > 100:
-            # ipfind returns values >100 for integer parameters in iparm
             idx = res - 101
-            vals = self._iparm[idx, :self._nsites]
+            name = self._iepr_names[idx]
+            if name == "nfield":
+                vals = _fortrancore.expdat.npts[: self._nsites]
+            elif name == "ideriv":
+                vals = _fortrancore.expdat.idrv[: self._nsites]
+            else:
+                vals = self._iparm[idx, : self._nsites]
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
-        else:
-            if res > 0:
-                idx = res - 1
-            elif res > -100:
-                idx = -res - 1
-            else:
-                idx = -res - 101
-            vals = self._fparm[idx, :self._nsites]
-            if np.allclose(vals, vals[0]):
-                return vals[0]
-            return vals
+        vals = np.array([_fortrancore.getprm(res, i) for i in range(1, self._nsites + 1)])
+        if np.allclose(vals, vals[0]):
+            return vals[0]
+        return vals
 
     def __setitem__(self, key, value):
         key = key.lower()
-        if key in self._fepr_names:
-            idx = self._fepr_names.index(key)
-            if isinstance(value, (list, tuple, np.ndarray)):
-                for i, v in enumerate(value):
-                    if i < self._nsites:
-                        self._fparm[idx, i] = v
-            else:
-                self._fparm[idx, :self._nsites] = value
-        elif key in self._iepr_names:
-            idx = self._iepr_names.index(key)
-            if isinstance(value, (list, tuple, np.ndarray)):
-                for i, v in enumerate(value):
-                    if i < self._nsites:
-                        self._iparm[idx, i] = v
-            else:
-                self._iparm[idx, :self._nsites] = value
-        else:
-            res = _ipfind_wrapper(key)
-            if res == 0:
-                raise KeyError(key)
-            if res > 100:
-                idx = res - 101
-                arr = self._iparm
-            else:
-                if res > 0:
-                    idx = res - 1
-                elif res > -100:
-                    idx = -res - 1
+        res = _ipfind_wrapper(key)
+        if res == 0:
+            raise KeyError(key)
+        if isinstance(value, (list, tuple, np.ndarray)):
+            for i, v in enumerate(value, start=1):
+                if i > self._nsites:
+                    break
+                if res > 100:
+                    _fortrancore.setipr(res, i, int(v))
                 else:
-                    idx = -res - 101
-                arr = self._fparm
-            if isinstance(value, (list, tuple, np.ndarray)):
-                for i, v in enumerate(value):
-                    if i < self._nsites:
-                        arr[idx, i] = v
+                    _fortrancore.setprm(res, i, float(v))
+        else:
+            if res > 100:
+                _fortrancore.setipr(res, 0, int(value))
             else:
-                arr[idx, :self._nsites] = value
+                _fortrancore.setprm(res, 0, float(value))
 
     def __contains__(self, key):
         key = key.lower()
