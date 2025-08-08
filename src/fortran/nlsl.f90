@@ -444,6 +444,7 @@
       nser=1
       nsite=1
       nwin=0
+      nspline=0
 !
 !----------------------------------------
 !     Initialize parameter arrays
@@ -485,6 +486,10 @@
          iparm(ILEMX+3,j)=6
          iparm(ILEMX+5,j)=2
          iparm(ILEMX+6,j)=2
+      end do
+
+      do i=1,MXSPC
+         serval(i)=0.0d0
       end do
 !
 !-------------------------------------------------------

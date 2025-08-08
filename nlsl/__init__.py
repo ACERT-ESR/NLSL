@@ -1,35 +1,15 @@
 from . import fortrancore as _fortrancore
 import importlib
 import numpy as np
-import ctypes
-
-_lib = None
-_ipfind = None
-
-
-def _reload_core():
-    """Reload the Fortran core to clear any lingering state."""
-    global _fortrancore, _lib, _ipfind
-    _fortrancore = importlib.reload(_fortrancore)
-    try:
-        _lib = ctypes.CDLL(_fortrancore.__file__)
-        _ipfind = _lib.ipfind_
-        _ipfind.restype = ctypes.c_int
-    except Exception:  # pragma: no cover - ipfind may not be available
-        _ipfind = None
-
-
-_reload_core()
 
 
 def _ipfind_wrapper(name: str) -> int:
-    """Call the Fortran ipfind routine via ctypes."""
-    if _ipfind is None:
+    """Call the Fortran ``ipfind`` routine if available."""
+    try:
+        return int(_fortrancore.ipfind(name.upper()))
+    except AttributeError:  # pragma: no cover - ipfind may not be available
         return 0
-    buf = ctypes.create_string_buffer(30)
-    buf.value = name.encode("ascii")
-    lth = ctypes.c_int(len(name))
-    return _ipfind(buf, ctypes.byref(lth), 30)
+
 
 class fit_params(dict):
     """Mapping-like interface for adjusting NLSL fit parameters.
@@ -96,13 +76,12 @@ class fit_params(dict):
             self[k] = v
 
 
-
 class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
-        # ensure a fresh Fortran core for each instance
-        _reload_core()
+        global _fortrancore
+        _fortrancore = importlib.reload(_fortrancore)
         _fortrancore.nlsinit()
 
         self._fepr_names = [
@@ -145,7 +124,7 @@ class nlsl(object):
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
-        res = _ipfind_wrapper(key.upper())
+        res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
         if res > 100:
@@ -186,7 +165,7 @@ class nlsl(object):
             else:
                 self._iparm[idx, :self._nsites] = value
         else:
-            res = _ipfind_wrapper(key.upper())
+            res = _ipfind_wrapper(key)
             if res == 0:
                 raise KeyError(key)
             if res > 100:
@@ -211,7 +190,7 @@ class nlsl(object):
         key = key.lower()
         if key in self._fepr_names or key in self._iepr_names:
             return True
-        return _ipfind_wrapper(key.upper()) != 0
+        return _ipfind_wrapper(key) != 0
 
     def canonical_name(self, name: str) -> str:
         """Return the canonical parameter name for *name*.
@@ -223,7 +202,7 @@ class nlsl(object):
         key = name.lower()
         if key in self._fepr_names or key in self._iepr_names:
             return key
-        res = _ipfind_wrapper(key.upper())
+        res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(name)
         if res > 100:
@@ -264,10 +243,7 @@ class nlsl(object):
             self[k] = v
 
 
-
-
 # expose the class for creating additional instances
 NLSL = nlsl
 
 __all__ = [x for x in dir() if x[0] != "_"]
-
