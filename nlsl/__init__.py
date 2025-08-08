@@ -5,10 +5,7 @@ import numpy as np
 
 def _ipfind_wrapper(name: str) -> int:
     """Call the Fortran ``ipfind`` routine if available."""
-    try:
-        return int(_fortrancore.ipfind(name.upper()))
-    except AttributeError:  # pragma: no cover - ipfind may not be available
-        return 0
+    return int(_fortrancore.ipfind(name.upper()))
 
 
 class fit_params(dict):
@@ -80,8 +77,7 @@ class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
-        global _fortrancore
-        _fortrancore = importlib.reload(_fortrancore)
+        # initialize the Fortran core so the parameter name arrays are set
         _fortrancore.nlsinit()
 
         self._fepr_names = [
