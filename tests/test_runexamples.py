@@ -20,8 +20,8 @@ def read_column_data(filename):
 def run_example(example, allowed_rel_rms=None):
     """Run the numbered NLSL example and return list of relative RMS errors."""
 
-    print(f"about to run nlsl example {example}")
     runfile_location  = os.path.dirname(__file__)
+    print(f"about to run nlsl example {example} in location {runfile_location}")
     os.chdir(runfile_location)
 
     filename_base = f"sampl{example}"

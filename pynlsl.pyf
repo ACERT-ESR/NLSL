@@ -51,6 +51,14 @@ python module fortrancore ! in
             integer intent(in) :: isite
             integer intent(in) :: ise
         end subroutine setspc
+        integer function ipfind(token,lth) ! in :fortrancore:src/fortran/ipsfind.f90
+            use nlsdim
+            use parcom
+            use eprprm
+            use lpnam
+            character*30 intent(in) :: token
+            integer intent(in) :: lth
+        end function ipfind
         module nlsdim ! in :fortrancore:src/fortran/nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000
@@ -106,6 +114,7 @@ python module fortrancore ! in
             double precision, save,dimension(mxvar) :: prmin
             integer, save,target,dimension(niprm,mxsite) :: iparm
             integer, save,dimension(nfprm,mxsite) :: ixx
+            integer, save :: nsite
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
