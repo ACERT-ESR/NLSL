@@ -444,6 +444,7 @@
       nser=1
       nsite=1
       nwin=0
+      nspline=0
 !
 !----------------------------------------
 !     Initialize parameter arrays
@@ -486,6 +487,10 @@
          iparm(ILEMX+5,j)=2
          iparm(ILEMX+6,j)=2
       end do
+
+      do i=1,MXSPC
+         serval(i)=0.0d0
+      end do
 !
 !-------------------------------------------------------
 !  Initialize tridiagonal matrix and basis index space
@@ -494,8 +499,21 @@
          do i=1,MXSITE
             modtd(i,j)=1
             ltd(i,j)=0
+            ixtd(i,j)=0
             basno(i,j)=0
          end do
+      end do
+      do i=1,MXTDM
+         tdspec(i)=0
+         tdsite(i)=0
+      end do
+      do i=1,MXTDG
+         alpha(i)=(0.0d0,0.0d0)
+         beta(i)=(0.0d0,0.0d0)
+      end do
+      do i=1,MXDIM
+         stv(i)=(0.0d0,0.0d0)
+         y(i)=(0.0d0,0.0d0)
       end do
       nexttd=1
       nextbs=1
@@ -512,6 +530,9 @@
          tmpshft(i)=0.0d0
          sb0(i)=0.0d0
          spsi(i)=0.0d0
+         sphs(i)=0.0d0
+         slb(i)=0.0d0
+         srng(i)=0.0d0
          sbi(i)=0.0d0
          iform(i)=0
          ibase(i)=0
@@ -521,6 +542,7 @@
          idrv(i)=1
       end do
       ishglb=0
+      written=0
 !
 !----------------------------------------
 !  -- Enable autoscaling for all sites
