@@ -14,11 +14,7 @@ IE_PARAMS = [
     'kmx', 'mmn', 'mmx', 'ipnmx', 'nort', 'nstep', 'nfield', 'ideriv'
 ]
 
-ALL_PARAMS = [
-    pytest.param('range', 100.0, marks=pytest.mark.xfail(reason='range not supported'))
-]
-ALL_PARAMS += [(n, 1.234) for n in FE_PARAMS if n != 'range']
-ALL_PARAMS += [(n, 1) for n in IE_PARAMS]
+ALL_PARAMS = [(n, 100.0) if n == 'range' else (n, 1.234) for n in FE_PARAMS] + [(n, 1) for n in IE_PARAMS]
 
 @pytest.mark.parametrize("key,val", ALL_PARAMS)
 def test_procline_sets_module(key, val):

@@ -200,6 +200,29 @@ class nlsl(object):
             return True
         return _ipfind_wrapper(key.upper()) != 0
 
+    def canonical_name(self, name: str) -> str:
+        """Return the canonical parameter name for *name*.
+
+        Uses the Fortran ``ipfind`` routine to resolve aliases.  If *name*
+        is already canonical it is returned unchanged.  ``KeyError`` is raised
+        when the name cannot be resolved.
+        """
+        key = name.lower()
+        if key in self._fepr_names or key in self._iepr_names:
+            return key
+        res = _ipfind_wrapper(key.upper())
+        if res == 0:
+            raise KeyError(name)
+        if res > 100:
+            return self._iepr_names[res - 101]
+        if res > 0:
+            return self._fepr_names[res - 1]
+        if res > -100:
+            idx = -res - 1
+        else:
+            idx = -res - 101
+        return self._fepr_names[idx]
+
     def __iter__(self):
         return iter(self.keys())
 
