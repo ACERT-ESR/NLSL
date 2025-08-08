@@ -40,7 +40,7 @@
       integer getdat,itrim
 !      real dtime
       double precision enorm,corrl,residx,wtdres
-      external getdat,lfun,enorm,itrim,corrl,residx,wtdres
+      external getdat,lfun,enorm,itrim,corrl,residx
 !      external dtime
 !
 !######################################################################
