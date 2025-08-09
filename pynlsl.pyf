@@ -149,7 +149,7 @@ python module fortrancore ! in
             double precision, save,dimension(mxvar) :: prmin
             integer, save,target,dimension(niprm,mxsite) :: iparm
             integer, save,dimension(nfprm,mxsite) :: ixx
-            integer, save :: nsite
+            integer, save, intent(inout) :: nsite
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom

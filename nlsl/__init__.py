@@ -91,14 +91,23 @@ class nlsl(object):
         ]
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
-        self._nsites = self._fparm.shape[1]
-
         self.fit_params = fit_params()
+
+    @property
+    def nsites(self) -> int:
+        """Number of active sites."""
+        idx = _ipfind_wrapper("nsite")
+        return int(_fortrancore.getprm(idx, 0))
+
+    @nsites.setter
+    def nsites(self, value: int) -> None:
+        idx = _ipfind_wrapper("nsite")
+        _fortrancore.setipr(idx, 0, int(value))
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
         _fortrancore.procline(val)
-        for i in range(1, self._nsites + 1):
+        for i in range(1, self.nsites + 1):
             _fortrancore.setspc(i, 1)
 
     def fit(self):
@@ -116,15 +125,15 @@ class nlsl(object):
             idx = res - 101
             name = self._iepr_names[idx]
             if name == "nfield":
-                vals = _fortrancore.expdat.npts[: self._nsites]
+                vals = _fortrancore.expdat.npts[: self.nsites]
             elif name == "ideriv":
-                vals = _fortrancore.expdat.idrv[: self._nsites]
+                vals = _fortrancore.expdat.idrv[: self.nsites]
             else:
-                vals = self._iparm[idx, : self._nsites]
+                vals = self._iparm[idx, : self.nsites]
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
-        vals = np.array([_fortrancore.getprm(res, i) for i in range(1, self._nsites + 1)])
+        vals = np.array([_fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)])
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
@@ -136,7 +145,7 @@ class nlsl(object):
             raise KeyError(key)
         if isinstance(value, (list, tuple, np.ndarray)):
             for i, v in enumerate(value, start=1):
-                if i > self._nsites:
+                if i > self.nsites:
                     break
                 if res > 100:
                     _fortrancore.setipr(res, i, int(v))
