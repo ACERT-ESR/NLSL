@@ -96,19 +96,15 @@ class nlsl(object):
     @property
     def nsites(self) -> int:
         """Number of active sites."""
-        idx = _ipfind_wrapper("nsite")
-        return int(_fortrancore.getprm(idx, 0))
+        return int(_fortrancore.parcom.nsite)
 
     @nsites.setter
     def nsites(self, value: int) -> None:
-        idx = _ipfind_wrapper("nsite")
-        _fortrancore.setipr(idx, 0, int(value))
+        _fortrancore.parcom.nsite = int(value)
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
         _fortrancore.procline(val)
-        for i in range(1, self.nsites + 1):
-            _fortrancore.setspc(i, 1)
 
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
@@ -118,6 +114,8 @@ class nlsl(object):
 
     def __getitem__(self, key):
         key = key.lower()
+        if key in ("nsite", "nsites"):
+            return self.nsites
         res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
@@ -140,6 +138,9 @@ class nlsl(object):
 
     def __setitem__(self, key, value):
         key = key.lower()
+        if key in ("nsite", "nsites"):
+            self.nsites = int(value)
+            return
         res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
@@ -159,6 +160,8 @@ class nlsl(object):
 
     def __contains__(self, key):
         key = key.lower()
+        if key in ("nsite", "nsites"):
+            return True
         if key in self._fepr_names or key in self._iepr_names:
             return True
         return _ipfind_wrapper(key) != 0
@@ -171,6 +174,8 @@ class nlsl(object):
         when the name cannot be resolved.
         """
         key = name.lower()
+        if key in ("nsite", "nsites"):
+            return "nsite"
         if key in self._fepr_names or key in self._iepr_names:
             return key
         res = _ipfind_wrapper(key)
