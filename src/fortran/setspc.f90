@@ -86,14 +86,13 @@
 !       If data are not available, report an error.
 !     ------------------------------------------------------------
       if (sb0(ise).lt.RNDOFF) then
-         if (ise.le.nspc) then
+         if (nspc.gt.0 .and. ise.le.nspc) then
             sb0(ise)=sbi(ise)+sdb(ise)*(npts(ise)+1)/2.0D0
             fparm(IB0,isite)=sb0(ise)
             if (iser.eq.IB0) serval(ise)=sb0(ise)
-!
             write (luout,1000) ise,ise,sb0(ise)
             if (luttyo.ne.luout) write (luttyo,1000)ise,ise,sb0(ise)
-         else
+         else if (nspc.gt.0) then
             write (luout,1001) ise
             if (luttyo.ne.luout) write (luttyo,1000) ise
          end if

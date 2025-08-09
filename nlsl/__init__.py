@@ -81,6 +81,7 @@ class nlsl(object):
 
     def __init__(self):
         global _fortrancore
+        _fortrancore = importlib.reload(_fortrancore)
         _fortrancore.nlsinit()
 
         self._fepr_names = [

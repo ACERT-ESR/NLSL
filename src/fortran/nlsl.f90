@@ -640,6 +640,44 @@
       ixp1p=0
       ixs1p=0
       output=0
+
+!--------------------------------------------------
+!  Reset Levenberg-Marquardt work arrays
+!--------------------------------------------------
+      fjac   = 0.0d0
+      fvec   = 0.0d0
+      x      = 0.0d0
+      diag   = 0.0d0
+      qtf    = 0.0d0
+      corr   = 0.0d0
+      work1  = 0.0d0
+      work2  = 0.0d0
+      work3  = 0.0d0
+      work4  = 0.0d0
+      gnvec  = 0.0d0
+      gradf  = 0.0d0
+      tcov   = 0.0d0
+      ipvt   = 0
+      nprint = 0
+
+!--------------------------------------------------
+!  Reset iteration bookkeeping
+!--------------------------------------------------
+      iter    = 0
+      fnorm   = 0.0d0
+      chisqr  = 0.0d0
+      rdchsq  = 0.0d0
+      ch2bnd  = 0.0d0
+      chnbnd  = 0.0d0
+      delchi1 = 0.0d0
+      qfit    = 0.0d0
+      f2bnd   = 0.0d0
+      fnbnd   = 0.0d0
+      tbound  = 0.0d0
+      fnmin   = 0.0d0
+      newitr  = .false.
+      covarOK = .false.
+      xreset  = .false.
 !
 !--------------------------------------------------
 !  -- Set initial values for line search parameters
