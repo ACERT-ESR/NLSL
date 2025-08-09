@@ -94,6 +94,15 @@ python module fortrancore ! in
             integer intent(in) :: ixparm
             integer intent(in) :: ixsite
         end function getprm
+        integer function getipr(ixparm,ixsite) ! in :fortrancore:src/fortran/setprm.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use parcom
+            use stdio
+            integer intent(in) :: ixparm
+            integer intent(in) :: ixsite
+        end function getipr
         module nlsdim ! in :fortrancore:src/fortran/nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000

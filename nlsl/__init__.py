@@ -120,18 +120,15 @@ class nlsl(object):
         if res == 0:
             raise KeyError(key)
         if res > 100:
-            idx = res - 101
-            name = self._iepr_names[idx]
-            if name == "nfield":
-                vals = _fortrancore.expdat.npts[: self.nsites]
-            elif name == "ideriv":
-                vals = _fortrancore.expdat.idrv[: self.nsites]
-            else:
-                vals = self._iparm[idx, : self.nsites]
+            vals = np.array([
+                _fortrancore.getipr(res, i) for i in range(1, self.nsites + 1)
+            ])
             if np.all(vals == vals[0]):
-                return vals[0]
+                return int(vals[0])
             return vals
-        vals = np.array([_fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)])
+        vals = np.array([
+            _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
+        ])
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
