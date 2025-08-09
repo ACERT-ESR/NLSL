@@ -78,7 +78,7 @@ class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
-        # initialize the Fortran core so the parameter name arrays are set
+        global _fortrancore
         _fortrancore.nlsinit()
 
         self._fepr_names = [
