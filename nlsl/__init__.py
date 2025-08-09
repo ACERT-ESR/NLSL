@@ -120,12 +120,16 @@ class nlsl(object):
         if res == 0:
             raise KeyError(key)
         if res > 100:
-            vals = np.array([
-                _fortrancore.getipr(res, i) for i in range(1, self.nsites + 1)
-            ])
+            ixp = abs(res) % 100
+            if ixp == _fortrancore.eprprm.INFLD:
+                vals = _fortrancore.expdat.npts[: self.nsites]
+            elif ixp == _fortrancore.eprprm.IIDERV:
+                vals = _fortrancore.expdat.idrv[: self.nsites]
+            else:
+                vals = self._iparm[ixp - 1, : self.nsites]
             if np.all(vals == vals[0]):
                 return int(vals[0])
-            return vals
+            return np.array(vals, dtype=int)
         vals = np.array([
             _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
         ])
