@@ -423,6 +423,7 @@
       use basis
       use lmcom
       use iterat
+      use parsav
       use stdio
 !
 !      implicit none
@@ -444,12 +445,13 @@
       nser=1
       nsite=1
       nwin=0
+      nspline=0
 !
 !----------------------------------------
 !     Initialize parameter arrays
 !----------------------------------------
       do j=1,MXSITE
-         do i=1,NVPRM
+         do i=1,NFPRM
             fparm(i,j)=0.0d0
             ixx(i,j)=0
          end do
@@ -486,16 +488,77 @@
          iparm(ILEMX+5,j)=2
          iparm(ILEMX+6,j)=2
       end do
+
+      do i=1,MXSPC
+         serval(i)=0.0d0
+      end do
+
+!--------------------------------------------------
+!  Reset saved-parameter storage
+!--------------------------------------------------
+      xsaved=.false.
+      prsaved=.false.
+      nstsav=0
+      nspsav=0
+      nprsav=0
+      fxsave = 0.0d0
+      fprsav = 0.0d0
+      spsave = 0.0d0
+      ixsave = 0
+      iprsav = 0
+      ixxsav = 0
+      tagsav = ' '
+
+!--------------------------------------------------
+!  Reset variable-parameter bookkeeping arrays
+!--------------------------------------------------
+      do i=1,MXVAR
+         prmax(i)=0.0d0
+         prmin(i)=0.0d0
+         prscl(i)=0.0d0
+         xfdstp(i)=0.0d0
+         ibnd(i)=0
+         ixpr(i)=0
+         ixst(i)=0
+      end do
+      do i=1,MXJCOL
+         xerr(i)=0.0d0
+         tag(i)=" "
+      end do
+      mtxclc=.false.
 !
-!-------------------------------------------------------
-!  Initialize tridiagonal matrix and basis index space
-!-------------------------------------------------------
+!--------------------------------------------------
+!  Reset working parameter copies
+!--------------------------------------------------
+      do i=1,NFPRM
+         fepr(i)=0.0d0
+      end do
+      do i=1,NIPRM
+         iepr(i)=0
+      end do
+!
+      !-------------------------------------------------------
+      !  Initialize tridiagonal matrix and basis index space
+      !-------------------------------------------------------
       do j=1,MXSPC
          do i=1,MXSITE
             modtd(i,j)=1
             ltd(i,j)=0
+            ixtd(i,j)=0
             basno(i,j)=0
          end do
+      end do
+      do i=1,MXTDM
+         tdspec(i)=0
+         tdsite(i)=0
+      end do
+      do i=1,MXTDG
+         alpha(i)=(0.0d0,0.0d0)
+         beta(i)=(0.0d0,0.0d0)
+      end do
+      do i=1,MXDIM
+         stv(i)=(0.0d0,0.0d0)
+         y(i)=(0.0d0,0.0d0)
       end do
       nexttd=1
       nextbs=1
@@ -512,15 +575,36 @@
          tmpshft(i)=0.0d0
          sb0(i)=0.0d0
          spsi(i)=0.0d0
-         sbi(i)=0.0d0
+         sphs(i)=0.0d0
+         slb(i)=0.0d0
+         srng(i)=0.0d0
          iform(i)=0
          ibase(i)=0
+         nft(i)=0
+         nrmlz(i)=0
          npts(i)=0
          ishft(i)=0
          ixsp(i)=1
          idrv(i)=1
+         dataid(i)=' '
+         wndoid(i)=' '
       end do
       ishglb=0
+      shftflg=0
+      normflg=0
+      written=0
+      inform=0
+      bcmode=0
+      drmode=0
+      data   = 0.0d0
+      spltmp = 0.0d0
+      rmsn   = 0.0d0
+
+!------------------------------------------------------------
+!  Clear stored spectra
+!------------------------------------------------------------
+      spectr = 0.0d0
+      wspec  = 0.0d0
 !
 !----------------------------------------
 !  -- Enable autoscaling for all sites
@@ -549,6 +633,13 @@
       iwflag=1
       confid=0.683
       ctol=1.0d-3
+      njcol=0
+      itridg=0
+      iitrfl=0
+      jacobi=0
+      ixp1p=0
+      ixs1p=0
+      output=0
 !
 !--------------------------------------------------
 !  -- Set initial values for line search parameters
