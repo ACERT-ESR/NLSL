@@ -43,7 +43,7 @@ FE_PARAMS = [
     "cgtol",
     "shiftr",
     "shifti",
-    "range",
+    #"range",
 ]
 
 IE_PARAMS = [
