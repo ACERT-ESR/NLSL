@@ -120,19 +120,12 @@ class nlsl(object):
         if res == 0:
             raise KeyError(key)
         if res > 100:
-            ixp = abs(res) % 100
-            if ixp == _fortrancore.eprprm.INFLD:
-                vals = _fortrancore.expdat.npts[: self.nsites]
-            elif ixp == _fortrancore.eprprm.IIDERV:
-                vals = _fortrancore.expdat.idrv[: self.nsites]
-            else:
-                vals = self._iparm[ixp - 1, : self.nsites]
-            if np.all(vals == vals[0]):
-                return int(vals[0])
-            return np.array(vals, dtype=int)
-        vals = np.array([
-            _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
-        ])
+            idx = self._iepr_names.index(key)
+            vals = self._iparm[idx, :self.nsites]
+        else:
+            vals = np.array([
+                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
+            ])
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
@@ -143,21 +136,23 @@ class nlsl(object):
             self.nsites = int(value)
             return
         res = _ipfind_wrapper(key)
+        iterinput = isinstance(value, (list, tuple, np.ndarray))
         if res == 0:
             raise KeyError(key)
-        if isinstance(value, (list, tuple, np.ndarray)):
-            for i, v in enumerate(value, start=1):
-                if i > self.nsites:
-                    break
-                if res > 100:
-                    _fortrancore.setipr(res, i, int(v))
-                else:
-                    _fortrancore.setprm(res, i, float(v))
-        else:
-            if res > 100:
-                _fortrancore.setipr(res, 0, int(value))
+        if res > 100:
+            if iterinput:
+                for site_idx in range(len(value)):
+                    _fortrancore.setipr(res-100, site_idx+1, int(v[site_idx]))
             else:
-                _fortrancore.setprm(res, 0, float(value))
+                for site_idx in range(self.nsites):
+                    _fortrancore.setipr(res-100, site_idx+1, int(v))
+        else:
+            if iterinput:
+                for site_idx in range(len(value)):
+                    _fortrancore.setprm(res, site_idx, float(v[site_idx]))
+            else:
+                for site_idx in range(self.nsites):
+                    _fortrancore.setprm(res, site_idx, float(v))
 
     def __contains__(self, key):
         key = key.lower()
