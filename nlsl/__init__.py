@@ -130,25 +130,25 @@ class nlsl(object):
             return vals[0]
         return vals
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key, v):
         key = key.lower()
         if key in ("nsite", "nsites"):
-            self.nsites = int(value)
+            self.nsites = int(v)
             return
         res = _ipfind_wrapper(key)
-        iterinput = isinstance(value, (list, tuple, np.ndarray))
+        iterinput = isinstance(v, (list, tuple, np.ndarray))
         if res == 0:
             raise KeyError(key)
         if res > 100:
             if iterinput:
-                for site_idx in range(len(value)):
+                for site_idx in range(len(v)):
                     _fortrancore.setipr(res-100, site_idx+1, int(v[site_idx]))
             else:
                 for site_idx in range(self.nsites):
                     _fortrancore.setipr(res-100, site_idx+1, int(v))
         else:
             if iterinput:
-                for site_idx in range(len(value)):
+                for site_idx in range(len(v)):
                     _fortrancore.setprm(res, site_idx, float(v[site_idx]))
             else:
                 for site_idx in range(self.nsites):
@@ -207,11 +207,8 @@ class nlsl(object):
 
     def update(self, other):
         """Update multiple parameters at once."""
-        if isinstance(other, dict):
-            items = other.items()
-        else:
-            items = other
-        for k, v in items:
+        assert isinstance(other, dict)
+        for k, v in other.items():
             self[k] = v
 
 
