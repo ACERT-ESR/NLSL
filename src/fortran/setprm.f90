@@ -205,14 +205,16 @@
                else
                   npts(jx)=ival
                   if (ival.gt.1) sdb(jx)=srng(jx)/float(ival-1)
+                  iparm(INFLD,jx)=ival
 !
                   nft(jx)=1
  9                nft(jx)=nft(jx)*2
                   if (nft(jx).lt.npts(jx)) go to 9
                end if
 !
-            else if (ixparm.eq.IIDERV) then
+            else if (ixp.eq.IIDERV) then
                idrv(jx)=ival
+               iparm(IIDERV,jx)=ival
             end if
 !
 !        Site parameters
