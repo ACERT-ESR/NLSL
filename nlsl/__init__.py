@@ -142,10 +142,10 @@ class nlsl(object):
         if res > 100:
             if iterinput:
                 for site_idx in range(len(v)):
-                    _fortrancore.setipr(res-100, site_idx+1, int(v[site_idx]))
+                    _fortrancore.setipr(res, site_idx + 1, int(v[site_idx]))
             else:
                 for site_idx in range(self.nsites):
-                    _fortrancore.setipr(res-100, site_idx+1, int(v))
+                    _fortrancore.setipr(res, site_idx + 1, int(v))
         else:
             if iterinput:
                 for site_idx in range(len(v)):
