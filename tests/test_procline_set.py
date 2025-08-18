@@ -73,7 +73,7 @@ ALL_PARAMS = [(n, 100.0) if n == "range" else (n, 1.234) for n in FE_PARAMS] + [
 
 @pytest.mark.parametrize(
     # let doesn't seem to change the following (expects they are set when spectrum loaded?)
-    "key,val", [(k, v) for k, v in ALL_PARAMS if k not in {"nfield", "ideriv"}]
+    "key,val", [(k, v) for k, v in ALL_PARAMS]
 )
 def test_procline_sets_module(key, val):
     n = nlsl.nlsl()
