@@ -5,7 +5,8 @@ import numpy as np
 
 def _ipfind_wrapper(name: str) -> int:
     """Call the Fortran ``ipfind`` routine if available."""
-    lth = len(name.strip().upper())
+    token = name.strip().upper()
+    lth = len(token)
     if lth == 0:
         raise ValueError("zero-length token!")
     return int(_fortrancore.ipfind(token, lth))
