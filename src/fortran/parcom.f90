@@ -62,8 +62,10 @@
 !
       integer, save :: ixx(NFPRM,MXSITE),
      #                ibnd(MXVAR),ixpr(MXVAR),ixst(MXVAR),
-     #                iser,nser,nsite,nprm,njcol,nshift,noneg,itridg,
+     #                iser,nser,nprm,njcol,nshift,noneg,itridg,
      #                iitrfl,jacobi,ixp1p,ixs1p,mxpitr,output
+      integer, target, save :: nsite
+      integer, pointer, save :: pnsite => nsite
       logical, save :: mtxclc
       character*9, save :: tag(MXJCOL)
 !

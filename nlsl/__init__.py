@@ -5,11 +5,9 @@ import numpy as np
 
 def _ipfind_wrapper(name: str) -> int:
     """Call the Fortran ``ipfind`` routine if available."""
-
-    token = name.strip().upper()
-    lth = min(len(token), 6)
+    lth = len(name.strip().upper())
     if lth == 0:
-        return 0
+        raise ValueError("zero-length token!")
     return int(_fortrancore.ipfind(token, lth))
 
 
@@ -101,15 +99,20 @@ class nlsl(object):
         ]
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
-        self._nsites = self._fparm.shape[1]
-
         self.fit_params = fit_params()
+
+    @property
+    def nsites(self) -> int:
+        """Number of active sites."""
+        return int(_fortrancore.parcom.nsite)
+
+    @nsites.setter
+    def nsites(self, value: int) -> None:
+        _fortrancore.parcom.nsite = int(value)
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
         _fortrancore.procline(val)
-        for i in range(1, self._nsites + 1):
-            _fortrancore.setspc(i, 1)
 
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
@@ -119,82 +122,50 @@ class nlsl(object):
 
     def __getitem__(self, key):
         key = key.lower()
-        if key in self._fepr_names:
-            idx = self._fepr_names.index(key)
-            vals = self._fparm[idx, : self._nsites]
-            if np.allclose(vals, vals[0]):
-                return vals[0]
-            return vals
-        if key in self._iepr_names:
-            idx = self._iepr_names.index(key)
-            vals = self._iparm[idx, : self._nsites]
-            if np.all(vals == vals[0]):
-                return vals[0]
-            return vals
+        if key in ("nsite", "nsites"):
+            return self.nsites
         res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
         if res > 100:
-            # ipfind returns values >100 for integer parameters in iparm
-            idx = res - 101
-            vals = self._iparm[idx, : self._nsites]
-            if np.all(vals == vals[0]):
-                return vals[0]
-            return vals
-        else:
-            if res > 0:
-                idx = res - 1
-            elif res > -100:
-                idx = -res - 1
-            else:
-                idx = -res - 101
-            vals = self._fparm[idx, : self._nsites]
-            if np.allclose(vals, vals[0]):
-                return vals[0]
-            return vals
-
-    def __setitem__(self, key, value):
-        key = key.lower()
-        if key in self._fepr_names:
-            idx = self._fepr_names.index(key)
-            if isinstance(value, (list, tuple, np.ndarray)):
-                for i, v in enumerate(value):
-                    if i < self._nsites:
-                        self._fparm[idx, i] = v
-            else:
-                self._fparm[idx, : self._nsites] = value
-        elif key in self._iepr_names:
             idx = self._iepr_names.index(key)
-            if isinstance(value, (list, tuple, np.ndarray)):
-                for i, v in enumerate(value):
-                    if i < self._nsites:
-                        self._iparm[idx, i] = v
-            else:
-                self._iparm[idx, : self._nsites] = value
+            vals = self._iparm[idx, :self.nsites]
         else:
-            res = _ipfind_wrapper(key)
-            if res == 0:
-                raise KeyError(key)
-            if res > 100:
-                idx = res - 101
-                arr = self._iparm
+            vals = np.array([
+                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
+            ])
+        if np.allclose(vals, vals[0]):
+            return vals[0]
+        return vals
+
+    def __setitem__(self, key, v):
+        key = key.lower()
+        if key in ("nsite", "nsites"):
+            self.nsites = int(v)
+            return
+        res = _ipfind_wrapper(key)
+        iterinput = isinstance(v, (list, tuple, np.ndarray))
+        if res == 0:
+            raise KeyError(key)
+        if res > 100:
+            if iterinput:
+                for site_idx in range(len(v)):
+                    _fortrancore.setipr(res, site_idx + 1, int(v[site_idx]))
             else:
-                if res > 0:
-                    idx = res - 1
-                elif res > -100:
-                    idx = -res - 1
-                else:
-                    idx = -res - 101
-                arr = self._fparm
-            if isinstance(value, (list, tuple, np.ndarray)):
-                for i, v in enumerate(value):
-                    if i < self._nsites:
-                        arr[idx, i] = v
+                for site_idx in range(self.nsites):
+                    _fortrancore.setipr(res, site_idx + 1, int(v))
+        else:
+            if iterinput:
+                for site_idx in range(len(v)):
+                    _fortrancore.setprm(res, site_idx, float(v[site_idx]))
             else:
-                arr[idx, : self._nsites] = value
+                for site_idx in range(self.nsites):
+                    _fortrancore.setprm(res, site_idx, float(v))
 
     def __contains__(self, key):
         key = key.lower()
+        if key in ("nsite", "nsites"):
+            return True
         if key in self._fepr_names or key in self._iepr_names:
             return True
         return _ipfind_wrapper(key) != 0
@@ -207,6 +178,8 @@ class nlsl(object):
         when the name cannot be resolved.
         """
         key = name.lower()
+        if key in ("nsite", "nsites"):
+            return "nsite"
         if key in self._fepr_names or key in self._iepr_names:
             return key
         res = _ipfind_wrapper(key)
@@ -242,11 +215,8 @@ class nlsl(object):
 
     def update(self, other):
         """Update multiple parameters at once."""
-        if isinstance(other, dict):
-            items = other.items()
-        else:
-            items = other
-        for k, v in items:
+        assert isinstance(other, dict)
+        for k, v in other.items():
             self[k] = v
 
 
