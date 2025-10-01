@@ -18,13 +18,11 @@ def read_column_data(filename):
 print("about to run nlsl")
 fp = open("c16pc371e.run")
 n = nlsl.nlsl()
-n.lmcom.lmcom_init()
-print("ilmprm before is", n.lmcom.ilmprm)
+print("fit_params before is", dict(n.fit_params.items()))
 for thisline in fp.readlines():
     n.procline(thisline)
 fp.close()
-print("ilmprm after is", n.lmcom.ilmprm)
-print("maxitr after is", n.lmcom.maxitr)
+print("fit_params after is", dict(n.fit_params.items()))
 data = read_column_data("c16pc371e.spc")
 fields = data[:, 0]
 experimental = data[:, 1]

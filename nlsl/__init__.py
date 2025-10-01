@@ -63,7 +63,7 @@ class fit_params(dict):
         return list(self._fl_names) + list(self._il_names)
 
     def items(self):
-        return [(k, self[k]) for k in self.keys()]
+        return [(k, self[k]) for k in self.keys() if len(k)>0]
 
     def values(self):
         return [self[k] for k in self.keys()]
