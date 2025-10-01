@@ -138,7 +138,6 @@ c_wrappers = custom_target(
         'src/fortran/stdio.f90',
         'src/fortran/mspctr.f90',
         'src/fortran/nlsl.f90',
-        'src/fortran/ipsfind.f90',
         'src/fortran/setprm.f90',
         'src/fortran/setspc.f90',
     ],
