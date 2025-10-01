@@ -133,6 +133,7 @@ c_wrappers = custom_target(
         'src/fortran/lpnam.f90',
         'src/fortran/expdat.f90',
         'src/fortran/iterat.f90',
+        'src/fortran/ipsfind.f90',
         'src/fortran/fitl.f90',
         'src/fortran/stdio.f90',
         'src/fortran/mspctr.f90',
