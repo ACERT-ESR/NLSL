@@ -43,7 +43,7 @@ FE_PARAMS = [
     "cgtol",
     "shiftr",
     "shifti",
-    #"range",
+    # "range",
 ]
 
 IE_PARAMS = [
@@ -66,9 +66,9 @@ IE_PARAMS = [
     "ideriv",
 ]
 
-ALL_PARAMS = [
-    (n, 100.0) if n == "range" else (n, 1.234) for n in FE_PARAMS
-] + [(n, 1) for n in IE_PARAMS]
+ALL_PARAMS = [(n, 100.0) if n == "range" else (n, 1.234) for n in FE_PARAMS] + [
+    (n, 1) for n in IE_PARAMS
+]
 
 
 @pytest.mark.parametrize("key,val", ALL_PARAMS)

@@ -24,8 +24,14 @@ class fit_params(dict):
     def __init__(self):
         super().__init__()
         self._core = _fortrancore
-        self._fl_names = [n.decode('ascii').strip().lower() for n in self._core.lmcom.flmprm_name.tolist()]
-        self._il_names = [n.decode('ascii').strip().lower() for n in self._core.lmcom.ilmprm_name.tolist()]
+        self._fl_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._core.lmcom.flmprm_name.tolist()
+        ]
+        self._il_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._core.lmcom.ilmprm_name.tolist()
+        ]
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -86,11 +92,11 @@ class nlsl(object):
         _fortrancore.nlsinit()
 
         self._fepr_names = [
-            name.decode('ascii').strip().lower()
+            name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
         self._iepr_names = [
-            name.decode('ascii').strip().lower()
+            name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
         self._fparm = _fortrancore.parcom.fparm
@@ -115,13 +121,13 @@ class nlsl(object):
         key = key.lower()
         if key in self._fepr_names:
             idx = self._fepr_names.index(key)
-            vals = self._fparm[idx, :self._nsites]
+            vals = self._fparm[idx, : self._nsites]
             if np.allclose(vals, vals[0]):
                 return vals[0]
             return vals
         if key in self._iepr_names:
             idx = self._iepr_names.index(key)
-            vals = self._iparm[idx, :self._nsites]
+            vals = self._iparm[idx, : self._nsites]
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
@@ -131,7 +137,7 @@ class nlsl(object):
         if res > 100:
             # ipfind returns values >100 for integer parameters in iparm
             idx = res - 101
-            vals = self._iparm[idx, :self._nsites]
+            vals = self._iparm[idx, : self._nsites]
             if np.all(vals == vals[0]):
                 return vals[0]
             return vals
@@ -142,7 +148,7 @@ class nlsl(object):
                 idx = -res - 1
             else:
                 idx = -res - 101
-            vals = self._fparm[idx, :self._nsites]
+            vals = self._fparm[idx, : self._nsites]
             if np.allclose(vals, vals[0]):
                 return vals[0]
             return vals
@@ -156,7 +162,7 @@ class nlsl(object):
                     if i < self._nsites:
                         self._fparm[idx, i] = v
             else:
-                self._fparm[idx, :self._nsites] = value
+                self._fparm[idx, : self._nsites] = value
         elif key in self._iepr_names:
             idx = self._iepr_names.index(key)
             if isinstance(value, (list, tuple, np.ndarray)):
@@ -164,7 +170,7 @@ class nlsl(object):
                     if i < self._nsites:
                         self._iparm[idx, i] = v
             else:
-                self._iparm[idx, :self._nsites] = value
+                self._iparm[idx, : self._nsites] = value
         else:
             res = _ipfind_wrapper(key)
             if res == 0:
@@ -185,7 +191,7 @@ class nlsl(object):
                     if i < self._nsites:
                         arr[idx, i] = v
             else:
-                arr[idx, :self._nsites] = value
+                arr[idx, : self._nsites] = value
 
     def __contains__(self, key):
         key = key.lower()
