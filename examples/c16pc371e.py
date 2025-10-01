@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from pylab import *
 from subprocess import Popen, PIPE, STDOUT
-import pynlsl
+import nlsl
 import os
 def read_column_data(filename):
     fp = open(filename,'r')
@@ -13,14 +13,14 @@ def read_column_data(filename):
     return data
 print("about to run nlsl")
 fp = open('c16pc371e.run')
-pynlsl.nlsinit()
-pynlsl.lmcom.lmcom_init()
-print("ilmprm before is",pynlsl.lmcom.ilmprm)
+n = nlsl.nlsl()
+n.lmcom.lmcom_init()
+print("ilmprm before is",n.lmcom.ilmprm)
 for thisline in fp.readlines():
-    pynlsl.procline(thisline)
+    n.procline(thisline)
 fp.close()
-print("ilmprm after is",pynlsl.lmcom.ilmprm)
-print("maxitr after is",pynlsl.lmcom.maxitr)
+print("ilmprm after is",n.lmcom.ilmprm)
+print("maxitr after is",n.lmcom.maxitr)
 data = read_column_data('c16pc371e.spc')
 fields = data[:,0]
 experimental = data[:,1]

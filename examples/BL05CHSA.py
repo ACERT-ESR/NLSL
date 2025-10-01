@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from pylab import *
 from subprocess import Popen, PIPE, STDOUT
-import pynlsl
+import nlsl
 import os
 def read_column_data(filename):
     fp = open(filename,'r')
@@ -13,9 +13,9 @@ def read_column_data(filename):
     return data
 print("about to run nlsl")
 fp = open('BL05CHSA.run')
-pynlsl.nlsinit()
+n = nlsl.nlsl()
 for thisline in fp.readlines():
-    pynlsl.procline(thisline)
+    n.procline(thisline)
 fp.close()
 data = read_column_data('BL05CHSA.spc')
 fields = data[:,0]

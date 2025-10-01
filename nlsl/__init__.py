@@ -203,7 +203,7 @@ class nlsl(object):
         return list(self._fepr_names) + list(self._iepr_names)
 
     def items(self):
-        return [(k, self[k]) for k in self.keys()]
+        return [(k, self[k]) for k in self.keys() if len(k)>0]
 
     def values(self):
         return [self[k] for k in self.keys()]

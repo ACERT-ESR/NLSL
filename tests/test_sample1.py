@@ -28,13 +28,14 @@ def run_sample1_manual():
     os.chdir(examples_dir)
 
     import nlsl
+
     n = nlsl.nlsl()
     data_files_out = []
 
     def procline(cmd):
         if cmd.startswith("data "):
             n.procline(cmd)
-            data_files_out.append(cmd[5:].strip().split(' ')[0])
+            data_files_out.append(cmd[5:].strip().split(" ")[0])
         else:
             n.procline(cmd)
 
@@ -42,19 +43,21 @@ def run_sample1_manual():
     print()
     print("  --- Set magnetic parameters for CSL spin probe")
     print()
-    n.update({
-        "gxx": 2.0089,
-        "gyy": 2.0021,
-        "gzz": 2.0058,
-        "in2": 2,
-        "axx": 5.6,
-        "ayy": 33.8,
-        "azz": 5.3,
-        "betad": 15,
-    })
+    n.update(
+        {
+            "gxx": 2.0089,
+            "gyy": 2.0021,
+            "gzz": 2.0058,
+            "in2": 2,
+            "axx": 5.6,
+            "ayy": 33.8,
+            "azz": 5.3,
+            "betad": 15,
+        }
+    )
     print()
     print("  --- Specify spectrometer field and make initial estimates for")
-    print("  --- fitting parameters using the \"let\" statement as shown.")
+    print('  --- fitting parameters using the "let" statement as shown.')
     print("  --- Note in particular that the rotational rate constants")
     print("  --- are fit in log space, so that the parameters RPLL and RPRP")
     print("  --- are log10 of the rate constants for rotation around the")
@@ -64,15 +67,17 @@ def run_sample1_manual():
     print("  --- Note also that the log function may be used in a let statement.")
     print("  ---")
     print("  --- GIB0 is the Gaussian inhomogeneous broadening.")
-    n.update({
-        'rpll': math.log10(1.0e8),
-        'rprp': 8.0,
-        'gib0': 1.5,
-        'lemx': 6,
-        'lomx': 5,
-        'kmx': 4,
-        'mmx': (2, 2),
-    })
+    n.update(
+        {
+            "rpll": math.log10(1.0e8),
+            "rprp": 8.0,
+            "gib0": 1.5,
+            "lemx": 6,
+            "lomx": 5,
+            "kmx": 4,
+            "mmx": (2, 2),
+        }
+    )
     print()
     print("  --- Specify basis set truncation parameters")
     print()
@@ -90,16 +95,16 @@ def run_sample1_manual():
     print("   ---    (1) Stop after a maximum of 40 iterations")
     print("   ---    (2) Stop after a maximum of 600 spectral calculations")
     print("   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3")
-    n.fit_params['maxitr'] = 40
-    n.fit_params['maxfun'] = 1000
-    n.fit_params['ftol'] = 1e-3
-    n.fit_params['xtol'] = 1e-3
+    n.fit_params["maxitr"] = 40
+    n.fit_params["maxfun"] = 1000
+    n.fit_params["ftol"] = 1e-3
+    n.fit_params["xtol"] = 1e-3
     n.fit()
     procline("log end")
 
     rel_rms_list = []
     for fname in data_files_out:
-        data = np.loadtxt(fname + '.spc')
+        data = np.loadtxt(fname + ".spc")
         exp_sq = np.sum(data[:, 1] ** 2)
         rms_sq = np.sum((data[:, 2] - data[:, 1]) ** 2)
         if exp_sq > 0:
@@ -107,6 +112,7 @@ def run_sample1_manual():
 
     final_params = {}
     import re
+
     with open("sampl1.log") as fp:
         lines = fp.readlines()
     start = None
