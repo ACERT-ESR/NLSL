@@ -434,7 +434,18 @@
 !    Initializations
 !----------------------------------------------------------------------
       exitprog=.false.
+      warn=.false.
+      hltcmd=0
+      hltfit=0
       nfiles=0
+      lthfnm=0
+      lthdnm=0
+      prname=' '
+      lgname=' '
+      trname=' '
+      dtname=' '
+      spname=' '
+      files=' '
       lucmd=luttyi
       luout=luttyo
       luecho=luttyo
@@ -536,6 +547,57 @@
       do i=1,NIPRM
          iepr(i)=0
       end do
+      a0=0.0d0
+      g0=0.0d0
+      w0=0.0d0
+      expl=0.0d0
+      expkxy=0.0d0
+      expkzz=0.0d0
+      faa=0.0d0
+      fgm=0.0d0
+      fwm=0.0d0
+      fam=0.0d0
+      fgd=0.0d0
+      fad=0.0d0
+      fwd=0.0d0
+      cpot=0.0d0
+      xlk=0.0d0
+      itype=0
+      ipt=0
+      itm=0
+      itd=0
+      ipsi0=0
+      lband=0
+      kband=0
+      ldelta=0
+      kdelta=0
+      lptmx=0
+      kptmx=0
+      neltot=0
+      nelv=0
+      nelre=0
+      nelim=0
+      ncgstp=0
+
+!--------------------------------------------------
+!  Reset iteration and fit bookkeeping
+!--------------------------------------------------
+      iter   = 0
+      iwflag = 1
+      fnorm  = 0.0d0
+      chisqr = 0.0d0
+      rdchsq = 0.0d0
+      ch2bnd = 0.0d0
+      chnbnd = 0.0d0
+      delchi1 = 0.0d0
+      qfit   = 0.0d0
+      f2bnd  = 0.0d0
+      fnbnd  = 0.0d0
+      tbound = 0.0d0
+      fnmin  = 0.0d0
+      newitr = .false.
+      covarOK = .false.
+      xreset = .false.
 !
 !-------------------------------------------------------
 !  Initialize tridiagonal matrix and basis index space
@@ -564,6 +626,12 @@
       nextbs=1
       ntd=0
       nbas=0
+      ibasis = 0
+      mts    = 0
+      ixbas  = 0
+      ltbas  = 0
+      bsused = 0
+      basisID = ' '
 !
 !------------------------------------------------------------
 !    Initialize data array parameters
@@ -618,7 +686,25 @@
 !  -- Set initial values for NLS convergence criteria
 !  -- First, call the routine to initalize F90 pointers
 !------------------------------------------------------
+      flmprm = 0.0d0
+      ilmprm = 0
       call lmcom_init
+      fjac = 0.0d0
+      fvec = 0.0d0
+      x    = 0.0d0
+      diag = 0.0d0
+      qtf  = 0.0d0
+      corr = 0.0d0
+      work1 = 0.0d0
+      work2 = 0.0d0
+      work3 = 0.0d0
+      work4 = 0.0d0
+      gnvec = 0.0d0
+      gradf = 0.0d0
+      tcov  = 0.0d0
+      ipvt  = 0
+      nprint=0
+      lmflag=0
       xtol=1.0d-4
       ftol=1.0d-4
       gtol=1.0d-6

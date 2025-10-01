@@ -5,8 +5,10 @@ import numpy as np
 
 def _ipfind_wrapper(name: str) -> int:
     """Call the Fortran ``ipfind`` routine if available."""
-    upper = name.upper()
-    return int(_fortrancore.ipfind(upper, len(upper)))
+    lth = len(name.strip().upper())
+    if lth == 0:
+        raise ValueError("zero-length token!")
+    return int(_fortrancore.ipfind(token, lth))
 
 
 class fit_params(dict):
@@ -20,8 +22,14 @@ class fit_params(dict):
     def __init__(self):
         super().__init__()
         self._core = _fortrancore
-        self._fl_names = [n.decode('ascii').strip().lower() for n in self._core.lmcom.flmprm_name.tolist()]
-        self._il_names = [n.decode('ascii').strip().lower() for n in self._core.lmcom.ilmprm_name.tolist()]
+        self._fl_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._core.lmcom.flmprm_name.tolist()
+        ]
+        self._il_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._core.lmcom.ilmprm_name.tolist()
+        ]
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -82,11 +90,11 @@ class nlsl(object):
         _fortrancore.nlsinit()
 
         self._fepr_names = [
-            name.decode('ascii').strip().lower()
+            name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
         self._iepr_names = [
-            name.decode('ascii').strip().lower()
+            name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
         self._fparm = _fortrancore.parcom.fparm

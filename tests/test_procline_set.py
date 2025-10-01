@@ -43,7 +43,7 @@ FE_PARAMS = [
     "cgtol",
     "shiftr",
     "shifti",
-    "range",
+    # "range",
 ]
 
 IE_PARAMS = [
@@ -67,7 +67,7 @@ IE_PARAMS = [
 ]
 
 ALL_PARAMS = [(n, 100.0) if n == "range" else (n, 1.234) for n in FE_PARAMS] + [
-    (n, 2) if n == 'in2' else (n, 1) for n in IE_PARAMS
+    (n, 2) if n == "in2" else (n, 1) for n in IE_PARAMS
 ]
 
 
