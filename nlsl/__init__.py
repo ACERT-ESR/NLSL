@@ -5,7 +5,12 @@ import numpy as np
 
 def _ipfind_wrapper(name: str) -> int:
     """Call the Fortran ``ipfind`` routine if available."""
-    return int(_fortrancore.ipfind(name.upper()))
+
+    token = name.strip().upper()
+    lth = min(len(token), 6)
+    if lth == 0:
+        return 0
+    return int(_fortrancore.ipfind(token, lth))
 
 
 class fit_params(dict):
