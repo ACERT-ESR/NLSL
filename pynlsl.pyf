@@ -172,7 +172,7 @@ python module fortrancore ! in
             integer, save, intent(inout) :: nprint
             double precision, save,dimension((mxpt),(mxjcol)) :: fjac
             double precision, save,dimension((mxjcol)) :: x
-            double precision, save,dimension((mxpt)) :: fvec
+            double precision, save,target,dimension((mxpt)) :: fvec
             double precision, save,dimension((mxjcol)) :: diag
             character*10, save,dimension(nflmpr) :: flmprm_name
             character*10, save,dimension(nilmpr) :: ilmprm_name
@@ -186,22 +186,46 @@ python module fortrancore ! in
             double precision, save,dimension(mxvar) :: prmin
             integer, save,target,dimension(niprm,mxsite) :: iparm
             integer, save,dimension(nfprm,mxsite) :: ixx
+            integer, save :: nser
             integer, pointer, save, intent(inout) :: pnsite !f2py name: nsite
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
         module expdat ! in :fortrancore:src/fortran/expdat.f90
             use nlsdim
+            double precision, save,target,dimension((mxpt)) :: data
+            double precision, save,target,dimension((mxinp),(3)) :: spltmp
+            double precision, save,target,dimension((mxspc)) :: rmsn
             double precision, save,target,dimension((mxspc)) :: sbi
             double precision, save,target,dimension((mxspc)) :: sdb
             double precision, save,target,dimension((mxspc)) :: srng
+            double precision, save,target,dimension((mxspc)) :: shft
             double precision, save,target,dimension((mxspc)) :: sb0
             double precision, save,target,dimension((mxspc)) :: sphs
             double precision, save,target,dimension((mxspc)) :: spsi
             double precision, save,target,dimension((mxspc)) :: slb
-            integer, save,target,dimension((mxspc)) :: npts
+            double precision, save,target,dimension((mxspc)) :: tmpshft
+            integer, save,target,dimension((mxspc)) :: iform
+            integer, save,target,dimension((mxspc)) :: ibase
             integer, save,target,dimension((mxspc)) :: nft
+            integer, save,target,dimension((mxspc)) :: npts
+            integer, save,target,dimension((mxspc)) :: ishft
             integer, save,target,dimension((mxspc)) :: idrv
+            integer, save,target,dimension((mxspc)) :: ixsp
+            integer, save,target,dimension((mxspc)) :: nrmlz
+            integer, save :: nspc
+            integer, save :: nwin
+            integer, save :: ndatot
+            integer, save :: ishglb
+            integer, save :: inform
+            integer, save :: bcmode
+            integer, save :: drmode
+            integer, save :: nspline
+            integer, save :: shftflg
+            integer, save :: normflg
+            integer, save :: written
+            character*30, save,dimension((mxspc)) :: dataid
+            character*20, save,dimension((mxspc)) :: wndoid
         end module expdat
         module iterat ! in :fortrancore:src/fortran/iterat.f90
             integer, save :: iter
@@ -251,11 +275,11 @@ python module fortrancore ! in
         end module eprprm
         module mspctr ! in :fortrancore:src/fortran/mspctr.f90
             use nlsdim
-            integer, save,dimension((mxsite)),depend(nsite) :: iscal
-            double precision, save,dimension((mxsite),(mxspc)),depend(nsite) :: sfac
-            double precision, save,dimension((mxpt),(mxsite)),depend(nsite) :: spectr
+            integer, save,target,dimension((mxsite)),depend(nsite) :: iscal
+            double precision, save,target,dimension((mxsite),(mxspc)),depend(nsite) :: sfac
+            double precision, save,target,dimension((mxpt),(mxsite)),depend(nsite) :: spectr
             integer, save :: iscglb
-            double precision, save,dimension((mxpt),(mxsite)),depend(nsite) :: wspec
+            double precision, save,target,dimension((mxpt),(mxsite)),depend(nsite) :: wspec
         end module mspctr
     end interface 
 end python module fortrancore

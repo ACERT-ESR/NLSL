@@ -1,6 +1,9 @@
 from . import fortrancore as _fortrancore
-import importlib
+import os
+from pathlib import Path
 import numpy as np
+
+from .data import process_spectrum
 
 
 def _ipfind_wrapper(name: str) -> int:
@@ -118,6 +121,126 @@ class nlsl(object):
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
         _fortrancore.fitl()
+
+    def load_data(
+        self,
+        data_id: str | os.PathLike,
+        *,
+        nspline: int,
+        bc_points: int,
+        shift: bool,
+        normalize: bool = True,
+        derivative_mode: int | None = None,
+    ) -> None:
+        """Load experimental data and update the Fortran state.
+
+        The workflow mirrors the legacy ``datac`` command but avoids the
+        Fortran file I/O path so that tests can exercise the data
+        preparation logic directly from Python.
+        """
+
+        path = Path(data_id)
+        if not path.exists():
+            if path.suffix:
+                raise FileNotFoundError(path)
+            candidate = path.with_suffix(".dat")
+            if not candidate.exists():
+                raise FileNotFoundError(candidate)
+            path = candidate
+
+        token = str(path)
+        base_name = token[:-4] if token.lower().endswith(".dat") else token
+        mxpt = _fortrancore.expdat.data.shape[0]
+        mxspc = _fortrancore.expdat.nft.shape[0]
+        mxspt = mxpt // max(mxspc, 1)
+
+        requested_points = int(nspline)
+        if requested_points > 0:
+            requested_points = max(4, min(requested_points, mxspt))
+
+        nser = max(0, int(getattr(_fortrancore.parcom, "nser", 0)))
+        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
+
+        mode = int(derivative_mode) if derivative_mode is not None else 1
+        spectrum = process_spectrum(
+            path,
+            requested_points,
+            int(bc_points),
+            derivative_mode=mode,
+            normalize=normalize_active,
+        )
+
+        nspc = int(_fortrancore.expdat.nspc)
+        if nspc >= nser:
+            nspc = 0
+            _fortrancore.expdat.ndatot = 0
+
+        nspc += 1
+        if nspc > mxspc:
+            raise ValueError("Maximum number of spectra exceeded")
+        _fortrancore.expdat.nspc = nspc
+        idx = nspc - 1
+
+        ix0 = int(_fortrancore.expdat.ndatot)
+        n_points = int(spectrum.y.size)
+        if ix0 + n_points > mxpt:
+            raise ValueError("Insufficient storage for spectrum")
+
+        _fortrancore.expdat.ishft[idx] = 1 if shift else 0
+        _fortrancore.expdat.idrv[idx] = mode
+        _fortrancore.expdat.nrmlz[idx] = 1 if normalize_active else 0
+        _fortrancore.expdat.npts[idx] = n_points
+        _fortrancore.expdat.ixsp[idx] = ix0 + 1
+        _fortrancore.expdat.sbi[idx] = spectrum.start
+        _fortrancore.expdat.sdb[idx] = spectrum.step
+        _fortrancore.expdat.srng[idx] = spectrum.step * max(n_points - 1, 0)
+        _fortrancore.expdat.shft[idx] = 0.0
+        _fortrancore.expdat.tmpshft[idx] = 0.0
+        _fortrancore.expdat.slb[idx] = 0.0
+        _fortrancore.expdat.sb0[idx] = 0.0
+        _fortrancore.expdat.sphs[idx] = 0.0
+        _fortrancore.expdat.spsi[idx] = 0.0
+
+        eps = float(np.finfo(float).eps)
+        _fortrancore.expdat.rmsn[idx] = (
+            spectrum.noise if spectrum.noise > eps else 1.0
+        )
+
+        _fortrancore.expdat.iform[idx] = 0
+        _fortrancore.expdat.ibase[idx] = int(bc_points)
+        power = 1
+        while power < n_points:
+            power *= 2
+        _fortrancore.expdat.nft[idx] = power
+
+        _fortrancore.expdat.data[ix0 : ix0 + n_points] = spectrum.y
+        _fortrancore.expdat.ndatot = ix0 + n_points
+
+        _fortrancore.lmcom.fvec[ix0 : ix0 + n_points] = spectrum.y
+        if hasattr(_fortrancore.mspctr, "spectr"):
+            _fortrancore.mspctr.spectr[ix0 : ix0 + n_points, :] = 0.0
+        if hasattr(_fortrancore.mspctr, "wspec"):
+            _fortrancore.mspctr.wspec[ix0 : ix0 + n_points, :] = 0.0
+        if hasattr(_fortrancore.mspctr, "sfac"):
+            _fortrancore.mspctr.sfac[:, idx] = 1.0
+
+        label = base_name.encode("ascii", "ignore")[:30]
+        _fortrancore.expdat.dataid[idx] = label.ljust(30, b" ")
+
+        trimmed_name = base_name.strip()
+        window_label = f"{nspc:2d}: {trimmed_name}"[:19] + "\0"
+        _fortrancore.expdat.wndoid[idx] = (
+            window_label.encode("ascii", "ignore").ljust(20, b" ")
+        )
+
+        if shift:
+            _fortrancore.expdat.ishglb = 1
+        _fortrancore.expdat.shftflg = 1 if shift else 0
+        _fortrancore.expdat.normflg = 1 if normalize_active else 0
+        _fortrancore.expdat.bcmode = int(bc_points)
+        _fortrancore.expdat.drmode = mode
+        _fortrancore.expdat.nspline = requested_points
+        _fortrancore.expdat.inform = 0
 
     # -- mapping protocol -------------------------------------------------
 
