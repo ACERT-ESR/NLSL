@@ -1,5 +1,4 @@
 from . import fortrancore as _fortrancore
-import importlib
 import numpy as np
 
 

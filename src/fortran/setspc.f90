@@ -38,6 +38,7 @@
       use iterat
       use rnddbl
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
       use pidef
 !
       implicit none
@@ -90,10 +91,18 @@
             fparm(IB0,isite)=sb0(ise)
             if (iser.eq.IB0) serval(ise)=sb0(ise)
 !
-            write (luout,1000) ise,ise,sb0(ise)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1000) ise,ise,sb0(ise)
+               call flush_log_buffer()
+            end if
             if (luttyo.ne.luout) write (luttyo,1000)ise,ise,sb0(ise)
          else
-            write (luout,1001) ise
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1001) ise
+               call flush_log_buffer()
+            end if
             if (luttyo.ne.luout) write (luttyo,1000) ise
          end if
       end if

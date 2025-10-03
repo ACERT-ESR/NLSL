@@ -1,7 +1,8 @@
 import os
 import math
+from pathlib import Path
+
 import numpy as np
-import pytest
 
 
 def run_sample1_manual():
@@ -26,6 +27,10 @@ def run_sample1_manual():
 
     examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
     os.chdir(examples_dir)
+
+    from nlsl import logging as nlsl_logging
+
+    nlsl_logging.configure_log_directory(Path.cwd())
 
     import nlsl
 

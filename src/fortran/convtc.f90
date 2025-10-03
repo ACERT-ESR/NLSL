@@ -28,6 +28,7 @@
       use eprprm
       use parcom
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
       use lpnam
       use symdef
 !
@@ -51,8 +52,11 @@
 !
 !                                          *** No tensor specified
       if (lth.eq.0) then
-
-         write (luout,1000)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1000)
+            call flush_log_buffer()
+         end if
          return
       end if
 !
@@ -73,7 +77,11 @@
       if (ixa.eq.0 .or. ixa-IWXX.ge.NALIAS) then
 !
 !                                          *** Unknown tensor
-         write (luout,1001) token(1:1)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1001) token(1:1)
+            call flush_log_buffer()
+         end if
          return
 !
 !----------------------------------------------------------------------

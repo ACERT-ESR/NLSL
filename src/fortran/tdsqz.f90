@@ -15,6 +15,7 @@
       use expdat
       use tridag
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       integer i,j,next,isp,isi,ixt,k,n
@@ -42,8 +43,12 @@
                end do
             else if (ixt.eq.next) then
                next=next+ltd(isi,isp)
-            else 
-               write (luout,1005)
+            else
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1005)
+                  call flush_log_buffer()
+               end if
             end if
             n=n+1
             tdsite(n)=isi

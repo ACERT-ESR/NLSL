@@ -39,6 +39,7 @@
       use parcom
       use symdef
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       integer ixparm,ixsite
@@ -73,7 +74,11 @@
 !     --- Illegal index
 !
       else
-         write(luout,1000) jx
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1000) jx
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1000) jx
       end if
 !
@@ -149,6 +154,7 @@
       use tridag
       use basis
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       integer ixparm,ixsite,ival
@@ -185,7 +191,11 @@
 !     Illegal index
 !
       else
-         write(luout,1000) jx
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1000) jx
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1000) jx
       end if
 !
@@ -199,7 +209,12 @@
 !              Cannot change number of points in an existing datafile
 !
                if (jx.le.nspc) then
-                  write(luout,1001) dataid(jx)(:itrim(dataid(jx)))
+                  if (log_enabled) then
+                     call ensure_log_buffer(log_buffer)
+                     write(log_buffer,1001)
+     #                    dataid(jx)(:itrim(dataid(jx)))
+                     call flush_log_buffer()
+                  end if
                   if (luout.ne.luttyo) write (luttyo,1001)
      #                                 dataid(jx)(:itrim(dataid(jx)))
                else

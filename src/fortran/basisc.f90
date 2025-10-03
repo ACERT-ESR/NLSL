@@ -23,6 +23,7 @@
       use basis
       use tridag
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -48,7 +49,11 @@
 !
 !                            *** Max # basis sets exceeded
       if (nbas.ge.MXTDM) then
-         write(luout,1004) MXTDM
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1004) MXTDM
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1004) MXTDM
          return
       end if
@@ -72,8 +77,13 @@
          nextbs=nextbs+ltbas(nbas)
 !
          lth = iroot(ixname)
-         write (luout,1001) ixname(:lth)//'.ind',(mts(i,nbas),i=1,7)
-         if (luout.ne.luttyo) 
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1001) ixname(:lth)//'.ind',
+     #                      (/(mts(i,nbas),i=1,7)/)
+            call flush_log_buffer()
+         end if
+         if (luout.ne.luttyo)
      *      write (luttyo,1001) ixname(:lth)//'.ind',(mts(i,nbas),i=1,7)
 !
          if (ixss(1).le.MXSPC .and. ixss(2).le.MXSITE) then
@@ -111,7 +121,11 @@
 !
       else
          nbas=nbas-1
-         write (luout,1006) ixname(:lth)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1006) ixname(:lth)
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1006) ixname(:lth)
       end if
 !
@@ -149,6 +163,7 @@
       use basis
       use tridag
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -179,7 +194,11 @@
       if (ixsm.eq.0) then
          if (.not.itoken(token,lth,ival)) then
 !                                           *** Illegal index
-            write(luout,1002) token(:lth)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1002) token(:lth)
+               call flush_log_buffer()
+            end if
             if (luout.ne.luttyo)write(luttyo,1002) token(:lth)
             return
          end if
@@ -188,7 +207,11 @@
       end if
 !                                            *** Undefined index
       if (ival.le.0 .or. ival.gt.nbas) then
-         write (luout,1002) token(:lth)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1002) token(:lth)
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1002) token(:lth)
          return
       end if

@@ -71,6 +71,7 @@ fortran_sources = files(
     'src/fortran/momdls.f90',
     'src/fortran/mspctr.f90',
     'src/fortran/mtsdef.f90',
+    'src/fortran/pylog_mod.f90',
     'src/fortran/nlsdim.f90',
     'src/fortran/nlsl.f90',
     'src/fortran/nlsnam.f90',
@@ -170,6 +171,7 @@ c_sources = files(
     'genio.c',
     'lprmpt.c',
     'pltx_dummy.c',
+    'src/fortran/pylog_bridge.c',
     fortranobject_src,
 )
 
@@ -196,7 +198,7 @@ py.extension_module(
     install: true,
 )
 
-py.install_sources('nlsl/__init__.py', subdir: 'nlsl')
+py.install_sources(['nlsl/__init__.py', 'nlsl/logging.py'], subdir: 'nlsl')
 
 # Install the Python test suite alongside the package so editable installs
 # can locate the extension module without modifying sys.path in tests.

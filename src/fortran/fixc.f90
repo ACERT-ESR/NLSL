@@ -20,6 +20,7 @@
       use parcom
       use lpnam
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -41,7 +42,11 @@
       call touppr(token,lth)
       if (token(:lth).eq.'ALL') then
          if (nprm.gt.0) then
-            write(luout,1001)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1001)
+               call flush_log_buffer()
+            end if
             if (luout.ne.luttyo) write(luttyo,1001)
          end if
 !

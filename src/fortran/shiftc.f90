@@ -38,6 +38,7 @@
       use parcom
       use iterat
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -70,7 +71,11 @@
 !
 !                             Spectrum name/index expected
       if (lth.eq.0) then
-         write (luout,1000)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1000)
+            call flush_log_buffer()
+         end if
          return
       end if
 !
@@ -81,8 +86,12 @@
                ival=-1
 !                                             *** Illegal index
             else
-               write(luout,1001) token(:lth)
-               return
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1001) token(:lth)
+               call flush_log_buffer()
+            end if
+            return
             end if
          end if
       else
@@ -119,7 +128,11 @@
 !      Not a keyword: is token a floating pt number?
 !     -----------------------------------------------
       if (.not.ftoken(token,lth,fval)) then
-         write (luout,1003) token(:itrim(token))
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1003) token(:itrim(token))
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write(luttyo,1003) token(:itrim(token))
          go to 5
       else
@@ -166,7 +179,11 @@
          call lfun(ndatot,nprm,x,fvec,fjac,MXPT,iflag)
 !
          fnorm=enorm(ndatot,fvec)
-         write(luout,1046) fnorm
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1046) fnorm
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write(luttyo,1046) fnorm
          call sclstt( luout )
 !

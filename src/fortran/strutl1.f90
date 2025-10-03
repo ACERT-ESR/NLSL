@@ -32,6 +32,7 @@
 !> @brief issue a prompt and retreive a line from command stream
 !
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
       implicit none
 !
       logical getlin
@@ -48,7 +49,11 @@
 !
       if (ioerr.eq.0 .and. lucmd.ne.luttyi .and. luecho.ne.0)
      #     write(luecho,1001) line
-      if (luecho.ne.0.and.luout.eq.lulog) write(lulog,1001) line
+      if (ioerr.eq.0 .and. luecho.ne.0 .and. log_enabled) then
+         call ensure_log_buffer(log_buffer)
+         write(log_buffer,1001) line
+         call flush_log_buffer()
+      end if
       getlin=ioerr.eq.0
       return
 !
