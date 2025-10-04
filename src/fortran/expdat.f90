@@ -37,38 +37,39 @@
       use nlsdim
       implicit none
 !
-      double precision, save :: data(MXPT)
-      double precision, save :: spltmp(MXINP,3)
-      double precision, save :: rmsn(MXSPC)
-      double precision, save :: sbi(MXSPC)
-      double precision, save :: sdb(MXSPC)
-      double precision, save :: srng(MXSPC)
-      double precision, save :: shft(MXSPC)
-      double precision, save :: sb0(MXSPC)
-      double precision, save :: sphs(MXSPC)
-      double precision, save :: spsi(MXSPC)
-      double precision, save :: slb(MXSPC)
-      double precision, save :: tmpshft(MXSPC)
+!     Keep declarations separate so f2py exports each symbol.
+      double precision, target, save :: data(MXPT)
+      double precision, target, save :: spltmp(MXINP,3)
+      double precision, target, save :: rmsn(MXSPC)
+      double precision, target, save :: sbi(MXSPC)
+      double precision, target, save :: sdb(MXSPC)
+      double precision, target, save :: srng(MXSPC)
+      double precision, target, save :: shft(MXSPC)
+      double precision, target, save :: sb0(MXSPC)
+      double precision, target, save :: sphs(MXSPC)
+      double precision, target, save :: spsi(MXSPC)
+      double precision, target, save :: slb(MXSPC)
+      double precision, target, save :: tmpshft(MXSPC)
 !
-      integer, save :: iform(MXSPC)
-      integer, save :: ibase(MXSPC)
-      integer, save :: nft(MXSPC)
-      integer, save :: npts(MXSPC)
-      integer, save :: ishft(MXSPC)
-      integer, save :: idrv(MXSPC)
-      integer, save :: ixsp(MXSPC)
-      integer, save :: nrmlz(MXSPC)
-      integer, save :: nspc
-      integer, save :: nwin
-      integer, save :: ndatot
-      integer, save :: ishglb
-      integer, save :: inform
-      integer, save :: bcmode
-      integer, save :: drmode
-      integer, save :: nspline
-      integer, save :: shftflg
-      integer, save :: normflg
-      integer, save :: written
+      integer, target, save :: iform(MXSPC)
+      integer, target, save :: ibase(MXSPC)
+      integer, target, save :: nft(MXSPC)
+      integer, target, save :: npts(MXSPC)
+      integer, target, save :: ishft(MXSPC)
+      integer, target, save :: idrv(MXSPC)
+      integer, target, save :: ixsp(MXSPC)
+      integer, target, save :: nrmlz(MXSPC)
+      integer, target, save :: nspc
+      integer, target, save :: nwin
+      integer, target, save :: ndatot
+      integer, target, save :: ishglb
+      integer, target, save :: inform
+      integer, target, save :: bcmode
+      integer, target, save :: drmode
+      integer, target, save :: nspline
+      integer, target, save :: shftflg
+      integer, target, save :: normflg
+      integer, target, save :: written
 !
       character*30, save :: dataid(MXSPC)
       character*20, save :: wndoid(MXSPC)
