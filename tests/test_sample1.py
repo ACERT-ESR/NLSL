@@ -100,6 +100,7 @@ def run_sample1_manual():
     n.fit_params["ftol"] = 1e-3
     n.fit_params["xtol"] = 1e-3
     n.fit()
+    n.write_spc()
     procline("log end")
 
     rel_rms_list = []

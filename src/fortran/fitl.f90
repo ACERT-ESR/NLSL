@@ -180,8 +180,6 @@
 !     Optionally output splined data and calculated spectrum/spectra
 !     for each datafile
 !     ------------------------------------------------------------------
-      if ((convrg .or. output.ne.0).and. written.eq.0) call wrspc()
-!
 !     ----------------------------------------
 !     Report shifting and scaling information 
 !     ----------------------------------------
