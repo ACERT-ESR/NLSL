@@ -29,11 +29,9 @@
       use nlsdim
       implicit none
 !
-      integer, save, target :: iscal(MXSITE)
-      integer, save :: iscglb
-      double precision, save, target :: spectr(MXPT,MXSITE)
-      double precision, save, target :: wspec(MXPT,MXSITE)
-      double precision, save, target :: sfac(MXSITE,MXSPC)
+      integer, save :: iscal(MXSITE), iscglb
+      double precision, save ::
+     #   spectr(MXPT,MXSITE), wspec(MXPT,MXSITE), sfac(MXSITE,MXSPC)
 !
       end module mspctr
 

@@ -300,7 +300,7 @@ python module fortrancore ! in
             integer, save :: iscglb
             double precision, save,dimension((mxpt),(mxsite)),depend(nsite) :: wspec
         end module mspctr
-    end interface
+    end interface 
 end python module fortrancore
 
 ! This file was auto-generated with f2py (version:2).
