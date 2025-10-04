@@ -14,14 +14,23 @@
       use nlsdim
       implicit none
 !
-      double precision, save ::
-     #                 fjac(MXPT,MXJCOL), fvec(MXPT), x(MXJCOL),
-     #                 diag(MXJCOL), qtf(MXJCOL), corr(MXJCOL,MXJCOL),
-     #                 work1(MXJCOL), work2(MXJCOL), work3(MXJCOL),
-     #                 work4(MXPT), gnvec(MXJCOL), gradf(MXJCOL),
-     #                 tcov(MXTV,MXTV)
+      double precision, save :: fjac(MXPT,MXJCOL)
+      double precision, save :: fvec(MXPT)
+      double precision, save :: x(MXJCOL)
+      double precision, save :: diag(MXJCOL)
+      double precision, save :: qtf(MXJCOL)
+      double precision, save :: corr(MXJCOL,MXJCOL)
+      double precision, save :: work1(MXJCOL)
+      double precision, save :: work2(MXJCOL)
+      double precision, save :: work3(MXJCOL)
+      double precision, save :: work4(MXPT)
+      double precision, save :: gnvec(MXJCOL)
+      double precision, save :: gradf(MXJCOL)
+      double precision, save :: tcov(MXTV,MXTV)
 !
-      integer, save :: ipvt(MXJCOL), nprint, lmflag
+      integer, save :: ipvt(MXJCOL)
+      integer, save :: nprint
+      integer, save :: lmflag
 !
       double precision, target, save  :: flmprm(NFLMPR)
       double precision, pointer, save :: ftol, gtol, xtol, factor

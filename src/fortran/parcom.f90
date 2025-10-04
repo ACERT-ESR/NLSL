@@ -60,10 +60,23 @@
      #                srange
       integer, target, save :: iparm(NIPRM,MXSITE)
 !
-      integer, save :: ixx(NFPRM,MXSITE),
-     #                ibnd(MXVAR),ixpr(MXVAR),ixst(MXVAR),
-     #                iser,nser,nprm,njcol,nshift,noneg,itridg,
-     #                iitrfl,jacobi,ixp1p,ixs1p,mxpitr,output
+      integer, save :: ixx(NFPRM,MXSITE)
+      integer, save :: ibnd(MXVAR)
+      integer, save :: ixpr(MXVAR)
+      integer, save :: ixst(MXVAR)
+      integer, save :: iser
+      integer, save :: nser
+      integer, save :: nprm
+      integer, save :: njcol
+      integer, save :: nshift
+      integer, save :: noneg
+      integer, save :: itridg
+      integer, save :: iitrfl
+      integer, save :: jacobi
+      integer, save :: ixp1p
+      integer, save :: ixs1p
+      integer, save :: mxpitr
+      integer, save :: output
       integer, target, save :: nsite
       integer, pointer, save :: pnsite => nsite
       logical, save :: mtxclc

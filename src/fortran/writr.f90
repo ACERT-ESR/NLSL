@@ -106,7 +106,7 @@
 !
       do i=1,nspc
          call setdat( dataid(i) )
-!     
+!
          open(ludisk,file=spname(:lthdnm),status='unknown',
      #        access='sequential',form='formatted')
          field=sbi(i)
