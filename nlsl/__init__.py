@@ -104,6 +104,9 @@ class nlsl(object):
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params()
+        self._last_layout = None
+        self._last_site_spectra = None
+        self._last_weights = None
 
     @property
     def nsites(self) -> int:
@@ -121,6 +124,45 @@ class nlsl(object):
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
         _fortrancore.fitl()
+        return self._capture_state()
+
+    @property
+    def current_spectrum(self):
+        """Evaluate the current spectral model without running a full fit."""
+        expdat = _fortrancore.expdat
+        parcom = _fortrancore.parcom
+        iterat = _fortrancore.iterat
+        lmcom = _fortrancore.lmcom
+        ndatot = int(expdat.ndatot)
+        nspc = int(expdat.nspc)
+        nsite = int(parcom.nsite)
+        if ndatot <= 0 or nspc <= 0:
+            raise RuntimeError("no spectra have been evaluated yet")
+
+        nprm = int(parcom.nprm)
+        x_data = lmcom.x
+        x_view = x_data[:nprm]
+        if nprm > 0:
+            _fortrancore.xpack(x_view, nprm)
+
+        iterat.iter = 1
+        fjac_view = lmcom.fjac
+        fvec_view = lmcom.fvec[:ndatot]
+        ldfjac = fjac_view.shape[0]
+        _fortrancore.lfun(
+            x_view,
+            fvec_view,
+            fjac_view,
+            1,
+            ndatot,
+            nprm,
+            ldfjac,
+        )
+        return self._capture_state()
+
+    def write_spc(self):
+        """Write the current spectra to ``.spc`` files."""
+        _fortrancore.wrspc()
 
     def load_data(
         self,
@@ -321,6 +363,86 @@ class nlsl(object):
 
     def __iter__(self):
         return iter(self.keys())
+
+    @property
+    def layout(self):
+        """Metadata describing the most recent spectral evaluation."""
+        if self._last_layout is None:
+            raise RuntimeError("no spectra have been evaluated yet")
+        return self._last_layout
+
+    @property
+    def site_spectra(self):
+        """Return the most recently evaluated site spectra."""
+        if self._last_site_spectra is None:
+            raise RuntimeError("no spectra have been evaluated yet")
+        return self._last_site_spectra
+
+    @property
+    def weights(self):
+        """Return the most recently evaluated site weights."""
+        if self._last_weights is None:
+            raise RuntimeError("no spectra have been evaluated yet")
+        return self._last_weights
+
+    def _capture_state(self):
+        expdat = _fortrancore.expdat
+        mspctr = _fortrancore.mspctr
+        parcom = _fortrancore.parcom
+
+        nspc = int(expdat.nspc)
+        ndatot = int(expdat.ndatot)
+        nsite = int(parcom.nsite)
+
+        ixsp_src = expdat.ixsp
+        npts_src = expdat.npts
+        sbi_src = expdat.sbi
+        sdb_src = expdat.sdb
+        spectra_src = mspctr.spectr
+        weights_src = mspctr.sfac
+
+        nspc = min(
+            nspc,
+            ixsp_src.shape[0],
+            npts_src.shape[0],
+            sbi_src.shape[0],
+            sdb_src.shape[0],
+            weights_src.shape[1],
+        )
+        nsite = min(nsite, spectra_src.shape[1], weights_src.shape[0])
+        ndatot = min(ndatot, spectra_src.shape[0])
+
+        ixsp_arr = ixsp_src[:nspc].copy()
+        npts_arr = npts_src[:nspc].copy()
+        sbi_arr = sbi_src[:nspc].copy()
+        sdb_arr = sdb_src[:nspc].copy()
+
+        ixsp_arr -= 1
+
+        self._last_layout = {
+            "ixsp": ixsp_arr,
+            "npts": npts_arr,
+            "sbi": sbi_arr,
+            "sdb": sdb_arr,
+            "ndatot": ndatot,
+            "nsite": nsite,
+            "nspc": nspc,
+        }
+
+        if ndatot > 0 and nsite > 0:
+            site_spectra = spectra_src[:ndatot, :nsite].swapaxes(0, 1)
+        else:
+            site_spectra = np.empty((nsite, ndatot), dtype=float)
+
+        if nspc > 0 and nsite > 0:
+            weight_matrix = weights_src[:nsite, :nspc].swapaxes(0, 1)
+        else:
+            weight_matrix = np.empty((nspc, nsite), dtype=float)
+
+        self._last_site_spectra = site_spectra
+        self._last_weights = weight_matrix
+
+        return self._last_site_spectra, self._last_weights
 
     def keys(self):
         return list(self._fepr_names) + list(self._iepr_names)

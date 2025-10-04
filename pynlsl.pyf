@@ -24,6 +24,16 @@ python module fortrancore ! in
             use errmsg
             use nlsdim
         end subroutine fitl
+        subroutine wrspc ! in :fortrancore:src/fortran/writr.f90
+            use nlsdim
+            use expdat
+            use parcom
+            use lmcom
+            use iterat
+            use nlsnam
+            use mspctr
+            use stdio
+        end subroutine wrspc
         subroutine nlsinit ! in :fortrancore:src/fortran/nlsl.f90
             use expdat
             use eprprm
@@ -57,8 +67,17 @@ python module fortrancore ! in
             double precision intent(inout),dimension(m),depend(m) :: fvec
             integer intent(in) :: ldfjac
             integer intent(in) :: iflag
-            double precision intent(inout),dimension(ldfjac,n+nsite+nspc),depend(ldfjac,n,nsite) :: fjac
+            double precision intent(inout),dimension(ldfjac,mxjcol),depend(ldfjac) :: fjac
         end subroutine lfun
+        subroutine xpack(x,n) ! in :fortrancore:src/fortran/fitl.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use parcom
+            use rnddbl
+            integer intent(in) :: n
+            double precision intent(inout),dimension(n),depend(n) :: x
+        end subroutine xpack
         subroutine setspc(isite,ise) ! in :fortrancore:src/fortran/setspc.f90
             use nlsdim
             use eprprm
@@ -187,32 +206,33 @@ python module fortrancore ! in
             integer, save,target,dimension(niprm,mxsite) :: iparm
             integer, save,dimension(nfprm,mxsite) :: ixx
             integer, save :: nser
+            integer, save :: nprm
             integer, pointer, save, intent(inout) :: pnsite !f2py name: nsite
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
         module expdat ! in :fortrancore:src/fortran/expdat.f90
             use nlsdim
-            double precision, save,target,dimension((mxpt)) :: data
-            double precision, save,target,dimension((mxinp),(3)) :: spltmp
-            double precision, save,target,dimension((mxspc)) :: rmsn
-            double precision, save,target,dimension((mxspc)) :: sbi
-            double precision, save,target,dimension((mxspc)) :: sdb
-            double precision, save,target,dimension((mxspc)) :: srng
-            double precision, save,target,dimension((mxspc)) :: shft
-            double precision, save,target,dimension((mxspc)) :: sb0
-            double precision, save,target,dimension((mxspc)) :: sphs
-            double precision, save,target,dimension((mxspc)) :: spsi
-            double precision, save,target,dimension((mxspc)) :: slb
-            double precision, save,target,dimension((mxspc)) :: tmpshft
-            integer, save,target,dimension((mxspc)) :: iform
-            integer, save,target,dimension((mxspc)) :: ibase
-            integer, save,target,dimension((mxspc)) :: nft
-            integer, save,target,dimension((mxspc)) :: npts
-            integer, save,target,dimension((mxspc)) :: ishft
-            integer, save,target,dimension((mxspc)) :: idrv
-            integer, save,target,dimension((mxspc)) :: ixsp
-            integer, save,target,dimension((mxspc)) :: nrmlz
+            double precision, save,target,dimension(mxpt) :: data
+            double precision, save,target,dimension(mxinp,3) :: spltmp
+            double precision, save,target,dimension(mxspc) :: rmsn
+            double precision, save,target,dimension(mxspc) :: sbi
+            double precision, save,target,dimension(mxspc) :: sdb
+            double precision, save,target,dimension(mxspc) :: srng
+            double precision, save,target,dimension(mxspc) :: shft
+            double precision, save,target,dimension(mxspc) :: sb0
+            double precision, save,target,dimension(mxspc) :: sphs
+            double precision, save,target,dimension(mxspc) :: spsi
+            double precision, save,target,dimension(mxspc) :: slb
+            double precision, save,target,dimension(mxspc) :: tmpshft
+            integer, save,target,dimension(mxspc) :: iform
+            integer, save,target,dimension(mxspc) :: ibase
+            integer, save,target,dimension(mxspc) :: nft
+            integer, save,target,dimension(mxspc) :: npts
+            integer, save,target,dimension(mxspc) :: ishft
+            integer, save,target,dimension(mxspc) :: idrv
+            integer, save,target,dimension(mxspc) :: ixsp
+            integer, save,target,dimension(mxspc) :: nrmlz
             integer, save :: nspc
             integer, save :: nwin
             integer, save :: ndatot
@@ -224,8 +244,8 @@ python module fortrancore ! in
             integer, save :: shftflg
             integer, save :: normflg
             integer, save :: written
-            character*30, save,dimension((mxspc)) :: dataid
-            character*20, save,dimension((mxspc)) :: wndoid
+            character*30, save,dimension(mxspc) :: dataid
+            character*20, save,dimension(mxspc) :: wndoid
         end module expdat
         module iterat ! in :fortrancore:src/fortran/iterat.f90
             integer, save :: iter

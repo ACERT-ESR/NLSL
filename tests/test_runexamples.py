@@ -42,6 +42,7 @@ def run_example(example, allowed_rel_rms=None):
         thisfp.close()
 
     run_file(open(filename_base + '.run'))
+    n.write_spc()
 
     rel_rms_list = []
     for thisdatafile in data_files_out:
