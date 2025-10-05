@@ -84,7 +84,7 @@
       implicit none
       integer m,n,iflag,ldfjac,ixbp
 !
-      double precision x(n),fvec(m),fjac(ldfjac,n+nsite+nspc)
+      double precision x(n),fvec(m),fjac(ldfjac,mxjcol)
       integer i,icalc,ierr,ise,isi,isp,ix,ixb,ixs,ixt,j,k,ld,lastsp,nj
       double precision shift,xtemp
       character dashes*132,shftnd*1

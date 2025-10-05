@@ -37,16 +37,32 @@
       use nlsdim
       implicit none
 !
-      double precision, save :: data(MXPT),spltmp(MXINP,3),rmsn(MXSPC),
-     #                sbi(MXSPC),sdb(MXSPC),srng(MXSPC),shft(MXSPC),
-     #                sb0(MXSPC),sphs(MXSPC),spsi(MXSPC),slb(MXSPC),
-     #                tmpshft(MXSPC)
+      double precision, target, save :: data(MXPT)
+      double precision, target, save :: spltmp(MXINP,3)
+      double precision, target, save :: rmsn(MXSPC)
+      double precision, target, save :: sbi(MXSPC)
+      double precision, target, save :: sdb(MXSPC)
+      double precision, target, save :: srng(MXSPC)
+      double precision, target, save :: shft(MXSPC)
+      double precision, target, save :: sb0(MXSPC)
+      double precision, target, save :: sphs(MXSPC)
+      double precision, target, save :: spsi(MXSPC)
+      double precision, target, save :: slb(MXSPC)
+      double precision, target, save :: tmpshft(MXSPC)
 !
-      integer, save :: iform(MXSPC),ibase(MXSPC),nft(MXSPC),
-     #                npts(MXSPC),ishft(MXSPC),idrv(MXSPC),ixsp(MXSPC),
-     #                nrmlz(MXSPC),nspc,nwin,ndatot,ishglb,
+      integer, target, save :: iform(MXSPC)
+      integer, target, save :: ibase(MXSPC)
+      integer, target, save :: nft(MXSPC)
+      integer, target, save :: npts(MXSPC)
+      integer, target, save :: ishft(MXSPC)
+      integer, target, save :: idrv(MXSPC)
+      integer, target, save :: ixsp(MXSPC)
+      integer, target, save :: nrmlz(MXSPC)
+      integer, save :: nwin,ishglb,
      #                inform,bcmode,drmode,
      #                nspline,shftflg,normflg,written
+
+      integer, target, save :: nspc,ndatot
 !
       character*30, save :: dataid(MXSPC)
       character*20, save :: wndoid(MXSPC)

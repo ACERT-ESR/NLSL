@@ -1,5 +1,4 @@
 from . import fortrancore as _fortrancore
-import importlib
 import numpy as np
 
 
@@ -63,7 +62,7 @@ class fit_params(dict):
         return list(self._fl_names) + list(self._il_names)
 
     def items(self):
-        return [(k, self[k]) for k in self.keys() if len(k)>0]
+        return [(k, self[k]) for k in self.keys() if len(k) > 0]
 
     def values(self):
         return [self[k] for k in self.keys()]
@@ -126,25 +125,20 @@ class nlsl(object):
     @property
     def current_spectrum(self):
         """Evaluate the current spectral model without running a full fit."""
-        expdat = _fortrancore.expdat
-        parcom = _fortrancore.parcom
-        iterat = _fortrancore.iterat
-        lmcom = _fortrancore.lmcom
-        ndatot = int(expdat.ndatot)
-        nspc = int(expdat.nspc)
-        nsite = int(parcom.nsite)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        nspc = int(_fortrancore.expdat.nspc)
         if ndatot <= 0 or nspc <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
 
-        nprm = int(parcom.nprm)
-        x_data = lmcom.x
+        nprm = int(_fortrancore.parcom.nprm)
+        x_data = _fortrancore.lmcom.x
         x_view = x_data[:nprm]
         if nprm > 0:
             _fortrancore.xpack(x_view, nprm)
 
-        iterat.iter = 1
-        fjac_view = lmcom.fjac
-        fvec_view = lmcom.fvec[:ndatot]
+        _fortrancore.iterat.iter = 1
+        fjac_view = _fortrancore.lmcom.fjac
+        fvec_view = _fortrancore.lmcom.fvec[:ndatot]
         ldfjac = fjac_view.shape[0]
         _fortrancore.lfun(
             x_view,
@@ -172,11 +166,11 @@ class nlsl(object):
             raise KeyError(key)
         if res > 100:
             idx = self._iepr_names.index(key)
-            vals = self._iparm[idx, :self.nsites]
+            vals = self._iparm[idx, : self.nsites]
         else:
-            vals = np.array([
-                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
-            ])
+            vals = np.array(
+                [_fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)]
+            )
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
@@ -263,44 +257,29 @@ class nlsl(object):
         return self._last_weights
 
     def _capture_state(self):
-        expdat = _fortrancore.expdat
-        mspctr = _fortrancore.mspctr
-        parcom = _fortrancore.parcom
+        nspc = int(_fortrancore.expdat.nspc)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        nsite = int(_fortrancore.parcom.nsite)
 
-        nspc = int(expdat.nspc)
-        ndatot = int(expdat.ndatot)
-        nsite = int(parcom.nsite)
-
-        ixsp_src = expdat.ixsp
-        npts_src = expdat.npts
-        sbi_src = expdat.sbi
-        sdb_src = expdat.sdb
-        spectra_src = mspctr.spectr
-        weights_src = mspctr.sfac
+        spectra_src = _fortrancore.mspctr.spectr
+        weights_src = _fortrancore.mspctr.sfac
 
         nspc = min(
             nspc,
-            ixsp_src.shape[0],
-            npts_src.shape[0],
-            sbi_src.shape[0],
-            sdb_src.shape[0],
+            _fortrancore.expdat.ixsp.shape[0],
+            _fortrancore.expdat.npts.shape[0],
+            _fortrancore.expdat.sbi.shape[0],
+            _fortrancore.expdat.sdb.shape[0],
             weights_src.shape[1],
         )
         nsite = min(nsite, spectra_src.shape[1], weights_src.shape[0])
         ndatot = min(ndatot, spectra_src.shape[0])
 
-        ixsp_arr = ixsp_src[:nspc].copy()
-        npts_arr = npts_src[:nspc].copy()
-        sbi_arr = sbi_src[:nspc].copy()
-        sdb_arr = sdb_src[:nspc].copy()
-
-        ixsp_arr -= 1
-
         self._last_layout = {
-            "ixsp": ixsp_arr,
-            "npts": npts_arr,
-            "sbi": sbi_arr,
-            "sdb": sdb_arr,
+            "ixsp": _fortrancore.expdat.ixsp[:nspc] - 1,
+            "npts": _fortrancore.expdat.npts[:nspc].copy(),
+            "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
+            "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
             "ndatot": ndatot,
             "nsite": nsite,
             "nspc": nspc,
@@ -325,7 +304,7 @@ class nlsl(object):
         return list(self._fepr_names) + list(self._iepr_names)
 
     def items(self):
-        return [(k, self[k]) for k in self.keys() if len(k)>0]
+        return [(k, self[k]) for k in self.keys() if len(k) > 0]
 
     def values(self):
         return [self[k] for k in self.keys()]
