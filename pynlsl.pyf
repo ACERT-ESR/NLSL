@@ -47,18 +47,6 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
-        subroutine capture_layout(ixspo,nptso,sbio,sdbo,nspco,ndtoo,nsiteo) ! in :fortrancore:src/fortran/nlsl.f90
-            use nlsdim
-            use expdat
-            use parcom
-            integer intent(out),dimension(mxspc) :: ixspo
-            integer intent(out),dimension(mxspc) :: nptso
-            double precision intent(out),dimension(mxspc) :: sbio
-            double precision intent(out),dimension(mxspc) :: sdbo
-            integer intent(out) :: nspco
-            integer intent(out) :: ndtoo
-            integer intent(out) :: nsiteo
-        end subroutine capture_layout
         subroutine capture_spectra(speco) ! in :fortrancore:src/fortran/nlsl.f90
             use nlsdim
             use mspctr

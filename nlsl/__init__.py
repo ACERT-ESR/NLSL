@@ -1,6 +1,26 @@
 from . import fortrancore as _fortrancore
+import ctypes
 import importlib
 import numpy as np
+
+
+_NLSL_LIB = ctypes.CDLL(_fortrancore.__file__)
+
+
+def _module_array(symbol: str, dtype, shape):
+    """Return a NumPy view of a Fortran module variable."""
+
+    if dtype == np.float64:
+        ctype = ctypes.c_double
+    elif dtype == np.int32:
+        ctype = ctypes.c_int32
+    else:
+        raise TypeError(f"unsupported dtype {dtype!r}")
+
+    count = int(np.prod(shape, dtype=np.int64))
+    array_type = ctype * count
+    c_array = array_type.in_dll(_NLSL_LIB, symbol)
+    return np.ctypeslib.as_array(c_array).reshape(shape, order="F")
 
 
 def _ipfind_wrapper(name: str) -> int:
@@ -262,39 +282,6 @@ class nlsl(object):
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_weights
 
-    def _capture_layout_buffers(self):
-        expdat = _fortrancore.expdat
-
-        mxspc = expdat.iform.shape[0]
-
-        ixsp_src = np.empty(mxspc, dtype=np.int32, order="F")
-        npts_src = np.empty(mxspc, dtype=np.int32, order="F")
-        sbi_src = np.empty(mxspc, dtype=np.float64, order="F")
-        sdb_src = np.empty(mxspc, dtype=np.float64, order="F")
-        nspc_buf = np.empty((), dtype=np.int32)
-        ndatot_buf = np.empty((), dtype=np.int32)
-        nsite_buf = np.empty((), dtype=np.int32)
-
-        _fortrancore.capture_layout(
-            ixsp_src,
-            npts_src,
-            sbi_src,
-            sdb_src,
-            nspc_buf,
-            ndatot_buf,
-            nsite_buf,
-        )
-
-        return (
-            ixsp_src,
-            npts_src,
-            sbi_src,
-            sdb_src,
-            int(nspc_buf.item()),
-            int(ndatot_buf.item()),
-            int(nsite_buf.item()),
-        )
-
     def _capture_spectra_buffer(self):
         expdat = _fortrancore.expdat
         mspctr = _fortrancore.mspctr
@@ -318,15 +305,19 @@ class nlsl(object):
         return weights_src
 
     def _capture_state(self):
-        (
-            ixsp_src,
-            npts_src,
-            sbi_src,
-            sdb_src,
-            nspc,
-            ndatot,
-            nsite,
-        ) = self._capture_layout_buffers()
+        expdat = _fortrancore.expdat
+        parcom = _fortrancore.parcom
+
+        mxspc = expdat.iform.shape[0]
+
+        ixsp_src = _module_array("__expdat_MOD_ixsp", np.int32, (mxspc,))
+        npts_src = _module_array("__expdat_MOD_npts", np.int32, (mxspc,))
+        sbi_src = _module_array("__expdat_MOD_sbi", np.float64, (mxspc,))
+        sdb_src = _module_array("__expdat_MOD_sdb", np.float64, (mxspc,))
+
+        nspc = int(expdat.nspc)
+        ndatot = int(expdat.ndatot)
+        nsite = int(parcom.nsite)
 
         spectra_src = self._capture_spectra_buffer()
         weights_src = self._capture_weight_buffer()
