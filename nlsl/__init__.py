@@ -1,26 +1,6 @@
 from . import fortrancore as _fortrancore
-import ctypes
 import importlib
 import numpy as np
-
-
-_NLSL_LIB = ctypes.CDLL(_fortrancore.__file__)
-
-
-def _module_array(symbol: str, dtype, shape):
-    """Return a NumPy view of a Fortran module variable."""
-
-    if dtype == np.float64:
-        ctype = ctypes.c_double
-    elif dtype == np.int32:
-        ctype = ctypes.c_int32
-    else:
-        raise TypeError(f"unsupported dtype {dtype!r}")
-
-    count = int(np.prod(shape, dtype=np.int64))
-    array_type = ctype * count
-    c_array = array_type.in_dll(_NLSL_LIB, symbol)
-    return np.ctypeslib.as_array(c_array).reshape(shape, order="F")
 
 
 def _ipfind_wrapper(name: str) -> int:
@@ -310,10 +290,10 @@ class nlsl(object):
 
         mxspc = expdat.iform.shape[0]
 
-        ixsp_src = _module_array("__expdat_MOD_ixsp", np.int32, (mxspc,))
-        npts_src = _module_array("__expdat_MOD_npts", np.int32, (mxspc,))
-        sbi_src = _module_array("__expdat_MOD_sbi", np.float64, (mxspc,))
-        sdb_src = _module_array("__expdat_MOD_sdb", np.float64, (mxspc,))
+        ixsp_src = _fortrancore.expdat.ixsp
+        npts_src = _fortrancore.expdat.npts
+        sbi_src = _fortrancore.expdat.sbi
+        sdb_src = _fortrancore.expdat.sdb
 
         nspc = int(expdat.nspc)
         ndatot = int(expdat.ndatot)
