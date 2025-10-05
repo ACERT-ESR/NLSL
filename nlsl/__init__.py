@@ -263,32 +263,20 @@ class nlsl(object):
         return self._last_weights
 
     def _capture_spectra_buffer(self):
-        expdat = _fortrancore.expdat
-        mspctr = _fortrancore.mspctr
-
-        mxpt = expdat.data.shape[0]
-        mxsite = mspctr.iscal.shape[0]
-
-        spectra_src = np.empty((mxpt, mxsite), dtype=np.float64, order="F")
-        _fortrancore.capture_spectra(spectra_src)
+        spectra_src = _fortrancore.capture_spectra()
+        if not isinstance(spectra_src, np.ndarray):
+            spectra_src = np.asarray(spectra_src)
         return spectra_src
 
     def _capture_weight_buffer(self):
-        expdat = _fortrancore.expdat
-        mspctr = _fortrancore.mspctr
-
-        mxspc = expdat.iform.shape[0]
-        mxsite = mspctr.iscal.shape[0]
-
-        weights_src = np.empty((mxsite, mxspc), dtype=np.float64, order="F")
-        _fortrancore.capture_weights(weights_src)
+        weights_src = _fortrancore.capture_weights()
+        if not isinstance(weights_src, np.ndarray):
+            weights_src = np.asarray(weights_src)
         return weights_src
 
     def _capture_state(self):
         expdat = _fortrancore.expdat
         parcom = _fortrancore.parcom
-
-        mxspc = expdat.iform.shape[0]
 
         ixsp_src = _fortrancore.expdat.ixsp
         npts_src = _fortrancore.expdat.npts

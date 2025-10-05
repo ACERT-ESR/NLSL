@@ -756,7 +756,7 @@
       use nlsdim
       use mspctr
       implicit none
-      double precision speco(MXPT,MXSITE)
+      double precision, intent(out) :: speco(MXPT,MXSITE)
 
       speco = spectr
 
@@ -766,7 +766,7 @@
       use nlsdim
       use mspctr
       implicit none
-      double precision sfaco(MXSITE,MXSPC)
+      double precision, intent(out) :: sfaco(MXSITE,MXSPC)
 
       sfaco = sfac
 
