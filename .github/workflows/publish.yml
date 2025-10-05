@@ -36,17 +36,18 @@ jobs:
         id: bump
         run: |
           python - <<'PY' > new_version.txt
-import tomllib
-import pathlib
+          import tomllib
+          import pathlib
+          import os
 
-path = pathlib.Path('pyproject.toml')
-data = tomllib.loads(path.read_text())
-version = data['project']['version']
-parts = version.split('.')
-parts[-1] = str(int(parts[-1]) + 1)
-print('.'.join(parts), end='')
-PY
-          echo "new_version=$(cat new_version.txt)" >> "$GITHUB_OUTPUT"
+          path = pathlib.Path('pyproject.toml')
+          data = tomllib.loads(path.read_text())
+          version = data['project']['version']
+          parts = version.split('.')
+          parts[-1] = str(int(parts[-1]) + 1)
+          os.environ["new_version_number"] = '.'.join(parts)
+          PY
+          echo "new_version=$new_version_number" >> "$GITHUB_OUTPUT"
 
   build:
     needs: test
