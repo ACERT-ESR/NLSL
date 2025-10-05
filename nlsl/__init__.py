@@ -262,33 +262,22 @@ class nlsl(object):
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_weights
 
-    def _capture_spectra_buffer(self):
-        spectra_src = _fortrancore.capture_spectra()
-        if not isinstance(spectra_src, np.ndarray):
-            spectra_src = np.asarray(spectra_src)
-        return spectra_src
-
-    def _capture_weight_buffer(self):
-        weights_src = _fortrancore.capture_weights()
-        if not isinstance(weights_src, np.ndarray):
-            weights_src = np.asarray(weights_src)
-        return weights_src
-
     def _capture_state(self):
         expdat = _fortrancore.expdat
         parcom = _fortrancore.parcom
+        mspctr = _fortrancore.mspctr
 
-        ixsp_src = _fortrancore.expdat.ixsp
-        npts_src = _fortrancore.expdat.npts
-        sbi_src = _fortrancore.expdat.sbi
-        sdb_src = _fortrancore.expdat.sdb
+        ixsp_src = expdat.ixsp
+        npts_src = expdat.npts
+        sbi_src = expdat.sbi
+        sdb_src = expdat.sdb
 
         nspc = int(expdat.nspc)
         ndatot = int(expdat.ndatot)
         nsite = int(parcom.nsite)
 
-        spectra_src = self._capture_spectra_buffer()
-        weights_src = self._capture_weight_buffer()
+        spectra_src = mspctr.spectr
+        weights_src = mspctr.sfac
 
         nspc = min(
             nspc,

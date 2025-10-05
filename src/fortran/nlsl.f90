@@ -752,22 +752,3 @@
       return
       end
 
-      subroutine capture_spectra(speco)
-      use nlsdim
-      use mspctr
-      implicit none
-      double precision, intent(out) :: speco(MXPT,MXSITE)
-
-      speco = spectr
-
-      end subroutine capture_spectra
-
-      subroutine capture_weights(sfaco)
-      use nlsdim
-      use mspctr
-      implicit none
-      double precision, intent(out) :: sfaco(MXSITE,MXSPC)
-
-      sfaco = sfac
-
-      end subroutine capture_weights

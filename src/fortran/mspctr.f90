@@ -30,8 +30,9 @@
       implicit none
 !
       integer, save :: iscal(MXSITE), iscglb
-      double precision, target, save ::
-     #   spectr(MXPT,MXSITE), wspec(MXPT,MXSITE), sfac(MXSITE,MXSPC)
+      double precision, target, save :: spectr(MXPT,MXSITE)
+      double precision, target, save :: wspec(MXPT,MXSITE)
+      double precision, target, save :: sfac(MXSITE,MXSPC)
 
 !
       end module mspctr

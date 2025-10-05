@@ -47,16 +47,6 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
-        subroutine capture_spectra(speco) ! in :fortrancore:src/fortran/nlsl.f90
-            use nlsdim
-            use mspctr
-            double precision intent(out),dimension(mxpt,mxsite) :: speco
-        end subroutine capture_spectra
-        subroutine capture_weights(sfaco) ! in :fortrancore:src/fortran/nlsl.f90
-            use nlsdim
-            use mspctr
-            double precision intent(out),dimension(mxsite,mxspc) :: sfaco
-        end subroutine capture_weights
         subroutine lfun(m,n,x,fvec,fjac,ldfjac,iflag) ! in :fortrancore:src/fortran/lfun.f90
             use nlsdim
             use eprprm
@@ -304,11 +294,11 @@ python module fortrancore ! in
         end module eprprm
         module mspctr ! in :fortrancore:src/fortran/mspctr.f90
             use nlsdim
-            integer, save,dimension((mxsite)),depend(nsite) :: iscal
-            double precision, save,dimension((mxsite),(mxspc)),depend(nsite) :: sfac
-            double precision, save,dimension((mxpt),(mxsite)),depend(nsite) :: spectr
+            integer, save,dimension((mxsite)) :: iscal
+            double precision, save,target,dimension((mxsite),(mxspc)) :: sfac
+            double precision, save,target,dimension((mxpt),(mxsite)) :: spectr
             integer, save :: iscglb
-            double precision, save,dimension((mxpt),(mxsite)),depend(nsite) :: wspec
+            double precision, save,target,dimension((mxpt),(mxsite)) :: wspec
         end module mspctr
     end interface 
 end python module fortrancore
