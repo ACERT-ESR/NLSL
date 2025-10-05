@@ -1,5 +1,4 @@
 from . import fortrancore as _fortrancore
-import importlib
 import numpy as np
 
 
@@ -63,7 +62,7 @@ class fit_params(dict):
         return list(self._fl_names) + list(self._il_names)
 
     def items(self):
-        return [(k, self[k]) for k in self.keys() if len(k)>0]
+        return [(k, self[k]) for k in self.keys() if len(k) > 0]
 
     def values(self):
         return [self[k] for k in self.keys()]
@@ -126,25 +125,20 @@ class nlsl(object):
     @property
     def current_spectrum(self):
         """Evaluate the current spectral model without running a full fit."""
-        expdat = _fortrancore.expdat
-        parcom = _fortrancore.parcom
-        iterat = _fortrancore.iterat
-        lmcom = _fortrancore.lmcom
-        ndatot = int(expdat.ndatot)
-        nspc = int(expdat.nspc)
-        nsite = int(parcom.nsite)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        nspc = int(_fortrancore.expdat.nspc)
         if ndatot <= 0 or nspc <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
 
-        nprm = int(parcom.nprm)
-        x_data = lmcom.x
+        nprm = int(_fortrancore.parcom.nprm)
+        x_data = _fortrancore.lmcom.x
         x_view = x_data[:nprm]
         if nprm > 0:
             _fortrancore.xpack(x_view, nprm)
 
-        iterat.iter = 1
-        fjac_view = lmcom.fjac
-        fvec_view = lmcom.fvec[:ndatot]
+        _fortrancore.iterat.iter = 1
+        fjac_view = _fortrancore.lmcom.fjac
+        fvec_view = _fortrancore.lmcom.fvec[:ndatot]
         ldfjac = fjac_view.shape[0]
         _fortrancore.lfun(
             x_view,
@@ -172,11 +166,11 @@ class nlsl(object):
             raise KeyError(key)
         if res > 100:
             idx = self._iepr_names.index(key)
-            vals = self._iparm[idx, :self.nsites]
+            vals = self._iparm[idx, : self.nsites]
         else:
-            vals = np.array([
-                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
-            ])
+            vals = np.array(
+                [_fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)]
+            )
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
@@ -282,7 +276,7 @@ class nlsl(object):
         ndatot = min(ndatot, spectra_src.shape[0])
 
         self._last_layout = {
-            "ixsp": _fortrancore.expdat.ixsp[:nspc]-1,
+            "ixsp": _fortrancore.expdat.ixsp[:nspc] - 1,
             "npts": _fortrancore.expdat.npts[:nspc].copy(),
             "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
             "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
@@ -310,7 +304,7 @@ class nlsl(object):
         return list(self._fepr_names) + list(self._iepr_names)
 
     def items(self):
-        return [(k, self[k]) for k in self.keys() if len(k)>0]
+        return [(k, self[k]) for k in self.keys() if len(k) > 0]
 
     def values(self):
         return [self[k] for k in self.keys()]
