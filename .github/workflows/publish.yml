@@ -111,15 +111,14 @@ PY
           path: dist
           merge-multiple: true
 
-      # To enable publishing, configure PyPI Trusted Publishing for the "pynlsl" project:
-      #   1. In the PyPI project settings, add a trusted publisher for this repository.
-      #   2. Grant the publisher "workflow" permissions so this workflow can request an OpenID Connect token.
-      #   3. After PyPI confirms the publisher, merges to master will publish automatically once tests pass.
-
+          # In your repo, go to
+          # Settings → Secrets and variables → Actions → New repository secret
+          # Create a secret named exactly PYPI_API_TOKEN
       - name: Publish release to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
+          password: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Show published version
         run: echo "Published version ${{ needs.test.outputs.new_version }}"
