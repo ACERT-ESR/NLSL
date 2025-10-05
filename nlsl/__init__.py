@@ -263,44 +263,29 @@ class nlsl(object):
         return self._last_weights
 
     def _capture_state(self):
-        expdat = _fortrancore.expdat
-        mspctr = _fortrancore.mspctr
-        parcom = _fortrancore.parcom
+        nspc = int(_fortrancore.expdat.nspc)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        nsite = int(_fortrancore.parcom.nsite)
 
-        nspc = int(expdat.nspc)
-        ndatot = int(expdat.ndatot)
-        nsite = int(parcom.nsite)
-
-        ixsp_src = expdat.ixsp
-        npts_src = expdat.npts
-        sbi_src = expdat.sbi
-        sdb_src = expdat.sdb
-        spectra_src = mspctr.spectr
-        weights_src = mspctr.sfac
+        spectra_src = _fortrancore.mspctr.spectr
+        weights_src = _fortrancore.mspctr.sfac
 
         nspc = min(
             nspc,
-            ixsp_src.shape[0],
-            npts_src.shape[0],
-            sbi_src.shape[0],
-            sdb_src.shape[0],
+            _fortrancore.expdat.ixsp.shape[0],
+            _fortrancore.expdat.npts.shape[0],
+            _fortrancore.expdat.sbi.shape[0],
+            _fortrancore.expdat.sdb.shape[0],
             weights_src.shape[1],
         )
         nsite = min(nsite, spectra_src.shape[1], weights_src.shape[0])
         ndatot = min(ndatot, spectra_src.shape[0])
 
-        ixsp_arr = ixsp_src[:nspc].copy()
-        npts_arr = npts_src[:nspc].copy()
-        sbi_arr = sbi_src[:nspc].copy()
-        sdb_arr = sdb_src[:nspc].copy()
-
-        ixsp_arr -= 1
-
         self._last_layout = {
-            "ixsp": ixsp_arr,
-            "npts": npts_arr,
-            "sbi": sbi_arr,
-            "sdb": sdb_arr,
+            "ixsp": _fortrancore.expdat.ixsp[:nspc]-1,
+            "npts": _fortrancore.expdat.npts[:nspc].copy(),
+            "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
+            "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
             "ndatot": ndatot,
             "nsite": nsite,
             "nspc": nspc,
