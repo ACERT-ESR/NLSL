@@ -37,16 +37,19 @@
       use nlsdim
       implicit none
 !
-      double precision, save :: data(MXPT),spltmp(MXINP,3),rmsn(MXSPC),
-     #                sbi(MXSPC),sdb(MXSPC),srng(MXSPC),shft(MXSPC),
-     #                sb0(MXSPC),sphs(MXSPC),spsi(MXSPC),slb(MXSPC),
-     #                tmpshft(MXSPC)
+      double precision, target, save :: data(MXPT),spltmp(MXINP,3),
+     #                rmsn(MXSPC),sbi(MXSPC),sdb(MXSPC),srng(MXSPC),
+     #                shft(MXSPC),sb0(MXSPC),sphs(MXSPC),spsi(MXSPC),
+     #                slb(MXSPC),tmpshft(MXSPC)
 !
-      integer, save :: iform(MXSPC),ibase(MXSPC),nft(MXSPC),
+      integer, target, save :: iform(MXSPC),ibase(MXSPC),nft(MXSPC),
      #                npts(MXSPC),ishft(MXSPC),idrv(MXSPC),ixsp(MXSPC),
-     #                nrmlz(MXSPC),nspc,nwin,ndatot,ishglb,
+     #                nrmlz(MXSPC)
+      integer, save :: nwin,ishglb,
      #                inform,bcmode,drmode,
      #                nspline,shftflg,normflg,written
+
+      integer, target, save :: nspc,ndatot
 !
       character*30, save :: dataid(MXSPC)
       character*20, save :: wndoid(MXSPC)

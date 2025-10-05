@@ -262,21 +262,74 @@ class nlsl(object):
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_weights
 
-    def _capture_state(self):
+    def _capture_layout_buffers(self):
+        expdat = _fortrancore.expdat
+
+        mxspc = expdat.iform.shape[0]
+
+        ixsp_src = np.empty(mxspc, dtype=np.int32, order="F")
+        npts_src = np.empty(mxspc, dtype=np.int32, order="F")
+        sbi_src = np.empty(mxspc, dtype=np.float64, order="F")
+        sdb_src = np.empty(mxspc, dtype=np.float64, order="F")
+        nspc_buf = np.empty((), dtype=np.int32)
+        ndatot_buf = np.empty((), dtype=np.int32)
+        nsite_buf = np.empty((), dtype=np.int32)
+
+        _fortrancore.capture_layout(
+            ixsp_src,
+            npts_src,
+            sbi_src,
+            sdb_src,
+            nspc_buf,
+            ndatot_buf,
+            nsite_buf,
+        )
+
+        return (
+            ixsp_src,
+            npts_src,
+            sbi_src,
+            sdb_src,
+            int(nspc_buf.item()),
+            int(ndatot_buf.item()),
+            int(nsite_buf.item()),
+        )
+
+    def _capture_spectra_buffer(self):
         expdat = _fortrancore.expdat
         mspctr = _fortrancore.mspctr
-        parcom = _fortrancore.parcom
 
-        nspc = int(expdat.nspc)
-        ndatot = int(expdat.ndatot)
-        nsite = int(parcom.nsite)
+        mxpt = expdat.data.shape[0]
+        mxsite = mspctr.iscal.shape[0]
 
-        ixsp_src = expdat.ixsp
-        npts_src = expdat.npts
-        sbi_src = expdat.sbi
-        sdb_src = expdat.sdb
-        spectra_src = mspctr.spectr
-        weights_src = mspctr.sfac
+        spectra_src = np.empty((mxpt, mxsite), dtype=np.float64, order="F")
+        _fortrancore.capture_spectra(spectra_src)
+        return spectra_src
+
+    def _capture_weight_buffer(self):
+        expdat = _fortrancore.expdat
+        mspctr = _fortrancore.mspctr
+
+        mxspc = expdat.iform.shape[0]
+        mxsite = mspctr.iscal.shape[0]
+
+        weights_src = np.empty((mxsite, mxspc), dtype=np.float64, order="F")
+        _fortrancore.capture_weights(weights_src)
+        return weights_src
+
+    def _capture_state(self):
+        (
+            ixsp_src,
+            npts_src,
+            sbi_src,
+            sdb_src,
+            nspc,
+            ndatot,
+            nsite,
+        ) = self._capture_layout_buffers()
+
+        spectra_src = self._capture_spectra_buffer()
+        weights_src = self._capture_weight_buffer()
 
         nspc = min(
             nspc,

@@ -751,3 +751,49 @@
 !
       return
       end
+
+!----------------------------------------------------------------------
+!> Provide read-only snapshots of selected fitting state for Python.
+!----------------------------------------------------------------------
+      subroutine capture_layout(ixspo,nptso,sbio,sdbo,nspco,ndtoo,nsiteo)
+      use nlsdim
+      use expdat
+      use parcom
+      implicit none
+      integer ixspo(MXSPC)
+      integer nptso(MXSPC)
+      double precision sbio(MXSPC)
+      double precision sdbo(MXSPC)
+      integer nspco
+      integer ndtoo
+      integer nsiteo
+
+      ixspo = ixsp
+      nptso = npts
+      sbio = sbi
+      sdbo = sdb
+      nspco = nspc
+      ndtoo = ndatot
+      nsiteo = nsite
+
+      end subroutine capture_layout
+
+      subroutine capture_spectra(speco)
+      use nlsdim
+      use mspctr
+      implicit none
+      double precision speco(MXPT,MXSITE)
+
+      speco = spectr
+
+      end subroutine capture_spectra
+
+      subroutine capture_weights(sfaco)
+      use nlsdim
+      use mspctr
+      implicit none
+      double precision sfaco(MXSITE,MXSPC)
+
+      sfaco = sfac
+
+      end subroutine capture_weights

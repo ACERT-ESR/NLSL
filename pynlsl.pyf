@@ -47,6 +47,28 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
+        subroutine capture_layout(ixspo,nptso,sbio,sdbo,nspco,ndtoo,nsiteo) ! in :fortrancore:src/fortran/nlsl.f90
+            use nlsdim
+            use expdat
+            use parcom
+            integer intent(out),dimension(mxspc) :: ixspo
+            integer intent(out),dimension(mxspc) :: nptso
+            double precision intent(out),dimension(mxspc) :: sbio
+            double precision intent(out),dimension(mxspc) :: sdbo
+            integer intent(out) :: nspco
+            integer intent(out) :: ndtoo
+            integer intent(out) :: nsiteo
+        end subroutine capture_layout
+        subroutine capture_spectra(speco) ! in :fortrancore:src/fortran/nlsl.f90
+            use nlsdim
+            use mspctr
+            double precision intent(out),dimension(mxpt,mxsite) :: speco
+        end subroutine capture_spectra
+        subroutine capture_weights(sfaco) ! in :fortrancore:src/fortran/nlsl.f90
+            use nlsdim
+            use mspctr
+            double precision intent(out),dimension(mxsite,mxspc) :: sfaco
+        end subroutine capture_weights
         subroutine lfun(m,n,x,fvec,fjac,ldfjac,iflag) ! in :fortrancore:src/fortran/lfun.f90
             use nlsdim
             use eprprm
@@ -175,7 +197,7 @@ python module fortrancore ! in
             integer, parameter,optional :: mxvar=10
             integer, parameter,optional :: mxcmt=16
             integer, parameter,optional :: mxmts=13
-            integer, parameter,optional,depend(mxsite,mxvar) :: mxjcol=13
+            integer, parameter,optional,depend(mxsite,mxvar,mxspc) :: mxjcol=mxvar+mxsite+mxspc
             integer, parameter,optional :: mxspt=512
         end module nlsdim
         module lmcom ! in :fortrancore:src/fortran/lmcom.f90

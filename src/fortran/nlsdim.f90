@@ -17,7 +17,7 @@
 ! MXPT    Maximum total number of data points
 ! MXVAR   Maximum number of parameters that may be varied
 ! MXJCOL  Maximum number of columns in Jacobian matrix for L-M least
-!         squares (should be MXVAR+MXSITE)
+!         squares (should be MXVAR+MXSITE+MXSPC)
 ! MXTV    Maximum number of variables in "transformed" covariance
 !         matrix
 ! MXCMT   Maximum number of comment lines saved from a datafile
@@ -50,7 +50,7 @@
      #           MXFILE=4,
      #           MXTDG=MXSTEP*MXSITE*MXSPC,
      #           MXTDM=MXSPC*MXSITE,
-     #           MXJCOL=MXVAR+MXSITE,
+     #           MXJCOL=MXVAR+MXSITE+MXSPC,
      #           MXTV=MXJCOL+4*MXSITE,
      #           MXMTS=13
 !
