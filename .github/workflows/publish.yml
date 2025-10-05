@@ -1,0 +1,125 @@
+name: Test, Build, and Publish
+
+permissions:
+  contents: read
+  id-token: write
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.bump.outputs.new_version }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install project for testing
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e . --no-build-isolation
+          pip install pytest
+
+      - name: Run pytest
+        run: pytest
+
+      - name: Determine next version
+        id: bump
+        run: |
+          python - <<'PY' > new_version.txt
+import tomllib
+import pathlib
+
+path = pathlib.Path('pyproject.toml')
+data = tomllib.loads(path.read_text())
+version = data['project']['version']
+parts = version.split('.')
+parts[-1] = str(int(parts[-1]) + 1)
+print('.'.join(parts), end='')
+PY
+          echo "new_version=$(cat new_version.txt)" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: test
+    if: ${{ needs.test.result == 'success' }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Apply version bump
+        run: |
+          python - <<'PY'
+import os
+import pathlib
+import re
+
+new_version = os.environ['NEW_VERSION']
+path = pathlib.Path('pyproject.toml')
+text = path.read_text()
+updated = re.sub(r'(version\s*=\s*")([^"]+)(")', rf"\\1{new_version}\\3", text, count=1)
+path.write_text(updated)
+PY
+        env:
+          NEW_VERSION: ${{ needs.test.outputs.new_version }}
+
+      - name: Install build tooling
+        run: |
+          python -m pip install --upgrade pip
+          pip install cibuildwheel
+
+      - name: Build wheels
+        run: python -m cibuildwheel --output-dir wheelhouse
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  publish:
+    needs:
+      - test
+      - build
+    if: ${{ needs.test.result == 'success' && needs.build.result == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download built wheels
+        uses: actions/download-artifact@v4
+        with:
+          pattern: wheels-*
+          path: dist
+          merge-multiple: true
+
+      # To enable publishing, configure PyPI Trusted Publishing for the "pynlsl" project:
+      #   1. In the PyPI project settings, add a trusted publisher for this repository.
+      #   2. Grant the publisher "workflow" permissions so this workflow can request an OpenID Connect token.
+      #   3. After PyPI confirms the publisher, merges to master will publish automatically once tests pass.
+
+      - name: Publish release to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+
+      - name: Show published version
+        run: echo "Published version ${{ needs.test.outputs.new_version }}"
