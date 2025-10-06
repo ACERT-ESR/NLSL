@@ -41,6 +41,7 @@
       use eprprm
       use mtsdef
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*30 ixname,fname
@@ -69,7 +70,11 @@
          inquire(file=fname(:lth),exist=fexist)
          if (.not.fexist) then
 !                                           *** file not found
-            write(luout,1003) fname(:lth)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1003) fname(:lth)
+               call flush_log_buffer()
+            end if
             if (luout.ne.luttyo) write (luttyo,1003) fname(:lth)
             ierr=-1
             return
@@ -85,11 +90,19 @@
          if (ioerr.ne.0 .or. lthb.gt.maxb) then
             if (ioerr.ne.0) then
 !                                          *** error reading file
-               write(luout,1002) fname(:lth)
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1002) fname(:lth)
+                  call flush_log_buffer()
+               end if
                if (luout.ne.luttyo) write(luttyo,1002) fname(:lth)
             else
-!                                           *** insufficient room 
-               write(luout,1001) fname(:lth)
+!                                           *** insufficient room
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1001) fname(:lth)
+                  call flush_log_buffer()
+               end if
                if (luout.ne.luttyo) write(luttyo,1001) fname(:lth)
             end if
             ierr=-1
@@ -99,7 +112,11 @@
          end if
 !                                  *** error reading file
          if (ioerr.ne.0) then
-            write(luout,1002) fname(:lth)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1002) fname(:lth)
+               call flush_log_buffer()
+            end if
             if (luout.ne.luttyo) write(luttyo,1002) fname(:lth)
             ierr=-1
             return
@@ -119,9 +136,13 @@
      #    mts(NKMX).lt.0 .or.  mts(NMMX).lt.0 .or.
      #    mts(NIPNMX).lt.0 .or. mts(NKMN).gt.mts(NKMX) .or.
      #    mts(NMMN).gt.mts(NMMX)) then
-          write (luout,1004) (mts(i),i=1,NTRC)
-         ierr=-1
-         return
+          if (log_enabled) then
+             call ensure_log_buffer(log_buffer)
+             write(log_buffer,1004) (/(mts(i),i=1,NTRC)/)
+             call flush_log_buffer()
+          end if
+          ierr=-1
+          return
       end if
 !
 ! *** loop over lr ***

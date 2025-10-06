@@ -29,6 +29,7 @@
       use errmsg
       use iterat
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
       use timer
       use rnddbl
 !
@@ -91,15 +92,26 @@
                  rdchsq=chisqr/float(ndatot)
               end if
 !
-              write(luout,1046) cpu
-              write(luout,2036) fnorm,chisqr,rdchsq,corrl(),residx()
+              if (log_enabled) then
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,1046) cpu
+                 call flush_log_buffer()
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2036) fnorm,chisqr,rdchsq,
+     #                               corrl(),residx()
+                 call flush_log_buffer()
+              end if
 !
               if (luout.ne.luttyo) then
                  write(luttyo,1046) cpu
                  write(luttyo,2036) fnorm,chisqr,rdchsq,corrl(),residx()
               end if
            else
-              write (luout,2037)
+              if (log_enabled) then
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2037)
+                 call flush_log_buffer()
+              end if
               if (luout.ne.luttyo) write(luttyo,2037)
            end if
 !
@@ -127,11 +139,17 @@
 !                                         *** MINPACK error return
            convrg = info.ne.0 .and. info .le.3
            if (.not. convrg) then
-              write (luout,2034) minerr(info)
-              write (luout,2037) nfev,cpu 
+              if (log_enabled) then
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2034) minerr(info)
+                 call flush_log_buffer()
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2037) nfev,cpu
+                 call flush_log_buffer()
+              end if
               if (luout.ne.luttyo) then
                  write (luttyo,2034) minerr(info)
-                 write (luttyo,2037) nfev,cpu 
+                 write (luttyo,2037) nfev,cpu
               end if
               if (itrace.ne.0)  write (lutrc,2034) minerr(info)
 !
@@ -147,11 +165,24 @@
                  rdchsq=chisqr/float(ndatot)
               end if
 !
-              write(luout,1000)
-              write(luout,2035) minerr(info),nprm,ndatot
-              write(luout,2037) nfev,cpu 
-              write(luout,2036) fnorm,chisqr,rdchsq,corrl(),residx()
-              write(luout,1000)
+              if (log_enabled) then
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,1000)
+                 call flush_log_buffer()
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2035) minerr(info),nprm,ndatot
+                 call flush_log_buffer()
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2037) nfev,cpu
+                 call flush_log_buffer()
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,2036) fnorm,chisqr,rdchsq,
+     #                               corrl(),residx()
+                 call flush_log_buffer()
+                 call ensure_log_buffer(log_buffer)
+                 write(log_buffer,1000)
+                 call flush_log_buffer()
+              end if
 !
               if (luout.ne.luttyo) then
                  write(luttyo,2035) minerr(info),nprm,ndatot

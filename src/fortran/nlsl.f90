@@ -8,13 +8,15 @@
 !>
 !>
       use stdio
+      use pylog_mod, only: pylog_open, pylog_close, log_enabled, log_buffer,
+     #                      ensure_log_buffer, flush_log_buffer
       use nlsnam
       use symdef
       implicit none
       character(80), intent(in) :: line
       character fileID*30,token*30,scratch*30
       logical fexist
-      integer ioerr,lth
+      integer lth,ioerr
 !######################################################################
 !
          call gettkn(line,token,lth)
@@ -86,7 +88,11 @@
             else
                call ungett(token,lth,line)
                write(luttyo,1060) line
-               if (luout.ne.luttyo) write (luout,1060) line
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1060) line
+                  call flush_log_buffer()
+               end if
             end if
 !
 !----------------------------------------------------------------------
@@ -124,22 +130,17 @@
                write (luttyo,1020)
 !     
             else if (fileID.eq.'END' .or. fileID.eq.'end') then
-               if (luout.eq.luttyo) then
+               if (.not. log_enabled) then
                   write (luttyo,1021)
                else
-                  close(lulog)
-                  luout=luttyo
+                  call pylog_close()
                end if
-!     
+!
             else
                call setfil( fileID )
-               open(lulog,file=lgname(:lthfnm),status='unknown',
-     #              access='sequential',form='formatted',
-     #              iostat=ioerr)
-               if (ioerr.ne.0) then
-                  write (luttyo,1022) ioerr,lgname(:lthfnm)
-               else
-                  luout=lulog
+               call pylog_open(lgname(:lthfnm))
+               if (.not. log_enabled) then
+                  write (luttyo,1022) lgname(:lthfnm)
                end if
             end if
 !
@@ -274,7 +275,7 @@
 !
  1020 format('*** File name must be specified ***'/)
  1021 format('*** Log file is not open ***')
- 1022 format('*** Error',i3,' opening file ',a,' ***')
+ 1022 format('*** Unable to open log file ''',a,''' ***')
  1030 format('*** Error opening or reading file ''',a,''' ***'/)
  1040 format('*** Unknown command : ''',a,''' ***')
  1050 format('*** Cannot open ''',a,''': more than',i2,

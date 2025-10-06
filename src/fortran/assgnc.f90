@@ -21,6 +21,7 @@
       use tridag
       use basis
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -51,7 +52,11 @@
       if (ixsm.eq.0) then
 !                                             *** Illegal index
          if (.not.itoken(token,lth,ibn)) then
-            write(luout,1001) token(:lth)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1001) token(:lth)
+               call flush_log_buffer()
+            end if
             if (luout.ne.luttyo) write(luttyo,1001) token(:lth)
             return
          end if
@@ -60,7 +65,11 @@
       end if
 !                                            *** Index out of range      
       if (ibn.lt.0 .or.ibn.gt.nbas) then
-         write(luout,1004) ibn
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1004) ibn
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write(luttyo,1004) ibn
          return
       end if
@@ -125,6 +134,7 @@
       subroutine getss(line,ixss)
 !
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -167,7 +177,11 @@
          if (ixsm.eq.0) then
             if (.not.itoken(token,lth,ival)) then
 !                                             *** Illegal index
-               write(luout,1001) token(:lth)
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1001) token(:lth)
+                  call flush_log_buffer()
+               end if
                go to 5
             end if
          else

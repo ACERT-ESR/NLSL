@@ -77,6 +77,7 @@
       use errmsg
       use pidef
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !      use prmeqv
       use iterat
       use rnddbl
@@ -138,13 +139,29 @@
                if (ld.gt.0)write (luttyo,1008) dashes(:ld)
             end if
 !
-            if (ld.gt.0)write (luout,1006)  dashes(:ld)
-            if (iwflag.ne.0) then
-               write (luout,1007) (tag(i)(:itrim(tag(i))),i=1,n)
-            else
-               write (luout,1010) (tag(i)(:itrim(tag(i))),i=1,n)
+            if (log_enabled) then
+               if (ld.gt.0) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1006) dashes(:ld)
+                  call flush_log_buffer()
+               end if
+               if (iwflag.ne.0) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1007)
+     #                 (/(tag(i)(:itrim(tag(i))),i=1,n)/)
+                  call flush_log_buffer()
+               else
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1010)
+     #                 (/(tag(i)(:itrim(tag(i))),i=1,n)/)
+                  call flush_log_buffer()
+               end if
+               if (ld.gt.0) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1008) dashes(:ld)
+                  call flush_log_buffer()
+               end if
             end if
-            if (ld.gt.0)write (luout,1008)  dashes(:ld)
          end if
 !
          if (ishglb.ne.0 .and. (nshift.eq.0 .or.iter.le.nshift) ) then
@@ -155,12 +172,22 @@
 !
          if (iwflag.ne.0) then
             rdchsq=fnorm*fnorm/float(m-n)
-            write (luout,1009) shftnd,iter,rdchsq,(x(i),i=1,n)
-            if (luout.ne.luttyo) 
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1009) shftnd,iter,rdchsq,
+     #                             (/(x(i),i=1,n)/)
+               call flush_log_buffer()
+            end if
+            if (luout.ne.luttyo)
      #        write (luttyo,1009) shftnd,iter,rdchsq,(x(i),i=1,n)
-         else
-            write (luout,1009) shftnd,iter,fnorm,(x(i),i=1,n)
-            if (luout.ne.luttyo) 
+        else
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1009) shftnd,iter,fnorm,
+     #                             (/(x(i),i=1,n)/)
+               call flush_log_buffer()
+            end if
+            if (luout.ne.luttyo)
      #        write (luttyo,1009) shftnd,iter,fnorm,(x(i),i=1,n)
          end if
 !
@@ -562,12 +589,22 @@
 
             if (iwflag.ne.0) then
                rdchsq=fnorm*fnorm/float(m-n)
-               write (luout,1009) 'T',iter,rdchsq,(x(i),i=1,n)
-               if (luout.ne.luttyo) 
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1009) 'T',iter,rdchsq,
+     #                                (/(x(i),i=1,n)/)
+                  call flush_log_buffer()
+               end if
+               if (luout.ne.luttyo)
      #           write (luttyo,1009) 'T',iter,rdchsq,(x(i),i=1,n)
             else
-               write (luout,1009) 'T',iter,fnorm,(x(i),i=1,n)
-               if (luout.ne.luttyo) 
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1009) 'T',iter,fnorm,
+     #                                (/(x(i),i=1,n)/)
+                  call flush_log_buffer()
+               end if
+               if (luout.ne.luttyo)
      #           write (luttyo,1009) 'T',iter,fnorm,(x(i),i=1,n)
             end if
 
@@ -582,7 +619,11 @@
 !
          if (ld.gt.0) then
            write (luttyo,1008) dashes(:ld)
-           if (luout.ne.luttyo) write (luout,1008) dashes(:ld)
+           if (log_enabled) then
+              call ensure_log_buffer(log_buffer)
+              write(log_buffer,1008) dashes(:ld)
+              call flush_log_buffer()
+           end if
          end if
       end if
 
@@ -615,6 +656,7 @@
 !
       use stdio
       use errmsg
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       integer ierr,iflag,isite,ispec
@@ -628,7 +670,12 @@
 !      ------------------------------------
       if (ierr.lt.FATAL) then
          if (warn) then
-            write (luout,1000) 'Warning',isite,ispec,eprerr(ierr)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1000) 'Warning',isite,ispec,
+     #                            eprerr(ierr)
+               call flush_log_buffer()
+            end if
             if (luout.ne.luttyo) write (luttyo,1000) 'Warning',
      #                                   isite,ispec,eprerr(ierr)
             warn=.false.
@@ -640,7 +687,12 @@
       else if (ierr.ge.FATAL .and. ierr.ne.MTXHLT
      #        .and. ierr.ne.CGHLT) then 
                
-         write (luout,1000) 'Fatal err',isite,ispec,eprerr(ierr)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1000) 'Fatal err',isite,ispec,
+     #                         eprerr(ierr)
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) then
             write (luttyo,1000) 'Fatal err',isite,ispec,eprerr(ierr)
          end if
@@ -651,7 +703,11 @@
 !        Other (user halt)
 !        ------------------------------
       else
-         write (luout,1001) eprerr(ierr)
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1001) eprerr(ierr)
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1001) eprerr(ierr)
          hltchk=.true.
          iflag=-1

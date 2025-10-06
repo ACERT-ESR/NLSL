@@ -20,6 +20,7 @@
       use iterat
       use rnddbl
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       integer lu
@@ -80,7 +81,12 @@
       line=' '
       mrgn=35-5*njcol
       if (mrgn.lt.1) mrgn=1
-      write (lu,2000) 
+      if (log_enabled) then
+         call ensure_log_buffer(log_buffer)
+         write(log_buffer,2000)
+         call flush_log_buffer()
+      end if
+      write (lu,2000)
       write(line(mrgn:),2002) (tag(i),i=1,njcol)
       write(lu,2001) line(:10*(njcol+1)+mrgn)
 !
@@ -107,27 +113,62 @@
             k=10*(j-1)+mrgn
             write(line(k:),2003) corr(i,j)
          end do
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,2001) line(:10*(njcol+1)+mrgn)
+            call flush_log_buffer()
+         end if
          write (lu,2001) line(:10*(njcol+1)+mrgn)
       end do
 !     
 !    --------------------------------
 !     output final fit of parameters 
 !    --------------------------------
+      if (log_enabled) then
+         call ensure_log_buffer(log_buffer)
+         write(log_buffer,1000)
+         call flush_log_buffer()
+      end if
       write (lu,1000)
       if (iwflag.ne.0) then
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,2004) 'Chi'
+            call flush_log_buffer()
+         end if
          write (lu,2004) 'Chi'
       else
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,2004) 'T'
+            call flush_log_buffer()
+         end if
          write(lu,2004) 'T'
       end if
 !
+      if (log_enabled) then
+         call ensure_log_buffer(log_buffer)
+         write(log_buffer,2007) (tag(i)(:itrim(tag(i))),x(i),xerr(i),i=1,njcol)
+         call flush_log_buffer()
+      end if
       write (lu,2007) (tag(i)(:itrim(tag(i))),x(i),xerr(i),i=1,njcol)
 !
 !                              --- weighted residual fit ---
       if (iwflag.ne.0) then
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,2008) confid,delchi1,ch2bnd,njcol,chnbnd
+            call flush_log_buffer()
+         end if
          write (lu,2008) confid,delchi1,ch2bnd,njcol,chnbnd
 !
 !                              --- weighted residual fit ---
       else
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,2009) confid,tbound,f2bnd,njcol,fnbnd
+            call flush_log_buffer()
+         end if
          write (lu,2009) confid,tbound,f2bnd,njcol,fnbnd
       end if
 !
@@ -143,10 +184,21 @@
 !      
          if (potflg) then
             call ordrpr( fparm(IC20,isi),s(1,isi) )
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1060) isi
+               call flush_log_buffer()
+            end if
             write (lu,1060) isi
             do j=0,4
-               if (abs(fparm(IC20+j,isi)).gt.RNDOFF) 
-     #              write (lu,1070) parnam(IC20+j)(2:3),s(j+1,isi)
+               if (abs(fparm(IC20+j,isi)).gt.RNDOFF) then
+                  if (log_enabled) then
+                     call ensure_log_buffer(log_buffer)
+                     write(log_buffer,1070) parnam(IC20+j)(2:3),s(j+1,isi)
+                     call flush_log_buffer()
+                  end if
+                  write (lu,1070) parnam(IC20+j)(2:3),s(j+1,isi)
+               end if
             end do
 
          end if

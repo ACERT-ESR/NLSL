@@ -16,6 +16,7 @@
       use parcom
       use lpnam
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
       use rnddbl
       use symdef
       use mtsdef
@@ -50,7 +51,11 @@
          open(ludisk,file=fileID(:lth),status='unknown',
      #        access='sequential',form='formatted',iostat=ioerr)
          if (ioerr.ne.0) then
-            write (luout,3000) fileID(:lth)
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,3000) fileID(:lth)
+               call flush_log_buffer()
+            end if
             return
          end if
          lu=ludisk

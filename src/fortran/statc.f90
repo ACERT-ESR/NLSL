@@ -24,6 +24,7 @@
       use parcom
       use lmcom
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -57,7 +58,11 @@
          do i=1,NKEYWD
             if (token(:lth).eq.keywrd(i)(:lth)) go to 7
          end do
-         write (luout,1000) token(:itrim(token))
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1000) token(:itrim(token))
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1000) token(:itrim(token))
          go to 5
 !

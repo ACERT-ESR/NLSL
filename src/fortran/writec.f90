@@ -16,6 +16,7 @@
       use lmcom
       use mspctr
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character*80 line
@@ -29,7 +30,11 @@
          do i = nspc+1,nser
             call gettkn( line, oname, lth )
             if (lth.eq.0) then
-               write(luout,1000) i
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1000) i
+                  call flush_log_buffer()
+               end if
                return
             end if
 !
@@ -54,7 +59,11 @@
       end if
       return
 !
- 10   write (luout,1001) oname(:lth)
+ 10   if (log_enabled) then
+         call ensure_log_buffer(log_buffer)
+         write(log_buffer,1001) oname(:lth)
+         call flush_log_buffer()
+      end if
       if (luout.ne.luttyo) write (luttyo,1001) oname(:lth)
       close(ludisk)
       return

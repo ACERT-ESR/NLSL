@@ -36,6 +36,7 @@
       use errmsg
       use lpnam
       use stdio
+      use pylog_mod, only: log_enabled, log_buffer, ensure_log_buffer, flush_log_buffer
 !
       implicit none
       character line*80
@@ -102,8 +103,12 @@
 !
          do i=2,nsite
             if (getprm(ixp1p,i).ne.getprm(ixp1p,1)) then
-               write (luout,1004) prmid(:itrim(prmID))
-               if (luout.ne.luttyo) 
+               if (log_enabled) then
+                  call ensure_log_buffer(log_buffer)
+                  write(log_buffer,1004) prmid(:itrim(prmID))
+                  call flush_log_buffer()
+               end if
+               if (luout.ne.luttyo)
      #            write (luttyo,1004) prmid(:itrim(prmID))
                return
             end if
@@ -178,7 +183,11 @@
          call catchc( hltfit )
          warn=.true.
 !
-         write (luout,1009) prmID(:itrim(prmID))
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1009) prmID(:itrim(prmID))
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1009) prmID(:itrim(prmID))
 !
          bflag=1
@@ -203,7 +212,11 @@
 !        Use Brent's method for minimization 
 !        -----------------------------------
 !            
-         write (luout,1010) ax,cx
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,1010) ax,cx
+            call flush_log_buffer()
+         end if
          if (luout.ne.luttyo) write (luttyo,1010) ax,cx
          bflag=1
          iter=0
@@ -216,14 +229,22 @@
 !           User-terminated:report best value
 !           ---------------------------------
             write (luttyo,1008) prmID,pmin
-            if (luout.ne.luttyo) write (luout,1008) prmID,pmin
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1008) prmID,pmin
+               call flush_log_buffer()
+            end if
          else
 !
 !           ------------------------
 !           Minimum found: report it   
 !           ------------------------
             write (luttyo,1006) prmID,pmin
-            if (luout.ne.luttyo) write (luout,1006) prmID,pmin
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,1006) prmID,pmin
+               call flush_log_buffer()
+            end if
          end if
 !
          fnorm=fmin
@@ -238,8 +259,19 @@
             rdchsq=chisqr/float(ndatot)
          end if
 !
-         write(luout,2036) fnorm,chisqr,rdchsq,corrl(),residx()
-         if (iwflag.ne.0) write (luout,2038) qfit
+         if (log_enabled) then
+            call ensure_log_buffer(log_buffer)
+            write(log_buffer,2036) fnorm,chisqr,rdchsq,corrl(),
+     #                      residx()
+            call flush_log_buffer()
+         end if
+         if (iwflag.ne.0) then
+            if (log_enabled) then
+               call ensure_log_buffer(log_buffer)
+               write(log_buffer,2038) qfit
+               call flush_log_buffer()
+            end if
+         end if
 ! 
          if (luout.ne.luttyo)
      #         write(luttyo,2036) fnorm,chisqr,rdchsq,corrl(),
