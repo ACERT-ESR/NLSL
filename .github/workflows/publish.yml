@@ -68,16 +68,16 @@ jobs:
       - name: Apply version bump
         run: |
           python - <<'PY'
-import os
-import pathlib
-import re
+          import os
+          import pathlib
+          import re
 
-new_version = os.environ['NEW_VERSION']
-path = pathlib.Path('pyproject.toml')
-text = path.read_text()
-updated = re.sub(r'(version\s*=\s*")([^"]+)(")', rf"\\1{new_version}\\3", text, count=1)
-path.write_text(updated)
-PY
+          new_version = os.environ['NEW_VERSION']
+          path = pathlib.Path('pyproject.toml')
+          text = path.read_text()
+          updated = re.sub(r'(version\s*=\s*")([^"]+)(")', rf"\\1{new_version}\\3", text, count=1)
+          path.write_text(updated)
+          PY
         env:
           NEW_VERSION: ${{ needs.test.outputs.new_version }}
 
