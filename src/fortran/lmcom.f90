@@ -15,11 +15,12 @@
       implicit none
 !
       double precision, save ::
-     #                 fjac(MXPT,MXJCOL), fvec(MXPT), x(MXJCOL),
+     #                 fjac(MXPT,MXJCOL), x(MXJCOL),
      #                 diag(MXJCOL), qtf(MXJCOL), corr(MXJCOL,MXJCOL),
      #                 work1(MXJCOL), work2(MXJCOL), work3(MXJCOL),
      #                 work4(MXPT), gnvec(MXJCOL), gradf(MXJCOL),
      #                 tcov(MXTV,MXTV)
+      double precision, target, save :: fvec(MXPT)
 !
       integer, save :: ipvt(MXJCOL), nprint, lmflag
 !

@@ -191,7 +191,7 @@ python module fortrancore ! in
             integer, save, intent(inout) :: nprint
             double precision, save,dimension((mxpt),(mxjcol)) :: fjac
             double precision, save,dimension((mxjcol)) :: x
-            double precision, save,dimension((mxpt)) :: fvec
+            double precision, save,target,dimension((mxpt)) :: fvec
             double precision, save,dimension((mxjcol)) :: diag
             character*10, save,dimension(nflmpr) :: flmprm_name
             character*10, save,dimension(nilmpr) :: ilmprm_name
@@ -205,6 +205,7 @@ python module fortrancore ! in
             double precision, save,dimension(mxvar) :: prmin
             integer, save,target,dimension(niprm,mxsite) :: iparm
             integer, save,dimension(nfprm,mxsite) :: ixx
+            integer, save :: nser
             integer, save :: nprm
             integer, pointer, save, intent(inout) :: pnsite !f2py name: nsite
             logical, save :: mtxclc
@@ -294,7 +295,7 @@ python module fortrancore ! in
         end module eprprm
         module mspctr ! in :fortrancore:src/fortran/mspctr.f90
             use nlsdim
-            integer, save,dimension((mxsite)) :: iscal
+            integer, save,target,dimension((mxsite)) :: iscal
             double precision, save,target,dimension((mxsite),(mxspc)) :: sfac
             double precision, save,target,dimension((mxpt),(mxsite)) :: spectr
             integer, save :: iscglb
