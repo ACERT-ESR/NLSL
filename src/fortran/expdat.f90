@@ -37,7 +37,7 @@
       use nlsdim
       implicit none
 !
-!     Keep declarations separate so f2py exports each symbol.
+!     Keep declarations separate b/c f2py doesn't support # continuation
       double precision, target, save :: data(MXPT)
       double precision, target, save :: spltmp(MXINP,3)
       double precision, target, save :: rmsn(MXSPC)

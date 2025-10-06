@@ -175,7 +175,7 @@ python module fortrancore ! in
             integer, parameter,optional :: mxvar=10
             integer, parameter,optional :: mxcmt=16
             integer, parameter,optional :: mxmts=13
-            integer, parameter,optional,depend(mxsite,mxvar) :: mxjcol=13
+            integer, parameter,optional,depend(mxsite,mxvar,mxspc) :: mxjcol=mxvar+mxsite+mxspc
             integer, parameter,optional :: mxspt=512
         end module nlsdim
         module lmcom ! in :fortrancore:src/fortran/lmcom.f90
@@ -295,11 +295,11 @@ python module fortrancore ! in
         end module eprprm
         module mspctr ! in :fortrancore:src/fortran/mspctr.f90
             use nlsdim
-            integer, save,target,dimension((mxsite)),depend(nsite) :: iscal
-            double precision, save,target,dimension((mxsite),(mxspc)),depend(nsite) :: sfac
-            double precision, save,target,dimension((mxpt),(mxsite)),depend(nsite) :: spectr
+            integer, save,target,dimension((mxsite)) :: iscal
+            double precision, save,target,dimension((mxsite),(mxspc)) :: sfac
+            double precision, save,target,dimension((mxpt),(mxsite)) :: spectr
             integer, save :: iscglb
-            double precision, save,target,dimension((mxpt),(mxsite)),depend(nsite) :: wspec
+            double precision, save,target,dimension((mxpt),(mxsite)) :: wspec
         end module mspctr
     end interface 
 end python module fortrancore
