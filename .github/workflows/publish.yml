@@ -39,19 +39,20 @@ jobs:
           cache: 'pip'
           cache-dependency-path: pyproject.toml
 
-      - name: Install system deps (Fortran/BLAS/LAPACK/Meson)
+      - name: Install requirements
         run: |
           sudo apt-get update
-          sudo apt-get install -y gfortran libopenblas-dev liblapack-dev build-essential python3-dev meson ninja-build pkg-config
-
-      - name: Install Python deps
-        run: |
+          sudo apt-get install -y gfortran libopenblas-dev liblapack-dev build-essential python3-dev
+          sudo apt-get install -y meson ninja-build pkg-config
           python -m pip install --upgrade pip
+          pip install meson-python numpy pytest
+
+      - name: Install project for testing
+        run: |
           pip install -e . --no-build-isolation
-          pip install numpy pytest meson-python
 
       - name: Run pytest
-        run: pytest -q
+        run: pytest
 
       - name: Determine next version
         id: determine
