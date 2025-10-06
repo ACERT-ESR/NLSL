@@ -27,6 +27,7 @@ env:
   # Tell Meson/meson-python to use MinGW toolchain on Windows.
   # PATH is amended by the Windows job steps; here we just point compilers.
   CIBW_ENVIRONMENT_WINDOWS: "CC=gcc CXX=g++ FC=gfortran"
+  MACOSX_DEPLOYMENT_TARGET: '15.0'
 
 jobs:
   test:
