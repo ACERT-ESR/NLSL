@@ -207,77 +207,28 @@ class nlsl(object):
             normalize=normalize_active,
         )
 
-        nspc = int(_fortrancore.expdat.nspc)
-        if nspc >= nser:
-            nspc = 0
-            _fortrancore.expdat.ndatot = 0
-
-        nspc += 1
-        if nspc > mxspc:
-            raise ValueError("Maximum number of spectra exceeded")
-        _fortrancore.expdat.nspc = nspc
-        idx = nspc - 1
-
-        ix0 = int(_fortrancore.expdat.ndatot)
-        n_points = int(spectrum.y.size)
-        if ix0 + n_points > mxpt:
-            raise ValueError("Insufficient storage for spectrum")
-
-        _fortrancore.expdat.ishft[idx] = 1 if shift else 0
-        _fortrancore.expdat.idrv[idx] = mode
-        _fortrancore.expdat.nrmlz[idx] = 1 if normalize_active else 0
-        _fortrancore.expdat.npts[idx] = n_points
-        _fortrancore.expdat.ixsp[idx] = ix0 + 1
-        _fortrancore.expdat.sbi[idx] = spectrum.start
-        _fortrancore.expdat.sdb[idx] = spectrum.step
-        _fortrancore.expdat.srng[idx] = spectrum.step * max(n_points - 1, 0)
-        _fortrancore.expdat.shft[idx] = 0.0
-        _fortrancore.expdat.tmpshft[idx] = 0.0
-        _fortrancore.expdat.slb[idx] = 0.0
-        _fortrancore.expdat.sb0[idx] = 0.0
-        _fortrancore.expdat.sphs[idx] = 0.0
-        _fortrancore.expdat.spsi[idx] = 0.0
+        idx, data_slice = self.generate_coordinates(
+            int(spectrum.y.size),
+            start=spectrum.start,
+            step=spectrum.step,
+            derivative_mode=mode,
+            baseline_points=int(bc_points),
+            normalize=normalize_active,
+            nspline=requested_points,
+            shift=shift,
+            label=base_name,
+        )
 
         eps = float(np.finfo(float).eps)
         _fortrancore.expdat.rmsn[idx] = (
             spectrum.noise if spectrum.noise > eps else 1.0
         )
 
-        _fortrancore.expdat.iform[idx] = 0
-        _fortrancore.expdat.ibase[idx] = int(bc_points)
-        power = 1
-        while power < n_points:
-            power *= 2
-        _fortrancore.expdat.nft[idx] = power
-
-        _fortrancore.expdat.data[ix0 : ix0 + n_points] = spectrum.y
-        _fortrancore.expdat.ndatot = ix0 + n_points
-
-        _fortrancore.lmcom.fvec[ix0 : ix0 + n_points] = spectrum.y
-        if hasattr(_fortrancore.mspctr, "spectr"):
-            _fortrancore.mspctr.spectr[ix0 : ix0 + n_points, :] = 0.0
-        if hasattr(_fortrancore.mspctr, "wspec"):
-            _fortrancore.mspctr.wspec[ix0 : ix0 + n_points, :] = 0.0
-        if hasattr(_fortrancore.mspctr, "sfac"):
-            _fortrancore.mspctr.sfac[:, idx] = 1.0
-
-        label = base_name.encode("ascii", "ignore")[:30]
-        _fortrancore.expdat.dataid[idx] = label.ljust(30, b" ")
-
-        trimmed_name = base_name.strip()
-        window_label = f"{nspc:2d}: {trimmed_name}"[:19] + "\0"
-        _fortrancore.expdat.wndoid[idx] = (
-            window_label.encode("ascii", "ignore").ljust(20, b" ")
-        )
+        _fortrancore.expdat.data[data_slice] = spectrum.y
+        _fortrancore.lmcom.fvec[data_slice] = spectrum.y
 
         if shift:
             _fortrancore.expdat.ishglb = 1
-        _fortrancore.expdat.shftflg = 1 if shift else 0
-        _fortrancore.expdat.normflg = 1 if normalize_active else 0
-        _fortrancore.expdat.bcmode = int(bc_points)
-        _fortrancore.expdat.drmode = mode
-        _fortrancore.expdat.nspline = requested_points
-        _fortrancore.expdat.inform = 0
 
     # -- mapping protocol -------------------------------------------------
 
@@ -379,6 +330,140 @@ class nlsl(object):
         if self._last_weights is None:
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_weights
+
+    def generate_coordinates(
+        self,
+        points: int,
+        *,
+        start: float,
+        step: float,
+        derivative_mode: int,
+        baseline_points: int,
+        normalize: bool,
+        nspline: int,
+        shift: bool = False,
+        label: str | None = None,
+        reset: bool = False,
+    ) -> tuple[int, slice]:
+        """Initialise the Fortran buffers for a uniformly spaced spectrum.
+
+        Parameters mirror the coordinate bookkeeping that
+        :meth:`load_data` performs after processing an experimental trace.
+        The method allocates a fresh spectrum slot, configures the shared
+        ``expdat`` metadata, and clears the backing work arrays without
+        copying any intensity values.  It returns the spectrum index together
+        with the slice into the flattened intensity arrays so callers may
+        populate them manually.
+
+        The *reset* flag mirrors the behaviour of the legacy ``datac``
+        command: when ``True`` the spectrum counter and accumulated point
+        count are cleared before initialising the new slot.  This is useful
+        when synthesising spectra without loading any measured data first.
+        """
+
+        if points <= 0:
+            raise ValueError("points must be positive")
+
+        core = _fortrancore
+
+        mxpt = core.expdat.data.shape[0]
+        mxspc = core.expdat.nft.shape[0]
+        mxspt = mxpt // max(mxspc, 1)
+
+        if points > mxspt:
+            raise ValueError("insufficient storage for spectrum")
+
+        nspline = int(nspline)
+        if nspline > 0:
+            nspline = max(4, min(nspline, mxspt))
+
+        if reset:
+            core.expdat.nspc = 0
+            core.expdat.ndatot = 0
+
+        nspc = int(core.expdat.nspc)
+
+        nser = max(0, int(getattr(core.parcom, "nser", 0)))
+        if nspc >= nser:
+            nspc = 0
+            core.expdat.ndatot = 0
+
+        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
+
+        idx = nspc
+        ix0 = int(core.expdat.ndatot)
+
+        if idx >= mxspc:
+            raise ValueError("Maximum number of spectra exceeded")
+        if ix0 + points > mxpt:
+            raise ValueError("insufficient storage for spectrum")
+
+        core.expdat.nspc = idx + 1
+        core.expdat.ixsp[idx] = ix0 + 1
+        core.expdat.npts[idx] = points
+        core.expdat.sbi[idx] = float(start)
+        core.expdat.sdb[idx] = float(step)
+        core.expdat.srng[idx] = float(step) * max(points - 1, 0)
+        core.expdat.ishft[idx] = 1 if shift else 0
+        core.expdat.idrv[idx] = int(derivative_mode)
+        core.expdat.nrmlz[idx] = 1 if normalize_active else 0
+        core.expdat.shft[idx] = 0.0
+        core.expdat.tmpshft[idx] = 0.0
+        core.expdat.slb[idx] = 0.0
+        core.expdat.sb0[idx] = 0.0
+        core.expdat.sphs[idx] = 0.0
+        core.expdat.spsi[idx] = 0.0
+
+        core.expdat.rmsn[idx] = 1.0
+
+        core.expdat.iform[idx] = 0
+        core.expdat.ibase[idx] = int(baseline_points)
+
+        power = 1
+        while power < points:
+            power *= 2
+        core.expdat.nft[idx] = power
+
+        data_slice = slice(ix0, ix0 + points)
+
+        core.expdat.data[data_slice] = 0.0
+        core.lmcom.fvec[data_slice] = 0.0
+
+        if hasattr(core.mspctr, "spectr"):
+            spectr = core.mspctr.spectr
+            row_stop = min(ix0 + points, spectr.shape[0])
+            spectr[ix0:row_stop, :] = 0.0
+        if hasattr(core.mspctr, "wspec"):
+            wspec = core.mspctr.wspec
+            row_stop = min(ix0 + points, wspec.shape[0])
+            wspec[ix0:row_stop, :] = 0.0
+        if hasattr(core.mspctr, "sfac"):
+            sfac = core.mspctr.sfac
+            if idx >= sfac.shape[1]:
+                raise ValueError("Maximum number of spectra exceeded")
+            sfac[:, idx] = 1.0
+
+        core.expdat.shftflg = 1 if shift else 0
+        core.expdat.normflg = 1 if normalize_active else 0
+        core.expdat.bcmode = int(baseline_points)
+        core.expdat.drmode = int(derivative_mode)
+        core.expdat.nspline = nspline
+        core.expdat.inform = 0
+
+        if label is None:
+            label = "synthetic"
+        encoded = label.encode("ascii", "ignore")[:30]
+        core.expdat.dataid[idx] = encoded.ljust(30, b" ")
+
+        trimmed = label.strip()
+        window_label = f"{idx + 1:2d}: {trimmed}"[:19] + "\0"
+        core.expdat.wndoid[idx] = (
+            window_label.encode("ascii", "ignore").ljust(20, b" ")
+        )
+
+        core.expdat.ndatot = ix0 + points
+
+        return idx, data_slice
 
     def _capture_state(self):
         nspc = int(_fortrancore.expdat.nspc)
