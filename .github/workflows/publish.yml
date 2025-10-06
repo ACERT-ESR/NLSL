@@ -1,7 +1,7 @@
 name: Test, Build, and Publish
 
 permissions:
-  contents: read
+  contents: write
   id-token: write
 
 on:
@@ -13,7 +13,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     outputs:
-      new_version: ${{ steps.bump.outputs.new_version }}
+      new_version: ${{ steps.determine.outputs.new_version }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
@@ -39,32 +39,34 @@ jobs:
         run: pytest
 
       - name: Determine next version
-        id: bump
+        id: determine
         run: |
-          python - <<'PY' > new_version.txt
+          new_version=$(python - <<'PY'
           import tomllib
           import pathlib
-          import os
 
           path = pathlib.Path('pyproject.toml')
           data = tomllib.loads(path.read_text())
           version = data['project']['version']
           parts = version.split('.')
           parts[-1] = str(int(parts[-1]) + 1)
-          os.environ["new_version_number"] = '.'.join(parts)
+          print('.'.join(parts))
           PY
-          echo "new_version=$new_version_number" >> "$GITHUB_OUTPUT"
+          )
+          echo "new_version=$new_version" >> "$GITHUB_OUTPUT"
 
-  build:
+  version_bump:
     needs: test
     if: ${{ needs.test.result == 'success' }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
+    outputs:
+      new_version: ${{ steps.output.outputs.new_version }}
     steps:
       - name: Check out source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: master
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -81,11 +83,59 @@ jobs:
           new_version = os.environ['NEW_VERSION']
           path = pathlib.Path('pyproject.toml')
           text = path.read_text()
-          updated = re.sub(r'(version\s*=\s*")([^"]+)(")', rf"\\1{new_version}\\3", text, count=1)
+          updated = re.sub(
+              r'(version\s*=\s*")([^"]+)(")',
+              lambda m: f"{m.group(1)}{new_version}{m.group(3)}",
+              text,
+              count=1,
+          )
           path.write_text(updated)
           PY
         env:
           NEW_VERSION: ${{ needs.test.outputs.new_version }}
+
+      - name: Configure git user
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+
+      - name: Commit version bump
+        env:
+          NEW_VERSION: ${{ needs.test.outputs.new_version }}
+        run: |
+          git pull --ff-only origin master
+          git add pyproject.toml
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+            exit 0
+          fi
+          git commit -m "Bump version to ${NEW_VERSION}"
+          git push origin HEAD:master
+
+      - name: Expose version output
+        id: output
+        env:
+          NEW_VERSION: ${{ needs.test.outputs.new_version }}
+        run: |
+          echo "new_version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: version_bump
+    if: ${{ needs.version_bump.result == 'success' }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
       - name: Install build tooling
         run: |
@@ -103,9 +153,9 @@ jobs:
 
   publish:
     needs:
-      - test
+      - version_bump
       - build
-    if: ${{ needs.test.result == 'success' && needs.build.result == 'success' }}
+    if: ${{ needs.version_bump.result == 'success' && needs.build.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -128,4 +178,4 @@ jobs:
           password: ${{ secrets.PYPI_API_TOKEN }}
 
       - name: Show published version
-        run: echo "Published version ${{ needs.test.outputs.new_version }}"
+        run: echo "Published version ${{ needs.version_bump.outputs.new_version }}"
