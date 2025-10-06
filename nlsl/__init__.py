@@ -125,20 +125,47 @@ class nlsl(object):
     @property
     def current_spectrum(self):
         """Evaluate the current spectral model without running a full fit."""
-        ndatot = int(_fortrancore.expdat.ndatot)
-        nspc = int(_fortrancore.expdat.nspc)
-        if ndatot <= 0 or nspc <= 0:
-            raise RuntimeError("no spectra have been evaluated yet")
+        expdat = _fortrancore.expdat
+        nspc = int(expdat.nspc)
+        if nspc <= 0:
+            nspc = 1
+            expdat.nspc = nspc
 
-        nprm = int(_fortrancore.parcom.nprm)
-        x_data = _fortrancore.lmcom.x
-        x_view = x_data[:nprm]
+        ndatot = int(expdat.ndatot)
+        if ndatot <= 0:
+            npts = np.array(expdat.npts[:nspc], dtype=int)
+            if np.all(npts <= 0):
+                try:
+                    idx = self._iepr_names.index("nfield")
+                except ValueError:
+                    idx = None
+                if idx is not None:
+                    npts = np.array(self._iparm[idx, :nspc], dtype=int)
+            if npts.size == 0 or np.all(npts <= 0):
+                raise RuntimeError("no spectra have been evaluated yet")
+            for spec_idx in range(nspc):
+                count = int(npts[spec_idx] if spec_idx < npts.size else npts[0])
+                if count <= 0:
+                    count = int(npts[0])
+                expdat.npts[spec_idx] = count
+            ndatot = int(np.sum(expdat.npts[:nspc]))
+            if ndatot <= 0:
+                raise RuntimeError("no spectra have been evaluated yet")
+            expdat.ndatot = ndatot
+            if np.any(expdat.ixsp[:nspc] <= 0):
+                expdat.ixsp[:nspc] = np.arange(1, nspc + 1)
+
+        nprm = int(np.count_nonzero(_fortrancore.parcom.ixx))
         if nprm > 0:
+            x_view = np.zeros(nprm, dtype=float)
             _fortrancore.xpack(x_view, nprm)
+        else:
+            x_view = np.empty(0, dtype=float)
 
         _fortrancore.iterat.iter = 1
-        fjac_view = _fortrancore.lmcom.fjac
-        fvec_view = _fortrancore.lmcom.fvec[:ndatot]
+        fvec_view = np.zeros(ndatot, dtype=float)
+        jac_cols = 17
+        fjac_view = np.zeros((ndatot, jac_cols), dtype=float)
         ldfjac = fjac_view.shape[0]
         _fortrancore.lfun(
             x_view,
