@@ -9,7 +9,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "acert-nlsl"
-version = "0.1.0.5"
+version = "0.1.0.2"
 description = "the ACERT NLSL package, now wrapped up in python!"
 readme = "README.md"
 license = {file = "LICENSE.md"}
