@@ -1,138 +1,104 @@
-"""Plot the sampl4 multi-component model without running a fit.
+"""Reproduce the ``sampl4`` runfile entirely from Python."""
 
-This script mirrors the two-component ``sampl4.run`` example but skips the
-least-squares optimisation entirely.  The optimal parameters reported for run 4
-are copied into ``OPTIMAL_PARAMETERS`` and applied directly, so the Fortran core
-only has to evaluate a single spectrum.
-
-Experimental data are loaded purely for plotting via :mod:`nlsl.data` helper
-functions; the measurements are *not* registered with the legacy Fortran
-extension.  Instead we call :meth:`nlsl.nlsl.generate_coordinates` so that
-:meth:`nlsl.nlsl.current_spectrum` produces the calculated components on the
-same field axis.  This highlights how to generate the summed spectrum and the
-individual site contributions using a fixed, known-good parameter set.
-"""
-
-from pathlib import Path
-
-import matplotlib.pyplot as plt
 import numpy as np
+from pathlib import Path
+import matplotlib.pyplot as plt
 
 import nlsl
-from nlsl.data import process_spectrum
 
-# Final parameters taken from the converged ``sampl4`` fit reported in the run
-# 4 log.  Values are copied verbatim from the ``items()`` dump so the simulated
-# trace matches the published solution.
-OPTIMAL_PARAMETERS = {
+NSPLINE_POINTS = 200
+BASELINE_EDGE_POINTS = 20
+DERIVATIVE_MODE = 1
+
+# These entries mirror the manual ``let`` statements in ``sampl4.run`` and supply
+# the same initial guesses for the fit.
+INITIAL_PARAMETERS = {
     "nsite": 2,
-    "phase": 0.0,
-    "gib0": 1.9962757195220067,
-    "gib2": 0.0,
-    "wxx": 0.0,
-    "wyy": 0.0,
-    "wzz": 0.0,
+    "in2": 2,
     "gxx": 2.0089,
     "gyy": 2.0063,
     "gzz": 2.0021,
     "axx": 5.0,
     "ayy": 5.0,
     "azz": 33.0,
-    "rx": np.array([7.14177897, 7.8396974]),
-    "ry": 0.0,
-    "rz": 0.0,
-    "pml": 0.0,
-    "pmxy": 0.0,
-    "pmzz": 0.0,
-    "djf": 0.0,
-    "djfprp": 0.0,
-    "oss": 0.0,
-    "psi": 0.0,
-    "alphad": 0.0,
-    "betad": 0.0,
-    "gammad": 0.0,
-    "alpham": 0.0,
-    "betam": 0.0,
-    "gammam": 0.0,
-    "c20": 0.0,
-    "c22": 0.0,
-    "c40": 0.0,
-    "c42": 0.0,
-    "c44": 0.0,
-    "lb": 0.0,
-    "dc20": 0.0,
-    "b0": np.array([3400.50251256, 0.0]),
-    "gamman": 0.0,
-    "cgtol": 0.001,
-    "shiftr": 0.001,
-    "shifti": 0.0,
-    "range": np.array([100.0, 0.0]),
-    "in2": 2,
-    "ipdf": 0,
-    "ist": 0,
-    "ml": 0,
-    "mxy": 0,
-    "mzz": 0,
     "lemx": 12,
     "lomx": 10,
-    "kmn": 0,
     "kmx": 7,
-    "mmn": 0,
     "mmx": 7,
     "ipnmx": 2,
-    "nort": 0,
-    "nstep": 0,
-    "nfield": 200,
-    "ideriv": 1,
+    "gib0": 0.5,
+    "rx": np.array([np.log10(3.0e8), np.log10(1.0e7)]),
 }
 
-SAMPL4_SITE_WEIGHTS = np.array([0.7147334, 0.2852620])
-NSPLINE_POINTS = 200
-BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
+# Optimisation tolerances are applied through ``fit_params`` instead of the
+# ``fit maxit ...`` directive from the runfile.
+FIT_CONTROLS = {
+    "maxitr": 40,
+    "maxfun": 1000,
+    "ftol": 1.0e-2,
+    "gtol": 1.0e-6,
+    "xtol": 1.0e-4,
+}
 
-def main() -> None:
-    """Render the sampl4 components using the hard-coded optimal parameters."""
+# The legacy front-end expresses these with ``vary`` statements; there is not
+# yet a mapping helper so we still forward the short commands to the parser.
+PARAMETERS_TO_VARY = ["gib0", "rbar(1)", "rbar(2)"]
+
+
+def main():
+    """Run the ``sampl4`` optimisation and plot the resulting spectra."""
 
     examples_dir = Path(__file__).resolve().parent
     data_path = examples_dir / "sampl4.dat"
 
-    processed = process_spectrum(
-        data_path,
-        NSPLINE_POINTS,
-        BASELINE_EDGE_POINTS,
-        derivative_mode=DERIVATIVE_MODE,
-        normalize=True,
-    )
-
-    fields = processed.x
-    experimental = processed.y
-
     model = nlsl.nlsl()
-    model.update(OPTIMAL_PARAMETERS)
+    model.update(INITIAL_PARAMETERS)
 
-    model.generate_coordinates(
-        fields.size,
-        start=processed.start,
-        step=processed.step,
-        derivative_mode=DERIVATIVE_MODE,
-        baseline_points=BASELINE_EDGE_POINTS,
-        normalize=True,
+    # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through the
+    # modern Python entry point so the processed intensities stay in memory.
+    model.load_data(
+        data_path,
         nspline=NSPLINE_POINTS,
-        label="sampl4 synthetic",
-        reset=True,
+        bc_points=BASELINE_EDGE_POINTS,
+        shift=True,
+        normalize=False,
+        derivative_mode=DERIVATIVE_MODE,
     )
 
-    site_spectra, _ = model.current_spectrum
+    for token in PARAMETERS_TO_VARY:
+        model.procline(f"vary {token}")
 
-    if site_spectra.shape[0] != SAMPL4_SITE_WEIGHTS.size:
-        raise RuntimeError("Unexpected number of site spectra returned")
+    for key, value in FIT_CONTROLS.items():
+        model.fit_params[key] = value
 
-    weighted_components = SAMPL4_SITE_WEIGHTS[:, np.newaxis] * site_spectra
+    # The original script issues two ``fit`` commands; calling ``fit()`` twice
+    # reproduces the same refinement cycle and leaves the captured spectra ready
+    # for plotting.
+    model.fit()
+    site_spectra, weights = model.fit()
+
+    layout = model.layout
+    start_index = int(layout["ixsp"][0])
+    point_count = int(layout["npts"][0])
+    start_field = float(layout["sbi"][0])
+    step = float(layout["sdb"][0])
+
+    fields = start_field + step * np.arange(point_count)
+    data_slice = slice(start_index, start_index + point_count)
+    expdat = nlsl.fortrancore.expdat
+    experimental = expdat.data[data_slice]
+
+    components = site_spectra[:, data_slice]
+    weight_vector = weights[0]
+    weighted_components = weight_vector[:, np.newaxis] * components
     simulated_total = np.sum(weighted_components, axis=0)
 
+    residual = simulated_total - experimental
+    rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
+    print(f"sampl4: relative rms = {rel_rms:.6f}")
+
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(fields, experimental, color="black", linewidth=1.0, label="experimental (normalised)")
+    ax.plot(fields, experimental, color="black", linewidth=1.0, label="experimental")
     ax.plot(fields, simulated_total, color="#d62728", linewidth=2.0, alpha=0.8, label="simulated sum")
 
     colours = ["#1f77b4", "#2ca02c"]
@@ -147,8 +113,8 @@ def main() -> None:
         )
 
     ax.set_xlabel("Magnetic field (G)")
-    ax.set_ylabel("Normalised intensity")
-    ax.set_title("sampl4 two-component simulation using fixed optimal parameters")
+    ax.set_ylabel("Intensity (arb. units)")
+    ax.set_title("sampl4 two-component fit reproduced from Python")
     ax.legend(loc="upper right")
     ax.grid(True, linestyle=":", linewidth=0.5, alpha=0.5)
 
