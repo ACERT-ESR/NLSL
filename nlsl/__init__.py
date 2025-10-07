@@ -134,13 +134,15 @@ class nlsl(object):
         if ndatot <= 0 or nspc <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
 
-        try:
+        if hasattr(_fortrancore.parcom, "nprm"):
             nprm = int(_fortrancore.parcom.nprm)
-        except AttributeError:
-            tags = getattr(_fortrancore.parcom, "tag", None)
+        else:
+            # Some builds hide ``parcom.nprm`` from Python entirely.  In that
+            # case the parameter count can be recovered by examining the stored
+            # tags instead, which only contain the active parameter names.
             nprm = 0
-            if tags is not None:
-                for token in tags:
+            if hasattr(_fortrancore.parcom, "tag"):
+                for token in _fortrancore.parcom.tag:
                     if isinstance(token, bytes):
                         name = token.decode("ascii", "ignore")
                     else:
@@ -164,9 +166,8 @@ class nlsl(object):
 
         _fortrancore.iterat.iter = 1
         ldfjac = max(ndatot, 1)
-        tag_array = getattr(_fortrancore.parcom, "tag", None)
-        if tag_array is not None and hasattr(tag_array, "shape"):
-            mxjcol = int(tag_array.shape[0])
+        if hasattr(_fortrancore.parcom, "tag") and hasattr(_fortrancore.parcom.tag, "shape"):
+            mxjcol = int(_fortrancore.parcom.tag.shape[0])
         else:
             mxjcol = max(nprm, 1)
         # Allocate fresh buffers for the Jacobian and residual vectors.  The
