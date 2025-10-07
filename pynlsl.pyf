@@ -3,13 +3,13 @@
 
 python module fortrancore ! in 
     interface 
-        subroutine procline(line) ! in :fortrancore:src/fortran/nlsl.f90
+        subroutine procline(line) ! in :fortrancore:src/fortran/cli/nlsl.f90
             use nlsnam
             use stdio
             use symdef
             character*80 intent(in) :: line
         end subroutine procline
-        subroutine fitl ! in :fortrancore:src/fortran/fitl.f90
+        subroutine fitl ! in :fortrancore:src/fortran/least_squares/fitl.f90
             use expdat
             use eprprm
             use parcom
@@ -24,7 +24,7 @@ python module fortrancore ! in
             use errmsg
             use nlsdim
         end subroutine fitl
-        subroutine wrspc ! in :fortrancore:src/fortran/writr.f90
+        subroutine wrspc ! in :fortrancore:src/fortran/io_preprocessing/writr.f90
             use nlsdim
             use expdat
             use parcom
@@ -34,7 +34,7 @@ python module fortrancore ! in
             use mspctr
             use stdio
         end subroutine wrspc
-        subroutine nlsinit ! in :fortrancore:src/fortran/nlsl.f90
+        subroutine nlsinit ! in :fortrancore:src/fortran/cli/nlsl.f90
             use expdat
             use eprprm
             use parcom
@@ -47,7 +47,7 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
-        subroutine lfun(m,n,x,fvec,fjac,ldfjac,iflag) ! in :fortrancore:src/fortran/lfun.f90
+        subroutine lfun(m,n,x,fvec,fjac,ldfjac,iflag) ! in :fortrancore:src/fortran/matrix_model/lfun.f90
             use nlsdim
             use eprprm
             use expdat
@@ -69,7 +69,7 @@ python module fortrancore ! in
             integer intent(in) :: iflag
             double precision intent(inout),dimension(ldfjac,mxjcol),depend(ldfjac) :: fjac
         end subroutine lfun
-        subroutine xpack(x,n) ! in :fortrancore:src/fortran/fitl.f90
+        subroutine xpack(x,n) ! in :fortrancore:src/fortran/least_squares/fitl.f90
             use nlsdim
             use eprprm
             use expdat
@@ -78,7 +78,7 @@ python module fortrancore ! in
             integer intent(in) :: n
             double precision intent(inout),dimension(n),depend(n) :: x
         end subroutine xpack
-        subroutine setspc(isite,ise) ! in :fortrancore:src/fortran/setspc.f90
+        subroutine setspc(isite,ise) ! in :fortrancore:src/fortran/io_preprocessing/setspc.f90
             use nlsdim
             use eprprm
             use expdat
@@ -92,7 +92,7 @@ python module fortrancore ! in
             integer intent(in) :: isite
             integer intent(in) :: ise
         end subroutine setspc
-        integer function ipfind(token,lth) ! in :fortrancore:src/fortran/ipsfind.f90
+        integer function ipfind(token,lth) ! in :fortrancore:src/fortran/core/ipsfind.f90
             use nlsdim
             use parcom
             use eprprm
@@ -100,7 +100,7 @@ python module fortrancore ! in
             character*30 intent(in) :: token
             integer intent(in) :: lth
         end function ipfind
-        subroutine setprm(ixparm,ixsite,fval) ! in :fortrancore:src/fortran/setprm.f90
+        subroutine setprm(ixparm,ixsite,fval) ! in :fortrancore:src/fortran/cli/setprm.f90
             use nlsdim
             use eprprm
             use expdat
@@ -112,7 +112,7 @@ python module fortrancore ! in
             integer intent(in) :: ixsite
             double precision intent(in) :: fval
         end subroutine setprm
-        subroutine setipr(ixparm,ixsite,ival) ! in :fortrancore:src/fortran/setprm.f90
+        subroutine setipr(ixparm,ixsite,ival) ! in :fortrancore:src/fortran/cli/setprm.f90
             use nlsdim
             use eprprm
             use expdat
@@ -124,7 +124,7 @@ python module fortrancore ! in
             integer intent(in) :: ixsite
             integer intent(in) :: ival
         end subroutine setipr
-        double precision function getprm(ixparm,ixsite) ! in :fortrancore:src/fortran/setprm.f90
+        double precision function getprm(ixparm,ixsite) ! in :fortrancore:src/fortran/cli/setprm.f90
             use nlsdim
             use eprprm
             use expdat
@@ -135,7 +135,7 @@ python module fortrancore ! in
             integer intent(in) :: ixparm
             integer intent(in) :: ixsite
         end function getprm
-        subroutine sscale(data,spct,wspct,ldspct,work,nsite,npt,ctol,noneg,iscal,sfac,resid) ! in :fortrancore:src/fortran/sscale.f90
+        subroutine sscale(data,spct,wspct,ldspct,work,nsite,npt,ctol,noneg,iscal,sfac,resid) ! in :fortrancore:src/fortran/least_squares/sscale.f90
             use nlsdim
             double precision intent(inout),dimension(npt),depend(npt) :: data
             double precision intent(inout),dimension(npt),depend(npt) :: work
@@ -150,7 +150,7 @@ python module fortrancore ! in
             double precision intent(inout),dimension(nsite),depend(nsite) :: sfac
             double precision intent(inout),dimension(npt),depend(npt) :: resid
         end subroutine sscale
-        module nlsdim ! in :fortrancore:src/fortran/nlsdim.f90
+        module nlsdim ! in :fortrancore:src/fortran/core/nlsdim.f90
             integer, parameter,optional :: niprm=24
             integer, parameter,optional :: mxstep=2000
             integer, parameter,optional :: mxdim=45000
@@ -178,7 +178,7 @@ python module fortrancore ! in
             integer, parameter,optional,depend(mxsite,mxvar,mxspc) :: mxjcol=mxvar+mxsite+mxspc
             integer, parameter,optional :: mxspt=512
         end module nlsdim
-        module lmcom ! in :fortrancore:src/fortran/lmcom.f90
+        module lmcom ! in :fortrancore:src/fortran/core/lmcom.f90
             use nlsdim
             double precision, save,dimension((mxtv),(mxtv)) :: tcov
             double precision, save,dimension((mxjcol)) :: gnvec
@@ -195,10 +195,10 @@ python module fortrancore ! in
             double precision, save,dimension((mxjcol)) :: diag
             character*10, save,dimension(nflmpr) :: flmprm_name
             character*10, save,dimension(nilmpr) :: ilmprm_name
-            subroutine lmcom_init ! in :fortrancore:src/fortran/lmcom.f90
+            subroutine lmcom_init ! in :fortrancore:src/fortran/core/lmcom.f90
             end subroutine lmcom_init
         end module lmcom
-        module parcom ! in :fortrancore:src/fortran/parcom.f90
+        module parcom ! in :fortrancore:src/fortran/core/parcom.f90
             use nlsdim
             double precision, save,target,dimension(nfprm,mxsite) :: fparm
             double precision, save,dimension(mxvar) :: prmax
@@ -211,7 +211,7 @@ python module fortrancore ! in
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
-        module expdat ! in :fortrancore:src/fortran/expdat.f90
+        module expdat ! in :fortrancore:src/fortran/core/expdat.f90
             use nlsdim
             double precision, save,target,dimension(mxpt) :: data
             double precision, save,target,dimension(mxinp,3) :: spltmp
@@ -247,7 +247,7 @@ python module fortrancore ! in
             character*30, save,dimension(mxspc) :: dataid
             character*20, save,dimension(mxspc) :: wndoid
         end module expdat
-        module iterat ! in :fortrancore:src/fortran/iterat.f90
+        module iterat ! in :fortrancore:src/fortran/core/iterat.f90
             integer, save :: iter
             integer, save :: iwflag
             double precision, save :: fnorm
@@ -257,7 +257,7 @@ python module fortrancore ! in
             logical, save :: covarok
             logical, save :: xreset
         end module iterat
-        module stdio ! in :fortrancore:src/fortran/stdio.f90
+        module stdio ! in :fortrancore:src/fortran/cli/stdio.f90
             integer, parameter,optional :: lulog=4
             integer, parameter,optional :: luttyi=5
             integer, parameter,optional :: luttyo=6
@@ -293,7 +293,7 @@ python module fortrancore ! in
             subroutine prm_ptr_init ! in :eprprm:eprprm.f90:eprprm
             end subroutine prm_ptr_init
         end module eprprm
-        module mspctr ! in :fortrancore:src/fortran/mspctr.f90
+        module mspctr ! in :fortrancore:src/fortran/core/mspctr.f90
             use nlsdim
             integer, save,target,dimension((mxsite)) :: iscal
             double precision, save,target,dimension((mxsite),(mxspc)) :: sfac
