@@ -94,6 +94,9 @@
 
       call tdsqz()
 
+!     -----------------------------------
+!      Loop over all spectra in a series
+!     -----------------------------------
       ixs=1
       do ise=1,nser
          ixsp(ise)=ixs
@@ -105,13 +108,13 @@
             if (hltchk(ierr,isi,ise,iflag)) return
 
             ixt=ixtd(isi,ise)
-           if(basno(isi,ise).gt.0) then
-              ixb=ixbas( basno(isi,ise) )
-              ixbp=ixb
-           else
-              ixb=0
-              ixbp=1
-           end if
+            if (basno(isi,ise).gt.0) then
+               ixb=ixbas( basno(isi,ise) )
+               ixbp=ixb
+            else
+               ixb=0
+               ixbp=1
+            end if
             icalc=CFONLY
             if (modtd(isi,ise).ne.0) icalc=FULL
 
@@ -255,7 +258,7 @@
          call single_point(iflag)
 !
 !       -----------------------------------
-!        Loop over all spectra in a series
+!        Accumulate residuals for each spectrum
 !       -----------------------------------
 !
          ixs=1

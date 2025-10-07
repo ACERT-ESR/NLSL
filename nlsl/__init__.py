@@ -365,7 +365,10 @@ class nlsl(object):
 
         nspc = int(core.expdat.nspc)
 
-        nser = max(0, int(getattr(core.parcom, "nser", 0)))
+        if hasattr(core.parcom, "nser"):
+            nser = max(0, int(core.parcom.nser))
+        else:
+            nser = 0
         if nspc >= nser:
             nspc = 0
             core.expdat.ndatot = 0
@@ -408,8 +411,9 @@ class nlsl(object):
 
         data_slice = slice(ix0, ix0 + points)
 
+        # ``single_point`` only reads the coordinate metadata and the site
+        # storage arrays, so clearing the data buffer is sufficient here.
         core.expdat.data[data_slice] = 0.0
-        core.lmcom.fvec[data_slice] = 0.0
 
         if hasattr(core.mspctr, "spectr"):
             spectr = core.mspctr.spectr
