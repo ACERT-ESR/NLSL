@@ -1,9 +1,9 @@
 """Plot the sampl4 multi-component model without running a fit.
 
 This script mirrors the two-component ``sampl4.run`` example but skips the
-least-squares optimisation entirely.  The optimal parameters reported in the
-reference log (``sampl4.log_ref``) are copied into ``OPTIMAL_PARAMETERS`` and
-applied directly, so the Fortran core only has to evaluate a single spectrum.
+least-squares optimisation entirely.  The optimal parameters reported for run 4
+are copied into ``OPTIMAL_PARAMETERS`` and applied directly, so the Fortran core
+only has to evaluate a single spectrum.
 
 Experimental data are loaded purely for plotting via :mod:`nlsl.data` helper
 functions; the measurements are *not* registered with the legacy Fortran
@@ -13,10 +13,7 @@ same field axis.  This highlights how to generate the summed spectrum and the
 individual site contributions using a fixed, known-good parameter set.
 """
 
-from __future__ import annotations
-
 from pathlib import Path
-from typing import Dict
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -24,27 +21,69 @@ import numpy as np
 import nlsl
 from nlsl.data import process_spectrum
 
-# Final parameters taken from the converged ``sampl4`` fit reported in
-# ``examples/sampl4.log_ref``.  The rotational diffusion rates are expressed in
-# the logarithmic units used by the runfile (base-10), and the site weights map
-# directly to the 71.47% / 28.53% populations listed in the log output.
-OPTIMAL_PARAMETERS: Dict[str, object] = {
+# Final parameters taken from the converged ``sampl4`` fit reported in the run
+# 4 log.  Values are copied verbatim from the ``items()`` dump so the simulated
+# trace matches the published solution.
+OPTIMAL_PARAMETERS = {
     "nsite": 2,
+    "phase": 0.0,
+    "gib0": 1.9962757195220067,
+    "gib2": 0.0,
+    "wxx": 0.0,
+    "wyy": 0.0,
+    "wzz": 0.0,
     "gxx": 2.0089,
     "gyy": 2.0063,
     "gzz": 2.0021,
     "axx": 5.0,
     "ayy": 5.0,
     "azz": 33.0,
+    "rx": np.array([7.14177897, 7.8396974]),
+    "ry": 0.0,
+    "rz": 0.0,
+    "pml": 0.0,
+    "pmxy": 0.0,
+    "pmzz": 0.0,
+    "djf": 0.0,
+    "djfprp": 0.0,
+    "oss": 0.0,
+    "psi": 0.0,
+    "alphad": 0.0,
+    "betad": 0.0,
+    "gammad": 0.0,
+    "alpham": 0.0,
+    "betam": 0.0,
+    "gammam": 0.0,
+    "c20": 0.0,
+    "c22": 0.0,
+    "c40": 0.0,
+    "c42": 0.0,
+    "c44": 0.0,
+    "lb": 0.0,
+    "dc20": 0.0,
+    "b0": np.array([3400.50251256, 0.0]),
+    "gamman": 0.0,
+    "cgtol": 0.001,
+    "shiftr": 0.001,
+    "shifti": 0.0,
+    "range": np.array([100.0, 0.0]),
     "in2": 2,
-    "b0": 3400.0,
-    "gib0": 1.994103,
-    "rbar": (7.141443, 7.838921),
+    "ipdf": 0,
+    "ist": 0,
+    "ml": 0,
+    "mxy": 0,
+    "mzz": 0,
     "lemx": 12,
     "lomx": 10,
+    "kmn": 0,
     "kmx": 7,
-    "mmx": (7, 7),
+    "mmn": 0,
+    "mmx": 7,
     "ipnmx": 2,
+    "nort": 0,
+    "nstep": 0,
+    "nfield": 200,
+    "ideriv": 1,
 }
 
 SAMPL4_SITE_WEIGHTS = np.array([0.7147334, 0.2852620])
@@ -84,7 +123,7 @@ def main() -> None:
         reset=True,
     )
 
-    site_spectra, _ = model.current_spectrum()
+    site_spectra, _ = model.current_spectrum
 
     if site_spectra.shape[0] != SAMPL4_SITE_WEIGHTS.size:
         raise RuntimeError("Unexpected number of site spectra returned")

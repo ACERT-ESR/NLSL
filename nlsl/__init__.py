@@ -133,57 +133,8 @@ class nlsl(object):
         nspc = int(_fortrancore.expdat.nspc)
         if ndatot <= 0 or nspc <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
-
-        if hasattr(_fortrancore.parcom, "nprm"):
-            nprm = int(_fortrancore.parcom.nprm)
-        else:
-            # Some builds hide ``parcom.nprm`` from Python entirely.  In that
-            # case the parameter count can be recovered by examining the stored
-            # tags instead, which only contain the active parameter names.
-            nprm = 0
-            if hasattr(_fortrancore.parcom, "tag"):
-                for token in _fortrancore.parcom.tag:
-                    if isinstance(token, bytes):
-                        name = token.decode("ascii", "ignore")
-                    else:
-                        name = str(token)
-                    if name.strip():
-                        nprm += 1
-                    # Stop counting once the first empty slot is found so that
-                    # dormant entries left over from previous fits do not
-                    # inflate the number of active parameters.
-                    else:
-                        break
-        if nprm < 0:
-            nprm = 0
-
-        if nprm > 0:
-            # Allocate a temporary workspace for the packed fit parameters.
-            x_view = np.empty(nprm, dtype=float)
-            _fortrancore.xpack(x_view, nprm)
-        else:
-            x_view = np.empty(0, dtype=float)
-
         _fortrancore.iterat.iter = 1
-        ldfjac = max(ndatot, 1)
-        if hasattr(_fortrancore.parcom, "tag") and hasattr(_fortrancore.parcom.tag, "shape"):
-            mxjcol = int(_fortrancore.parcom.tag.shape[0])
-        else:
-            mxjcol = max(nprm, 1)
-        # Allocate fresh buffers for the Jacobian and residual vectors.  The
-        # compiled module keeps internal copies, but they are not exposed by
-        # f2py on every platform so we provide scratch storage here.
-        fjac_view = np.empty((ldfjac, mxjcol), dtype=float, order="F")
-        fvec_view = np.empty(ndatot, dtype=float)
-        _fortrancore.lfun(
-            x_view,
-            fvec_view,
-            fjac_view,
-            1,
-            ndatot,
-            nprm,
-            ldfjac,
-        )
+        _fortrancore.single_point(1)
         return self._capture_state()
 
     def write_spc(self):
