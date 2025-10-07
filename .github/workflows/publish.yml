@@ -9,6 +9,10 @@ on:
     branches:
       - master
   pull_request:
+    branches:
+      - master
+    types:
+      - closed
   workflow_dispatch:
 
 # One run at a time per workflow+ref; cancel older runs on new pushes.
@@ -30,7 +34,16 @@ env:
   MACOSX_DEPLOYMENT_TARGET: '15.0'
 
 jobs:
+  merge_guard:
+    name: Ensure workflow is running for merged PRs or non-PR events
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
+    steps:
+      - name: Allow workflow to proceed
+        run: echo "Merge guard passed."
+
   test:
+    needs: merge_guard
     runs-on: ubuntu-latest
     timeout-minutes: 30
     outputs:

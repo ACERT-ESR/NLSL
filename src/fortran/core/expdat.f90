@@ -37,6 +37,7 @@
       use nlsdim
       implicit none
 !
+!     Keep declarations separate b/c f2py doesn't support # continuation
       double precision, target, save :: data(MXPT)
       double precision, target, save :: spltmp(MXINP,3)
       double precision, target, save :: rmsn(MXSPC)
@@ -58,11 +59,17 @@
       integer, target, save :: idrv(MXSPC)
       integer, target, save :: ixsp(MXSPC)
       integer, target, save :: nrmlz(MXSPC)
-      integer, save :: nwin,ishglb,
-     #                inform,bcmode,drmode,
-     #                nspline,shftflg,normflg,written
-
-      integer, target, save :: nspc,ndatot
+      integer, target, save :: nspc
+      integer, target, save :: nwin
+      integer, target, save :: ndatot
+      integer, target, save :: ishglb
+      integer, target, save :: inform
+      integer, target, save :: bcmode
+      integer, target, save :: drmode
+      integer, target, save :: nspline
+      integer, target, save :: shftflg
+      integer, target, save :: normflg
+      integer, target, save :: written
 !
       character*30, save :: dataid(MXSPC)
       character*20, save :: wndoid(MXSPC)
