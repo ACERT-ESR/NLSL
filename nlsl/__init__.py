@@ -134,16 +134,46 @@ class nlsl(object):
         if ndatot <= 0 or nspc <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
 
-        nprm = int(_fortrancore.parcom.nprm)
-        x_data = _fortrancore.lmcom.x
-        x_view = x_data[:nprm]
+        try:
+            nprm = int(_fortrancore.parcom.nprm)
+        except AttributeError:
+            tags = getattr(_fortrancore.parcom, "tag", None)
+            nprm = 0
+            if tags is not None:
+                for token in tags:
+                    if isinstance(token, bytes):
+                        name = token.decode("ascii", "ignore")
+                    else:
+                        name = str(token)
+                    if name.strip():
+                        nprm += 1
+                    # Stop counting once the first empty slot is found so that
+                    # dormant entries left over from previous fits do not
+                    # inflate the number of active parameters.
+                    else:
+                        break
+        if nprm < 0:
+            nprm = 0
+
         if nprm > 0:
+            # Allocate a temporary workspace for the packed fit parameters.
+            x_view = np.empty(nprm, dtype=float)
             _fortrancore.xpack(x_view, nprm)
+        else:
+            x_view = np.empty(0, dtype=float)
 
         _fortrancore.iterat.iter = 1
-        fjac_view = _fortrancore.lmcom.fjac
-        fvec_view = _fortrancore.lmcom.fvec[:ndatot]
-        ldfjac = fjac_view.shape[0]
+        ldfjac = max(ndatot, 1)
+        tag_array = getattr(_fortrancore.parcom, "tag", None)
+        if tag_array is not None and hasattr(tag_array, "shape"):
+            mxjcol = int(tag_array.shape[0])
+        else:
+            mxjcol = max(nprm, 1)
+        # Allocate fresh buffers for the Jacobian and residual vectors.  The
+        # compiled module keeps internal copies, but they are not exposed by
+        # f2py on every platform so we provide scratch storage here.
+        fjac_view = np.empty((ldfjac, mxjcol), dtype=float, order="F")
+        fvec_view = np.empty(ndatot, dtype=float)
         _fortrancore.lfun(
             x_view,
             fvec_view,
