@@ -44,13 +44,15 @@ n = nlsl.nlsl()
 n["nsite"] = 1
 n.fit_params["maxitr"] = 40
 n.procline("data sampl1 ascii nspline 200 bc 20 shift")
-site_spectra, weights = n.fit()
+site_spectra = n.fit()
+weights = n["weights"]
 ```
 
 The mapping interface mirrors the parameter names defined by the original
 Fortran code (see ``nlshlp.txt`` for a full command reference), while
 :meth:`nlsl.nlsl.fit` runs the nonlinear least-squares optimiser and returns the
-latest spectra and site weights for inspection.【F:nlsl/__init__.py†L60-L204】
+latest site spectra, while the companion weight matrix stays accessible through
+the mapping interface.【F:nlsl/__init__.py†L60-L204】
 
 ## Examples
 

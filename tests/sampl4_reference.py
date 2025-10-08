@@ -270,3 +270,22 @@ SAMPL4_SPECTRAL_KEYS = [
     "mmx",
     "ipnmx",
 ]
+
+
+def apply_sampl4_final_state(model):
+    """Copy the converged SAMPL4 fit parameters into *model*.
+
+    The helper mirrors the final iteration of runfile 4 so tests can recreate
+    the fitted spectrum without replaying the optimiser or touching the
+    ``fortrancore`` module directly.
+    """
+
+    model.apply_parameter_state(SAMPL4_FINAL_FPARM, SAMPL4_FINAL_IPARM)
+    model.set_spectral_state(
+        sb0=SAMPL4_FINAL_SB0,
+        srng=SAMPL4_FINAL_SRNG,
+        ishift=SAMPL4_FINAL_ISHFT,
+        shift=SAMPL4_FINAL_SHFT,
+        normalize_flags=SAMPL4_FINAL_NRMLZ,
+    )
+    model['weights'] = SAMPL4_FINAL_WEIGHTS

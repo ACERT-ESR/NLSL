@@ -71,17 +71,20 @@ def main():
     for key, value in FIT_CONTROLS.items():
         model.fit_params[key] = value
 
+    # Seed equal site populations once the data slot exists so the weight matrix
+    # is initialised through the public mapping interface.
+    model['weights'] = np.ones(2)
+
     # The original script issues two ``fit`` commands; calling ``fit()`` twice
     # reproduces the same refinement cycle and leaves the captured spectra ready
     # for plotting.
     model.fit()
-    site_spectra, weights = model.fit()
+    site_spectra = model.fit()
 
-    layout = model.layout
-    start_index = int(layout["ixsp"][0])
-    point_count = int(layout["npts"][0])
-    start_field = float(layout["sbi"][0])
-    step = float(layout["sdb"][0])
+    start_index = int(model.layout["ixsp"][0])
+    point_count = int(model.layout["npts"][0])
+    start_field = float(model.layout["sbi"][0])
+    step = float(model.layout["sdb"][0])
 
     fields = start_field + step * np.arange(point_count)
     data_slice = slice(start_index, start_index + point_count)
@@ -89,9 +92,12 @@ def main():
     experimental = expdat.data[data_slice]
 
     components = site_spectra[:, data_slice]
-    weight_vector = np.reshape(weights, (-1,))
-    weighted_components = weight_vector[:, np.newaxis] * components
-    simulated_total = np.sum(weighted_components, axis=0)
+    weights_value = np.array(model['weights'], copy=True)
+    weight_matrix = np.atleast_2d(weights_value)
+    weighted_components = weight_matrix[:, :, np.newaxis] * components[np.newaxis, :, :]
+    simulated_total = np.squeeze(weight_matrix.dot(components))
+
+    weighted_components = np.squeeze(weighted_components)
 
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
@@ -102,7 +108,7 @@ def main():
     ax.plot(fields, simulated_total, color="#d62728", linewidth=2.0, alpha=0.8, label="simulated sum")
 
     colours = ["#1f77b4", "#2ca02c"]
-    for idx, component in enumerate(weighted_components):
+    for idx, component in enumerate(np.atleast_2d(weighted_components)):
         ax.plot(
             fields,
             component,

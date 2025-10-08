@@ -8,17 +8,10 @@ from tests.sampl4_reference import (
     NSPLINE_POINTS,
     SAMPL4_FIELD_START,
     SAMPL4_FIELD_STEP,
-    SAMPL4_FINAL_FPARM,
-    SAMPL4_FINAL_IPARM,
     SAMPL4_FINAL_PARAMETERS,
-    SAMPL4_FINAL_SB0,
-    SAMPL4_FINAL_SHFT,
-    SAMPL4_FINAL_SRNG,
-    SAMPL4_FINAL_ISHFT,
-    SAMPL4_FINAL_NRMLZ,
-    SAMPL4_FINAL_WEIGHTS,
     SAMPL4_INTENSITIES,
     SAMPL4_POINT_COUNT,
+    apply_sampl4_final_state,
 )
 
 
@@ -44,20 +37,13 @@ def test_sampl4_best_parameters_match_data_without_fit():
     count = data_slice.stop - data_slice.start
     model.set_data(data_slice, SAMPL4_INTENSITIES[:count])
 
-    model.apply_parameter_state(SAMPL4_FINAL_FPARM, SAMPL4_FINAL_IPARM)
-    model.set_spectral_state(
-        sb0=SAMPL4_FINAL_SB0,
-        srng=SAMPL4_FINAL_SRNG,
-        ishift=SAMPL4_FINAL_ISHFT,
-        shift=SAMPL4_FINAL_SHFT,
-        normalize_flags=SAMPL4_FINAL_NRMLZ,
-    )
+    apply_sampl4_final_state(model)
 
-    model.set_site_weights(index, SAMPL4_FINAL_WEIGHTS)
+    site_spectra = model.current_spectrum
+    weights_matrix = np.array(model['weights'], copy=True)
 
-    site_spectra, weights = model.current_spectrum
-
-    simulated_total = np.dot(weights, site_spectra[:, data_slice])
+    simulated_total = np.dot(np.atleast_2d(weights_matrix), site_spectra[:, data_slice])
+    simulated_total = np.squeeze(simulated_total)
     experimental = SAMPL4_INTENSITIES[:count]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)

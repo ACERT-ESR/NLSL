@@ -114,7 +114,6 @@ class nlsl(object):
         self.fit_params = fit_params()
         self._last_layout = None
         self._last_site_spectra = None
-        self._last_weights = None
         self._weight_shape = (0, 0)
 
     @property
@@ -138,7 +137,11 @@ class nlsl(object):
 
     @property
     def current_spectrum(self):
-        """Evaluate the current spectral model without running a full fit."""
+        """Evaluate the current spectral model without running a full fit.
+
+        The returned array contains one row per site; population weights remain
+        available through ``model['weights']``.
+        """
         ndatot = int(_fortrancore.expdat.ndatot)
         nspc = int(_fortrancore.expdat.nspc)
         if ndatot <= 0 or nspc <= 0:
@@ -233,6 +236,18 @@ class nlsl(object):
         if key in ("nspc", "nspec", "nspectra"):
             self._resize_weight_matrix()
             return int(_fortrancore.expdat.nspc)
+        if key in ("weights", "weight", "sfac"):
+            self._resize_weight_matrix()
+            nsite = int(_fortrancore.parcom.nsite)
+            nspc = int(_fortrancore.expdat.nspc)
+            if nsite <= 0 or nspc <= 0:
+                if nspc == 1:
+                    return np.zeros(nsite, dtype=float)
+                return np.zeros((nspc, nsite), dtype=float)
+            matrix = _fortrancore.mspctr.sfac
+            if nspc == 1:
+                return matrix[:nsite, 0].copy()
+            return matrix[:nsite, :nspc].swapaxes(0, 1).copy()
         res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
@@ -255,6 +270,26 @@ class nlsl(object):
         if key in ("nspc", "nspec", "nspectra"):
             _fortrancore.expdat.nspc = int(v)
             self._resize_weight_matrix()
+            return
+        if key in ("weights", "weight", "sfac"):
+            self._resize_weight_matrix()
+            nsite = int(_fortrancore.parcom.nsite)
+            nspc = int(_fortrancore.expdat.nspc)
+            if nsite <= 0 or nspc <= 0:
+                raise RuntimeError("weights require positive nsite and nspc")
+            matrix = np.asarray(v, dtype=float)
+            if matrix.ndim == 1:
+                if nspc != 1:
+                    raise ValueError("1D weight vector requires a single spectrum")
+                if matrix.size < nsite:
+                    raise ValueError("insufficient weight values supplied")
+                _fortrancore.mspctr.sfac[:, 0] = 0.0
+                _fortrancore.mspctr.sfac[:nsite, 0] = matrix[:nsite]
+                return
+            if matrix.shape[0] < nspc or matrix.shape[1] < nsite:
+                raise ValueError("weight matrix shape mismatch")
+            _fortrancore.mspctr.sfac[:, :] = 0.0
+            _fortrancore.mspctr.sfac[:nsite, :nspc] = matrix[:nspc, :nsite].swapaxes(0, 1)
             return
         res = _ipfind_wrapper(key)
         iterinput = isinstance(v, (list, tuple, np.ndarray))
@@ -333,13 +368,6 @@ class nlsl(object):
         if self._last_site_spectra is None:
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_site_spectra
-
-    @property
-    def weights(self):
-        """Return the most recently evaluated site weights."""
-        if self._last_weights is None:
-            raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_weights
 
     def generate_coordinates(
         self,
@@ -508,7 +536,6 @@ class nlsl(object):
         target = _fortrancore.mspctr.sfac
         target[:, spectrum_index] = 0.0
         target[:nsite, spectrum_index] = vector[:nsite]
-        self._last_weights = None
 
     def apply_parameter_state(self, fparm=None, iparm=None):
         """Copy precomputed ``fparm``/``iparm`` tables into the Fortran state."""
@@ -524,7 +551,6 @@ class nlsl(object):
             cols = min(table.shape[1], self._iparm.shape[1])
             self._iparm[:rows, :cols] = table[:rows, :cols]
         self._last_site_spectra = None
-        self._last_weights = None
 
     def set_spectral_state(
         self,
@@ -554,7 +580,6 @@ class nlsl(object):
             values = np.asarray(normalize_flags, dtype=int)
             expdat.nrmlz[: values.size] = values
         self._last_site_spectra = None
-        self._last_weights = None
 
     def _capture_state(self):
         nspc = int(_fortrancore.expdat.nspc)
@@ -562,7 +587,6 @@ class nlsl(object):
         nsite = int(_fortrancore.parcom.nsite)
 
         spectra_src = _fortrancore.mspctr.spectr
-        weights_src = _fortrancore.mspctr.sfac
 
         nspc = min(
             nspc,
@@ -570,9 +594,8 @@ class nlsl(object):
             _fortrancore.expdat.npts.shape[0],
             _fortrancore.expdat.sbi.shape[0],
             _fortrancore.expdat.sdb.shape[0],
-            weights_src.shape[1],
         )
-        nsite = min(nsite, spectra_src.shape[1], weights_src.shape[0])
+        nsite = min(nsite, spectra_src.shape[1])
         ndatot = min(ndatot, spectra_src.shape[0])
 
         self._last_layout = {
@@ -590,17 +613,8 @@ class nlsl(object):
         else:
             site_spectra = np.empty((nsite, ndatot), dtype=float)
 
-        if nspc > 0 and nsite > 0:
-            weight_matrix = weights_src[:nsite, :nspc].swapaxes(0, 1)
-            if weight_matrix.ndim == 2 and weight_matrix.shape[0] == 1:
-                weight_matrix = weight_matrix.reshape(weight_matrix.shape[1])
-        else:
-            weight_matrix = np.empty((nspc, nsite), dtype=float)
-
         self._last_site_spectra = site_spectra
-        self._last_weights = weight_matrix
-
-        return self._last_site_spectra, self._last_weights
+        return self._last_site_spectra
 
     def _resize_weight_matrix(self):
         nsite = int(_fortrancore.parcom.nsite)
@@ -613,7 +627,6 @@ class nlsl(object):
         if nsite <= 0 or nspc <= 0:
             weights[:, :] = 0.0
             self._weight_shape = new_shape
-            self._last_weights = None
             return
 
         preserved = None
@@ -629,7 +642,6 @@ class nlsl(object):
             weights[:row_stop, :col_stop] = preserved
 
         self._weight_shape = new_shape
-        self._last_weights = None
 
     def keys(self):
         return list(self._fepr_names) + list(self._iepr_names)
