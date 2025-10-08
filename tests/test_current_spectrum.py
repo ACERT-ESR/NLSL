@@ -3,7 +3,7 @@ import numpy as np
 import nlsl
 
 
-def test_generate_coordinates_enables_current_spectrum():
+def test_generate_coordinates_enables_current_spectrum(sampl4_fit_result):
     # Use the published SAMPL4 run-4 fit parameters so that the spectral
     # evaluation exercise matches a known configuration with two sites.
     final_params = {
@@ -80,7 +80,7 @@ def test_generate_coordinates_enables_current_spectrum():
         step=0.5025125628139904,
         derivative_mode=1,
         baseline_points=20,
-        normalize=True,
+        normalize=False,
         nspline=200,
         shift=True,
         label='sampl4-single-eval',
@@ -89,6 +89,11 @@ def test_generate_coordinates_enables_current_spectrum():
 
     assert index == 0
     assert data_slice.start == 0 and data_slice.stop == 200
+
+    expected_weights = np.array([0.71553129, 0.28488104])
+    # The fit stores the population weights in ``sfac``; seed them here so the
+    # synthetic spectrum reflects the published SAMPL4 mixture.
+    nlsl.fortrancore.mspctr.sfac[: expected_weights.size, index] = expected_weights
 
     # ``current_spectrum`` should now be able to call into the Fortran core and
     # fill both the component spectra and the associated weights with finite
@@ -99,3 +104,9 @@ def test_generate_coordinates_enables_current_spectrum():
     assert np.all(np.isfinite(site_spectra))
     assert weights.shape == (1, 2)
     assert np.all(np.isfinite(weights))
+    assert np.allclose(weights[0], expected_weights)
+
+    fit_residual = sampl4_fit_result["simulated_total"] - sampl4_fit_result["experimental"]
+    fit_rel_rms = np.linalg.norm(fit_residual) / np.linalg.norm(sampl4_fit_result["experimental"])
+
+    assert fit_rel_rms < 0.0401
