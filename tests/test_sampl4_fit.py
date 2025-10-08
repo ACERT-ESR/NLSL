@@ -46,7 +46,7 @@ def run_pythonic_sampl4_fit():
     data_slice = slice(start_index, start_index + point_count)
 
     components = site_spectra[:, data_slice]
-    weighted_components = weights[0][:, np.newaxis] * components
+    weighted_components = weights[:, np.newaxis] * components
     simulated_total = np.sum(weighted_components, axis=0)
 
     experimental = nlsl.fortrancore.expdat.data[data_slice].copy()
@@ -87,6 +87,9 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
     assert np.allclose(site_spectra_cs, sampl4_fit_result["site_spectra"], atol=5e-6)
     assert np.allclose(weights_cs, sampl4_fit_result["weights"])
 
-    recomputed = weights_cs[0] @ site_spectra_cs[:, sampl4_fit_result["data_slice"]]
+    recomputed = np.dot(
+        weights_cs,
+        site_spectra_cs[:, sampl4_fit_result["data_slice"]],
+    )
 
     assert np.allclose(recomputed, sampl4_fit_result["simulated_total"], atol=3e-6)

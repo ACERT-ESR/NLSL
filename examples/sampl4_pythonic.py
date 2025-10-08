@@ -89,7 +89,7 @@ def main():
     experimental = expdat.data[data_slice]
 
     components = site_spectra[:, data_slice]
-    weight_vector = weights[0]
+    weight_vector = np.reshape(weights, (-1,))
     weighted_components = weight_vector[:, np.newaxis] * components
     simulated_total = np.sum(weighted_components, axis=0)
 

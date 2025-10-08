@@ -487,6 +487,8 @@ class nlsl(object):
 
         if nspc > 0 and nsite > 0:
             weight_matrix = weights_src[:nsite, :nspc].swapaxes(0, 1)
+            if weight_matrix.ndim == 2 and weight_matrix.shape[0] == 1:
+                weight_matrix = weight_matrix.reshape(weight_matrix.shape[1])
         else:
             weight_matrix = np.empty((nspc, nsite), dtype=float)
 

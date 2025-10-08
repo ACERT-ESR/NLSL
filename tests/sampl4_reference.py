@@ -1,12 +1,30 @@
 import numpy as np
 from pathlib import Path
 
+from nlsl.data import process_spectrum
+
 # Reuse the runfile-4 setup across the regression tests.
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
 DERIVATIVE_MODE = 1
 
 SAMPL4_DATA_PATH = Path(__file__).resolve().parent / "sampl4.dat"
+
+# Process the experimental trace with the same resampling parameters the
+# classic runfile uses so the tests operate on the interpolated 200-point grid
+# instead of the raw 256-point ASCII data.
+_SAMPL4_PROCESSED = process_spectrum(
+    SAMPL4_DATA_PATH,
+    NSPLINE_POINTS,
+    BASELINE_EDGE_POINTS,
+    derivative_mode=DERIVATIVE_MODE,
+    normalize=False,
+)
+
+SAMPL4_FIELD_START = float(_SAMPL4_PROCESSED.start)
+SAMPL4_FIELD_STEP = float(_SAMPL4_PROCESSED.step)
+SAMPL4_POINT_COUNT = _SAMPL4_PROCESSED.y.size
+SAMPL4_INTENSITIES = _SAMPL4_PROCESSED.y.copy()
 
 # Starting guesses copied from the ``let`` statements in ``sampl4.run``.
 SAMPL4_INITIAL_PARAMETERS = {
@@ -175,9 +193,9 @@ SAMPL4_FINAL_COMMANDS = [
     "let phase = 0.0",
     "let gxx,gyy,gzz = 2.0089,2.0063,2.0021",
     "let axx,ayy,azz = 5.0,5.0,33.0",
-    "let gib0 = 1.9962762455456595",
-    "let rbar(1) = 7.14177909",
-    "let rbar(2) = 7.83969762",
+    "let gib0 = 1.9962757195220067",
+    "let rbar(1) = 7.14177897",
+    "let rbar(2) = 7.8396974",
     "let lemx,lomx,kmx,mmx,ipnmx=12,10,7,7,2",
     "let in2 = 2",
     "let b0 = 3400.50251256,0.0",
