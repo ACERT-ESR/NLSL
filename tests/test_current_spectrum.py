@@ -1,7 +1,8 @@
 import numpy as np
 
 import nlsl
-from test_sampl4_fit import run_pythonic_sampl4_fit
+from tests.test_sampl4_fit import run_pythonic_sampl4_fit
+from tests.sampl4_reference import SAMPL4_FINAL_PARAMETERS, SAMPL4_FINAL_WEIGHTS
 
 
 def test_generate_coordinates_enables_current_spectrum():
@@ -9,70 +10,9 @@ def test_generate_coordinates_enables_current_spectrum():
     # and experimental trace match the published example.
     sampl4_fit_result = run_pythonic_sampl4_fit()
 
-    final_params = {
-        'phase': 0.0,
-        'gib0': 1.9962757195220067,
-        'gib2': 0.0,
-        'wxx': 0.0,
-        'wyy': 0.0,
-        'wzz': 0.0,
-        'gxx': 2.0089,
-        'gyy': 2.0063,
-        'gzz': 2.0021,
-        'axx': 5.0,
-        'ayy': 5.0,
-        'azz': 33.0,
-        'rx': np.array([7.14177897, 7.8396974]),
-        'ry': 0.0,
-        'rz': 0.0,
-        'pml': 0.0,
-        'pmxy': 0.0,
-        'pmzz': 0.0,
-        'djf': 0.0,
-        'djfprp': 0.0,
-        'oss': 0.0,
-        'psi': 0.0,
-        'alphad': 0.0,
-        'betad': 0.0,
-        'gammad': 0.0,
-        'alpham': 0.0,
-        'betam': 0.0,
-        'gammam': 0.0,
-        'c20': 0.0,
-        'c22': 0.0,
-        'c40': 0.0,
-        'c42': 0.0,
-        'c44': 0.0,
-        'lb': 0.0,
-        'dc20': 0.0,
-        'b0': np.array([3400.50251256, 0.0]),
-        'gamman': 0.0,
-        'cgtol': 0.001,
-        'shiftr': 0.001,
-        'shifti': 0.0,
-        'range': np.array([100.0, 0.0]),
-        'in2': 2,
-        'ipdf': 0,
-        'ist': 0,
-        'ml': 0,
-        'mxy': 0,
-        'mzz': 0,
-        'lemx': 12,
-        'lomx': 10,
-        'kmn': 0,
-        'kmx': 7,
-        'mmn': 0,
-        'mmx': 7,
-        'ipnmx': 2,
-        'nort': 0,
-        'nstep': 0,
-        'nfield': 200,
-        'ideriv': 1,
-    }
-
     model = nlsl.nlsl()
     model['nsite'] = 2
-    model.update(final_params)
+    model.update(SAMPL4_FINAL_PARAMETERS)
 
     # Generate the field grid used by the SAMPL4 data so the evaluation spans
     # the same axis as the published runfile.
@@ -94,7 +34,7 @@ def test_generate_coordinates_enables_current_spectrum():
 
     # Store the final site populations so the theoretical spectra reflect the
     # fitted composition from the runfile reproduction.
-    nlsl.fortrancore.mspctr.sfac[: sampl4_fit_result["weights"].shape[1], index] = sampl4_fit_result["weights"][0]
+    nlsl.fortrancore.mspctr.sfac[: SAMPL4_FINAL_WEIGHTS.size, index] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra, weights = model.current_spectrum
 
