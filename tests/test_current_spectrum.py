@@ -1,11 +1,14 @@
 import numpy as np
 
 import nlsl
+from test_sampl4_fit import run_pythonic_sampl4_fit
 
 
-def test_generate_coordinates_enables_current_spectrum(sampl4_fit_result):
-    # Use the published SAMPL4 run-4 fit parameters so that the spectral
-    # evaluation exercise matches a known configuration with two sites.
+def test_generate_coordinates_enables_current_spectrum():
+    # Capture the runfile-4 fit through the Python API so the reference weights
+    # and experimental trace match the published example.
+    sampl4_fit_result = run_pythonic_sampl4_fit()
+
     final_params = {
         'phase': 0.0,
         'gib0': 1.9962757195220067,
@@ -71,9 +74,8 @@ def test_generate_coordinates_enables_current_spectrum(sampl4_fit_result):
     model['nsite'] = 2
     model.update(final_params)
 
-    # Prepare a synthetic field grid that mirrors the processed data from the
-    # sample 4 run so that the theoretical evaluation produces the site
-    # spectra on that axis.
+    # Generate the field grid used by the SAMPL4 data so the evaluation spans
+    # the same axis as the published runfile.
     index, data_slice = model.generate_coordinates(
         200,
         start=3350.0,
@@ -90,23 +92,22 @@ def test_generate_coordinates_enables_current_spectrum(sampl4_fit_result):
     assert index == 0
     assert data_slice.start == 0 and data_slice.stop == 200
 
-    expected_weights = np.array([0.71553129, 0.28488104])
-    # The fit stores the population weights in ``sfac``; seed them here so the
-    # synthetic spectrum reflects the published SAMPL4 mixture.
-    nlsl.fortrancore.mspctr.sfac[: expected_weights.size, index] = expected_weights
+    # Store the final site populations so the theoretical spectra reflect the
+    # fitted composition from the runfile reproduction.
+    nlsl.fortrancore.mspctr.sfac[: sampl4_fit_result["weights"].shape[1], index] = sampl4_fit_result["weights"][0]
 
-    # ``current_spectrum`` should now be able to call into the Fortran core and
-    # fill both the component spectra and the associated weights with finite
-    # floating point numbers.
     site_spectra, weights = model.current_spectrum
 
     assert site_spectra.shape == (2, 200)
     assert np.all(np.isfinite(site_spectra))
     assert weights.shape == (1, 2)
     assert np.all(np.isfinite(weights))
-    assert np.allclose(weights[0], expected_weights)
+    assert np.allclose(weights[0], sampl4_fit_result["weights"][0])
 
-    fit_residual = sampl4_fit_result["simulated_total"] - sampl4_fit_result["experimental"]
-    fit_rel_rms = np.linalg.norm(fit_residual) / np.linalg.norm(sampl4_fit_result["experimental"])
+    # Confirm that the component spectra stored during the Pythonic fit combine
+    # to reproduce the experimental trace within the published tolerance.
+    fit_total = sampl4_fit_result["weights"][0] @ sampl4_fit_result["site_spectra"][:, sampl4_fit_result["data_slice"]]
+    residual = fit_total - sampl4_fit_result["experimental"]
+    rel_rms = np.linalg.norm(residual) / np.linalg.norm(sampl4_fit_result["experimental"])
 
-    assert fit_rel_rms < 0.0401
+    assert rel_rms < 0.0401
