@@ -34,14 +34,12 @@ def test_sampl4_best_parameters_match_data_without_fit():
         reset=True,
     )
 
-    count = data_slice.stop - data_slice.start
-    model.set_data(data_slice, SAMPL4_INTENSITIES[:count])
-
     apply_sampl4_final_state(model)
 
     site_spectra = model.current_spectrum
     weights_matrix = np.array(model['weights'], copy=True)
 
+    count = data_slice.stop - data_slice.start
     simulated_total = np.dot(np.atleast_2d(weights_matrix), site_spectra[:, data_slice])
     simulated_total = np.squeeze(simulated_total)
     experimental = SAMPL4_INTENSITIES[:count]
