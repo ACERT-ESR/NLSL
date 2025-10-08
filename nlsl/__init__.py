@@ -3,6 +3,14 @@ import os
 from pathlib import Path
 import numpy as np
 
+_SPECTRAL_PARAMETER_NAMES = {
+    "phase",
+    "psi",
+    "b0",
+    "lb",
+    "range",
+}
+
 from .data import process_spectrum
 
 
@@ -107,6 +115,7 @@ class nlsl(object):
         self._last_layout = None
         self._last_site_spectra = None
         self._last_weights = None
+        self._weight_shape = (0, 0)
 
     @property
     def nsites(self) -> int:
@@ -116,6 +125,7 @@ class nlsl(object):
     @nsites.setter
     def nsites(self, value: int) -> None:
         _fortrancore.parcom.nsite = int(value)
+        self._resize_weight_matrix()
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
@@ -217,7 +227,12 @@ class nlsl(object):
     def __getitem__(self, key):
         key = key.lower()
         if key in ("nsite", "nsites"):
+            # ensure the weight matrix tracks external nsite adjustments
+            self._resize_weight_matrix()
             return self.nsites
+        if key in ("nspc", "nspec", "nspectra"):
+            self._resize_weight_matrix()
+            return int(_fortrancore.expdat.nspc)
         res = _ipfind_wrapper(key)
         if res == 0:
             raise KeyError(key)
@@ -237,24 +252,37 @@ class nlsl(object):
         if key in ("nsite", "nsites"):
             self.nsites = int(v)
             return
+        if key in ("nspc", "nspec", "nspectra"):
+            _fortrancore.expdat.nspc = int(v)
+            self._resize_weight_matrix()
+            return
         res = _ipfind_wrapper(key)
         iterinput = isinstance(v, (list, tuple, np.ndarray))
         if res == 0:
             raise KeyError(key)
+        is_spectral = key in _SPECTRAL_PARAMETER_NAMES
         if res > 100:
             if iterinput:
-                for site_idx in range(len(v)):
+                limit = len(v)
+                if not is_spectral:
+                    limit = min(limit, self.nsites)
+                else:
+                    limit = min(limit, int(_fortrancore.expdat.nspc))
+                for site_idx in range(limit):
                     _fortrancore.setipr(res, site_idx + 1, int(v[site_idx]))
             else:
-                for site_idx in range(self.nsites):
-                    _fortrancore.setipr(res, site_idx + 1, int(v))
+                _fortrancore.setipr(res, 0, int(v))
         else:
             if iterinput:
-                for site_idx in range(len(v)):
-                    _fortrancore.setprm(res, site_idx, float(v[site_idx]))
+                limit = len(v)
+                if not is_spectral:
+                    limit = min(limit, self.nsites)
+                else:
+                    limit = min(limit, int(_fortrancore.expdat.nspc))
+                for site_idx in range(limit):
+                    _fortrancore.setprm(res, site_idx + 1, float(v[site_idx]))
             else:
-                for site_idx in range(self.nsites):
-                    _fortrancore.setprm(res, site_idx, float(v))
+                _fortrancore.setprm(res, 0, float(v))
 
     def __contains__(self, key):
         key = key.lower()
@@ -449,7 +477,84 @@ class nlsl(object):
 
         core.expdat.ndatot = ix0 + points
 
+        self._resize_weight_matrix()
+
         return idx, data_slice
+
+    def set_data(self, data_slice, values):
+        """Copy processed intensity values into the flattened data buffer."""
+
+        start = data_slice.start
+        stop = data_slice.stop
+        expected = stop - start
+        flat = np.asarray(values, dtype=float).reshape(-1)
+        if flat.size != expected:
+            raise ValueError("intensity vector length mismatch")
+        _fortrancore.expdat.data[data_slice] = flat
+        _fortrancore.lmcom.fvec[data_slice] = flat
+
+    def set_site_weights(self, spectrum_index, weights):
+        """Update the population weights for a specific spectrum index."""
+
+        nsite = int(_fortrancore.parcom.nsite)
+        nspc = int(_fortrancore.expdat.nspc)
+        if spectrum_index < 0 or spectrum_index >= nspc:
+            raise IndexError("spectrum index out of range")
+        if nsite <= 0:
+            raise RuntimeError("no active sites to weight")
+        vector = np.asarray(weights, dtype=float).reshape(-1)
+        if vector.size < nsite:
+            raise ValueError("insufficient weight values supplied")
+        target = _fortrancore.mspctr.sfac
+        target[:, spectrum_index] = 0.0
+        target[:nsite, spectrum_index] = vector[:nsite]
+        self._last_weights = None
+
+    def apply_parameter_state(self, fparm=None, iparm=None):
+        """Copy precomputed ``fparm``/``iparm`` tables into the Fortran state."""
+
+        if fparm is not None:
+            table = np.asarray(fparm, dtype=float)
+            rows = min(table.shape[0], self._fparm.shape[0])
+            cols = min(table.shape[1], self._fparm.shape[1])
+            self._fparm[:rows, :cols] = table[:rows, :cols]
+        if iparm is not None:
+            table = np.asarray(iparm, dtype=int)
+            rows = min(table.shape[0], self._iparm.shape[0])
+            cols = min(table.shape[1], self._iparm.shape[1])
+            self._iparm[:rows, :cols] = table[:rows, :cols]
+        self._last_site_spectra = None
+        self._last_weights = None
+
+    def set_spectral_state(
+        self,
+        *,
+        sb0=None,
+        srng=None,
+        ishift=None,
+        shift=None,
+        normalize_flags=None,
+    ):
+        """Update the active spectrum metadata without reloading data files."""
+
+        expdat = _fortrancore.expdat
+        if sb0 is not None:
+            values = np.asarray(sb0, dtype=float)
+            expdat.sb0[: values.size] = values
+        if srng is not None:
+            values = np.asarray(srng, dtype=float)
+            expdat.srng[: values.size] = values
+        if ishift is not None:
+            values = np.asarray(ishift, dtype=int)
+            expdat.ishft[: values.size] = values
+        if shift is not None:
+            values = np.asarray(shift, dtype=float)
+            expdat.shft[: values.size] = values
+        if normalize_flags is not None:
+            values = np.asarray(normalize_flags, dtype=int)
+            expdat.nrmlz[: values.size] = values
+        self._last_site_spectra = None
+        self._last_weights = None
 
     def _capture_state(self):
         nspc = int(_fortrancore.expdat.nspc)
@@ -496,6 +601,35 @@ class nlsl(object):
         self._last_weights = weight_matrix
 
         return self._last_site_spectra, self._last_weights
+
+    def _resize_weight_matrix(self):
+        nsite = int(_fortrancore.parcom.nsite)
+        nspc = int(_fortrancore.expdat.nspc)
+        new_shape = (nsite, nspc)
+        if new_shape == self._weight_shape:
+            return
+
+        weights = _fortrancore.mspctr.sfac
+        if nsite <= 0 or nspc <= 0:
+            weights[:, :] = 0.0
+            self._weight_shape = new_shape
+            self._last_weights = None
+            return
+
+        preserved = None
+        if self._weight_shape[0] > 0 and self._weight_shape[1] > 0:
+            row_stop = min(self._weight_shape[0], nsite)
+            col_stop = min(self._weight_shape[1], nspc)
+            if row_stop > 0 and col_stop > 0:
+                preserved = weights[:row_stop, :col_stop].copy()
+
+        weights[:, :] = 1.0
+        if preserved is not None:
+            row_stop, col_stop = preserved.shape
+            weights[:row_stop, :col_stop] = preserved
+
+        self._weight_shape = new_shape
+        self._last_weights = None
 
     def keys(self):
         return list(self._fepr_names) + list(self._iepr_names)

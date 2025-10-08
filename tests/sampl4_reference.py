@@ -72,7 +72,7 @@ SAMPL4_FINAL_PARAMETERS = {
     "axx": 5.0,
     "ayy": 5.0,
     "azz": 33.0,
-    "rx": np.array([7.14177897, 7.8396974]),
+    "rx": np.array([7.8396974, 7.14177897]),
     "ry": 0.0,
     "rz": 0.0,
     "pml": 0.0,
@@ -121,7 +121,95 @@ SAMPL4_FINAL_PARAMETERS = {
 }
 
 # Site populations extracted from the ``sampl4`` runfile output.
-SAMPL4_FINAL_WEIGHTS = np.array([0.7155313, 0.2848810])
+SAMPL4_FINAL_WEIGHTS = np.array([0.2848810, 0.7155313])
+
+# Final floating-point parameter matrix captured after convergence.
+SAMPL4_FINAL_FPARM = np.array(
+    [
+        [0.0, 0.0],
+        [1.99627620, 1.99627620],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [2.0089, 2.0089],
+        [2.0063, 2.0063],
+        [2.0021, 2.0021],
+        [5.0, 5.0],
+        [5.0, 5.0],
+        [33.0, 33.0],
+        [7.8396976, 7.14177909],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [3400.50251256, 3400.50251256],
+        [0.0, 0.0],
+        [0.001, 0.001],
+        [0.001, 0.001],
+        [0.0, 0.0],
+        [0.0, 0.0],
+        [3350.5046, 3350.5046],
+        [0.502512563, 0.502512563],
+    ]
+)
+
+# Final integer parameter matrix captured after convergence.
+SAMPL4_FINAL_IPARM = np.array(
+    [
+        [2, 2],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [12, 12],
+        [10, 10],
+        [0, 0],
+        [7, 7],
+        [0, 0],
+        [7, 7],
+        [2, 2],
+        [0, 0],
+        [0, 0],
+        [200, 200],
+        [1, 1],
+        [0, 0],
+        [0, 0],
+        [0, 0],
+        [2, 2],
+        [0, 0],
+        [0, 0],
+        [156, 156],
+    ],
+    dtype=np.int32,
+)
+
+# Spectral metadata required for reproducing the converged simulation.
+SAMPL4_FINAL_SB0 = np.array([3400.50251256])
+SAMPL4_FINAL_SRNG = np.array([100.0])
+SAMPL4_FINAL_ISHFT = np.array([1], dtype=np.int32)
+SAMPL4_FINAL_SHFT = np.array([-0.50506565])
+SAMPL4_FINAL_NRMLZ = np.array([0], dtype=np.int32)
 
 # Parameters required to recreate the converged spectrum without invoking the
 # optimiser again. These are sourced from the fitted model and assigned to a
@@ -162,12 +250,12 @@ SAMPL4_SPECTRAL_KEYS = [
     "c44",
     "lb",
     "dc20",
+    "range",
     "b0",
     "gamman",
     "cgtol",
     "shiftr",
     "shifti",
-    "range",
     "in2",
     "ipdf",
     "ist",
@@ -181,26 +269,4 @@ SAMPL4_SPECTRAL_KEYS = [
     "mmn",
     "mmx",
     "ipnmx",
-    "nort",
-    "nstep",
-    "nfield",
-    "ideriv",
-]
-
-# ``procline`` statements that recreate the SAMPL4 best-fit parameters without
-# invoking ``fit`` again.
-SAMPL4_FINAL_COMMANDS = [
-    "let phase = 0.0",
-    "let gxx,gyy,gzz = 2.0089,2.0063,2.0021",
-    "let axx,ayy,azz = 5.0,5.0,33.0",
-    "let gib0 = 1.9962757195220067",
-    "let rbar(1) = 7.14177897",
-    "let rbar(2) = 7.8396974",
-    "let lemx,lomx,kmx,mmx,ipnmx=12,10,7,7,2",
-    "let in2 = 2",
-    "let b0 = 3400.50251256,0.0",
-    "let range = 100.0,0.0",
-    "let shiftr = 0.001",
-    "let shifti = 0.0",
-    "let wxx,wyy,wzz = 0.0,0.0,0.0",
 ]
