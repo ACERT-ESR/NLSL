@@ -9,8 +9,6 @@ from tests.sampl4_reference import (
     SAMPL4_FIELD_START,
     SAMPL4_FIELD_STEP,
     SAMPL4_FINAL_PARAMETERS,
-    SAMPL4_FINAL_FPARM,
-    SAMPL4_FINAL_IPARM,
     SAMPL4_FINAL_SB0,
     SAMPL4_FINAL_SRNG,
     SAMPL4_FINAL_ISHFT,
@@ -43,14 +41,6 @@ def test_sampl4_best_parameters_match_data_without_fit():
 
     # Assign the converged runfile-4 state without invoking the optimiser.
     model.update(SAMPL4_FINAL_PARAMETERS)
-    # Recreate the full set of fitted parameters captured during the runfile
-    # execution so the synthetic spectrum matches the stored convergence point.
-    rows = min(model._fparm.shape[0], SAMPL4_FINAL_FPARM.shape[0])
-    cols = min(model._fparm.shape[1], SAMPL4_FINAL_FPARM.shape[1])
-    model._fparm[:rows, :cols] = SAMPL4_FINAL_FPARM[:rows, :cols]
-    rows = min(model._iparm.shape[0], SAMPL4_FINAL_IPARM.shape[0])
-    cols = min(model._iparm.shape[1], SAMPL4_FINAL_IPARM.shape[1])
-    model._iparm[:rows, :cols] = SAMPL4_FINAL_IPARM[:rows, :cols]
     model.set_spectral_state(
         sb0=SAMPL4_FINAL_SB0,
         srng=SAMPL4_FINAL_SRNG,

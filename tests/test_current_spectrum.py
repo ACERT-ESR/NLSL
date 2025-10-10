@@ -8,8 +8,6 @@ from tests.sampl4_reference import (
     SAMPL4_FIELD_START,
     SAMPL4_FIELD_STEP,
     SAMPL4_FINAL_PARAMETERS,
-    SAMPL4_FINAL_FPARM,
-    SAMPL4_FINAL_IPARM,
     SAMPL4_FINAL_SB0,
     SAMPL4_FINAL_SRNG,
     SAMPL4_FINAL_ISHFT,
@@ -51,14 +49,6 @@ def test_generate_coordinates_enables_current_spectrum():
     # Mirror the runfile-4 solution through the dictionary interface so the
     # synthetic spectrum is generated with the converged parameters.
     model.update(SAMPL4_FINAL_PARAMETERS)
-    # Mirror the runfile's floating- and integer-parameter tables so the core
-    # operates on the converged state captured from the Fortran fit loop.
-    rows = min(model._fparm.shape[0], SAMPL4_FINAL_FPARM.shape[0])
-    cols = min(model._fparm.shape[1], SAMPL4_FINAL_FPARM.shape[1])
-    model._fparm[:rows, :cols] = SAMPL4_FINAL_FPARM[:rows, :cols]
-    rows = min(model._iparm.shape[0], SAMPL4_FINAL_IPARM.shape[0])
-    cols = min(model._iparm.shape[1], SAMPL4_FINAL_IPARM.shape[1])
-    model._iparm[:rows, :cols] = SAMPL4_FINAL_IPARM[:rows, :cols]
     model.set_spectral_state(
         sb0=SAMPL4_FINAL_SB0,
         srng=SAMPL4_FINAL_SRNG,

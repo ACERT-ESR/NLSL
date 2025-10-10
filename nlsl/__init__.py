@@ -105,10 +105,26 @@ class nlsl(object):
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
+        extra_fepr = iter(["fldi", "dfld"])
+        for idx, name in enumerate(self._fepr_names):
+            if name:
+                continue
+            try:
+                self._fepr_names[idx] = next(extra_fepr)
+            except StopIteration:
+                break
         self._iepr_names = [
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
+        extra_iepr = iter(["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"])
+        for idx, name in enumerate(self._iepr_names):
+            if name:
+                continue
+            try:
+                self._iepr_names[idx] = next(extra_iepr)
+            except StopIteration:
+                break
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params()
@@ -250,6 +266,18 @@ class nlsl(object):
             return matrix[:nsite, :nspc].swapaxes(0, 1).copy()
         res = _ipfind_wrapper(key)
         if res == 0:
+            if key in self._iepr_names:
+                idx = self._iepr_names.index(key)
+                vals = self._iparm[idx, : self.nsites]
+                if np.all(vals == vals[0]):
+                    return int(vals[0])
+                return vals.copy()
+            if key in self._fepr_names:
+                idx = self._fepr_names.index(key)
+                vals = self._fparm[idx, : self.nsites]
+                if np.allclose(vals, vals[0]):
+                    return float(vals[0])
+                return vals.copy()
             raise KeyError(key)
         if res > 100:
             idx = self._iepr_names.index(key)
@@ -300,6 +328,23 @@ class nlsl(object):
         res = _ipfind_wrapper(key)
         iterinput = isinstance(v, (list, tuple, np.ndarray))
         if res == 0:
+            if key in self._iepr_names:
+                idx = self._iepr_names.index(key)
+                if iterinput:
+                    limit = min(len(v), self.nsites)
+                    self._iparm[idx, :limit] = np.asarray(v[:limit], dtype=int)
+                else:
+                    self._iparm[idx, : self.nsites] = int(v)
+                return
+            if key in self._fepr_names:
+                idx = self._fepr_names.index(key)
+                values = np.asarray(v, dtype=float)
+                if values.ndim == 0:
+                    self._fparm[idx, : self.nsites] = float(values)
+                else:
+                    limit = min(values.size, self.nsites)
+                    self._fparm[idx, :limit] = values[:limit]
+                return
             raise KeyError(key)
         is_spectral = key in _SPECTRAL_PARAMETER_NAMES
         if res > 100:
@@ -555,32 +600,48 @@ class nlsl(object):
         """Update the active spectrum metadata without reloading data files."""
 
         expdat = _fortrancore.expdat
+
+        def _broadcast_to_spectra(row_index, values):
+            count = int(_fortrancore.parcom.nsite)
+            if count <= 0:
+                count = 1
+            limit = min(count, self._fparm.shape[1])
+            if limit <= 0:
+                return
+            if values.size >= limit:
+                self._fparm[row_index, :limit] = values[:limit]
+            else:
+                self._fparm[row_index, :limit] = values[0]
         if sb0 is not None:
-            values = np.asarray(sb0, dtype=float)
+            values = np.atleast_1d(np.asarray(sb0, dtype=float))
             expdat.sb0[: values.size] = values
             if "b0" in self._fepr_names:
-                stop = min(values.size, self._fparm.shape[1])
-                self._fparm[self._fepr_names.index("b0"), :stop] = values[:stop]
+                _broadcast_to_spectra(self._fepr_names.index("b0"), values)
         if srng is not None:
-            values = np.asarray(srng, dtype=float)
+            values = np.atleast_1d(np.asarray(srng, dtype=float))
             expdat.srng[: values.size] = values
-            if "range" in self._fepr_names:
-                stop = min(values.size, self._fparm.shape[1])
-                self._fparm[self._fepr_names.index("range"), :stop] = values[:stop]
+        if (sb0 is not None or srng is not None) and "range" in self._fepr_names:
+            start_row = self._fepr_names.index("range") + 1
+            step_row = start_row + 1
+            if start_row < self._fparm.shape[0]:
+                base = float(expdat.sb0[0]) if expdat.sb0.shape[0] > 0 else 0.0
+                span = float(expdat.srng[0]) if expdat.srng.shape[0] > 0 else 0.0
+                start_val = base - 0.5 * span
+                _broadcast_to_spectra(start_row, np.array([start_val], dtype=float))
+            if step_row < self._fparm.shape[0]:
+                if expdat.npts.shape[0] > 0 and expdat.npts[0] > 1:
+                    step_val = float(expdat.srng[0]) / float(expdat.npts[0] - 1)
+                else:
+                    step_val = 0.0
+                _broadcast_to_spectra(step_row, np.array([step_val], dtype=float))
         if ishift is not None:
-            values = np.asarray(ishift, dtype=int)
+            values = np.atleast_1d(np.asarray(ishift, dtype=int))
             expdat.ishft[: values.size] = values
         if shift is not None:
-            values = np.asarray(shift, dtype=float)
+            values = np.atleast_1d(np.asarray(shift, dtype=float))
             expdat.shft[: values.size] = values
-            if "shiftr" in self._fepr_names:
-                stop = min(values.size, self._fparm.shape[1])
-                self._fparm[self._fepr_names.index("shiftr"), :stop] = values[:stop]
-            if "shifti" in self._fepr_names:
-                stop = min(values.size, self._fparm.shape[1])
-                self._fparm[self._fepr_names.index("shifti"), :stop] = 0.0
         if normalize_flags is not None:
-            values = np.asarray(normalize_flags, dtype=int)
+            values = np.atleast_1d(np.asarray(normalize_flags, dtype=int))
             expdat.nrmlz[: values.size] = values
         self._last_site_spectra = None
 

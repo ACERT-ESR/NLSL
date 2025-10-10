@@ -95,12 +95,12 @@ SAMPL4_FINAL_PARAMETERS = {
     "c44": 0.0,
     "lb": 0.0,
     "dc20": 0.0,
-    "b0": np.array([3400.50251256, 0.0]),
+    "b0": 3400.50251256,
     "gamman": 0.0,
     "cgtol": 0.001,
     "shiftr": 0.001,
     "shifti": 0.0,
-    "range": np.array([100.0, 0.0]),
+    "range": 100.0,
     "in2": 2,
     "ipdf": 0,
     "ist": 0,
@@ -118,95 +118,16 @@ SAMPL4_FINAL_PARAMETERS = {
     "nstep": 0,
     "nfield": 200,
     "ideriv": 1,
+    "irflg": 2,
+    "ndim": 156,
 }
 
 # Site populations extracted from the ``sampl4`` runfile output.
 SAMPL4_FINAL_WEIGHTS = np.array([0.2848810, 0.7155313])
 
-# Final floating-point parameter matrix captured after convergence.
-SAMPL4_FINAL_FPARM = np.array(
-    [
-        [0.0, 0.0],
-        [1.99627620, 1.99627620],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [2.0089, 2.0089],
-        [2.0063, 2.0063],
-        [2.0021, 2.0021],
-        [5.0, 5.0],
-        [5.0, 5.0],
-        [33.0, 33.0],
-        [7.8396976, 7.14177909],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [3400.50251256, 3400.50251256],
-        [0.0, 0.0],
-        [0.001, 0.001],
-        [0.001, 0.001],
-        [0.0, 0.0],
-        [0.0, 0.0],
-        [3350.5046, 3350.5046],
-        [0.502512563, 0.502512563],
-    ]
-)
-
-# Final integer parameter matrix captured after convergence.
-SAMPL4_FINAL_IPARM = np.array(
-    [
-        [2, 2],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [12, 12],
-        [10, 10],
-        [0, 0],
-        [7, 7],
-        [0, 0],
-        [7, 7],
-        [2, 2],
-        [0, 0],
-        [0, 0],
-        [200, 200],
-        [1, 1],
-        [0, 0],
-        [0, 0],
-        [0, 0],
-        [2, 2],
-        [0, 0],
-        [0, 0],
-        [156, 156],
-    ],
-    dtype=np.int32,
-)
-
 # Spectral metadata required for reproducing the converged simulation.
-SAMPL4_FINAL_SB0 = np.array([3400.50251256])
-SAMPL4_FINAL_SRNG = np.array([100.0])
+SAMPL4_FINAL_SB0 = np.array([SAMPL4_FINAL_PARAMETERS["b0"]])
+SAMPL4_FINAL_SRNG = np.array([SAMPL4_FINAL_PARAMETERS["range"]])
 SAMPL4_FINAL_ISHFT = np.array([1], dtype=np.int32)
 SAMPL4_FINAL_SHFT = np.array([-0.50506565])
 SAMPL4_FINAL_NRMLZ = np.array([0], dtype=np.int32)
