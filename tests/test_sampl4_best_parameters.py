@@ -41,13 +41,11 @@ def test_sampl4_best_parameters_match_data_without_fit():
 
     # Assign the converged runfile-4 state without invoking the optimiser.
     model.update(SAMPL4_FINAL_PARAMETERS)
-    model.set_spectral_state(
-        sb0=SAMPL4_FINAL_SB0,
-        srng=SAMPL4_FINAL_SRNG,
-        ishift=SAMPL4_FINAL_ISHFT,
-        shift=SAMPL4_FINAL_SHFT,
-        normalize_flags=SAMPL4_FINAL_NRMLZ,
-    )
+    model['sb0'] = SAMPL4_FINAL_SB0
+    model['srng'] = SAMPL4_FINAL_SRNG
+    model['ishft'] = SAMPL4_FINAL_ISHFT
+    model['shft'] = SAMPL4_FINAL_SHFT
+    model['nrmlz'] = SAMPL4_FINAL_NRMLZ
     model['weights'] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum

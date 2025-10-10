@@ -136,6 +136,6 @@ SAMPL4_FINAL_WEIGHTS = np.array([0.2848810, 0.7155313])
 SAMPL4_FINAL_SB0 = np.array([SAMPL4_FINAL_PARAMETERS["b0"]])
 SAMPL4_FINAL_SRNG = np.array([SAMPL4_FINAL_PARAMETERS["range"]])
 SAMPL4_FINAL_ISHFT = np.array([1], dtype=np.int32)
-SAMPL4_FINAL_SHFT = np.array([-0.50506565])
+SAMPL4_FINAL_SHFT = np.array([0.0])
 SAMPL4_FINAL_NRMLZ = np.array([0], dtype=np.int32)
 

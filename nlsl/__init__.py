@@ -131,6 +131,8 @@ class nlsl(object):
         self._last_layout = None
         self._last_site_spectra = None
         self._weight_shape = (0, 0)
+        self._explicit_field_start = False
+        self._explicit_field_step = False
 
     @property
     def nsites(self) -> int:
@@ -252,6 +254,110 @@ class nlsl(object):
         if key in ("nspc", "nspec", "nspectra"):
             self._resize_weight_matrix()
             return int(_fortrancore.expdat.nspc)
+        if key in ("sb0", "b0"):
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                try:
+                    idx = _ipfind_wrapper("b0")
+                    if idx > 0:
+                        return float(_fortrancore.getprm(idx, 1))
+                except Exception:
+                    pass
+                if "b0" in self._fepr_names:
+                    row = self._fepr_names.index("b0")
+                    columns = max(self.nsites, 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        values = self._fparm[row, :columns]
+                        if np.allclose(values, values[0]):
+                            return float(values[0])
+                        return values.copy()
+                return 0.0
+            values = _fortrancore.expdat.sb0[:nspc].copy()
+            if np.allclose(values, values[0]):
+                return float(values[0])
+            return values
+        if key in ("srng", "range"):
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                try:
+                    idx = _ipfind_wrapper("range")
+                    if idx > 0:
+                        return float(_fortrancore.getprm(idx, 1))
+                except Exception:
+                    pass
+                if "range" in self._fepr_names:
+                    row = self._fepr_names.index("range")
+                    columns = max(self.nsites, 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        values = self._fparm[row, :columns]
+                        if np.allclose(values, values[0]):
+                            return float(values[0])
+                        return values.copy()
+                return 0.0
+            values = _fortrancore.expdat.srng[:nspc].copy()
+            if np.allclose(values, values[0]):
+                return float(values[0])
+            return values
+        if key == "fldi":
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                if "fldi" in self._fepr_names:
+                    row = self._fepr_names.index("fldi")
+                    columns = max(self.nsites, 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        values = self._fparm[row, :columns]
+                        if np.allclose(values, values[0]):
+                            return float(values[0])
+                        return values.copy()
+                return 0.0
+            values = _fortrancore.expdat.sbi[:nspc].copy()
+            if np.allclose(values, values[0]):
+                return float(values[0])
+            return values
+        if key == "dfld":
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                if "dfld" in self._fepr_names:
+                    row = self._fepr_names.index("dfld")
+                    columns = max(self.nsites, 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        values = self._fparm[row, :columns]
+                        if np.allclose(values, values[0]):
+                            return float(values[0])
+                        return values.copy()
+                return 0.0
+            values = _fortrancore.expdat.sdb[:nspc].copy()
+            if np.allclose(values, values[0]):
+                return float(values[0])
+            return values
+        if key == "ishft":
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                return 0
+            values = _fortrancore.expdat.ishft[:nspc].copy()
+            if np.all(values == values[0]):
+                return int(values[0])
+            return values
+        if key in ("shift", "shft"):
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                return 0.0
+            values = _fortrancore.expdat.shft[:nspc].copy()
+            if np.allclose(values, values[0]):
+                return float(values[0])
+            return values
+        if key in ("normalize_flags", "nrmlz"):
+            nspc = int(_fortrancore.expdat.nspc)
+            if nspc <= 0:
+                return 0
+            values = _fortrancore.expdat.nrmlz[:nspc].copy()
+            if np.all(values == values[0]):
+                return int(values[0])
+            return values
         if key in ("weights", "weight", "sfac"):
             self._resize_weight_matrix()
             nsite = int(_fortrancore.parcom.nsite)
@@ -319,11 +425,216 @@ class nlsl(object):
             _fortrancore.mspctr.sfac[:, :] = 0.0
             _fortrancore.mspctr.sfac[:nsite, :nspc] = matrix[:nspc, :nsite].swapaxes(0, 1)
             return
-        if key == "b0":
-            self.set_spectral_state(sb0=v)
+        expdat = _fortrancore.expdat
+        if key == "fldi":
+            # ``fldi`` holds the absolute starting field for each spectrum.  Keep
+            # both the ``expdat`` cache and the floating-parameter table in sync
+            # so future ``range`` adjustments can reuse the stored origin.
+            values = np.atleast_1d(np.asarray(v, dtype=float))
+            if values.size == 0:
+                raise ValueError("fldi requires at least one value")
+            nspc = int(expdat.nspc)
+            if nspc <= 0:
+                nspc = 1
+            fill_count = min(max(nspc, 1), expdat.sbi.shape[0])
+            expanded = np.empty(fill_count, dtype=float)
+            expanded[:] = float(values[0])
+            limit = min(values.size, fill_count)
+            expanded[:limit] = values[:limit]
+            expdat.sbi[:fill_count] = expanded
+            self._explicit_field_start = True
+            if "fldi" in self._fepr_names:
+                row = self._fepr_names.index("fldi")
+                columns = max(int(_fortrancore.parcom.nsite), 1)
+                columns = min(columns, self._fparm.shape[1])
+                if columns > 0:
+                    for col in range(columns):
+                        if col < expanded.size:
+                            self._fparm[row, col] = expanded[col]
+                        else:
+                            self._fparm[row, col] = expanded[0]
+            self._last_site_spectra = None
             return
-        if key == "range":
-            self.set_spectral_state(srng=v)
+        if key == "dfld":
+            # ``dfld`` records the field increment between points.  Preserve it
+            # explicitly so synthetic spectra can reuse the converged sampling
+            # without re-deriving it from the range and point count.
+            values = np.atleast_1d(np.asarray(v, dtype=float))
+            if values.size == 0:
+                raise ValueError("dfld requires at least one value")
+            nspc = int(expdat.nspc)
+            if nspc <= 0:
+                nspc = 1
+            fill_count = min(max(nspc, 1), expdat.sdb.shape[0])
+            expanded = np.empty(fill_count, dtype=float)
+            expanded[:] = float(values[0])
+            limit = min(values.size, fill_count)
+            expanded[:limit] = values[:limit]
+            expdat.sdb[:fill_count] = expanded
+            self._explicit_field_step = True
+            if "dfld" in self._fepr_names:
+                row = self._fepr_names.index("dfld")
+                columns = max(int(_fortrancore.parcom.nsite), 1)
+                columns = min(columns, self._fparm.shape[1])
+                if columns > 0:
+                    for col in range(columns):
+                        if col < expanded.size:
+                            self._fparm[row, col] = expanded[col]
+                        else:
+                            self._fparm[row, col] = expanded[0]
+            self._last_site_spectra = None
+            return
+        if key in ("b0", "sb0", "range", "srng"):
+            values = np.atleast_1d(np.asarray(v, dtype=float))
+            if values.size == 0:
+                raise ValueError(f"{key} requires at least one value")
+
+            nspc = int(expdat.nspc)
+            if nspc < 0:
+                nspc = 0
+
+            canonical = "b0" if key in ("b0", "sb0") else "range"
+            if canonical == "b0":
+                fill_count = max(nspc, 1)
+                if fill_count > expdat.sb0.shape[0]:
+                    fill_count = expdat.sb0.shape[0]
+                expanded = np.empty(fill_count, dtype=float)
+                expanded[:] = float(values[0])
+                limit = min(values.size, fill_count)
+                expanded[:limit] = values[:limit]
+                expdat.sb0[:fill_count] = expanded
+                if "b0" in self._fepr_names:
+                    row = self._fepr_names.index("b0")
+                    columns = max(int(_fortrancore.parcom.nsite), 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        if expanded.size >= columns:
+                            self._fparm[row, :columns] = expanded[:columns]
+                        else:
+                            self._fparm[row, :columns] = expanded[0]
+            else:
+                fill_count = max(nspc, 1)
+                if fill_count > expdat.srng.shape[0]:
+                    fill_count = expdat.srng.shape[0]
+                expanded = np.empty(fill_count, dtype=float)
+                expanded[:] = float(values[0])
+                limit = min(values.size, fill_count)
+                expanded[:limit] = values[:limit]
+                expdat.srng[:fill_count] = expanded
+                if not self._explicit_field_start:
+                    expdat.sbi[:fill_count] = (
+                        expdat.sb0[:fill_count] - 0.5 * expdat.srng[:fill_count]
+                    )
+                else:
+                    self._explicit_field_start = True
+                if not self._explicit_field_step:
+                    steps = np.zeros(fill_count, dtype=float)
+                    for spectrum in range(fill_count):
+                        points = int(expdat.npts[spectrum]) if spectrum < expdat.npts.shape[0] else 0
+                        if points > 1:
+                            steps[spectrum] = expdat.srng[spectrum] / float(points - 1)
+                    expdat.sdb[:fill_count] = steps
+                else:
+                    self._explicit_field_step = True
+                if "range" in self._fepr_names:
+                    row = self._fepr_names.index("range")
+                    columns = max(int(_fortrancore.parcom.nsite), 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        if expanded.size >= columns:
+                            self._fparm[row, :columns] = expanded[:columns]
+                        else:
+                            self._fparm[row, :columns] = expanded[0]
+
+                if "fldi" in self._fepr_names:
+                    row = self._fepr_names.index("fldi")
+                    columns = max(int(_fortrancore.parcom.nsite), 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        for col in range(columns):
+                            if col < expdat.sbi.shape[0]:
+                                self._fparm[row, col] = expdat.sbi[col]
+                            else:
+                                self._fparm[row, col] = expdat.sbi[0]
+                if "dfld" in self._fepr_names:
+                    row = self._fepr_names.index("dfld")
+                    columns = max(int(_fortrancore.parcom.nsite), 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        for col in range(columns):
+                            if col < expdat.sdb.shape[0]:
+                                self._fparm[row, col] = expdat.sdb[col]
+                            else:
+                                self._fparm[row, col] = expdat.sdb[0]
+
+            update_geometry = False
+            if "range" in self._fepr_names:
+                update_geometry = True
+            if update_geometry:
+                start_row = self._fepr_names.index("range") + 1
+                step_row = start_row + 1
+                if start_row < self._fparm.shape[0]:
+                    columns = max(int(_fortrancore.parcom.nsite), 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        start_values = expdat.sbi[:columns]
+                        if start_values.size >= columns:
+                            self._fparm[start_row, :columns] = start_values[:columns]
+                        elif start_values.size > 0:
+                            self._fparm[start_row, :columns] = start_values[0]
+                        else:
+                            self._fparm[start_row, :columns] = 0.0
+                if step_row < self._fparm.shape[0]:
+                    columns = max(int(_fortrancore.parcom.nsite), 1)
+                    columns = min(columns, self._fparm.shape[1])
+                    if columns > 0:
+                        step_values = expdat.sdb[:columns]
+                        if step_values.size >= columns:
+                            self._fparm[step_row, :columns] = step_values[:columns]
+                        elif step_values.size > 0:
+                            self._fparm[step_row, :columns] = step_values[0]
+                        else:
+                            self._fparm[step_row, :columns] = 0.0
+
+            self._last_site_spectra = None
+            return
+        if key == "ishft":
+            values = np.atleast_1d(np.asarray(v, dtype=int))
+            if values.size == 0:
+                raise ValueError("ishft requires at least one value")
+            nspc = max(int(expdat.nspc), 1)
+            filled = np.empty(nspc, dtype=np.int32)
+            filled[:] = int(values[0])
+            limit = min(values.size, nspc)
+            filled[:limit] = values[:limit]
+            expdat.ishft[:nspc] = filled
+            self._last_site_spectra = None
+            return
+        if key in ("shift", "shft"):
+            values = np.atleast_1d(np.asarray(v, dtype=float))
+            if values.size == 0:
+                raise ValueError("shift requires at least one value")
+            nspc = max(int(expdat.nspc), 1)
+            filled = np.empty(nspc, dtype=float)
+            filled[:] = float(values[0])
+            limit = min(values.size, nspc)
+            filled[:limit] = values[:limit]
+            expdat.shft[:nspc] = filled
+            if np.any(filled != 0.0):
+                expdat.ishglb = 1
+            self._last_site_spectra = None
+            return
+        if key in ("normalize_flags", "nrmlz"):
+            values = np.atleast_1d(np.asarray(v, dtype=int))
+            if values.size == 0:
+                raise ValueError("normalize flags require at least one value")
+            nspc = max(int(expdat.nspc), 1)
+            filled = np.empty(nspc, dtype=np.int32)
+            filled[:] = int(values[0])
+            limit = min(values.size, nspc)
+            filled[:limit] = values[:limit]
+            expdat.nrmlz[:nspc] = filled
+            self._last_site_spectra = None
             return
         res = _ipfind_wrapper(key)
         iterinput = isinstance(v, (list, tuple, np.ndarray))
@@ -556,6 +867,8 @@ class nlsl(object):
 
         core.expdat.ndatot = ix0 + points
 
+        self._explicit_field_start = False
+        self._explicit_field_step = False
         self._resize_weight_matrix()
 
         return idx, data_slice
@@ -587,63 +900,6 @@ class nlsl(object):
         target = _fortrancore.mspctr.sfac
         target[:, spectrum_index] = 0.0
         target[:nsite, spectrum_index] = vector[:nsite]
-
-    def set_spectral_state(
-        self,
-        *,
-        sb0=None,
-        srng=None,
-        ishift=None,
-        shift=None,
-        normalize_flags=None,
-    ):
-        """Update the active spectrum metadata without reloading data files."""
-
-        expdat = _fortrancore.expdat
-
-        def _broadcast_to_spectra(row_index, values):
-            count = int(_fortrancore.parcom.nsite)
-            if count <= 0:
-                count = 1
-            limit = min(count, self._fparm.shape[1])
-            if limit <= 0:
-                return
-            if values.size >= limit:
-                self._fparm[row_index, :limit] = values[:limit]
-            else:
-                self._fparm[row_index, :limit] = values[0]
-        if sb0 is not None:
-            values = np.atleast_1d(np.asarray(sb0, dtype=float))
-            expdat.sb0[: values.size] = values
-            if "b0" in self._fepr_names:
-                _broadcast_to_spectra(self._fepr_names.index("b0"), values)
-        if srng is not None:
-            values = np.atleast_1d(np.asarray(srng, dtype=float))
-            expdat.srng[: values.size] = values
-        if (sb0 is not None or srng is not None) and "range" in self._fepr_names:
-            start_row = self._fepr_names.index("range") + 1
-            step_row = start_row + 1
-            if start_row < self._fparm.shape[0]:
-                base = float(expdat.sb0[0]) if expdat.sb0.shape[0] > 0 else 0.0
-                span = float(expdat.srng[0]) if expdat.srng.shape[0] > 0 else 0.0
-                start_val = base - 0.5 * span
-                _broadcast_to_spectra(start_row, np.array([start_val], dtype=float))
-            if step_row < self._fparm.shape[0]:
-                if expdat.npts.shape[0] > 0 and expdat.npts[0] > 1:
-                    step_val = float(expdat.srng[0]) / float(expdat.npts[0] - 1)
-                else:
-                    step_val = 0.0
-                _broadcast_to_spectra(step_row, np.array([step_val], dtype=float))
-        if ishift is not None:
-            values = np.atleast_1d(np.asarray(ishift, dtype=int))
-            expdat.ishft[: values.size] = values
-        if shift is not None:
-            values = np.atleast_1d(np.asarray(shift, dtype=float))
-            expdat.shft[: values.size] = values
-        if normalize_flags is not None:
-            values = np.atleast_1d(np.asarray(normalize_flags, dtype=int))
-            expdat.nrmlz[: values.size] = values
-        self._last_site_spectra = None
 
     def _capture_state(self):
         nspc = int(_fortrancore.expdat.nspc)
@@ -681,12 +937,15 @@ class nlsl(object):
         return self._last_site_spectra
 
     def _resize_weight_matrix(self):
-        # Keep the site-by-spectrum weight table sized to the active model.
-        # The Levenberg–Marquardt core works with a rectangular ``sfac`` array
-        # whose leading dimensions are controlled by ``nsite`` and ``nspc``.
-        # Whenever either axis changes we zero-fill the new storage and copy
-        # the overlapping block of any previously stored populations so fits
-        # retain their converged weights after grid changes.
+        # ``sfac`` (declared in ``mspctr.f90`` as "Scale factors for each site
+        # and spectrum") holds the population multiplier that each site
+        # contributes when spectra are combined into totals and residuals.
+        # This helper keeps the Python-visible view of that table aligned with
+        # the active site/spectrum counts so later evaluations operate on
+        # sensible data.
+
+        # Determine the requested extents from the public counters.  When both
+        # match the cached shape there is nothing to do.
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
         new_shape = (nsite, nspc)
@@ -695,6 +954,9 @@ class nlsl(object):
 
         weights = _fortrancore.mspctr.sfac
         if nsite <= 0 or nspc <= 0:
+            # Degenerate cases (no sites or no spectra) should not reuse
+            # historical populations.  Clear the array explicitly so future
+            # reads see a consistent block of zeros.
             weights[:, :] = 0.0
             self._weight_shape = new_shape
             return
@@ -704,11 +966,18 @@ class nlsl(object):
             row_stop = min(self._weight_shape[0], nsite)
             col_stop = min(self._weight_shape[1], nspc)
             if row_stop > 0 and col_stop > 0:
+                # Preserve the weights that still fall inside the new layout so
+                # we can restore them after reinitialising the array.
                 preserved = weights[:row_stop, :col_stop].copy()
 
+        # Default any newly exposed elements to equal populations.  The
+        # Fortran routines expect ones when a spectrum has never been fitted,
+        # so this mirrors the behaviour of ``series.f90`` and ``datac.f90``.
         weights[:, :] = 1.0
         if preserved is not None:
             row_stop, col_stop = preserved.shape
+            # Copy the surviving block back into place so previously converged
+            # spectra continue using their fitted populations.
             weights[:row_stop, :col_stop] = preserved
 
         self._weight_shape = new_shape
