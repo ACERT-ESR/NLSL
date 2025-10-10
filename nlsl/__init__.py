@@ -291,6 +291,12 @@ class nlsl(object):
             _fortrancore.mspctr.sfac[:, :] = 0.0
             _fortrancore.mspctr.sfac[:nsite, :nspc] = matrix[:nspc, :nsite].swapaxes(0, 1)
             return
+        if key == "b0":
+            self.set_spectral_state(sb0=v)
+            return
+        if key == "range":
+            self.set_spectral_state(srng=v)
+            return
         res = _ipfind_wrapper(key)
         iterinput = isinstance(v, (list, tuple, np.ndarray))
         if res == 0:
@@ -537,21 +543,6 @@ class nlsl(object):
         target[:, spectrum_index] = 0.0
         target[:nsite, spectrum_index] = vector[:nsite]
 
-    def apply_parameter_state(self, fparm=None, iparm=None):
-        """Copy precomputed ``fparm``/``iparm`` tables into the Fortran state."""
-
-        if fparm is not None:
-            table = np.asarray(fparm, dtype=float)
-            rows = min(table.shape[0], self._fparm.shape[0])
-            cols = min(table.shape[1], self._fparm.shape[1])
-            self._fparm[:rows, :cols] = table[:rows, :cols]
-        if iparm is not None:
-            table = np.asarray(iparm, dtype=int)
-            rows = min(table.shape[0], self._iparm.shape[0])
-            cols = min(table.shape[1], self._iparm.shape[1])
-            self._iparm[:rows, :cols] = table[:rows, :cols]
-        self._last_site_spectra = None
-
     def set_spectral_state(
         self,
         *,
@@ -567,15 +558,27 @@ class nlsl(object):
         if sb0 is not None:
             values = np.asarray(sb0, dtype=float)
             expdat.sb0[: values.size] = values
+            if "b0" in self._fepr_names:
+                stop = min(values.size, self._fparm.shape[1])
+                self._fparm[self._fepr_names.index("b0"), :stop] = values[:stop]
         if srng is not None:
             values = np.asarray(srng, dtype=float)
             expdat.srng[: values.size] = values
+            if "range" in self._fepr_names:
+                stop = min(values.size, self._fparm.shape[1])
+                self._fparm[self._fepr_names.index("range"), :stop] = values[:stop]
         if ishift is not None:
             values = np.asarray(ishift, dtype=int)
             expdat.ishft[: values.size] = values
         if shift is not None:
             values = np.asarray(shift, dtype=float)
             expdat.shft[: values.size] = values
+            if "shiftr" in self._fepr_names:
+                stop = min(values.size, self._fparm.shape[1])
+                self._fparm[self._fepr_names.index("shiftr"), :stop] = values[:stop]
+            if "shifti" in self._fepr_names:
+                stop = min(values.size, self._fparm.shape[1])
+                self._fparm[self._fepr_names.index("shifti"), :stop] = 0.0
         if normalize_flags is not None:
             values = np.asarray(normalize_flags, dtype=int)
             expdat.nrmlz[: values.size] = values

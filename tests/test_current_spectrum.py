@@ -8,9 +8,16 @@ from tests.sampl4_reference import (
     SAMPL4_FIELD_START,
     SAMPL4_FIELD_STEP,
     SAMPL4_FINAL_PARAMETERS,
+    SAMPL4_FINAL_FPARM,
+    SAMPL4_FINAL_IPARM,
+    SAMPL4_FINAL_SB0,
+    SAMPL4_FINAL_SRNG,
+    SAMPL4_FINAL_ISHFT,
+    SAMPL4_FINAL_SHFT,
+    SAMPL4_FINAL_NRMLZ,
+    SAMPL4_FINAL_WEIGHTS,
     SAMPL4_POINT_COUNT,
     SAMPL4_INTENSITIES,
-    apply_sampl4_final_state,
 )
 
 
@@ -41,8 +48,25 @@ def test_generate_coordinates_enables_current_spectrum():
     # directly against the reference trace.
     model.set_data(data_slice, SAMPL4_INTENSITIES[:SAMPL4_POINT_COUNT])
 
-    # Store the final runfile-4 solution without touching the legacy front-end.
-    apply_sampl4_final_state(model)
+    # Mirror the runfile-4 solution through the dictionary interface so the
+    # synthetic spectrum is generated with the converged parameters.
+    model.update(SAMPL4_FINAL_PARAMETERS)
+    # Mirror the runfile's floating- and integer-parameter tables so the core
+    # operates on the converged state captured from the Fortran fit loop.
+    rows = min(model._fparm.shape[0], SAMPL4_FINAL_FPARM.shape[0])
+    cols = min(model._fparm.shape[1], SAMPL4_FINAL_FPARM.shape[1])
+    model._fparm[:rows, :cols] = SAMPL4_FINAL_FPARM[:rows, :cols]
+    rows = min(model._iparm.shape[0], SAMPL4_FINAL_IPARM.shape[0])
+    cols = min(model._iparm.shape[1], SAMPL4_FINAL_IPARM.shape[1])
+    model._iparm[:rows, :cols] = SAMPL4_FINAL_IPARM[:rows, :cols]
+    model.set_spectral_state(
+        sb0=SAMPL4_FINAL_SB0,
+        srng=SAMPL4_FINAL_SRNG,
+        ishift=SAMPL4_FINAL_ISHFT,
+        shift=SAMPL4_FINAL_SHFT,
+        normalize_flags=SAMPL4_FINAL_NRMLZ,
+    )
+    model['weights'] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
     weights_matrix = np.array(model['weights'], copy=True)
