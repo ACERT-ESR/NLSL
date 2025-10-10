@@ -15,7 +15,7 @@ from tests.sampl4_reference import (
     SAMPL4_FINAL_NRMLZ,
     SAMPL4_FINAL_WEIGHTS,
     SAMPL4_POINT_COUNT,
-    SAMPL4_INTENSITIES,
+    SAMPL4_SPECTRAL_DATA,
 )
 
 
@@ -44,7 +44,7 @@ def test_generate_coordinates_enables_current_spectrum():
 
     # Copy the processed intensities so the synthetic spectrum can be compared
     # directly against the reference trace.
-    model.set_data(data_slice, SAMPL4_INTENSITIES[:SAMPL4_POINT_COUNT])
+    model.set_data(data_slice, SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT])
 
     # Mirror the runfile-4 solution through the dictionary interface so the
     # synthetic spectrum is generated with the converged parameters.
@@ -59,14 +59,14 @@ def test_generate_coordinates_enables_current_spectrum():
     model['weights'] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
-    weights_matrix = np.array(model['weights'], copy=True)
-
     assert site_spectra.shape == (2, SAMPL4_POINT_COUNT)
     assert np.all(np.isfinite(site_spectra))
-    assert np.all(np.isfinite(weights_matrix))
+    assert np.all(np.isfinite(model['weights']))
 
-    simulated_total = np.dot(np.atleast_2d(weights_matrix), site_spectra[:, data_slice])
-    rel_rms = np.linalg.norm(np.squeeze(simulated_total) - SAMPL4_INTENSITIES[:SAMPL4_POINT_COUNT])
-    rel_rms /= np.linalg.norm(SAMPL4_INTENSITIES[:SAMPL4_POINT_COUNT])
+    simulated_total = np.dot(np.atleast_2d(model['weights']), site_spectra[:, data_slice])
+    rel_rms = np.linalg.norm(
+        np.squeeze(simulated_total) - SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT]
+    )
+    rel_rms /= np.linalg.norm(SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT])
 
     assert rel_rms < 0.0401

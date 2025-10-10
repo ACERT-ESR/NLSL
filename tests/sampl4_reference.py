@@ -24,7 +24,7 @@ _SAMPL4_PROCESSED = process_spectrum(
 SAMPL4_FIELD_START = float(_SAMPL4_PROCESSED.start)
 SAMPL4_FIELD_STEP = float(_SAMPL4_PROCESSED.step)
 SAMPL4_POINT_COUNT = _SAMPL4_PROCESSED.y.size
-SAMPL4_INTENSITIES = _SAMPL4_PROCESSED.y.copy()
+SAMPL4_SPECTRAL_DATA = _SAMPL4_PROCESSED.y.copy()
 
 # Starting guesses copied from the ``let`` statements in ``sampl4.run``.
 SAMPL4_INITIAL_PARAMETERS = {

@@ -9,7 +9,7 @@ from tests.sampl4_reference import (
     SAMPL4_DATA_PATH,
     SAMPL4_FIT_CONTROLS,
     SAMPL4_INITIAL_PARAMETERS,
-    SAMPL4_INTENSITIES,
+    SAMPL4_SPECTRAL_DATA,
     SAMPL4_PARAMETERS_TO_VARY,
 )
 
@@ -50,7 +50,7 @@ def run_pythonic_sampl4_fit():
     weighted_components = weight_matrix[:, :, np.newaxis] * components[np.newaxis, :, :]
     simulated_total = np.squeeze(weight_matrix.dot(components))
 
-    experimental = SAMPL4_INTENSITIES[:point_count]
+    experimental = SAMPL4_SPECTRAL_DATA[:point_count]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 

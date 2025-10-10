@@ -15,7 +15,7 @@ from tests.sampl4_reference import (
     SAMPL4_FINAL_SHFT,
     SAMPL4_FINAL_NRMLZ,
     SAMPL4_FINAL_WEIGHTS,
-    SAMPL4_INTENSITIES,
+    SAMPL4_SPECTRAL_DATA,
     SAMPL4_POINT_COUNT,
 )
 
@@ -51,12 +51,10 @@ def test_sampl4_best_parameters_match_data_without_fit():
     model['weights'] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
-    weights_matrix = np.array(model['weights'], copy=True)
-
     count = data_slice.stop - data_slice.start
-    simulated_total = np.dot(np.atleast_2d(weights_matrix), site_spectra[:, data_slice])
+    simulated_total = np.dot(np.atleast_2d(model['weights']), site_spectra[:, data_slice])
     simulated_total = np.squeeze(simulated_total)
-    experimental = SAMPL4_INTENSITIES[:count]
+    experimental = SAMPL4_SPECTRAL_DATA[:count]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 

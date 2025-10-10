@@ -681,6 +681,12 @@ class nlsl(object):
         return self._last_site_spectra
 
     def _resize_weight_matrix(self):
+        # Keep the site-by-spectrum weight table sized to the active model.
+        # The Levenberg–Marquardt core works with a rectangular ``sfac`` array
+        # whose leading dimensions are controlled by ``nsite`` and ``nspc``.
+        # Whenever either axis changes we zero-fill the new storage and copy
+        # the overlapping block of any previously stored populations so fits
+        # retain their converged weights after grid changes.
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
         new_shape = (nsite, nspc)
