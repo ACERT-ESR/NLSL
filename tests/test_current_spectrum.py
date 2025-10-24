@@ -61,7 +61,7 @@ def test_generate_coordinates_enables_current_spectrum():
     assert np.all(np.isfinite(site_spectra))
     assert np.all(np.isfinite(model['weights']))
 
-    simulated_total = np.dot(np.atleast_2d(model['weights']), site_spectra[:, data_slice])
+    simulated_total = np.squeeze(model['weights'] @ site_spectra)
     rel_rms = np.linalg.norm(
         np.squeeze(simulated_total) - SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT]
     )

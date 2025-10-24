@@ -39,31 +39,25 @@ def run_pythonic_sampl4_fit():
     # published optimisation cycle and ensures the spectra are stored.
     model.fit()
     site_spectra = model.fit().copy()
-    weights_value = np.array(model["weights"], copy=True)
 
-    start_index = int(model.layout["ixsp"][0])
-    point_count = int(model.layout["npts"][0])
-    data_slice = slice(start_index, start_index + point_count)
+    components = site_spectra
+    total_points = components.shape[1]
+    weighted_components = model["weights"][:, :, np.newaxis] * components[np.newaxis, :, :]
+    simulated_total = np.squeeze(model["weights"] @ components)
 
-    components = site_spectra[:, data_slice]
-    weight_matrix = np.atleast_2d(weights_value)
-    weighted_components = weight_matrix[:, :, np.newaxis] * components[np.newaxis, :, :]
-    simulated_total = np.squeeze(weight_matrix.dot(components))
-
-    experimental = SAMPL4_SPECTRAL_DATA[:point_count]
+    experimental = SAMPL4_SPECTRAL_DATA[:total_points]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 
     return {
         "model": model,
         "site_spectra": site_spectra,
-        "weights": weights_value,
+        "weights": np.array(model["weights"], copy=True),
         "components": components,
-        "weighted_components": np.squeeze(weighted_components),
+        "weighted_components": weighted_components.reshape(-1, total_points),
         "simulated_total": simulated_total,
         "experimental": experimental,
         "rel_rms": rel_rms,
-        "data_slice": data_slice,
     }
 
 
@@ -84,14 +78,17 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
     """A post-fit single-point evaluation must reproduce the fit spectra."""
 
     site_spectra_cs = sampl4_fit_result["model"].current_spectrum
-    weights_matrix = np.array(sampl4_fit_result["model"]["weights"], copy=True)
 
     assert np.allclose(site_spectra_cs, sampl4_fit_result["site_spectra"], atol=5e-6)
-    assert np.allclose(weights_matrix, sampl4_fit_result["weights"])
-
-    recomputed = np.dot(
-        np.atleast_2d(weights_matrix),
-        site_spectra_cs[:, sampl4_fit_result["data_slice"]],
+    assert np.allclose(
+        sampl4_fit_result["model"]["weights"],
+        sampl4_fit_result["weights"],
     )
 
-    assert np.allclose(np.squeeze(recomputed), sampl4_fit_result["simulated_total"], atol=3e-6)
+    recomputed = sampl4_fit_result["model"]["weights"] @ site_spectra_cs
+
+    assert np.allclose(
+        np.squeeze(recomputed),
+        sampl4_fit_result["simulated_total"],
+        atol=3e-6,
+    )

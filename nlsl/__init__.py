@@ -161,28 +161,21 @@ class nlsl(object):
 
     @property
     def weights(self):
-        """View of the site population matrix stored in ``/mspctr/sfac/``.
+        """Expose the active ``/mspctr/sfac/`` populations as a 2-D view.
 
-        The Fortran core keeps a single ``MXSITE × MXSPC`` array of scale
-        factors that multiply each site spectrum before totals and residuals
-        are formed.  The non-linear least-squares driver initialises that
-        table to ones during ``nlsinit`` (see ``nlsl.f90`` lines 465–488) and
-        never re-allocates it; Python therefore has to blank any newly exposed
-        rows or columns when the active site or spectrum count changes.  This
-        property ensures the cached shape matches ``parcom.nsite`` and
-        ``expdat.nspc`` before handing a NumPy copy to the caller.
+        ``sfac`` stores the scale factor for each (spectrum, site) pair in a
+        fixed ``MXSITE × MXSPC`` workspace that is shared with the optimiser.
+        ``_sync_weight_matrix`` mirrors the Fortran bookkeeping so the active
+        corner of that array always reflects the current ``nsite``/``nspc``
+        counters.  Returning the swapped view keeps the Python side in
+        spectrum-major order without copying the data; callers that modify the
+        view update the Fortran weights immediately.
         """
 
         matrix = self._sync_weight_matrix()
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
-        if nsite <= 0 or nspc <= 0:
-            if nspc == 1:
-                return np.zeros(nsite, dtype=float)
-            return np.zeros((nspc, nsite), dtype=float)
-        if nspc == 1:
-            return matrix[:nsite, 0].copy()
-        return matrix[:nsite, :nspc].swapaxes(0, 1).copy()
+        return matrix[:nsite, :nspc].swapaxes(0, 1)
 
     @weights.setter
     def weights(self, values):
@@ -962,20 +955,48 @@ class nlsl(object):
         nsite = min(nsite, spectra_src.shape[1])
         ndatot = min(ndatot, spectra_src.shape[0])
 
+        starts = _fortrancore.expdat.ixsp[:nspc] - 1
+        counts = _fortrancore.expdat.npts[:nspc].copy()
+        windows = tuple(
+            slice(int(start), int(start + count))
+            for start, count in zip(starts, counts)
+        )
+
+        if windows:
+            min_start = min(window.start for window in windows)
+            max_stop = max(window.stop for window in windows)
+        else:
+            min_start = 0
+            max_stop = 0
+
+        relative_windows = tuple(
+            slice(window.start - min_start, window.stop - min_start)
+            for window in windows
+        )
+
+        # ``windows`` preserve the absolute indices used by the Fortran work
+        # arrays so callers can recover the recorded experimental data, while
+        # ``relative_windows`` remap the same ranges onto the trimmed spectra
+        # returned below.
+
         self._last_layout = {
-            "ixsp": _fortrancore.expdat.ixsp[:nspc] - 1,
-            "npts": _fortrancore.expdat.npts[:nspc].copy(),
+            "ixsp": starts,
+            "npts": counts,
             "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
             "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
-            "ndatot": ndatot,
+            "ndatot": max_stop - min_start,
             "nsite": nsite,
             "nspc": nspc,
+            "windows": windows,
+            "relative_windows": relative_windows,
+            "origin": min_start,
         }
 
-        if ndatot > 0 and nsite > 0:
-            site_spectra = spectra_src[:ndatot, :nsite].swapaxes(0, 1)
+        if max_stop > min_start and nsite > 0:
+            trimmed = spectra_src[min_start:max_stop, :nsite]
+            site_spectra = trimmed.swapaxes(0, 1)
         else:
-            site_spectra = np.empty((nsite, ndatot), dtype=float)
+            site_spectra = np.empty((nsite, 0), dtype=float)
 
         self._last_site_spectra = site_spectra
         return self._last_site_spectra

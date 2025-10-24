@@ -81,23 +81,21 @@ def main():
     model.fit()
     site_spectra = model.fit()
 
-    start_index = int(model.layout["ixsp"][0])
     point_count = int(model.layout["npts"][0])
     start_field = float(model.layout["sbi"][0])
     step = float(model.layout["sdb"][0])
+    window = model.layout["windows"][0]
+    # ``windows`` supplies the absolute slice into the shared Fortran buffers,
+    # keeping the padding hidden from the plotting code below.
 
     fields = start_field + step * np.arange(point_count)
-    data_slice = slice(start_index, start_index + point_count)
     expdat = nlsl.fortrancore.expdat
-    # ``expdat.data`` is a padded workspace (2048 points) shared with the Fortran
-    # loaders, so we trim the field-aligned window that ``generate_coordinates``
-    # selected for this spectrum.
-    experimental = np.array(expdat.data[data_slice], copy=True)
+    experimental = np.array(expdat.data[window], copy=True)
 
-    components = site_spectra[:, data_slice]
-    weight_matrix = np.atleast_2d(np.array(model['weights'], copy=True))
-    weighted_components = np.squeeze(weight_matrix[:, :, np.newaxis] * components[np.newaxis, :, :])
-    simulated_total = np.squeeze(weight_matrix.dot(components))
+    components = site_spectra
+    weighted_components = model['weights'][:, :, np.newaxis] * components[np.newaxis, :, :]
+    simulated_total = np.squeeze(model['weights'] @ components)
+    component_curves = weighted_components.reshape(-1, components.shape[1])
 
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
@@ -108,7 +106,7 @@ def main():
     ax.plot(fields, simulated_total, color="#d62728", linewidth=2.0, alpha=0.8, label="simulated sum")
 
     colours = ["#1f77b4", "#2ca02c"]
-    for idx, component in enumerate(np.atleast_2d(weighted_components)):
+    for idx, component in enumerate(component_curves):
         ax.plot(
             fields,
             component,
