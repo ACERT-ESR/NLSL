@@ -37,25 +37,17 @@ def run_pythonic_sampl4_fit():
     # The historical run issues ``fit`` twice; repeating it here mirrors the
     # published optimisation cycle and ensures the spectra are stored.
     model.fit()
-    site_spectra = model.fit().copy()
+    site_spectra = model.fit()
 
-    components = site_spectra
-    weights = np.array(model["weights"], copy=True)
-    total_points = components.shape[1]
-    weighted_components = weights[:, :, np.newaxis] * components[np.newaxis, :, :]
-    simulated_total = np.squeeze(weights @ components)
+    simulated_total = np.squeeze(model.weights @ site_spectra)
 
-    experimental_block = np.array(model.experimental_data, copy=True)
-    experimental = np.squeeze(experimental_block)
+    experimental = np.squeeze(model.experimental_data)
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 
     return {
         "model": model,
         "site_spectra": site_spectra,
-        "weights": weights,
-        "components": components,
-        "weighted_components": weighted_components.reshape(-1, total_points),
         "simulated_total": simulated_total,
         "experimental": experimental,
         "rel_rms": rel_rms,
@@ -78,15 +70,14 @@ def test_pythonic_sampl4_fit_matches_data(sampl4_fit_result):
 def test_current_spectrum_matches_fit_components(sampl4_fit_result):
     """A post-fit single-point evaluation must reproduce the fit spectra."""
 
-    site_spectra_cs = sampl4_fit_result["model"].current_spectrum
+    model = sampl4_fit_result["model"]
+    weights_before = model.weights.copy()
+    site_spectra_cs = model.current_spectrum
 
     assert np.allclose(site_spectra_cs, sampl4_fit_result["site_spectra"], atol=5e-6)
-    assert np.allclose(
-        sampl4_fit_result["model"]["weights"],
-        sampl4_fit_result["weights"],
-    )
+    assert np.allclose(model.weights, weights_before)
 
-    recomputed = sampl4_fit_result["model"]["weights"] @ site_spectra_cs
+    recomputed = model.weights @ site_spectra_cs
 
     assert np.allclose(
         np.squeeze(recomputed),
