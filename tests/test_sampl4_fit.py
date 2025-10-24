@@ -9,7 +9,6 @@ from tests.sampl4_reference import (
     SAMPL4_DATA_PATH,
     SAMPL4_FIT_CONTROLS,
     SAMPL4_INITIAL_PARAMETERS,
-    SAMPL4_SPECTRAL_DATA,
     SAMPL4_PARAMETERS_TO_VARY,
 )
 
@@ -41,18 +40,20 @@ def run_pythonic_sampl4_fit():
     site_spectra = model.fit().copy()
 
     components = site_spectra
+    weights = np.array(model["weights"], copy=True)
     total_points = components.shape[1]
-    weighted_components = model["weights"][:, :, np.newaxis] * components[np.newaxis, :, :]
-    simulated_total = np.squeeze(model["weights"] @ components)
+    weighted_components = weights[:, :, np.newaxis] * components[np.newaxis, :, :]
+    simulated_total = np.squeeze(weights @ components)
 
-    experimental = SAMPL4_SPECTRAL_DATA[:total_points]
+    experimental_block = np.array(model.experimental_data, copy=True)
+    experimental = np.squeeze(experimental_block)
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 
     return {
         "model": model,
         "site_spectra": site_spectra,
-        "weights": np.array(model["weights"], copy=True),
+        "weights": weights,
         "components": components,
         "weighted_components": weighted_components.reshape(-1, total_points),
         "simulated_total": simulated_total,

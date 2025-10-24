@@ -130,6 +130,7 @@ class nlsl(object):
         self.fit_params = fit_params()
         self._last_layout = None
         self._last_site_spectra = None
+        self._last_experimental_data = None
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
@@ -229,6 +230,20 @@ class nlsl(object):
         _fortrancore.iterat.iter = 1
         _fortrancore.single_point(1)
         return self._capture_state()
+
+    @property
+    def experimental_data(self):
+        """Return the trimmed experimental traces from the most recent capture.
+
+        The matrix is shaped as ``(number of spectra, point span)`` so it aligns
+        with ``model['weights'] @ model.site_spectra``.  Each row contains the
+        measured intensities for the corresponding recorded spectrum, zeroing any
+        samples that fall outside that spectrum's active window.
+        """
+
+        if self._last_experimental_data is None:
+            raise RuntimeError("no spectra have been evaluated yet")
+        return self._last_experimental_data
 
     def write_spc(self):
         """Write the current spectra to ``.spc`` files."""
@@ -992,13 +1007,23 @@ class nlsl(object):
             "origin": min_start,
         }
 
-        if max_stop > min_start and nsite > 0:
+        span = max_stop - min_start
+        if span > 0 and nsite > 0:
             trimmed = spectra_src[min_start:max_stop, :nsite]
             site_spectra = trimmed.swapaxes(0, 1)
         else:
             site_spectra = np.empty((nsite, 0), dtype=float)
 
+        if span > 0 and nspc > 0:
+            trimmed_exp = _fortrancore.expdat.data[min_start:max_stop].copy()
+            stacked = np.zeros((nspc, span), dtype=float)
+            for idx, window in enumerate(relative_windows):
+                stacked[idx, window] = trimmed_exp[window]
+        else:
+            stacked = np.empty((nspc, 0), dtype=float)
+
         self._last_site_spectra = site_spectra
+        self._last_experimental_data = stacked
         return self._last_site_spectra
 
     def _sync_weight_matrix(self):

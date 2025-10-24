@@ -84,18 +84,20 @@ def main():
     point_count = int(model.layout["npts"][0])
     start_field = float(model.layout["sbi"][0])
     step = float(model.layout["sdb"][0])
-    window = model.layout["windows"][0]
-    # ``windows`` supplies the absolute slice into the shared Fortran buffers,
-    # keeping the padding hidden from the plotting code below.
 
     fields = start_field + step * np.arange(point_count)
-    expdat = nlsl.fortrancore.expdat
-    experimental = np.array(expdat.data[window], copy=True)
 
-    components = site_spectra
-    weighted_components = model['weights'][:, :, np.newaxis] * components[np.newaxis, :, :]
-    simulated_total = np.squeeze(model['weights'] @ components)
-    component_curves = weighted_components.reshape(-1, components.shape[1])
+    experimental_block = model.experimental_data
+    experimental = np.squeeze(experimental_block)
+
+    weights = model['weights']
+    # ``weights`` is shaped as (number of recorded spectra, number of sites).
+    # Multiplying by ``site_spectra`` (number of sites × points) therefore
+    # yields one simulated trace per recorded spectrum.  The extra singleton axis
+    # keeps each site contribution grouped under the spectrum that owns it.
+    weighted_components = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+    simulated_total = np.squeeze(weights @ site_spectra)
+    component_curves = weighted_components.reshape(-1, site_spectra.shape[1])
 
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
