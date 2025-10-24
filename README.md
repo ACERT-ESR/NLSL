@@ -45,7 +45,7 @@ n["nsite"] = 1
 n.fit_params["maxitr"] = 40
 n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 site_spectra = n.fit()
-weights = n["weights"]
+total_spectrum = n["weights"] @ site_spectra
 ```
 
 The mapping interface mirrors the parameter names defined by the original

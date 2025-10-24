@@ -89,15 +89,15 @@ def main():
     fields = start_field + step * np.arange(point_count)
     data_slice = slice(start_index, start_index + point_count)
     expdat = nlsl.fortrancore.expdat
-    experimental = expdat.data[data_slice]
+    # ``expdat.data`` is a padded workspace (2048 points) shared with the Fortran
+    # loaders, so we trim the field-aligned window that ``generate_coordinates``
+    # selected for this spectrum.
+    experimental = np.array(expdat.data[data_slice], copy=True)
 
     components = site_spectra[:, data_slice]
-    weights_value = np.array(model['weights'], copy=True)
-    weight_matrix = np.atleast_2d(weights_value)
-    weighted_components = weight_matrix[:, :, np.newaxis] * components[np.newaxis, :, :]
+    weight_matrix = np.atleast_2d(np.array(model['weights'], copy=True))
+    weighted_components = np.squeeze(weight_matrix[:, :, np.newaxis] * components[np.newaxis, :, :])
     simulated_total = np.squeeze(weight_matrix.dot(components))
-
-    weighted_components = np.squeeze(weighted_components)
 
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
