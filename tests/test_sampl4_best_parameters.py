@@ -50,8 +50,7 @@ def test_sampl4_best_parameters_match_data_without_fit():
 
     site_spectra = model.current_spectrum
     count = data_slice.stop - data_slice.start
-    simulated_total = np.dot(np.atleast_2d(model['weights']), site_spectra[:, data_slice])
-    simulated_total = np.squeeze(simulated_total)
+    simulated_total = (model['weights'] @ site_spectra[:, data_slice]).squeeze()
     experimental = SAMPL4_SPECTRAL_DATA[:count]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)

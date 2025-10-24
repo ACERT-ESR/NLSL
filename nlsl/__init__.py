@@ -974,70 +974,49 @@ class nlsl(object):
         self._last_site_spectra = site_spectra
         return self._last_site_spectra
 
-    def _sync_weight_matrix(self, nsite=None, nspc=None):
-        """Bring ``/mspctr/sfac/`` into line with the active layout.
+    def _sync_weight_matrix(self):
+        """Keep ``/mspctr/sfac/`` aligned with the active site/spectrum counts.
 
-        ``sfac`` lives in ``mspctr.f90`` as a fixed-size ``MXSITE × MXSPC``
-        buffer.  ``nlsinit`` seeds every element with ``1.0`` long before any
-        fits are attempted (see ``nlsl.f90`` lines 469–492), and that Fortran
-        code never reinitialises the table when ``nsite`` or ``nspc`` change
-        later on.  Without extra bookkeeping the Python layer would therefore
-        keep stale populations whenever callers adjust the site or spectrum
-        counts directly.  This routine mirrors the adjustments performed by
-        ``datac.f90``/``series.f90``: it clears inactive regions, restores the
-        surviving block of populations, and records the shape that Python has
-        most recently published.
-
-        Parameters
-        ----------
-        nsite, nspc : int, optional
-            Explicit dimensions to apply.  When omitted we read the counters
-            from ``parcom`` and ``expdat`` so that property getters can rely on
-            the same synchronisation path.
+        ``sfac`` is declared in ``mspctr.f90`` as a static ``MXSITE × MXSPC``
+        array.  ``nlsinit`` fills every element with ``1.0`` even when no fit is
+        running, and the Fortran code never reinitialises the table after the
+        initial call.  Changing ``nsite`` or ``nspc`` therefore only updates the
+        integer counters; without extra work the exposed populations would keep
+        whatever values happened to be in memory.  This helper mirrors the
+        housekeeping performed by the Fortran data loaders so Python callers
+        always see a predictable set of populations.
         """
 
-        if nsite is None:
-            nsite = int(_fortrancore.parcom.nsite)
-        if nspc is None:
-            nspc = int(_fortrancore.expdat.nspc)
-
+        nsite = int(_fortrancore.parcom.nsite)
+        nspc = int(_fortrancore.expdat.nspc)
         new_shape = (nsite, nspc)
-        if new_shape == self._weight_shape:
-            return _fortrancore.mspctr.sfac
 
         weights = _fortrancore.mspctr.sfac
+        if new_shape == self._weight_shape:
+            return weights
 
         if nsite <= 0 or nspc <= 0:
-            # A zero site or spectrum count means no populations are valid. The
-            # Fortran layer will ignore the contents of ``sfac`` in this case,
-            # but we still blank the entire array so future reads produce a
-            # predictable block of zeros.
+            # No active spectra or sites: blank the entire ``sfac`` matrix so a
+            # subsequent resize starts from zero populations.
             weights[:, :] = 0.0
             self._weight_shape = new_shape
             return weights
 
-        preserved = None
-        preserved_shape = None
-        if self._weight_shape[0] > 0 and self._weight_shape[1] > 0:
-            row_stop = min(self._weight_shape[0], nsite)
-            col_stop = min(self._weight_shape[1], nspc)
-            if row_stop > 0 and col_stop > 0:
-                # Remember the block that still overlaps with the new layout so
-                # fitted populations survive a resize.  ``sfac`` is small, so a
-                # direct copy is simpler than slicing gymnastics.
-                preserved = weights[:row_stop, :col_stop].copy()
-                preserved_shape = (row_stop, col_stop)
+        # Preserve the overlapping block so previously fitted populations stay
+        # in place when callers expand or shrink the grid of sites/spectra.
+        row_stop = min(self._weight_shape[0], nsite)
+        col_stop = min(self._weight_shape[1], nspc)
+        if row_stop > 0 and col_stop > 0:
+            preserved = weights[:row_stop, :col_stop].copy()
+        else:
+            preserved = None
 
-        # Reset every element to ``1.0`` so newly exposed sites or spectra use
-        # equal populations, matching the initial conditions in the Fortran
-        # setup routines.
+        # The Fortran initialisation routines seed ``sfac`` with ones, so new
+        # rows/columns must do the same.  Reset the full table before restoring
+        # any surviving populations.
         weights[:, :] = 1.0
 
         if preserved is not None:
-            # Restore the old populations into the overlapping block.  This is
-            # the same behaviour that ``datac`` implements when new spectra are
-            # loaded from disk.
-            row_stop, col_stop = preserved_shape
             weights[:row_stop, :col_stop] = preserved
 
         self._weight_shape = new_shape
