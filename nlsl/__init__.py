@@ -105,6 +105,10 @@ class nlsl(object):
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
+        # ``fepr_name`` leaves a handful of trailing entries blank even though the
+        # floating-parameter table exposes the corresponding slots.  Populate the
+        # missing tokens with the legacy names that ``ipfind`` associates with the
+        # start/step parameters so the mapping interface can reach them.
         extra_fepr = iter(["fldi", "dfld"])
         for idx, name in enumerate(self._fepr_names):
             if name:
@@ -117,6 +121,10 @@ class nlsl(object):
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
+        # Likewise the integer-parameter name table omits a few of the control
+        # flags that the runfiles manipulate directly.  Attach their canonical
+        # labels so tests can drive the associated ``iparm`` entries through the
+        # public dictionary interface.
         extra_iepr = iter(["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"])
         for idx, name in enumerate(self._iepr_names):
             if name:
@@ -367,6 +375,9 @@ class nlsl(object):
                 return float(values[0])
             return values
         if key == "fldi":
+            # ``fldi`` mirrors the field origin stored in ``expdat.sbi`` so
+            # callers can recover the absolute coordinates used for the most
+            # recent spectrum.
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
                 if "fldi" in self._fepr_names:
@@ -384,6 +395,9 @@ class nlsl(object):
                 return float(values[0])
             return values
         if key == "dfld":
+            # ``dfld`` exposes the constant spacing between consecutive field
+            # points.  When no spectra have been registered yet we fall back to
+            # the cached floating-parameter table populated by the runfile.
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
                 if "dfld" in self._fepr_names:
@@ -457,10 +471,10 @@ class nlsl(object):
         if key in ("nsite", "nsites"):
             self.nsites = int(v)
             return
-        if key in ("nspc", "nspec", "nspectra"):
+        elif key in ("nspc", "nspec", "nspectra"):
             self.nspec = int(v)
             return
-        if key in ("weights", "weight", "sfac"):
+        elif key in ("weights", "weight", "sfac"):
             self.weights = v
             return
         expdat = _fortrancore.expdat

@@ -26,7 +26,7 @@ def test_sampl4_best_parameters_match_data_without_fit():
     model = nlsl.nlsl()
     model['nsite'] = SAMPL4_FINAL_PARAMETERS['nsite']
 
-    index, data_slice = model.generate_coordinates(
+    model.generate_coordinates(
         SAMPL4_POINT_COUNT,
         start=SAMPL4_FIELD_START,
         step=SAMPL4_FIELD_STEP,
@@ -49,9 +49,15 @@ def test_sampl4_best_parameters_match_data_without_fit():
     model['weights'] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
-    count = data_slice.stop - data_slice.start
-    simulated_total = (model['weights'] @ site_spectra[:, data_slice]).squeeze()
-    experimental = SAMPL4_SPECTRAL_DATA[:count]
+    simulated_total = (
+        model['weights']
+        @ site_spectra[
+            :,
+            model.layout['ixsp'][0]
+            : model.layout['ixsp'][0] + model.layout['npts'][0]
+        ]
+    ).squeeze()
+    experimental = SAMPL4_SPECTRAL_DATA[: model.layout['npts'][0]]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 
