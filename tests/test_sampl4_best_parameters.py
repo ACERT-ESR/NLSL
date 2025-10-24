@@ -49,15 +49,8 @@ def test_sampl4_best_parameters_match_data_without_fit():
     model['weights'] = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
-    simulated_total = (
-        model['weights']
-        @ site_spectra[
-            :,
-            model.layout['ixsp'][0]
-            : model.layout['ixsp'][0] + model.layout['npts'][0]
-        ]
-    ).squeeze()
-    experimental = SAMPL4_SPECTRAL_DATA[: model.layout['npts'][0]]
+    simulated_total = np.dot(model['weights'], site_spectra)
+    experimental = SAMPL4_SPECTRAL_DATA[: site_spectra.shape[1]]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
 

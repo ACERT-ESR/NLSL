@@ -105,34 +105,26 @@ class nlsl(object):
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
-        # ``fepr_name`` leaves a handful of trailing entries blank even though the
-        # floating-parameter table exposes the corresponding slots.  Populate the
-        # missing tokens with the legacy names that ``ipfind`` associates with the
-        # start/step parameters so the mapping interface can reach them.
-        extra_fepr = iter(["fldi", "dfld"])
-        for idx, name in enumerate(self._fepr_names):
-            if name:
-                continue
-            try:
-                self._fepr_names[idx] = next(extra_fepr)
-            except StopIteration:
-                break
+        # The ``fepr_name`` table leaves the start/step descriptors blank even
+        # though ``parcom.fparm`` exposes the associated slots.  ``ipfind`` still
+        # recognises the historic ``FLDI``/``DFLD`` mnemonics, so attach those
+        # labels to the trailing empty entries and leave any populated tokens
+        # untouched.
+        missing_fepr = [i for i, token in enumerate(self._fepr_names) if len(token) == 0]
+        for idx, label in zip(missing_fepr, ["fldi", "dfld"]):
+            self._fepr_names[idx] = label
+
         self._iepr_names = [
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
-        # Likewise the integer-parameter name table omits a few of the control
-        # flags that the runfiles manipulate directly.  Attach their canonical
-        # labels so tests can drive the associated ``iparm`` entries through the
-        # public dictionary interface.
-        extra_iepr = iter(["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"])
-        for idx, name in enumerate(self._iepr_names):
-            if name:
-                continue
-            try:
-                self._iepr_names[idx] = next(extra_iepr)
-            except StopIteration:
-                break
+        # ``iepr_name`` omits several control flags (``IWFLG``/``IGFLG``/etc.)
+        # that runfiles manipulate directly.  Only the blank slots need patching,
+        # so mirror their canonical mnemonics onto the empty entries without
+        # disturbing the documented ones.
+        missing_iepr = [i for i, token in enumerate(self._iepr_names) if len(token) == 0]
+        for idx, label in zip(missing_iepr, ["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"]):
+            self._iepr_names[idx] = label
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params()
