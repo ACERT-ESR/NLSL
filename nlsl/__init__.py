@@ -137,12 +137,81 @@ class nlsl(object):
     @property
     def nsites(self) -> int:
         """Number of active sites."""
+        self._sync_weight_matrix()
         return int(_fortrancore.parcom.nsite)
 
     @nsites.setter
     def nsites(self, value: int) -> None:
+        # Propagate the site count to the core and refresh ``sfac`` so newly
+        # exposed rows default to unity populations.
         _fortrancore.parcom.nsite = int(value)
-        self._resize_weight_matrix()
+        self._sync_weight_matrix()
+
+    @property
+    def nspec(self):
+        """Number of active spectra."""
+        self._sync_weight_matrix()
+        return int(_fortrancore.expdat.nspc)
+
+    @nspec.setter
+    def nspec(self, value):
+        # Keep the spectrum count and the cached weight matrix in lock-step.
+        _fortrancore.expdat.nspc = int(value)
+        self._sync_weight_matrix()
+
+    @property
+    def weights(self):
+        """View of the site population matrix stored in ``/mspctr/sfac/``.
+
+        The Fortran core keeps a single ``MXSITE × MXSPC`` array of scale
+        factors that multiply each site spectrum before totals and residuals
+        are formed.  The non-linear least-squares driver initialises that
+        table to ones during ``nlsinit`` (see ``nlsl.f90`` lines 465–488) and
+        never re-allocates it; Python therefore has to blank any newly exposed
+        rows or columns when the active site or spectrum count changes.  This
+        property ensures the cached shape matches ``parcom.nsite`` and
+        ``expdat.nspc`` before handing a NumPy copy to the caller.
+        """
+
+        matrix = self._sync_weight_matrix()
+        nsite = int(_fortrancore.parcom.nsite)
+        nspc = int(_fortrancore.expdat.nspc)
+        if nsite <= 0 or nspc <= 0:
+            if nspc == 1:
+                return np.zeros(nsite, dtype=float)
+            return np.zeros((nspc, nsite), dtype=float)
+        if nspc == 1:
+            return matrix[:nsite, 0].copy()
+        return matrix[:nsite, :nspc].swapaxes(0, 1).copy()
+
+    @weights.setter
+    def weights(self, values):
+        """Overwrite the active portion of ``sfac`` with ``values``.
+
+        ``sfac`` is shared between the optimiser and any ad-hoc spectrum
+        evaluations.  When a caller provides new weights we zero the visible
+        block and rewrite it with the supplied populations so that any entries
+        outside the active range remain at the default value of one.
+        """
+
+        matrix = self._sync_weight_matrix()
+        nsite = int(_fortrancore.parcom.nsite)
+        nspc = int(_fortrancore.expdat.nspc)
+        if nsite <= 0 or nspc <= 0:
+            raise RuntimeError("weights require positive nsite and nspc")
+        array = np.asarray(values, dtype=float)
+        if array.ndim == 1:
+            if nspc != 1:
+                raise ValueError("1D weight vector requires a single spectrum")
+            if array.size < nsite:
+                raise ValueError("insufficient weight values supplied")
+            matrix[:, 0] = 0.0
+            matrix[:nsite, 0] = array[:nsite]
+            return
+        if array.shape[0] < nspc or array.shape[1] < nsite:
+            raise ValueError("weight matrix shape mismatch")
+        matrix[:, :] = 0.0
+        matrix[:nsite, :nspc] = array[:nspc, :nsite].swapaxes(0, 1)
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
@@ -248,12 +317,9 @@ class nlsl(object):
     def __getitem__(self, key):
         key = key.lower()
         if key in ("nsite", "nsites"):
-            # ensure the weight matrix tracks external nsite adjustments
-            self._resize_weight_matrix()
             return self.nsites
         if key in ("nspc", "nspec", "nspectra"):
-            self._resize_weight_matrix()
-            return int(_fortrancore.expdat.nspc)
+            return self.nspec
         if key in ("sb0", "b0"):
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
@@ -359,17 +425,7 @@ class nlsl(object):
                 return int(values[0])
             return values
         if key in ("weights", "weight", "sfac"):
-            self._resize_weight_matrix()
-            nsite = int(_fortrancore.parcom.nsite)
-            nspc = int(_fortrancore.expdat.nspc)
-            if nsite <= 0 or nspc <= 0:
-                if nspc == 1:
-                    return np.zeros(nsite, dtype=float)
-                return np.zeros((nspc, nsite), dtype=float)
-            matrix = _fortrancore.mspctr.sfac
-            if nspc == 1:
-                return matrix[:nsite, 0].copy()
-            return matrix[:nsite, :nspc].swapaxes(0, 1).copy()
+            return self.weights
         res = _ipfind_wrapper(key)
         if res == 0:
             if key in self._iepr_names:
@@ -402,28 +458,10 @@ class nlsl(object):
             self.nsites = int(v)
             return
         if key in ("nspc", "nspec", "nspectra"):
-            _fortrancore.expdat.nspc = int(v)
-            self._resize_weight_matrix()
+            self.nspec = int(v)
             return
         if key in ("weights", "weight", "sfac"):
-            self._resize_weight_matrix()
-            nsite = int(_fortrancore.parcom.nsite)
-            nspc = int(_fortrancore.expdat.nspc)
-            if nsite <= 0 or nspc <= 0:
-                raise RuntimeError("weights require positive nsite and nspc")
-            matrix = np.asarray(v, dtype=float)
-            if matrix.ndim == 1:
-                if nspc != 1:
-                    raise ValueError("1D weight vector requires a single spectrum")
-                if matrix.size < nsite:
-                    raise ValueError("insufficient weight values supplied")
-                _fortrancore.mspctr.sfac[:, 0] = 0.0
-                _fortrancore.mspctr.sfac[:nsite, 0] = matrix[:nsite]
-                return
-            if matrix.shape[0] < nspc or matrix.shape[1] < nsite:
-                raise ValueError("weight matrix shape mismatch")
-            _fortrancore.mspctr.sfac[:, :] = 0.0
-            _fortrancore.mspctr.sfac[:nsite, :nspc] = matrix[:nspc, :nsite].swapaxes(0, 1)
+            self.weights = v
             return
         expdat = _fortrancore.expdat
         if key == "fldi":
@@ -869,7 +907,7 @@ class nlsl(object):
 
         self._explicit_field_start = False
         self._explicit_field_step = False
-        self._resize_weight_matrix()
+        self._sync_weight_matrix()
 
         return idx, data_slice
 
@@ -936,51 +974,74 @@ class nlsl(object):
         self._last_site_spectra = site_spectra
         return self._last_site_spectra
 
-    def _resize_weight_matrix(self):
-        # ``sfac`` (declared in ``mspctr.f90`` as "Scale factors for each site
-        # and spectrum") holds the population multiplier that each site
-        # contributes when spectra are combined into totals and residuals.
-        # This helper keeps the Python-visible view of that table aligned with
-        # the active site/spectrum counts so later evaluations operate on
-        # sensible data.
+    def _sync_weight_matrix(self, nsite=None, nspc=None):
+        """Bring ``/mspctr/sfac/`` into line with the active layout.
 
-        # Determine the requested extents from the public counters.  When both
-        # match the cached shape there is nothing to do.
-        nsite = int(_fortrancore.parcom.nsite)
-        nspc = int(_fortrancore.expdat.nspc)
+        ``sfac`` lives in ``mspctr.f90`` as a fixed-size ``MXSITE × MXSPC``
+        buffer.  ``nlsinit`` seeds every element with ``1.0`` long before any
+        fits are attempted (see ``nlsl.f90`` lines 469–492), and that Fortran
+        code never reinitialises the table when ``nsite`` or ``nspc`` change
+        later on.  Without extra bookkeeping the Python layer would therefore
+        keep stale populations whenever callers adjust the site or spectrum
+        counts directly.  This routine mirrors the adjustments performed by
+        ``datac.f90``/``series.f90``: it clears inactive regions, restores the
+        surviving block of populations, and records the shape that Python has
+        most recently published.
+
+        Parameters
+        ----------
+        nsite, nspc : int, optional
+            Explicit dimensions to apply.  When omitted we read the counters
+            from ``parcom`` and ``expdat`` so that property getters can rely on
+            the same synchronisation path.
+        """
+
+        if nsite is None:
+            nsite = int(_fortrancore.parcom.nsite)
+        if nspc is None:
+            nspc = int(_fortrancore.expdat.nspc)
+
         new_shape = (nsite, nspc)
         if new_shape == self._weight_shape:
-            return
+            return _fortrancore.mspctr.sfac
 
         weights = _fortrancore.mspctr.sfac
+
         if nsite <= 0 or nspc <= 0:
-            # Degenerate cases (no sites or no spectra) should not reuse
-            # historical populations.  Clear the array explicitly so future
-            # reads see a consistent block of zeros.
+            # A zero site or spectrum count means no populations are valid. The
+            # Fortran layer will ignore the contents of ``sfac`` in this case,
+            # but we still blank the entire array so future reads produce a
+            # predictable block of zeros.
             weights[:, :] = 0.0
             self._weight_shape = new_shape
-            return
+            return weights
 
         preserved = None
+        preserved_shape = None
         if self._weight_shape[0] > 0 and self._weight_shape[1] > 0:
             row_stop = min(self._weight_shape[0], nsite)
             col_stop = min(self._weight_shape[1], nspc)
             if row_stop > 0 and col_stop > 0:
-                # Preserve the weights that still fall inside the new layout so
-                # we can restore them after reinitialising the array.
+                # Remember the block that still overlaps with the new layout so
+                # fitted populations survive a resize.  ``sfac`` is small, so a
+                # direct copy is simpler than slicing gymnastics.
                 preserved = weights[:row_stop, :col_stop].copy()
+                preserved_shape = (row_stop, col_stop)
 
-        # Default any newly exposed elements to equal populations.  The
-        # Fortran routines expect ones when a spectrum has never been fitted,
-        # so this mirrors the behaviour of ``series.f90`` and ``datac.f90``.
+        # Reset every element to ``1.0`` so newly exposed sites or spectra use
+        # equal populations, matching the initial conditions in the Fortran
+        # setup routines.
         weights[:, :] = 1.0
+
         if preserved is not None:
-            row_stop, col_stop = preserved.shape
-            # Copy the surviving block back into place so previously converged
-            # spectra continue using their fitted populations.
+            # Restore the old populations into the overlapping block.  This is
+            # the same behaviour that ``datac`` implements when new spectra are
+            # loaded from disk.
+            row_stop, col_stop = preserved_shape
             weights[:row_stop, :col_stop] = preserved
 
         self._weight_shape = new_shape
+        return weights
 
     def keys(self):
         return list(self._fepr_names) + list(self._iepr_names)
