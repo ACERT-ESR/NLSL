@@ -265,7 +265,8 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          update: true
+          # avoid update mid-launch
+          update: false
           # switch to UCRT64 for modern CRT
           msystem: UCRT64
           # ucrt64 packages instead of mingw64
