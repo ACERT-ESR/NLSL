@@ -27,11 +27,10 @@ env:
   CIBW_ARCHS_MACOS: "native"
   # Ensure gfortran is available inside manylinux for Fortran builds (Linux job unchanged behavior).
   # Tell Meson/meson-python which Fortran to use on macOS.
-  CIBW_ENVIRONMENT_MACOS: "FC=gfortran"
   # Tell Meson/meson-python to use MinGW toolchain on Windows.
   # PATH is amended by the Windows job steps; here we just point compilers.
   CIBW_ENVIRONMENT_WINDOWS: "CC=gcc CXX=g++ FC=gfortran"
-  MACOSX_DEPLOYMENT_TARGET: '12.0'
+  CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=15.0 FC=gfortran"
 
 jobs:
   merge_guard:
@@ -269,9 +268,9 @@ jobs:
           update: true
           # switch to UCRT64 for modern CRT
           msystem: UCRT64
+          # ucrt64 packages instead of mingw64
           install: >-
             base-devel
-            # ucrt64 packages instead of mingw64
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-gcc-fortran
             mingw-w64-ucrt-x86_64-pkgconf
