@@ -10,8 +10,8 @@ NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
 DERIVATIVE_MODE = 1
 
-# These entries mirror the manual ``let`` statements in ``sampl4.run`` and supply
-# the same initial guesses for the fit.
+# These entries mirror the manual ``let`` statements in ``sampl4.run`` and
+# supply the same initial guesses for the fit.
 INITIAL_PARAMETERS = {
     "nsite": 2,
     "in2": 2,
@@ -54,8 +54,9 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
-    # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through the
-    # modern Python entry point so the processed intensities stay in memory.
+    # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through
+    # the modern Python entry point so the processed intensities stay in
+    # memory.
     model.load_data(
         data_path,
         nspline=NSPLINE_POINTS,
@@ -71,13 +72,13 @@ def main():
     for key, value in FIT_CONTROLS.items():
         model.fit_params[key] = value
 
-    # Seed equal site populations once the data slot exists so the weight matrix
-    # is initialised through the public mapping interface.
+    # Seed equal site populations once the data slot exists so the weight
+    # matrix is initialised through the public mapping interface.
     model.weights = np.ones(2)
 
     # The original script issues two ``fit`` commands; calling ``fit()`` twice
-    # reproduces the same refinement cycle and leaves the captured spectra ready
-    # for plotting.
+    # reproduces the same refinement cycle and leaves the captured spectra
+    # ready for plotting.
     model.fit()
     site_spectra = model.fit()
 
@@ -91,10 +92,10 @@ def main():
     experimental = np.squeeze(experimental_block)
 
     weights = model.weights
-    # ``weights`` behaves like a 1D vector when a single spectrum is active, but
-    # the optimiser keeps a full ``(nspc, nsite)`` matrix in the multi-spectrum
-    # case.  ``site_spectra`` always carries one row per site with the sampled
-    # points arranged along the second axis.
+    # ``weights`` behaves like a 1D vector when a single spectrum is active,
+    # but the optimiser keeps a full ``(nspc, nsite)`` matrix in the
+    # multi-spectrum case.  ``site_spectra`` always carries one row per site
+    # with the sampled points arranged along the second axis.
     if weights.ndim == 1:
         weighted_components = weights[:, np.newaxis] * site_spectra
         simulated_total = weights @ site_spectra
@@ -103,17 +104,34 @@ def main():
         # For multiple spectra ``weights`` supplies one row per recorded trace.
         # Broadcasting the additional axis keeps each site's contribution tied
         # to the spectrum that owns it before we flatten the view for plotting.
-        weighted_components = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        weighted_components = (
+            weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        )
         simulated_total = weights @ site_spectra
-        component_curves = weighted_components.reshape(-1, site_spectra.shape[1])
+        component_curves = weighted_components.reshape(
+            -1, site_spectra.shape[1]
+        )
 
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
     print(f"sampl4: relative rms = {rel_rms:.6f}")
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.plot(fields, experimental, color="black", linewidth=1.0, label="experimental")
-    ax.plot(fields, simulated_total, color="#d62728", linewidth=2.0, alpha=0.8, label="simulated sum")
+    ax.plot(
+        fields,
+        experimental,
+        color="black",
+        linewidth=1.0,
+        label="experimental",
+    )
+    ax.plot(
+        fields,
+        simulated_total,
+        color="#d62728",
+        linewidth=2.0,
+        alpha=0.8,
+        label="simulated sum",
+    )
 
     colours = ["#1f77b4", "#2ca02c"]
     for idx, component in enumerate(component_curves):

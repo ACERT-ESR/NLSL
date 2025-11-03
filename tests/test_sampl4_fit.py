@@ -14,7 +14,8 @@ from tests.sampl4_reference import (
 
 
 def run_pythonic_sampl4_fit():
-    """Execute the two-stage ``sampl4`` fit and capture the resulting spectra."""
+    """Execute the two-stage ``sampl4`` fit and capture the resulting
+    spectra."""
 
     model = nlsl.nlsl()
     model.update(SAMPL4_INITIAL_PARAMETERS)
@@ -74,7 +75,9 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
     weights_before = model.weights.copy()
     site_spectra_cs = model.current_spectrum
 
-    assert np.allclose(site_spectra_cs, sampl4_fit_result["site_spectra"], atol=5e-6)
+    assert np.allclose(
+        site_spectra_cs, sampl4_fit_result["site_spectra"], atol=5e-6
+    )
     assert np.allclose(model.weights, weights_before)
 
     recomputed = model.weights @ site_spectra_cs

@@ -21,7 +21,7 @@ from tests.sampl4_reference import (
 
 def test_generate_coordinates_enables_current_spectrum():
     model = nlsl.nlsl()
-    model['nsite'] = 2
+    model["nsite"] = 2
     model.update(SAMPL4_FINAL_PARAMETERS)
 
     # Generate the field grid used by the SAMPL4 data so the evaluation spans
@@ -35,7 +35,7 @@ def test_generate_coordinates_enables_current_spectrum():
         normalize=False,
         nspline=NSPLINE_POINTS,
         shift=True,
-        label='sampl4-single-eval',
+        label="sampl4-single-eval",
         reset=True,
     )
 
@@ -49,11 +49,11 @@ def test_generate_coordinates_enables_current_spectrum():
     # Mirror the runfile-4 solution through the dictionary interface so the
     # synthetic spectrum is generated with the converged parameters.
     model.update(SAMPL4_FINAL_PARAMETERS)
-    model['sb0'] = SAMPL4_FINAL_SB0
-    model['srng'] = SAMPL4_FINAL_SRNG
-    model['ishft'] = SAMPL4_FINAL_ISHFT
-    model['shft'] = SAMPL4_FINAL_SHFT
-    model['nrmlz'] = SAMPL4_FINAL_NRMLZ
+    model["sb0"] = SAMPL4_FINAL_SB0
+    model["srng"] = SAMPL4_FINAL_SRNG
+    model["ishft"] = SAMPL4_FINAL_ISHFT
+    model["shft"] = SAMPL4_FINAL_SHFT
+    model["nrmlz"] = SAMPL4_FINAL_NRMLZ
     model.weights = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum

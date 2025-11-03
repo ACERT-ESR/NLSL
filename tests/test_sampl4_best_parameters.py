@@ -21,10 +21,11 @@ from tests.sampl4_reference import (
 
 
 def test_sampl4_best_parameters_match_data_without_fit():
-    """Copy the converged parameters into a fresh model and verify the residual."""
+    """Copy the converged parameters into a fresh model and verify the
+    residual."""
 
     model = nlsl.nlsl()
-    model['nsite'] = SAMPL4_FINAL_PARAMETERS['nsite']
+    model["nsite"] = SAMPL4_FINAL_PARAMETERS["nsite"]
 
     model.generate_coordinates(
         SAMPL4_POINT_COUNT,
@@ -35,17 +36,17 @@ def test_sampl4_best_parameters_match_data_without_fit():
         normalize=False,
         nspline=NSPLINE_POINTS,
         shift=True,
-        label='sampl4-known-parameters',
+        label="sampl4-known-parameters",
         reset=True,
     )
 
     # Assign the converged runfile-4 state without invoking the optimiser.
     model.update(SAMPL4_FINAL_PARAMETERS)
-    model['sb0'] = SAMPL4_FINAL_SB0
-    model['srng'] = SAMPL4_FINAL_SRNG
-    model['ishft'] = SAMPL4_FINAL_ISHFT
-    model['shft'] = SAMPL4_FINAL_SHFT
-    model['nrmlz'] = SAMPL4_FINAL_NRMLZ
+    model["sb0"] = SAMPL4_FINAL_SB0
+    model["srng"] = SAMPL4_FINAL_SRNG
+    model["ishft"] = SAMPL4_FINAL_ISHFT
+    model["shft"] = SAMPL4_FINAL_SHFT
+    model["nrmlz"] = SAMPL4_FINAL_NRMLZ
     model.weights = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum

@@ -2,6 +2,7 @@ from . import fortrancore as _fortrancore
 import os
 from pathlib import Path
 import numpy as np
+from .data import process_spectrum
 
 _SPECTRAL_PARAMETER_NAMES = {
     "phase",
@@ -10,8 +11,6 @@ _SPECTRAL_PARAMETER_NAMES = {
     "lb",
     "range",
 }
-
-from .data import process_spectrum
 
 
 def _ipfind_wrapper(name: str) -> int:
@@ -106,11 +105,13 @@ class nlsl(object):
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
         ]
         # The ``fepr_name`` table leaves the start/step descriptors blank even
-        # though ``parcom.fparm`` exposes the associated slots.  ``ipfind`` still
-        # recognises the historic ``FLDI``/``DFLD`` mnemonics, so attach those
-        # labels to the trailing empty entries and leave any populated tokens
-        # untouched.
-        missing_fepr = [i for i, token in enumerate(self._fepr_names) if len(token) == 0]
+        # though ``parcom.fparm`` exposes the associated slots.  ``ipfind``
+        # still recognises the historic ``FLDI``/``DFLD`` mnemonics, so attach
+        # those labels to the trailing empty entries and leave any populated
+        # tokens untouched.
+        missing_fepr = [
+            i for i, token in enumerate(self._fepr_names) if len(token) == 0
+        ]
         for idx, label in zip(missing_fepr, ["fldi", "dfld"]):
             self._fepr_names[idx] = label
 
@@ -119,11 +120,16 @@ class nlsl(object):
             for name in _fortrancore.eprprm.iepr_name.reshape(-1).tolist()
         ]
         # ``iepr_name`` omits several control flags (``IWFLG``/``IGFLG``/etc.)
-        # that runfiles manipulate directly.  Only the blank slots need patching,
-        # so mirror their canonical mnemonics onto the empty entries without
-        # disturbing the documented ones.
-        missing_iepr = [i for i, token in enumerate(self._iepr_names) if len(token) == 0]
-        for idx, label in zip(missing_iepr, ["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"]):
+        # that runfiles manipulate directly.  Only the blank slots need
+        # patching, so mirror their canonical mnemonics onto the empty entries
+        # without disturbing the documented ones.
+        missing_iepr = [
+            i for i, token in enumerate(self._iepr_names) if len(token) == 0
+        ]
+        for idx, label in zip(
+            missing_iepr,
+            ["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"],
+        ):
             self._iepr_names[idx] = label
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
@@ -242,10 +248,10 @@ class nlsl(object):
     def experimental_data(self):
         """Return the trimmed experimental traces from the most recent capture.
 
-        The matrix is shaped as ``(number of spectra, point span)`` so it aligns
-        with ``model.weights @ model.site_spectra``.  Each row contains the
-        measured intensities for the corresponding recorded spectrum, zeroing any
-        samples that fall outside that spectrum's active window.
+        The matrix is shaped as ``(number of spectra, point span)`` so it
+        aligns with ``model.weights @ model.site_spectra``.  Each row contains
+        the measured intensities for the corresponding recorded spectrum,
+        zeroing any samples that fall outside that spectrum's active window.
         """
 
         if self._last_experimental_data is None:
@@ -466,9 +472,9 @@ class nlsl(object):
             idx = self._iepr_names.index(key)
             vals = self._iparm[idx, : self.nsites]
         else:
-            vals = np.array(
-                [_fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)]
-            )
+            vals = np.array([
+                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
+            ])
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
@@ -486,9 +492,10 @@ class nlsl(object):
             return
         expdat = _fortrancore.expdat
         if key == "fldi":
-            # ``fldi`` holds the absolute starting field for each spectrum.  Keep
-            # both the ``expdat`` cache and the floating-parameter table in sync
-            # so future ``range`` adjustments can reuse the stored origin.
+            # ``fldi`` holds the absolute starting field for each spectrum.
+            # Keep both the ``expdat`` cache and the floating-parameter table
+            # in sync so future ``range`` adjustments can reuse the stored
+            # origin.
             values = np.atleast_1d(np.asarray(v, dtype=float))
             if values.size == 0:
                 raise ValueError("fldi requires at least one value")
@@ -582,16 +589,23 @@ class nlsl(object):
                 expdat.srng[:fill_count] = expanded
                 if not self._explicit_field_start:
                     expdat.sbi[:fill_count] = (
-                        expdat.sb0[:fill_count] - 0.5 * expdat.srng[:fill_count]
+                        expdat.sb0[:fill_count]
+                        - 0.5 * expdat.srng[:fill_count]
                     )
                 else:
                     self._explicit_field_start = True
                 if not self._explicit_field_step:
                     steps = np.zeros(fill_count, dtype=float)
                     for spectrum in range(fill_count):
-                        points = int(expdat.npts[spectrum]) if spectrum < expdat.npts.shape[0] else 0
+                        points = (
+                            int(expdat.npts[spectrum])
+                            if spectrum < expdat.npts.shape[0]
+                            else 0
+                        )
                         if points > 1:
-                            steps[spectrum] = expdat.srng[spectrum] / float(points - 1)
+                            steps[spectrum] = expdat.srng[spectrum] / float(
+                                points - 1
+                            )
                     expdat.sdb[:fill_count] = steps
                 else:
                     self._explicit_field_step = True
@@ -638,7 +652,9 @@ class nlsl(object):
                     if columns > 0:
                         start_values = expdat.sbi[:columns]
                         if start_values.size >= columns:
-                            self._fparm[start_row, :columns] = start_values[:columns]
+                            self._fparm[start_row, :columns] = start_values[
+                                :columns
+                            ]
                         elif start_values.size > 0:
                             self._fparm[start_row, :columns] = start_values[0]
                         else:
@@ -649,7 +665,9 @@ class nlsl(object):
                     if columns > 0:
                         step_values = expdat.sdb[:columns]
                         if step_values.size >= columns:
-                            self._fparm[step_row, :columns] = step_values[:columns]
+                            self._fparm[step_row, :columns] = step_values[
+                                :columns
+                            ]
                         elif step_values.size > 0:
                             self._fparm[step_row, :columns] = step_values[0]
                         else:
@@ -920,8 +938,8 @@ class nlsl(object):
 
         trimmed = label.strip()
         window_label = f"{idx + 1:2d}: {trimmed}"[:19] + "\0"
-        core.expdat.wndoid[idx] = (
-            window_label.encode("ascii", "ignore").ljust(20, b" ")
+        core.expdat.wndoid[idx] = window_label.encode("ascii", "ignore").ljust(
+            20, b" "
         )
 
         core.expdat.ndatot = ix0 + points
@@ -1037,13 +1055,13 @@ class nlsl(object):
         """Keep ``/mspctr/sfac/`` aligned with the active site/spectrum counts.
 
         ``sfac`` is declared in ``mspctr.f90`` as a static ``MXSITE × MXSPC``
-        array.  ``nlsinit`` fills every element with ``1.0`` even when no fit is
-        running, and the Fortran code never reinitialises the table after the
-        initial call.  Changing ``nsite`` or ``nspc`` therefore only updates the
-        integer counters; without extra work the exposed populations would keep
-        whatever values happened to be in memory.  This helper mirrors the
-        housekeeping performed by the Fortran data loaders so Python callers
-        always see a predictable set of populations.
+        array.  ``nlsinit`` fills every element with ``1.0`` even when no fit
+        is running, and the Fortran code never reinitialises the table after
+        the initial call.  Changing ``nsite`` or ``nspc`` therefore only
+        updates the integer counters; without extra work the exposed
+        populations would keep whatever values happened to be in memory.  This
+        helper mirrors the housekeeping performed by the Fortran data loaders
+        so Python callers always see a predictable set of populations.
         """
 
         nsite = int(_fortrancore.parcom.nsite)
