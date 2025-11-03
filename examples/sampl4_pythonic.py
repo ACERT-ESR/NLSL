@@ -73,7 +73,7 @@ def main():
 
     # Seed equal site populations once the data slot exists so the weight matrix
     # is initialised through the public mapping interface.
-    model['weights'] = np.ones(2)
+    model.weights = np.ones(2)
 
     # The original script issues two ``fit`` commands; calling ``fit()`` twice
     # reproduces the same refinement cycle and leaves the captured spectra ready
@@ -90,14 +90,22 @@ def main():
     experimental_block = model.experimental_data
     experimental = np.squeeze(experimental_block)
 
-    weights = model['weights']
-    # ``weights`` is shaped as (number of recorded spectra, number of sites).
-    # Multiplying by ``site_spectra`` (number of sites × points) therefore
-    # yields one simulated trace per recorded spectrum.  The extra singleton axis
-    # keeps each site contribution grouped under the spectrum that owns it.
-    weighted_components = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
-    simulated_total = np.squeeze(weights @ site_spectra)
-    component_curves = weighted_components.reshape(-1, site_spectra.shape[1])
+    weights = model.weights
+    # ``weights`` behaves like a 1D vector when a single spectrum is active, but
+    # the optimiser keeps a full ``(nspc, nsite)`` matrix in the multi-spectrum
+    # case.  ``site_spectra`` always carries one row per site with the sampled
+    # points arranged along the second axis.
+    if weights.ndim == 1:
+        weighted_components = weights[:, np.newaxis] * site_spectra
+        simulated_total = weights @ site_spectra
+        component_curves = weighted_components
+    else:
+        # For multiple spectra ``weights`` supplies one row per recorded trace.
+        # Broadcasting the additional axis keeps each site's contribution tied
+        # to the spectrum that owns it before we flatten the view for plotting.
+        weighted_components = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        simulated_total = weights @ site_spectra
+        component_curves = weighted_components.reshape(-1, site_spectra.shape[1])
 
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)

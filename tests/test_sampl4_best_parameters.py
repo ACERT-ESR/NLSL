@@ -46,10 +46,10 @@ def test_sampl4_best_parameters_match_data_without_fit():
     model['ishft'] = SAMPL4_FINAL_ISHFT
     model['shft'] = SAMPL4_FINAL_SHFT
     model['nrmlz'] = SAMPL4_FINAL_NRMLZ
-    model['weights'] = SAMPL4_FINAL_WEIGHTS
+    model.weights = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
-    simulated_total = np.squeeze(model['weights'] @ site_spectra)
+    simulated_total = np.squeeze(model.weights @ site_spectra)
     experimental = SAMPL4_SPECTRAL_DATA[: site_spectra.shape[1]]
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)

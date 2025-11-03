@@ -54,14 +54,14 @@ def test_generate_coordinates_enables_current_spectrum():
     model['ishft'] = SAMPL4_FINAL_ISHFT
     model['shft'] = SAMPL4_FINAL_SHFT
     model['nrmlz'] = SAMPL4_FINAL_NRMLZ
-    model['weights'] = SAMPL4_FINAL_WEIGHTS
+    model.weights = SAMPL4_FINAL_WEIGHTS
 
     site_spectra = model.current_spectrum
     assert site_spectra.shape == (2, SAMPL4_POINT_COUNT)
     assert np.all(np.isfinite(site_spectra))
-    assert np.all(np.isfinite(model['weights']))
+    assert np.all(np.isfinite(model.weights))
 
-    simulated_total = np.squeeze(model['weights'] @ site_spectra)
+    simulated_total = np.squeeze(model.weights @ site_spectra)
     rel_rms = np.linalg.norm(
         np.squeeze(simulated_total) - SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT]
     )

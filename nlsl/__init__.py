@@ -162,21 +162,28 @@ class nlsl(object):
 
     @property
     def weights(self):
-        """Expose the active ``/mspctr/sfac/`` populations as a 2-D view.
+        """Expose the active ``/mspctr/sfac/`` populations.
 
-        ``sfac`` stores the scale factor for each (spectrum, site) pair in a
-        fixed ``MXSITE × MXSPC`` workspace that is shared with the optimiser.
-        ``_sync_weight_matrix`` mirrors the Fortran bookkeeping so the active
-        corner of that array always reflects the current ``nsite``/``nspc``
-        counters.  Returning the swapped view keeps the Python side in
-        spectrum-major order without copying the data; callers that modify the
-        view update the Fortran weights immediately.
+        ``sfac`` stores one scale factor per (site, spectrum) pair inside a
+        static ``MXSITE × MXSPC`` workspace that the optimiser and the
+        single-point evaluator share.  ``_sync_weight_matrix`` keeps that table
+        aligned with the current ``nsite``/``nspc`` counters so previously
+        fitted populations remain intact when callers change the active site or
+        spectrum counts.  Returning a column view yields a 1D vector for the
+        common single-spectrum case, while the multi-spectrum case exposes an
+        ``(nspc, nsite)`` view via ``transpose``.  Both paths hand out live
+        views, so any edits immediately update the Fortran state.
         """
 
         matrix = self._sync_weight_matrix()
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
-        return matrix[:nsite, :nspc].swapaxes(0, 1)
+        if nsite <= 0 or nspc <= 0:
+            return np.empty(0, dtype=float)
+        active = matrix[:nsite, :nspc]
+        if nspc == 1:
+            return active[:, 0]
+        return active.T
 
     @weights.setter
     def weights(self, values):
@@ -205,7 +212,7 @@ class nlsl(object):
         if array.shape[0] < nspc or array.shape[1] < nsite:
             raise ValueError("weight matrix shape mismatch")
         matrix[:, :] = 0.0
-        matrix[:nsite, :nspc] = array[:nspc, :nsite].swapaxes(0, 1)
+        matrix[:nsite, :nspc] = array[:nspc, :nsite].T
 
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
@@ -221,7 +228,7 @@ class nlsl(object):
         """Evaluate the current spectral model without running a full fit.
 
         The returned array contains one row per site; population weights remain
-        available through ``model['weights']``.
+        available through ``model.weights``.
         """
         ndatot = int(_fortrancore.expdat.ndatot)
         nspc = int(_fortrancore.expdat.nspc)
@@ -236,7 +243,7 @@ class nlsl(object):
         """Return the trimmed experimental traces from the most recent capture.
 
         The matrix is shaped as ``(number of spectra, point span)`` so it aligns
-        with ``model['weights'] @ model.site_spectra``.  Each row contains the
+        with ``model.weights @ model.site_spectra``.  Each row contains the
         measured intensities for the corresponding recorded spectrum, zeroing any
         samples that fall outside that spectrum's active window.
         """
