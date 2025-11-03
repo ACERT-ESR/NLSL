@@ -31,7 +31,7 @@ env:
   # Tell Meson/meson-python to use MinGW toolchain on Windows.
   # PATH is amended by the Windows job steps; here we just point compilers.
   CIBW_ENVIRONMENT_WINDOWS: "CC=gcc CXX=g++ FC=gfortran"
-  MACOSX_DEPLOYMENT_TARGET: '15.0'
+  MACOSX_DEPLOYMENT_TARGET: '12.0'
 
 jobs:
   merge_guard:
@@ -185,6 +185,11 @@ jobs:
 
       - name: Build wheels (Linux)
         timeout-minutes: 60
+        env:
+          CIBW_BEFORE_ALL_LINUX: >
+            (yum -y install gcc-gfortran) ||
+            (dnf -y install gcc-gfortran) ||
+            (microdnf -y install gcc-gfortran) || true
         run: python -m cibuildwheel --output-dir wheelhouse
 
       - name: Upload wheels artifact (Linux)
@@ -225,10 +230,12 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install -U pip
-          pip install cibuildwheel
+          pip install cibuildwheel delocate
 
       - name: Build wheels (macOS)
         timeout-minutes: 60
+        env:
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
         run: |
           FC=gfortran python -m cibuildwheel --output-dir wheelhouse
 
@@ -260,21 +267,25 @@ jobs:
         uses: msys2/setup-msys2@v2
         with:
           update: true
+          # switch to UCRT64 for modern CRT
+          msystem: UCRT64
           install: >-
             base-devel
-            mingw-w64-x86_64-gcc
-            mingw-w64-x86_64-gcc-fortran
-            mingw-w64-x86_64-pkgconf
+            # ucrt64 packages instead of mingw64
+            mingw-w64-ucrt-x86_64-gcc
+            mingw-w64-ucrt-x86_64-gcc-fortran
+            mingw-w64-ucrt-x86_64-pkgconf
 
       - name: Add MinGW to PATH
         shell: bash
         run: |
-          echo "C:/msys64/mingw64/bin" >> $GITHUB_PATH
+          echo "C:/msys64/ucrt64/bin" >> $GITHUB_PATH
           echo "C:/msys64/usr/bin" >> $GITHUB_PATH
-          echo "PKG_CONFIG_PATH=C:/msys64/mingw64/lib/pkgconfig" >> $GITHUB_ENV
-          echo "CC=gcc" >> $GITHUB_ENV
-          echo "CXX=g++" >> $GITHUB_ENV
-          echo "FC=gfortran" >> $GITHUB_ENV
+          echo "PKG_CONFIG_PATH=C:/msys64/ucrt64/lib/pkgconfig" >> $GITHUB_ENV
+          # use prefixed compilers to avoid MSVC pickup
+          echo "CC=x86_64-w64-mingw32-gcc" >> $GITHUB_ENV
+          echo "CXX=x86_64-w64-mingw32-g++" >> $GITHUB_ENV
+          echo "FC=x86_64-w64-mingw32-gfortran" >> $GITHUB_ENV
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -286,9 +297,12 @@ jobs:
       - name: Install cibuildwheel
         run: |
           python -m pip install -U pip
-          pip install cibuildwheel
+          pip install cibuildwheel delvewheel
 
       - name: Build wheels (Windows MinGW)
+        env:
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
+            python -m delvewheel repair -w {dest_dir} {wheel}
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
