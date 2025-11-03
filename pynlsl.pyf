@@ -47,7 +47,23 @@ python module fortrancore ! in
             use lmcom
             use nlsdim
         end subroutine nlsinit
-        subroutine lfun(m,n,x,fvec,fjac,ldfjac,iflag) ! in :fortrancore:src/fortran/matrix_model/lfun.f90
+        subroutine single_point(iflag) ! in :fortrancore:src/fortran/lfun.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use tridag
+            use mspctr
+            use ftwork
+            use parcom
+            use basis
+            use errmsg
+            use pidef
+            use stdio
+            use iterat
+            use rnddbl
+            integer intent(in) :: iflag
+        end subroutine single_point
+        subroutine lfun(m,n,x,fvec,fjac,ldfjac,iflag) ! in :fortrancore:src/fortran/lfun.f90
             use nlsdim
             use eprprm
             use expdat

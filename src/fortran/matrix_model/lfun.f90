@@ -64,6 +64,74 @@
 !    fstplt   (X-Windows interface)
 !
 !---------------------------------------------------------------------- 
+      subroutine single_point(iflag)
+
+      use nlsdim
+      use eprprm
+      use expdat
+      use tridag
+      use mspctr
+      use ftwork
+      use parcom
+      use basis
+      use errmsg
+      use pidef
+      use stdio
+      use iterat
+      use rnddbl
+
+      implicit none
+      integer iflag,ise,isi,ixs,icalc,ixb,ixbp,ixt,ierr
+
+      integer FULL,CFONLY
+      double precision ZERO
+      parameter (FULL=111,CFONLY=0,ZERO=0.0D0)
+
+      logical hltchk
+      external hltchk
+
+      ierr=0
+
+      call tdsqz()
+
+!     -----------------------------------
+!      Loop over all spectra in a series
+!     -----------------------------------
+      ixs=1
+      do ise=1,nser
+         ixsp(ise)=ixs
+         tmpshft(ise)=ZERO
+
+         do isi=1,nsite
+            call tdchek(isi,ise,ierr)
+            call setspc(isi,ise)
+            if (hltchk(ierr,isi,ise,iflag)) return
+
+            ixt=ixtd(isi,ise)
+            if (basno(isi,ise).gt.0) then
+               ixb=ixbas( basno(isi,ise) )
+               ixbp=ixb
+            else
+               ixb=0
+               ixbp=1
+            end if
+            icalc=CFONLY
+            if (modtd(isi,ise).ne.0) icalc=FULL
+
+            call momdls( fparm(1,isi),iparm(1,isi),icalc,
+     #           alpha(ixt),beta(ixt),ibasis(1,ixbp),ixb,
+     #           spectr(ixs,isi),wspec,nft(ise),ltd(isi,ise),
+     #           ierr )
+
+            modtd(isi,ise)=0
+            if (hltchk(ierr,isi,ise,iflag)) return
+         end do
+
+         ixs=ixs+npts(ise)
+      end do
+
+      end subroutine single_point
+
       subroutine lfun( m,n,x,fvec,fjac,ldfjac,iflag )
 !
       use nlsdim
@@ -187,50 +255,14 @@
          end do
 !
          shiftOK = (nshift.eq.0 .or. iter.le.nshift)
-         call tdsqz()
+         call single_point(iflag)
 !
 !       -----------------------------------
-!        Loop over all spectra in a series
+!        Accumulate residuals for each spectrum
 !       -----------------------------------
 !
          ixs=1
          do ise=1,nser
-            ixsp(ise)=ixs
-            tmpshft(ise)=ZERO
-!     
-!          --------------------------------------
-!           Loop over all sites for the spectrum
-!          --------------------------------------
-!
-            do isi=1,nsite
-               call tdchek(isi,ise,ierr)
-               call setspc(isi,ise)
-               if (hltchk(ierr,isi,ise,iflag)) return
-!
-               ixt=ixtd(isi,ise)
-               if(basno(isi,ise).gt.0) then
-                 ixb=ixbas( basno(isi,ise) )
-                 ixbp=ixb
-               else
-                 ixb=0
-                 ixbp=1
-               endif
-                 icalc=CFONLY
-               if (modtd(isi,ise).ne.0) icalc=FULL
-!
-!              ---------------------------------
-!              Calculate an individual spectrum
-!              ---------------------------------
-!
-               call momdls( fparm(1,isi),iparm(1,isi),icalc,
-     #              alpha(ixt),beta(ixt),ibasis(1,ixbp),ixb,
-     #              spectr(ixs,isi),wspec,nft(ise),ltd(isi,ise),
-     #              ierr )
-!
-               modtd(isi,ise)=0
-               if (hltchk(ierr,isi,ise,iflag)) return
-            end do
-!
 !
 !           --------------------------------------------------------
 !           If data are available for this calculation, determine
