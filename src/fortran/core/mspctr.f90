@@ -33,7 +33,6 @@
       double precision, target, save :: spectr(MXPT,MXSITE)
       double precision, target, save :: wspec(MXPT,MXSITE)
       double precision, target, save :: sfac(MXSITE,MXSPC)
-
 !
       end module mspctr
 
