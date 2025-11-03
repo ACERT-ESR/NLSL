@@ -235,6 +235,7 @@ jobs:
         timeout-minutes: 60
         env:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
+
         run: |
           FC=gfortran python -m cibuildwheel --output-dir wheelhouse
 
@@ -301,8 +302,7 @@ jobs:
 
       - name: Build wheels (Windows MinGW)
         env:
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-            python -m delvewheel repair -w {dest_dir} {wheel}
+        CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "python -m pip install -U delvewheel && python -m delvewheel repair -w {dest_dir} {wheel}"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 
