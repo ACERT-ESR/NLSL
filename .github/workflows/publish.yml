@@ -27,11 +27,10 @@ env:
   CIBW_ARCHS_MACOS: "native"
   # Ensure gfortran is available inside manylinux for Fortran builds (Linux job unchanged behavior).
   # Tell Meson/meson-python which Fortran to use on macOS.
-  CIBW_ENVIRONMENT_MACOS: "FC=gfortran"
   # Tell Meson/meson-python to use MinGW toolchain on Windows.
   # PATH is amended by the Windows job steps; here we just point compilers.
-  CIBW_ENVIRONMENT_WINDOWS: "CC=gcc CXX=g++ FC=gfortran"
-  MACOSX_DEPLOYMENT_TARGET: '12.0'
+  CIBW_ENVIRONMENT_WINDOWS: "CC=x86_64-w64-mingw32-gcc CXX=x86_64-w64-mingw32-g++ FC=x86_64-w64-mingw32-gfortran PKG_CONFIG=C:/msys64/ucrt64/bin/pkgconf.exe"
+  CIBW_ENVIRONMENT_MACOS: "MACOSX_DEPLOYMENT_TARGET=15.0 FC=gfortran"
 
 jobs:
   merge_guard:
@@ -105,6 +104,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: master
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -134,23 +134,63 @@ jobs:
         env:
           NEW_VERSION: ${{ needs.test.outputs.new_version }}
 
-      - name: Configure git user
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-
       - name: Commit version bump
         env:
           NEW_VERSION: ${{ needs.test.outputs.new_version }}
         run: |
-          git pull --ff-only origin master
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git add pyproject.toml
           if git diff --cached --quiet; then
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "Bump version to ${NEW_VERSION}"
-          git push origin HEAD:master
+          git commit -m "Bump version to ${NEW_VERSION} [skip ci]"
+
+      - name: Push version bump
+        # Instructions: Create a GitHub Personal Access Token (PAT) for admin pushes (fine-grained)
+        # =======================================================================================
+        # 1) Go to: https://github.com/settings/personal-access-tokens
+        #    → “Fine-grained tokens” → Generate new token.
+        #
+        # 2) Basic fields:
+        #    - Token name: e.g., "Actions admin push"
+        #    - Expiration: set a reasonable date
+        #    - Resource owner: select your organization
+        #
+        # 3) Repository access (IMPORTANT per current UI):
+        #    - Select **All repositories**  (required to expose repo permissions panel in this UI)
+        #    - In the **Permissions** area, click **Repositories (0)** → **Add permissions**
+        #      • Choose **Contents** → then under it select **Read and write**
+        #      • (Optional) Add **Workflows** → **Read and write** if commits touch .github/workflows/*
+        #    - You do **not** need Organization permissions for pushing; leave those empty.
+        #
+        # 4) Click **Generate token**, copy the value immediately.
+        #    - If your org uses SSO, click **Authorize** for this org on the yellow banner.
+        #
+        # 5) Add the token as a repo secret:
+        #    Repo → Settings → Secrets and variables → Actions → **New repository secret**
+        #    - Name: ADMIN_PAT
+        #    - Value: <the token from step 4>
+        #
+        # 6) Branch protection (classic “Branches” rule) checklist:
+        #    - Require a pull request before merging → **Include administrators = OFF**
+        #    - Restrict who can push to matching branches → add **your admin user** (PAT owner)
+        #
+        # 7) Workflow push step (uses the secret; no angle brackets):
+        #    git remote set-url origin "https://x-access-token:${ADMIN_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+        #    git push origin HEAD:master
+        #
+        # Notes:
+        # - If the push is rejected: verify (a) Contents=Read&Write is set, (b) your admin user is in
+        #   “Restrict who can push…”, (c) Include administrators is OFF, (d) the URL uses ${GITHUB_REPOSITORY}.
+        env:
+          ADMIN_PAT: ${{ secrets.ADMIN_PAT }}
+        run: |
+          git config user.name "version-bump"
+          git config user.email "actions@users.noreply.github.com"
+          git remote add patremote "https://x-access-token:${ADMIN_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          git push patremote HEAD:refs/heads/master
 
       - name: Expose version output
         id: output
@@ -236,6 +276,7 @@ jobs:
         timeout-minutes: 60
         env:
           CIBW_REPAIR_WHEEL_COMMAND_MACOS: "delocate-wheel -w {dest_dir} {wheel}"
+
         run: |
           FC=gfortran python -m cibuildwheel --output-dir wheelhouse
 
@@ -266,12 +307,13 @@ jobs:
       - name: Set up MSYS2
         uses: msys2/setup-msys2@v2
         with:
-          update: true
+          # avoid update mid-launch
+          update: false
           # switch to UCRT64 for modern CRT
           msystem: UCRT64
+          # ucrt64 packages instead of mingw64
           install: >-
             base-devel
-            # ucrt64 packages instead of mingw64
             mingw-w64-ucrt-x86_64-gcc
             mingw-w64-ucrt-x86_64-gcc-fortran
             mingw-w64-ucrt-x86_64-pkgconf
@@ -301,8 +343,7 @@ jobs:
 
       - name: Build wheels (Windows MinGW)
         env:
-          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: >
-            python -m delvewheel repair -w {dest_dir} {wheel}
+          CIBW_REPAIR_WHEEL_COMMAND_WINDOWS: "python -m pip install -U delvewheel && python -m delvewheel repair -w {dest_dir} {wheel}"
         run: |
           python -m cibuildwheel --output-dir wheelhouse
 

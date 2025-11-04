@@ -59,6 +59,18 @@ the mapping interface.【F:nlsl/__init__.py†L60-L204】
 A curated set of runnable examples is included under ``examples/`` to help you
 get started with real datasets and typical NLSL workflows:
 
+### Download the examples directory
+
+You can download the full repository ZIP directly from GitHub and extract only the `examples/` folder:
+
+[⬇️ Download ZIP (GitHub)](https://github.com/acert-esr/nlsl/archive/refs/heads/master.zip)
+
+```bash
+unzip NLSL-master.zip "NLSL-master/examples/*"
+```
+
+### Description of examples
+
 - **Runfile suite (`sampl1`–`sampl5`)** – canonical `.run` scripts paired with
   `.dat` inputs that demonstrate anisotropic rotations, multi-spectrum fits,
   and other standard analyses. Run them with the classic command-line
