@@ -1,7 +1,5 @@
-from pylab import *
-import os
+import numpy as np
 import nlsl
-import sys
 
 # create a fresh NLSL instance
 n = nlsl.nlsl()
@@ -10,7 +8,9 @@ print("**********************************************************************")
 print("file SAMPL1.RUN:  sample NLSL script file\n")
 print("  Illustrates fitting of anisotropic rotation of CSL spin probe ")
 print("  in an isotropic solvent at X-band.\n")
-print("  Test data in file SAMPL1.DAT calculated with the following parameters:")
+print(
+    "  Test data in file SAMPL1.DAT calculated with the following parameters:"
+)
 print("              {g}   = 2.0089, 2.0021, 2.0058")
 print("              {A}   = 5.6, 33.8, 5.3  (gauss)")
 print("              betad = 15 degrees")
@@ -18,7 +18,9 @@ print("              Rpll  = 1e7")
 print("              Rperp = 1e8")
 print("              B0    = 3400 G")
 print("              GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)")
-print("**********************************************************************\n")
+print(
+    "**********************************************************************\n"
+)
 print('  --- Open file "sampl1.log" to save a record of this session\n')
 n.procline("log sampl1")
 print()
@@ -54,7 +56,7 @@ print("  ---")
 print("  --- GIB0 is the Gaussian inhomogeneous broadening.")
 n.update(
     {
-        "rpll": log(1.0e8),
+        "rpll": np.log(1.0e8),
         "rprp": 8.0,
         "gib0": 1.5,
     }
@@ -63,9 +65,11 @@ print()
 print("  --- Specify basis set truncation parameters\n")
 n.update({"lemx": 6, "lomx": 5, "kmx": 4, "mmx": (2, 2)})
 print()
-print("   --- Read in ASCII datafile \"sampl1.dat\":")
+print('   --- Read in ASCII datafile "sampl1.dat":')
 print("   ---    (1) Spline interpolate the data to 200 points")
-print("   ---    (2) baseline-correct by fitting a line to 20 points at each end")
+print(
+    "   ---    (2) baseline-correct by fitting a line to 20 points at each end"
+)
 print("   ---    (3) allow shifting of B0 to maximize overlap with data\n")
 n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 print()

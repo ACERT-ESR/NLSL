@@ -53,7 +53,9 @@ class FitParameterVaryMapping(object):
             if not body:
                 raise KeyError(key)
             if body == "*":
-                raise NotImplementedError("wildcard variation is not supported yet")
+                raise NotImplementedError(
+                    "wildcard variation is not supported yet"
+                )
             index = int(body)
             token = token[:start].strip()
             if not token:
@@ -71,13 +73,24 @@ class FitParameterVaryMapping(object):
 
     def _find_position(self, parameter, index):
         for pos in range(self._count()):
-            if int(self._ixpr[pos]) == parameter and int(self._ixst[pos]) == index:
+            if (
+                int(self._ixpr[pos]) == parameter
+                and int(self._ixst[pos]) == index
+            ):
                 return pos
         return -1
 
     def _is_spectrum_parameter(self, parameter):
         spectral = []
-        for attr in ("iphase", "ipsi", "ilb", "ib0", "ifldi", "idfld", "irange"):
+        for attr in (
+            "iphase",
+            "ipsi",
+            "ilb",
+            "ib0",
+            "ifldi",
+            "idfld",
+            "irange",
+        ):
             if hasattr(self._core.eprprm, attr):
                 spectral.append(int(getattr(self._core.eprprm, attr)))
         if parameter in spectral:
@@ -175,8 +188,8 @@ class FitParameterVaryMapping(object):
             # configuration before registering the updated settings.
             _fortrancore.rmvprm(ix, index, ident.ljust(30))
         # ``addprm`` replaces ``procline`` for managing the vary list.  The
-        # wrapper stores floats directly into ``parcom`` so future reads see the
-        # values immediately.
+        # wrapper stores floats directly into ``parcom`` so future reads see
+        # the values immediately.
         _fortrancore.addprm(
             ix,
             index,
@@ -699,9 +712,12 @@ class nlsl(object):
             idx = self._iepr_names.index(key)
             vals = self._iparm[idx, : self.nsites]
         else:
-            vals = np.array([
-                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
-            ])
+            vals = np.array(
+                [
+                    _fortrancore.getprm(res, i)
+                    for i in range(1, self.nsites + 1)
+                ]
+            )
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals
