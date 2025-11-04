@@ -22,13 +22,15 @@ def _ipfind_wrapper(name: str) -> int:
         raise ValueError("zero-length token!")
     return int(_fortrancore.ipfind(token, lth))
 
-
 class FitParameterVaryMapping(object):
     """Expose the active set of variable parameters through a mapping."""
 
     def __init__(self, owner):
         self._owner = owner
         self._core = owner._core
+        # TODO -- none of the following are helpful, since this is
+        # automatically generated code, it would be more legible to just leave
+        # the long-format references in place
         self._parcom = self._core.parcom
         self._ixpr = self._parcom.ixpr
         self._ixst = self._parcom.ixst
@@ -38,6 +40,11 @@ class FitParameterVaryMapping(object):
         self._xfdstp = self._parcom.xfdstp
 
     def _parse_key(self, key):
+        # TODO -- this is just extra code.
+        # Rather, edit __getitem__ to look for parens in the expression that is
+        # fed, and return an error that explains how the parens should be
+        # replaced by treating the result of __getitem__ or the input to
+        # __setitem__ as an array whenever there is more than one site.
         if not isinstance(key, str):
             raise KeyError(key)
         token = key.strip().lower()
@@ -63,6 +70,8 @@ class FitParameterVaryMapping(object):
         return token, index
 
     def _format_ident(self, token):
+        # TODO: this function should not exist (supports other functions above
+        # that we do not want
         label = token.upper()
         if "(" in label:
             label = label.split("(", 1)[0]
@@ -72,6 +81,10 @@ class FitParameterVaryMapping(object):
         return int(self._parcom.nprm)
 
     def _find_position(self, parameter, index):
+        # TODO: this function should not exist.  Rather, if there are multiple
+        # sites, then __getitem__ and __setitem__ should return or accept
+        # arrays rather than single values.  Note that you might need to change
+        # both examples and tests in order to reflect this new scheme.
         for pos in range(self._count()):
             if (
                 int(self._ixpr[pos]) == parameter
@@ -135,6 +148,10 @@ class FitParameterVaryMapping(object):
         }
 
     def __setitem__(self, key, value):
+        # TODO: as explained elsewhere, remove the parsing and indexing here.
+        # Rather, if there is more than one site, then accept an array for
+        # values.  If there is more than one site, and a single value is passed
+        # for values, take that and multiply by ones(nsites)
         token, index = self._parse_key(key)
         if isinstance(value, bool):
             if not value:

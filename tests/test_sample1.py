@@ -5,6 +5,7 @@ import numpy as np
 
 def run_sample1_manual():
     print("*" * 70)
+    # TODO: collect all the following as a single triple-quoted string
     print("file SAMPL1.RUN:  sample NLSL script file")
     print()
     print("  Illustrates fitting of anisotropic rotation of CSL spin probe")

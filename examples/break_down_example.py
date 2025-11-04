@@ -18,9 +18,7 @@ print("              Rpll  = 1e7")
 print("              Rperp = 1e8")
 print("              B0    = 3400 G")
 print("              GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)")
-print(
-    "**********************************************************************\n"
-)
+print("*" * 70)
 print('  --- Open file "sampl1.log" to save a record of this session\n')
 n.procline("log sampl1")
 print()
@@ -28,18 +26,16 @@ print("  --- Set magnetic parameters for CSL spin probe \n")
 print("********************************************")
 print("Magnetic parameters for CSL spin probe")
 print("********************************************")
-n.update(
-    {
-        "gxx": 2.0089,
-        "gyy": 2.0021,
-        "gzz": 2.0058,
-        "in2": 2,
-        "axx": 5.6,
-        "ayy": 33.8,
-        "azz": 5.3,
-        "betad": 15,
-    }
-)
+n.update({
+    "gxx": 2.0089,
+    "gyy": 2.0021,
+    "gzz": 2.0058,
+    "in2": 2,
+    "axx": 5.6,
+    "ayy": 33.8,
+    "azz": 5.3,
+    "betad": 15,
+})
 print("********************************************")
 print("CSL spin probe parameters loaded")
 print("********************************************\n")
@@ -54,13 +50,11 @@ print("  ---")
 print("  --- Note also that the log function may be used in a let statement.")
 print("  ---")
 print("  --- GIB0 is the Gaussian inhomogeneous broadening.")
-n.update(
-    {
-        "rpll": np.log(1.0e8),
-        "rprp": 8.0,
-        "gib0": 1.5,
-    }
-)
+n.update({
+    "rpll": np.log(1.0e8),
+    "rprp": 8.0,
+    "gib0": 1.5,
+})
 print()
 print("  --- Specify basis set truncation parameters\n")
 n.update({"lemx": 6, "lomx": 5, "kmx": 4, "mmx": (2, 2)})
