@@ -128,6 +128,18 @@ python module fortrancore ! in
             integer intent(in) :: ixsite
             double precision intent(in) :: fval
         end subroutine setprm
+        subroutine addprm(ix,ix2,ibd,prmn,prmx,prsc,step,ident) ! in :fortrancore:src/fortran/cli/addprm.f90
+            use nlsdim
+            use parcom
+            integer intent(in) :: ix
+            integer intent(in) :: ix2
+            integer intent(in) :: ibd
+            double precision intent(in) :: prmn
+            double precision intent(in) :: prmx
+            double precision intent(in) :: prsc
+            double precision intent(in) :: step
+            character*9 intent(in) :: ident
+        end subroutine addprm
         subroutine setipr(ixparm,ixsite,ival) ! in :fortrancore:src/fortran/cli/setprm.f90
             use nlsdim
             use eprprm
@@ -140,6 +152,15 @@ python module fortrancore ! in
             integer intent(in) :: ixsite
             integer intent(in) :: ival
         end subroutine setipr
+        subroutine rmvprm(ix,ix2,ident) ! in :fortrancore:src/fortran/cli/rmvprm.f90
+            use nlsdim
+            use parcom
+            use eprprm
+            use stdio
+            integer intent(in) :: ix
+            integer intent(in) :: ix2
+            character*30 intent(in) :: ident
+        end subroutine rmvprm
         double precision function getprm(ixparm,ixsite) ! in :fortrancore:src/fortran/cli/setprm.f90
             use nlsdim
             use eprprm
@@ -217,12 +238,17 @@ python module fortrancore ! in
         module parcom ! in :fortrancore:src/fortran/core/parcom.f90
             use nlsdim
             double precision, save,target,dimension(nfprm,mxsite) :: fparm
-            double precision, save,dimension(mxvar) :: prmax
-            double precision, save,dimension(mxvar) :: prmin
+            double precision, save,target,dimension(mxvar),intent(inout) :: prmax
+            double precision, save,target,dimension(mxvar),intent(inout) :: prmin
+            double precision, save,target,dimension(mxvar),intent(inout) :: prscl
+            double precision, save,target,dimension(mxvar),intent(inout) :: xfdstp
             integer, save,target,dimension(niprm,mxsite) :: iparm
             integer, save,dimension(nfprm,mxsite) :: ixx
+            integer, save,target,dimension(mxvar),intent(inout) :: ibnd
+            integer, save,target,dimension(mxvar),intent(inout) :: ixpr
+            integer, save,target,dimension(mxvar),intent(inout) :: ixst
             integer, save :: nser
-            integer, save :: nprm
+            integer, save,intent(inout) :: nprm
             integer, pointer, save, intent(inout) :: pnsite !f2py name: nsite
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
