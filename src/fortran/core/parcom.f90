@@ -54,16 +54,21 @@
 !
       double precision, target, save :: fparm(NFPRM,MXSITE)
 !
-      double precision, save :: prmax(MXVAR),prmin(MXVAR),
-     #                prscl(MXVAR),xfdstp(MXVAR),xerr(MXJCOL),
-     #                serval(MXSPC),ctol,ptol,pftol,pstep,pbound,
-     #                srange
+      double precision, save :: prmax(MXVAR)
+      double precision, save :: prmin(MXVAR)
+      double precision, save :: prscl(MXVAR)
+      double precision, save :: xfdstp(MXVAR)
+      double precision, save :: xerr(MXJCOL),serval(MXSPC),ctol,ptol,
+     #                pftol,pstep,pbound,srange
       integer, target, save :: iparm(NIPRM,MXSITE)
 !
-      integer, save :: ixx(NFPRM,MXSITE),
-     #                ibnd(MXVAR),ixpr(MXVAR),ixst(MXVAR),
-     #                iser,nser,nprm,njcol,nshift,noneg,itridg,
+      integer, save :: ixx(NFPRM,MXSITE)
+      integer, save :: ibnd(MXVAR)
+      integer, save :: ixpr(MXVAR)
+      integer, save :: ixst(MXVAR)
+      integer, save :: iser,nser,njcol,nshift,noneg,itridg,
      #                iitrfl,jacobi,ixp1p,ixs1p,mxpitr,output
+      integer, save :: nprm
       integer, target, save :: nsite
       integer, pointer, save :: pnsite => nsite
       logical, save :: mtxclc

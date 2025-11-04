@@ -89,7 +89,8 @@ def run_sample1_manual():
     print()
     print("   --- Specify parameters to be varied in fitting procedure")
     print()
-    procline("vary rpll, rprp, gib0")
+    for token in ("rpll", "rprp", "gib0"):
+        n.fit_params.vary[token] = True
     print()
     print("   --- Carry out nonlinear least-squares procedure:")
     print("   ---    (1) Stop after a maximum of 40 iterations")

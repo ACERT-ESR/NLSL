@@ -1,6 +1,7 @@
 from . import fortrancore as _fortrancore
 import os
 from pathlib import Path
+from collections.abc import Mapping
 import numpy as np
 from .data import process_spectrum
 
@@ -22,6 +23,226 @@ def _ipfind_wrapper(name: str) -> int:
     return int(_fortrancore.ipfind(token, lth))
 
 
+class FitParameterVaryMapping(object):
+    """Expose the active set of variable parameters through a mapping."""
+
+    def __init__(self, owner):
+        self._owner = owner
+        self._core = owner._core
+        self._parcom = self._core.parcom
+        self._ixpr = self._parcom.ixpr
+        self._ixst = self._parcom.ixst
+        self._prmin = self._parcom.prmin
+        self._prmax = self._parcom.prmax
+        self._prscl = self._parcom.prscl
+        self._xfdstp = self._parcom.xfdstp
+
+    def _parse_key(self, key):
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        index = 0
+        if "(" in token:
+            start = token.index("(")
+            end = token.find(")", start)
+            if end == -1:
+                raise KeyError(key)
+            body = token[start + 1 : end].strip()
+            if not body:
+                raise KeyError(key)
+            if body == "*":
+                raise NotImplementedError("wildcard variation is not supported yet")
+            index = int(body)
+            token = token[:start].strip()
+            if not token:
+                raise KeyError(key)
+        return token, index
+
+    def _format_ident(self, token):
+        label = token.upper()
+        if "(" in label:
+            label = label.split("(", 1)[0]
+        return label[:9]
+
+    def _count(self):
+        return int(self._parcom.nprm)
+
+    def _find_position(self, parameter, index):
+        for pos in range(self._count()):
+            if int(self._ixpr[pos]) == parameter and int(self._ixst[pos]) == index:
+                return pos
+        return -1
+
+    def _is_spectrum_parameter(self, parameter):
+        spectral = []
+        for attr in ("iphase", "ipsi", "ilb", "ib0", "ifldi", "idfld", "irange"):
+            if hasattr(self._core.eprprm, attr):
+                spectral.append(int(getattr(self._core.eprprm, attr)))
+        if parameter in spectral:
+            return True
+        integral = []
+        for attr in ("infld", "iiderv"):
+            if hasattr(self._core.eprprm, attr):
+                integral.append(int(getattr(self._core.eprprm, attr)))
+        return parameter in integral
+
+    def _index_limit(self, spectral):
+        if spectral:
+            limit = int(getattr(self._parcom, "nser", 0))
+            nspc = int(getattr(self._core.expdat, "nspc", 0))
+            if nspc > limit:
+                limit = nspc
+        else:
+            limit = int(self._parcom.nsite)
+        if limit <= 0:
+            limit = 1
+        return limit
+
+    def _parameter_value(self, parameter, index):
+        site = index if index > 0 else 1
+        return float(self._core.getprm(parameter, site))
+
+    def __getitem__(self, key):
+        token, index = self._parse_key(key)
+        ix = _ipfind_wrapper(token)
+        if ix == 0:
+            raise KeyError(key)
+        parameter = abs(ix - int(ix / 100) * 100)
+        pos = self._find_position(parameter, index)
+        if pos < 0:
+            raise KeyError(key)
+        return {
+            "minimum": float(self._prmin[pos]),
+            "maximum": float(self._prmax[pos]),
+            "scale": float(self._prscl[pos]),
+            "fdstep": float(self._xfdstp[pos]),
+            "index": int(self._ixst[pos]),
+        }
+
+    def __setitem__(self, key, value):
+        token, index = self._parse_key(key)
+        if isinstance(value, bool):
+            if not value:
+                self.__delitem__(key)
+                return
+            config = {}
+        elif value is None:
+            config = {}
+        elif isinstance(value, Mapping):
+            config = value
+        else:
+            raise TypeError("vary requires bool or mapping values")
+        if "index" in config:
+            index = int(config["index"])
+        elif "site" in config:
+            index = int(config["site"])
+        elif "spectrum" in config:
+            index = int(config["spectrum"])
+        ix = _ipfind_wrapper(token)
+        if ix == 0:
+            raise KeyError(key)
+        parameter = abs(ix - int(ix / 100) * 100)
+        spectral = self._is_spectrum_parameter(parameter)
+        limit = self._index_limit(spectral)
+        if index < 0:
+            raise ValueError("negative indices are not supported")
+        if index > limit:
+            raise ValueError("index out of range")
+        minimum = float(config["minimum"]) if "minimum" in config else 0.0
+        maximum = float(config["maximum"]) if "maximum" in config else 0.0
+        scale = float(config["scale"]) if "scale" in config else 1.0
+        step_value = float(config["fdstep"]) if "fdstep" in config else None
+        boundary = 0
+        if "minimum" in config and boundary % 2 == 0:
+            boundary += 1
+        if "maximum" in config:
+            boundary += 2
+        base_value = self._parameter_value(parameter, index)
+        if step_value is None:
+            default_step = 1.0e-6
+            step_value = default_step * base_value
+            if abs(step_value) < float(np.finfo(float).eps):
+                step_value = default_step
+        step_factor = step_value
+        if abs(base_value) >= float(np.finfo(float).eps):
+            step_factor = step_value / base_value
+        existing = self._find_position(parameter, index)
+        ident = self._format_ident(token)
+        if existing >= 0:
+            # ``rmvprm`` only removes a single entry, so clear any stale
+            # configuration before registering the updated settings.
+            _fortrancore.rmvprm(ix, index, ident.ljust(30))
+        # ``addprm`` replaces ``procline`` for managing the vary list.  The
+        # wrapper stores floats directly into ``parcom`` so future reads see the
+        # values immediately.
+        _fortrancore.addprm(
+            ix,
+            index,
+            boundary,
+            minimum,
+            maximum,
+            scale,
+            step_factor,
+            ident.ljust(9),
+        )
+
+    def __delitem__(self, key):
+        token, index = self._parse_key(key)
+        ix = _ipfind_wrapper(token)
+        if ix == 0:
+            raise KeyError(key)
+        parameter = abs(ix - int(ix / 100) * 100)
+        if self._find_position(parameter, index) < 0:
+            raise KeyError(key)
+        ident = self._format_ident(token)
+        _fortrancore.rmvprm(ix, index, ident.ljust(30))
+
+    def __contains__(self, key):
+        try:
+            self[key]
+        except Exception:
+            return False
+        return True
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __len__(self):
+        return self._count()
+
+    def keys(self):
+        result = []
+        for pos in range(self._count()):
+            label = self._parcom.tag[pos]
+            if isinstance(label, bytes):
+                label = label.decode("ascii")
+            label = label.rstrip()
+            if label:
+                result.append(label.lower())
+        return result
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
+
+    def values(self):
+        return [self[key] for key in self.keys()]
+
+    def clear(self):
+        keys = self.keys()
+        for key in reversed(keys):
+            self.__delitem__(key)
+
+    def update(self, other):
+        if isinstance(other, dict):
+            items = other.items()
+        else:
+            items = other
+        for key, val in items:
+            self[key] = val
+
+
 class fit_params(dict):
     """Mapping-like interface for adjusting NLSL fit parameters.
 
@@ -41,6 +262,7 @@ class fit_params(dict):
             n.decode("ascii").strip().lower()
             for n in self._core.lmcom.ilmprm_name.tolist()
         ]
+        self._vary = FitParameterVaryMapping(self)
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -91,6 +313,11 @@ class fit_params(dict):
             items = other
         for k, v in items:
             self[k] = v
+
+    @property
+    def vary(self):
+        """Dictionary-like view of the optimiser's variable parameter list."""
+        return self._vary
 
 
 class nlsl(object):

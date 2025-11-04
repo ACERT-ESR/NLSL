@@ -40,8 +40,9 @@ FIT_CONTROLS = {
     "xtol": 1.0e-4,
 }
 
-# The legacy front-end expresses these with ``vary`` statements; there is not
-# yet a mapping helper so we still forward the short commands to the parser.
+# These parameters are refined during the optimisation.  The new
+# ``fit_params.vary`` mapping mirrors the Fortran vary list so each entry
+# below behaves the same way as the original ``vary`` commands in the runfile.
 PARAMETERS_TO_VARY = ["gib0", "rbar(1)", "rbar(2)"]
 
 
@@ -67,7 +68,7 @@ def main():
     )
 
     for token in PARAMETERS_TO_VARY:
-        model.procline(f"vary {token}")
+        model.fit_params.vary[token] = True
 
     for key, value in FIT_CONTROLS.items():
         model.fit_params[key] = value

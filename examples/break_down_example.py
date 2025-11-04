@@ -70,7 +70,8 @@ print("   ---    (3) allow shifting of B0 to maximize overlap with data\n")
 n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 print()
 print("   --- Specify parameters to be varied in fitting procedure\n")
-n.procline("vary rpll, rprp, gib0")
+for token in ("rpll", "rprp", "gib0"):
+    n.fit_params.vary[token] = True
 print()
 print("   --- Carry out nonlinear least-squares procedure:")
 print("   ---    (1) Stop after a maximum of 40 iterations")
