@@ -104,6 +104,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: master
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -149,7 +150,51 @@ jobs:
             exit 0
           fi
           git commit -m "Bump version to ${NEW_VERSION}"
-          git push origin HEAD:master
+
+      - name: Push version bump
+        # Instructions: Create a GitHub Personal Access Token (PAT) for admin pushes (fine-grained)
+        # =======================================================================================
+        # 1) Go to: https://github.com/settings/personal-access-tokens
+        #    → “Fine-grained tokens” → Generate new token.
+        #
+        # 2) Basic fields:
+        #    - Token name: e.g., "Actions admin push"
+        #    - Expiration: set a reasonable date
+        #    - Resource owner: select your organization
+        #
+        # 3) Repository access (IMPORTANT per current UI):
+        #    - Select **All repositories**  (required to expose repo permissions panel in this UI)
+        #    - In the **Permissions** area, click **Repositories (0)** → **Add permissions**
+        #      • Choose **Contents** → then under it select **Read and write**
+        #      • (Optional) Add **Workflows** → **Read and write** if commits touch .github/workflows/*
+        #    - You do **not** need Organization permissions for pushing; leave those empty.
+        #
+        # 4) Click **Generate token**, copy the value immediately.
+        #    - If your org uses SSO, click **Authorize** for this org on the yellow banner.
+        #
+        # 5) Add the token as a repo secret:
+        #    Repo → Settings → Secrets and variables → Actions → **New repository secret**
+        #    - Name: ADMIN_PAT
+        #    - Value: <the token from step 4>
+        #
+        # 6) Branch protection (classic “Branches” rule) checklist:
+        #    - Require a pull request before merging → **Include administrators = OFF**
+        #    - Restrict who can push to matching branches → add **your admin user** (PAT owner)
+        #
+        # 7) Workflow push step (uses the secret; no angle brackets):
+        #    git remote set-url origin "https://x-access-token:${ADMIN_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+        #    git push origin HEAD:master
+        #
+        # Notes:
+        # - If the push is rejected: verify (a) Contents=Read&Write is set, (b) your admin user is in
+        #   “Restrict who can push…”, (c) Include administrators is OFF, (d) the URL uses ${GITHUB_REPOSITORY}.
+        env:
+          ADMIN_PAT: ${{ secrets.ADMIN_PAT }}
+        run: |
+          git config user.name "version-bump"
+          git config user.email "actions@users.noreply.github.com"
+          git remote add patremote "https://x-access-token:${ADMIN_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          git push patremote HEAD:refs/heads/master
 
       - name: Expose version output
         id: output
