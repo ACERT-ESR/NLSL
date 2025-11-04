@@ -146,7 +146,7 @@ jobs:
             echo "No changes to commit."
             exit 0
           fi
-          git commit -m "Bump version to ${NEW_VERSION}"
+          git commit -m "Bump version to ${NEW_VERSION} [skip ci]"
 
       - name: Push version bump
         # Instructions: Create a GitHub Personal Access Token (PAT) for admin pushes (fine-grained)
