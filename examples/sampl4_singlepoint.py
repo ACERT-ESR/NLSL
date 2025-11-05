@@ -151,17 +151,57 @@ def main():
     # X-axis matching the processed field grid
     x = field_start + field_step * np.arange(point_count)
 
-    # --- Plot: components as separate lines, plus total and experimental ---
-    fig, ax = plt.subplots()
-    for i, ys in enumerate(site_spectra):
-        ax.plot(x, ys, linewidth=1.2, label=f"site {i+1}")
-    ax.plot(x, total, linewidth=1.5, linestyle="--", label="total (sim)")
-    ax.plot(x, y_exp, linewidth=1.0, alpha=0.8, label="experimental")
+    # --- Plot using stylistic example conventions; components are WEIGHTED ---
+    weights = model.weights
+    site_spectra = model.current_spectrum  # (nsite, npts)
 
-    ax.set_xlabel("Field (G)")
-    ax.set_ylabel("dI/dB (a.u.)")
-    ax.legend()
-    ax.set_title("SAMPL4: components from model.current_spectrum (no fit)")
+    if weights.ndim == 1:
+        weighted_components = weights[:, np.newaxis] * site_spectra
+        simulated_total = weights @ site_spectra
+        component_curves = weighted_components
+    else:
+        weighted_components = (
+            weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        )
+        simulated_total = weights @ site_spectra
+        component_curves = weighted_components.reshape(-1, site_spectra.shape[1])
+
+    residual = simulated_total - y_exp
+    rel_rms = np.linalg.norm(residual) / np.linalg.norm(y_exp)
+    print(f"relative rms = {rel_rms:.6f}")
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    # experimental (black)
+    ax.plot(x, y_exp, color="black", linewidth=1.0, label="experimental")
+    # simulated total (red)
+    ax.plot(
+        x,
+        simulated_total,
+        color="#d62728",
+        linewidth=2.0,
+        alpha=0.8,
+        label="simulated sum",
+    )
+
+    # components (blue, green, ...), weighted
+    colours = ["#1f77b4", "#2ca02c"]
+    for idx, component in enumerate(component_curves):
+        ax.plot(
+            x,
+            component,
+            color=colours[idx % len(colours)],
+            linewidth=1.2,
+            alpha=0.7,
+            label=f"component {idx + 1}",
+        )
+
+    ax.set_xlabel("Magnetic field (G)")
+    ax.set_ylabel("Intensity (arb. units)")
+    ax.set_title("sampl4 components from model.current_spectrum (no fit)")
+    ax.legend(loc="upper right")
+    ax.grid(True, linestyle=":", linewidth=0.5, alpha=0.5)
+
+    plt.tight_layout()
     plt.show()
 
 
