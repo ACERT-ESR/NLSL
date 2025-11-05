@@ -118,7 +118,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # Matplotlib figure/canvas (transparent background)
         self.fig, self.ax = plt.subplots(figsize=(10, 6))
         self.fig.patch.set_alpha(0.0)  # figure transparent
-        self.ax.set_facecolor("none")  # axes transparent
+        self.ax.set_facecolor("white")  # axes transparent
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setAutoFillBackground(False)
         self.canvas.setStyleSheet("background: transparent")
@@ -133,14 +133,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(general, "general")
         form = QtWidgets.QFormLayout(general)
 
+        self.weight_steps = 1000  # sliders 0..1 with fine resolution
         self.s1 = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.s1.setRange(0, 100)
-        self.s1.setValue(int(SAMPL4_FINAL_WEIGHTS[0] * 100))
+        self.s1.setRange(0, self.weight_steps)
+        self.s1.setValue(int(SAMPL4_FINAL_WEIGHTS[0] * self.weight_steps))
         self.l1 = QtWidgets.QLabel()
 
         self.s2 = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.s2.setRange(0, 100)
-        self.s2.setValue(int(SAMPL4_FINAL_WEIGHTS[1] * 100))
+        self.s2.setRange(0, self.weight_steps)
+        self.s2.setValue(int(SAMPL4_FINAL_WEIGHTS[1] * self.weight_steps))
         self.l2 = QtWidgets.QLabel()
 
         row1 = QtWidgets.QHBoxLayout()
@@ -152,6 +153,20 @@ class MainWindow(QtWidgets.QMainWindow):
 
         form.addRow("weight 1", row1)
         form.addRow("weight 2", row2)
+
+        # --- Integer params tab (auto-inferred from dict literal types) ---
+        int_tab = QtWidgets.QWidget()
+        self.tabs.addTab(int_tab, "integer params")
+        int_form = QtWidgets.QFormLayout(int_tab)
+        self.int_boxes = {}
+        for k, v in SAMPL4_FINAL_PARAMETERS.items():
+            if isinstance(v, (int, np.integer)):
+                spin = QtWidgets.QSpinBox()
+                spin.setRange(-999999, 999999)
+                spin.setValue(int(v))
+                spin.valueChanged.connect(self._make_int_param_handler(k))
+                int_form.addRow(k, spin)
+                self.int_boxes[k] = spin
 
         # ---- Site tabs: per-site gxx/gyy/gzz and axx/ayy/azz ----
         self.tensor_defs = {
@@ -226,11 +241,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.canvas.draw()
 
         # connect signals AFTER first draw
-        self.s1.valueChanged.connect(self.on_weights_changed)
-        self.s2.valueChanged.connect(self.on_weights_changed)
+        self.s1.valueChanged.connect(self.on_weight1_changed)
+        self.s2.valueChanged.connect(self.on_weight2_changed)
 
-        # set initial labels
+        # set initial labels and keep sliders consistent to sum=1
         self.update_weight_labels()
+        self._sync_partner_sliders(init=True)
 
     # ---- Data/model preparation (no fitting) ----
     def prepare_model(self):
@@ -281,12 +297,25 @@ class MainWindow(QtWidgets.QMainWindow):
 
     # ---- Weight change handler: update only line ydata ----
     @QtCore.pyqtSlot()
-    def on_weights_changed(self):
-        # raw sliders 0..100 -> normalize to sum=1
-        w1 = float(self.s1.value())
-        w2 = float(self.s2.value())
-        s = max(w1 + w2, 1e-12)
-        self.weights = np.array([w1 / s, w2 / s], dtype=float)
+    def on_weight1_changed(self, value=None):
+        # s1 drove change; enforce w1 + w2 = 1 and update partner slider
+        w1 = self.s1.value() / self.weight_steps
+        w2 = max(0.0, 1.0 - w1)
+        # block signals to avoid recursion
+        self.s2.blockSignals(True)
+        self.s2.setValue(int(round(w2 * self.weight_steps)))
+        self.s2.blockSignals(False)
+        self.weights = np.array([w1, w2], dtype=float)
+        self.update_weight_labels()
+        self._recompute_and_redraw()
+
+    def on_weight2_changed(self, value=None):
+        w2 = self.s2.value() / self.weight_steps
+        w1 = max(0.0, 1.0 - w2)
+        self.s1.blockSignals(True)
+        self.s1.setValue(int(round(w1 * self.weight_steps)))
+        self.s1.blockSignals(False)
+        self.weights = np.array([w1, w2], dtype=float)
         self.update_weight_labels()
         self._recompute_and_redraw()
 
@@ -322,6 +351,15 @@ class MainWindow(QtWidgets.QMainWindow):
         arr[site] = float(value)
         self.model[key] = arr
 
+    # ---- Integer param handler factory ----
+    def _make_int_param_handler(self, key):
+        def handler(val):
+            self.model[key] = int(val)
+            # Re-evaluate spectrum after model integer change
+            self.site_spectra = self.model.current_spectrum
+            self._recompute_and_redraw(update_components_only=True)
+        return handler
+
     # ---- Slider <-> float mapping ----
     @staticmethod
     def _slider_to_float(value_int, vmin, vmax, steps):
@@ -349,6 +387,19 @@ class MainWindow(QtWidgets.QMainWindow):
         self.canvas.draw_idle()
 
     def update_weight_labels(self):
+        self.l1.setText(f"{self.weights[0]:.3f}")
+        self.l2.setText(f"{self.weights[1]:.3f}")
+
+    def _sync_partner_sliders(self, init=False):
+        # Ensure sliders reflect exact complementarity
+        w1 = self.s1.value() / self.weight_steps
+        w2 = max(0.0, 1.0 - w1)
+        self.s2.blockSignals(True)
+        self.s2.setValue(int(round(w2 * self.weight_steps)))
+        self.s2.blockSignals(False)
+        if init:
+            self.weights = np.array([w1, w2], dtype=float)
+            self.update_weight_labels()
         self.l1.setText(f"{self.weights[0]:.3f}")
         self.l2.setText(f"{self.weights[1]:.3f}")
 
