@@ -212,14 +212,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
             fam_map = {}
             for base, comps in self.tensor_groups.items():
-                label = {"g": "g tensor", "a": "A tensor", "w": "linewidth tensor", "r": "R tensor", "p": "P tensor", "d": "D tensor"}.get(base, f"{base} tensor")
+                label = {"g": "g tensor", "a": "A tensor", "w": "linewidth tensor", "r": "R tensor (rotational diffusion)", "p": "P tensor (non-Brownian)", "d": "Dj tensor (anisotropic viscosity)"}.get(base, f"{base} tensor")
                 page = QtWidgets.QWidget()
                 grid = QtWidgets.QGridLayout(page)
                 idx = sub.addTab(page, label)
                 fam_map[base] = (sub, idx)
 
                 vmin, vmax, steps, dec = self.tensor_ranges.get(base, (0.0, 1.0, 1000, 3))
-                for r, comp in enumerate(["xx", "yy", "zz"]):
+                # choose which component suffix set exists for this family
+                comp_set = [s for s in ("xx","yy","zz","x","y","z") if (base + s) in comps]
+                for r, comp in enumerate(comp_set):
                     key = base + comp
                     if key not in comps:
                         continue
@@ -413,7 +415,7 @@ class MainWindow(QtWidgets.QMainWindow):
     @staticmethod
     def _detect_tensor_groups(param_dict):
         groups = {}
-        pat = re.compile(r"^(?P<base>[a-z]+)(xx|yy|zz)$")
+        pat = re.compile(r"^(?P<base>[a-z]+)(x|y|z|xx|yy|zz)$")
         for k in param_dict.keys():
             m = pat.match(k)
             if not m:
@@ -426,9 +428,11 @@ class MainWindow(QtWidgets.QMainWindow):
     # ---- Family visibility rules driven by ipdf ----
     def _refresh_family_visibility(self):
         ipdf = int(self.model.get("ipdf", 0))
-        # Heuristic mapping from docs: when ipdf == 0, use rotational diffusion Rxx/Ryy/Rzz
-        # and ignore P*, Dj*, etc. For other values, default to enabling all families.
-        enable_by_fam = {"g": True, "a": True, "w": True, "r": (ipdf == 0), "p": (ipdf != 0), "d": (ipdf != 0)}
+        # Mapping per docs:
+        # ipdf=0 → Brownian (R tensor active)
+        # ipdf=1 → Non‑Brownian (P tensor active)
+        # ipdf=2 → Anisotropic viscosity (Dj tensor active)
+        enable_by_fam = {"g": True, "a": True, "w": True, "r": (ipdf == 0), "p": (ipdf == 1), "d": (ipdf == 2)}
         for site, fam_map in enumerate(self.site_family_tabs):
             for fam, (sub, idx) in fam_map.items():
                 if hasattr(sub, "setTabVisible"):
