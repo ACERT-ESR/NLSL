@@ -414,14 +414,19 @@ class MainWindow(QtWidgets.QMainWindow):
     # ---- Tensor-group detection ----
     @staticmethod
     def _detect_tensor_groups(param_dict):
+        """
+        Detect true tensor families only. Excludes integer/basis keys that begin
+        with i/k/l/m (e.g., ipnmx, kmx, lomx, mxy, mzz, etc.). Only families
+        starting with g, a, w, r, p, d are considered, and they may use
+        xx/yy/zz or x/y/z suffixes.
+        """
         groups = {}
-        pat = re.compile(r"^(?P<base>[a-z]+)(x|y|z|xx|yy|zz)$")
+        pat = re.compile(r"^(?P<fam>[gawrpd])[a-z]*(?:xx|yy|zz|x|y|z)$")
         for k in param_dict.keys():
             m = pat.match(k)
             if not m:
                 continue
-            base = m.group("base")
-            fam = base[0]
+            fam = m.group("fam")  # one of g,a,w,r,p,d
             groups.setdefault(fam, set()).add(k)
         return groups
 
