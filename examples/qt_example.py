@@ -134,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # keep tabs compact
         self.tabs.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
         splitter.addWidget(self.tabs)
-        splitter.setStretchFactor(0, 5)
+        splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 1)
 
         # --- General tab: weight sliders (0..1, complementary) ---
@@ -163,30 +163,31 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("weight 1", row1)
         form.addRow("weight 2", row2)
 
-        # --- Integer params tab (auto-inferred from dict literal types) ---
-        # Wrap the form in a QScrollArea and cap the tab height to
-        # half the screen so the plot retains most of the space.
-        int_outer = QtWidgets.QWidget()
-        self.tabs.addTab(int_outer, "integer params")
-        int_vbox = QtWidgets.QVBoxLayout(int_outer)
-        scroll = QtWidgets.QScrollArea()
-        scroll.setWidgetResizable(True)
-        int_vbox.addWidget(scroll)
-        int_tab = QtWidgets.QWidget()
-        scroll.setWidget(int_tab)
-        int_form = QtWidgets.QFormLayout(int_tab)
+        # --- Integer params (now inside GENERAL tab, 4 columns + scroll) ---
+        int_group = QtWidgets.QGroupBox("integer params")
+        int_group_layout = QtWidgets.QVBoxLayout(int_group)
+        int_scroll = QtWidgets.QScrollArea()
+        int_scroll.setWidgetResizable(True)
+        int_group_layout.addWidget(int_scroll)
+        int_inner = QtWidgets.QWidget()
+        int_scroll.setWidget(int_inner)
+        int_grid = QtWidgets.QGridLayout(int_inner)
         self.int_boxes = {}
-        for k, v in SAMPL4_FINAL_PARAMETERS.items():
-            if isinstance(v, (int, np.integer)):
-                spin = QtWidgets.QSpinBox()
-                spin.setRange(-999999, 999999)
-                spin.setValue(int(v))
-                spin.valueChanged.connect(self._make_int_param_handler(k))
-                int_form.addRow(k, spin)
-                self.int_boxes[k] = spin
-        # Limit vertical size of the integer-params tab to 50% of screen height
-        screen_h = QtWidgets.QApplication.primaryScreen().availableGeometry().height()
-        int_outer.setMaximumHeight(int(screen_h * 0.5))
+        int_keys = [k for k, v in SAMPL4_FINAL_PARAMETERS.items() if isinstance(v, (int, np.integer))]
+        int_keys.sort()
+        for idx, k in enumerate(int_keys):
+            v = SAMPL4_FINAL_PARAMETERS[k]
+            r = idx // 4
+            c = (idx % 4) * 2
+            lbl = QtWidgets.QLabel(k)
+            spin = QtWidgets.QSpinBox()
+            spin.setRange(-999999, 999999)
+            spin.setValue(int(v))
+            spin.valueChanged.connect(self._make_int_param_handler(k))
+            int_grid.addWidget(lbl, r, c)
+            int_grid.addWidget(spin, r, c + 1)
+            self.int_boxes[k] = spin
+        form.addRow(int_group)
 
         # ---- Site tabs with nested subtabs for tensor groups ----
 
@@ -196,9 +197,12 @@ class MainWindow(QtWidgets.QMainWindow):
             "g": (1.95, 2.05, 1000, 4),   # (min,max,steps,decimals)
             "a": (0.0, 50.0, 1000, 3),
             "w": (0.0, 20.0, 1000, 3),
-            # extend here if more tensors (rxx, etc.) are added later
+            "r": (0.0, 8.0, 1000, 3),
+            "p": (0.0, 8.0, 1000, 3),
+            "d": (0.0, 8.0, 1000, 3),
         }
 
+        self.site_family_tabs = []  # list of dicts: per site -> {fam: (subwidget, index)}
         for site in range(self.nsite):
             site_tab = QtWidgets.QWidget()
             self.tabs.addTab(site_tab, f"site {site+1}")
@@ -206,17 +210,15 @@ class MainWindow(QtWidgets.QMainWindow):
             sub = QtWidgets.QTabWidget()
             site_layout.addWidget(sub)
 
+            fam_map = {}
             for base, comps in self.tensor_groups.items():
-                # choose a human label for the subtab
-                label = {"g": "g tensor", "a": "A tensor", "w": "linewidth tensor"}.get(base, f"{base} tensor")
+                label = {"g": "g tensor", "a": "A tensor", "w": "linewidth tensor", "r": "R tensor", "p": "P tensor", "d": "D tensor"}.get(base, f"{base} tensor")
                 page = QtWidgets.QWidget()
                 grid = QtWidgets.QGridLayout(page)
-                sub.addTab(page, label)
+                idx = sub.addTab(page, label)
+                fam_map[base] = (sub, idx)
 
-                # slider settings by family
                 vmin, vmax, steps, dec = self.tensor_ranges.get(base, (0.0, 1.0, 1000, 3))
-
-                # components in order xx, yy, zz if available
                 for r, comp in enumerate(["xx", "yy", "zz"]):
                     key = base + comp
                     if key not in comps:
@@ -232,6 +234,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     grid.addWidget(QtWidgets.QLabel(key), r, 0)
                     grid.addWidget(slider, r, 1)
                     grid.addWidget(label_val, r, 2)
+            self.site_family_tabs.append(fam_map)
+
+        # After building site tabs, enforce initial visibility based on ipdf
+        self._refresh_family_visibility()
 
         # ---- Initial plot (keep Line2D handles to update ydata only) ----
         colours = ["#1f77b4", "#2ca02c", "#9467bd", "#8c564b"]  # stylistic example
@@ -384,6 +390,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def _make_int_param_handler(self, key):
         def handler(val):
             self.model[key] = int(val)
+            # Special logic: ipdf controls which diffusion families are active
+            if key == "ipdf":
+                self._refresh_family_visibility()
             # Re-evaluate spectrum after model integer change
             self.site_spectra = self.model.current_spectrum
             self._recompute_and_redraw(update_components_only=True)
@@ -410,10 +419,23 @@ class MainWindow(QtWidgets.QMainWindow):
             if not m:
                 continue
             base = m.group("base")
-            # use first letter of base to map to families like g/a/w
             fam = base[0]
             groups.setdefault(fam, set()).add(k)
         return groups
+
+    # ---- Family visibility rules driven by ipdf ----
+    def _refresh_family_visibility(self):
+        ipdf = int(self.model.get("ipdf", 0))
+        # Heuristic mapping from docs: when ipdf == 0, use rotational diffusion Rxx/Ryy/Rzz
+        # and ignore P*, Dj*, etc. For other values, default to enabling all families.
+        enable_by_fam = {"g": True, "a": True, "w": True, "r": (ipdf == 0), "p": (ipdf != 0), "d": (ipdf != 0)}
+        for site, fam_map in enumerate(self.site_family_tabs):
+            for fam, (sub, idx) in fam_map.items():
+                if hasattr(sub, "setTabVisible"):
+                    sub.setTabVisible(idx, bool(enable_by_fam.get(fam, True)))
+                else:
+                    sub.setTabEnabled(idx, bool(enable_by_fam.get(fam, True)))
+
 
     # ---- Recompute components & update line ydata only ----
     def _recompute_and_redraw(self, update_components_only=False):
