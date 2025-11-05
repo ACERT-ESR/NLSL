@@ -40,9 +40,13 @@ FIT_CONTROLS = {
     "xtol": 1.0e-4,
 }
 
-# The legacy front-end expresses these with ``vary`` statements; there is not
-# yet a mapping helper so we still forward the short commands to the parser.
-PARAMETERS_TO_VARY = ["gib0", "rbar(1)", "rbar(2)"]
+# These parameters are refined during the optimisation.  The new
+# ``fit_params.vary`` mapping mirrors the Fortran vary list so each entry
+# below behaves the same way as the original ``vary`` commands in the runfile.
+PARAMETERS_TO_VARY = {
+    "gib0": [1, 2],
+    "rbar": [1, 2],
+}
 
 
 def main():
@@ -66,8 +70,8 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for token in PARAMETERS_TO_VARY:
-        model.procline(f"vary {token}")
+    for token, indices in PARAMETERS_TO_VARY.items():
+        model.fit_params.vary[token] = {"index": indices}
 
     for key, value in FIT_CONTROLS.items():
         model.fit_params[key] = value
@@ -82,11 +86,7 @@ def main():
     model.fit()
     site_spectra = model.fit()
 
-    point_count = int(model.layout["npts"][0])
-    start_field = float(model.layout["sbi"][0])
-    step = float(model.layout["sdb"][0])
-
-    fields = start_field + step * np.arange(point_count)
+    fields = model.field_axes[0]
 
     experimental_block = model.experimental_data
     experimental = np.squeeze(experimental_block)

@@ -33,3 +33,6 @@ line-length = 79
 [tool.ruff.lint]
 extend-select = ["E501"]
 
+[project.scripts]
+nlsl = "nlsl.cli:exampledir"
+

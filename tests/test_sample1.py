@@ -1,34 +1,36 @@
 import os
 import math
 import numpy as np
-import pytest
+import nlsl
 
 
 def run_sample1_manual():
-    print("**********************************************************************")
-    print("file SAMPL1.RUN:  sample NLSL script file")
-    print()
-    print("  Illustrates fitting of anisotropic rotation of CSL spin probe")
-    print("  in an isotropic solvent at X-band.")
-    print()
-    print("  Test data in file SAMPL1.DAT calculated with the following parameters:")
-    print("               {g}   = 2.0089, 2.0021, 2.0058")
-    print("               {A}   = 5.6, 33.8, 5.3  (gauss)")
-    print("               betad = 15 degrees")
-    print("               Rpll  = 1e7")
-    print("               Rperp = 1e8")
-    print("               B0    = 3400 G")
-    print("               GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)")
-    print("**********************************************************************")
-    print()
-    print("  --- Open file 'sampl1.log' to save a record of this session")
-    print()
+    intro = (
+        "*" * 70
+        + """file SAMPL1.RUN:  sample NLSL script file
 
-    examples_dir = os.path.join(os.path.dirname(__file__), os.pardir, "examples")
+  Illustrates fitting of anisotropic rotation of CSL spin probe
+  in an isotropic solvent at X-band.
+
+  Test data in file SAMPL1.DAT calculated with the following parameters:
+               {g}   = 2.0089, 2.0021, 2.0058
+               {A}   = 5.6, 33.8, 5.3  (gauss)
+               betad = 15 degrees
+               Rpll  = 1e7
+               Rperp = 1e8
+               B0    = 3400 G
+               GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)
+**********************************************************************
+
+  --- Open file 'sampl1.log' to save a record of this session
+"""
+    )
+    print(intro)
+
+    examples_dir = os.path.join(
+        os.path.dirname(__file__), os.pardir, "examples"
+    )
     os.chdir(examples_dir)
-
-    import nlsl
-
     n = nlsl.nlsl()
     data_files_out = []
 
@@ -64,7 +66,9 @@ def run_sample1_manual():
     print("  --- axes parallel and perpendicular to the long axis of")
     print("  --- the molecule, respectively.")
     print("  ---")
-    print("  --- Note also that the log function may be used in a let statement.")
+    print(
+        "  --- Note also that the log function may be used in a let statement."
+    )
     print("  ---")
     print("  --- GIB0 is the Gaussian inhomogeneous broadening.")
     n.update(
@@ -83,13 +87,17 @@ def run_sample1_manual():
     print()
     print("   --- Read in ASCII datafile 'sampl1.dat':")
     print("   ---    (1) Spline interpolate the data to 200 points")
-    print("   ---    (2) baseline-correct by fitting a line to 20 points at each end")
+    print(
+        "   ---    (2) baseline-correct by fitting a line to 20 points at"
+        " each end"
+    )
     print("   ---    (3) allow shifting of B0 to maximize overlap with data")
     procline("data sampl1 ascii nspline 200 bc 20 shift")
     print()
     print("   --- Specify parameters to be varied in fitting procedure")
     print()
-    procline("vary rpll, rprp, gib0")
+    for token in ("rpll", "rprp", "gib0"):
+        n.fit_params.vary[token] = True
     print()
     print("   --- Carry out nonlinear least-squares procedure:")
     print("   ---    (1) Stop after a maximum of 40 iterations")

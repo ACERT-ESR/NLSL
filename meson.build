@@ -158,9 +158,11 @@ c_wrappers = custom_target(
         'src/fortran/least_squares/fitl.f90',
         'src/fortran/matrix_model/lfun.f90',
         'src/fortran/cli/stdio.f90',
+        'src/fortran/cli/addprm.f90',
         'src/fortran/core/mspctr.f90',
         'src/fortran/cli/nlsl.f90',
         'src/fortran/cli/setprm.f90',
+        'src/fortran/cli/rmvprm.f90',
         'src/fortran/io_preprocessing/setspc.f90',
         'src/fortran/io_preprocessing/writr.f90',
     ],
@@ -219,7 +221,7 @@ py.extension_module(
     install: true,
 )
 
-py.install_sources('nlsl/__init__.py', 'nlsl/data.py', subdir: 'nlsl')
+py.install_sources('nlsl/__init__.py', 'nlsl/data.py', 'nlsl/cli.py', subdir: 'nlsl')
 
 # Install the Python test suite alongside the package so editable installs
 # can locate the extension module without modifying sys.path in tests.

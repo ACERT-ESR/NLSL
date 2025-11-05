@@ -63,10 +63,10 @@ get started with real datasets and typical NLSL workflows:
 
 You can download the full repository ZIP directly from GitHub and extract only the `examples/` folder:
 
-[⬇️ Download ZIP (GitHub)](https://github.com/acert-esr/nlsl/archive/refs/heads/main.zip)
+[⬇️ Download ZIP (GitHub)](https://github.com/acert-esr/nlsl/archive/refs/heads/master.zip)
 
 ```bash
-unzip nlsl-main.zip "nlsl-main/examples/*"
+unzip NLSL-master.zip "NLSL-master/examples/*"
 ```
 
 ### Description of examples

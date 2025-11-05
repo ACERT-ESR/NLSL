@@ -1,6 +1,7 @@
 from . import fortrancore as _fortrancore
 import os
 from pathlib import Path
+from collections.abc import Mapping
 import numpy as np
 from .data import process_spectrum
 
@@ -22,6 +23,313 @@ def _ipfind_wrapper(name: str) -> int:
     return int(_fortrancore.ipfind(token, lth))
 
 
+class FitParameterVaryMapping(object):
+    """Expose the active set of variable parameters through a mapping."""
+
+    def __init__(self, owner):
+        self._owner = owner
+        self._core = owner._core
+
+    def _count(self):
+        return int(self._core.parcom.nprm)
+
+    def _entries(self, parameter):
+        """Return ``(index, position)`` pairs for the requested parameter."""
+
+        records = []
+        parcom = self._core.parcom
+        for position in range(self._count()):
+            if int(parcom.ixpr[position]) == parameter:
+                # Preserve the recorded index so callers can manage all slots
+                # associated with the parameter in question.
+                records.append((int(parcom.ixst[position]), position))
+        return records
+
+    def _is_spectrum_parameter(self, parameter):
+        spectral = []
+        for attr in (
+            "iphase",
+            "ipsi",
+            "ilb",
+            "ib0",
+            "ifldi",
+            "idfld",
+            "irange",
+        ):
+            if hasattr(self._core.eprprm, attr):
+                spectral.append(int(getattr(self._core.eprprm, attr)))
+        if parameter in spectral:
+            return True
+        integral = []
+        for attr in ("infld", "iiderv"):
+            if hasattr(self._core.eprprm, attr):
+                integral.append(int(getattr(self._core.eprprm, attr)))
+        return parameter in integral
+
+    def _index_limit(self, spectral):
+        if spectral:
+            limit = int(getattr(self._core.parcom, "nser", 0))
+            nspc = int(getattr(self._core.expdat, "nspc", 0))
+            if nspc > limit:
+                limit = nspc
+        else:
+            limit = int(self._core.parcom.nsite)
+        if limit <= 0:
+            limit = 1
+        return limit
+
+    def _parameter_value(self, parameter, index):
+        site = index if index > 0 else 1
+        return float(self._core.getprm(parameter, site))
+
+    def __getitem__(self, key):
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if "(" in token:
+            raise KeyError(
+                "parameter keys no longer accept explicit indices; use the"
+                " array returned for multi-site parameters instead"
+            )
+
+        ix = _ipfind_wrapper(token)
+        if ix == 0:
+            raise KeyError(key)
+        parameter = abs(ix - int(ix / 100) * 100)
+        entries = self._entries(parameter)
+        if not entries:
+            raise KeyError(key)
+        parcom = self._core.parcom
+        ordered = sorted(entries, key=lambda item: item[0])
+        minima = []
+        maxima = []
+        scales = []
+        steps = []
+        indices = []
+        for index_value, position in ordered:
+            minima.append(float(parcom.prmin[position]))
+            maxima.append(float(parcom.prmax[position]))
+            scales.append(float(parcom.prscl[position]))
+            steps.append(float(parcom.xfdstp[position]))
+            indices.append(int(index_value))
+        if len(indices) == 1:
+            return {
+                "minimum": minima[0],
+                "maximum": maxima[0],
+                "scale": scales[0],
+                "fdstep": steps[0],
+                "index": indices[0],
+            }
+        return {
+            "minimum": np.array(minima, dtype=float),
+            "maximum": np.array(maxima, dtype=float),
+            "scale": np.array(scales, dtype=float),
+            "fdstep": np.array(steps, dtype=float),
+            "index": np.array(indices, dtype=int),
+        }
+
+    def __setitem__(self, key, value):
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if "(" in token:
+            raise KeyError(
+                "parameter keys no longer accept explicit indices; provide"
+                " arrays when multiple sites are present"
+            )
+        if isinstance(value, bool):
+            if not value:
+                self.__delitem__(key)
+                return
+            config = {}
+        elif value is None:
+            config = {}
+        elif isinstance(value, Mapping):
+            config = value
+        else:
+            raise TypeError("vary requires bool or mapping values")
+        ix = _ipfind_wrapper(token)
+        if ix == 0:
+            raise KeyError(key)
+        parameter = abs(ix - int(ix / 100) * 100)
+        spectral = self._is_spectrum_parameter(parameter)
+        limit = self._index_limit(spectral)
+        indices = None
+        if "index" in config:
+            indices = config["index"]
+        elif "site" in config:
+            indices = config["site"]
+        elif "spectrum" in config:
+            indices = config["spectrum"]
+
+        if indices is None:
+            if limit > 1:
+                indices = list(range(1, limit + 1))
+            else:
+                indices = [0]
+        elif np.isscalar(indices):
+            indices = [int(indices)]
+        else:
+            indices = [int(item) for item in indices]
+
+        for index in indices:
+            if index < 0:
+                raise ValueError("negative indices are not supported")
+            if index > limit:
+                raise ValueError("index out of range")
+
+        count = len(indices)
+        boundary_flags = np.zeros(count, dtype=int)
+        minima = np.zeros(count, dtype=float)
+        maxima = np.zeros(count, dtype=float)
+        scales = np.ones(count, dtype=float)
+        steps = np.empty(count, dtype=float)
+        step_mask = np.zeros(count, dtype=bool)
+
+        if "minimum" in config:
+            # Accept either a scalar or per-site sequence for each option; when
+            # a scalar is supplied, broadcast it across the active indices.
+            if np.isscalar(config["minimum"]):
+                minima[:] = float(config["minimum"])
+            else:
+                array = np.asarray(config["minimum"], dtype=float)
+                if array.size != count:
+                    raise ValueError(
+                        "minimum entries must match the index list"
+                    )
+                minima[:] = array
+            boundary_flags += 1
+        if "maximum" in config:
+            if np.isscalar(config["maximum"]):
+                maxima[:] = float(config["maximum"])
+            else:
+                array = np.asarray(config["maximum"], dtype=float)
+                if array.size != count:
+                    raise ValueError(
+                        "maximum entries must match the index list"
+                    )
+                maxima[:] = array
+            boundary_flags += 2
+        if "scale" in config:
+            if np.isscalar(config["scale"]):
+                scales[:] = float(config["scale"])
+            else:
+                array = np.asarray(config["scale"], dtype=float)
+                if array.size != count:
+                    raise ValueError("scale entries must match the index list")
+                scales[:] = array
+        if "fdstep" in config:
+            if np.isscalar(config["fdstep"]):
+                steps[:] = float(config["fdstep"])
+            else:
+                array = np.asarray(config["fdstep"], dtype=float)
+                if array.size != count:
+                    raise ValueError(
+                        "fdstep entries must match the index list"
+                    )
+                steps[:] = array
+            step_mask[:] = True
+
+        entries = self._entries(parameter)
+        ident = token.upper().split("(", 1)[0][:9]
+        for existing_index, _ in entries:
+            # Clear any stale configuration so the updated records replace the
+            # full vary list for the parameter.
+            _fortrancore.rmvprm(ix, existing_index, ident.ljust(30))
+
+        for idx, index in enumerate(indices):
+            base_value = self._parameter_value(parameter, index)
+            if not step_mask[idx]:
+                default_step = 1.0e-6
+                step_value = default_step * base_value
+                if abs(step_value) < float(np.finfo(float).eps):
+                    step_value = default_step
+            else:
+                step_value = steps[idx]
+            step_factor = step_value
+            if abs(base_value) >= float(np.finfo(float).eps):
+                step_factor = step_value / base_value
+            _fortrancore.addprm(
+                ix,
+                index,
+                int(boundary_flags[idx]),
+                float(minima[idx]),
+                float(maxima[idx]),
+                float(scales[idx]),
+                float(step_factor),
+                ident.ljust(9),
+            )
+
+    def __delitem__(self, key):
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if "(" in token:
+            raise KeyError(
+                "parameter keys no longer accept explicit indices; remove"
+                " entries by requesting the base name"
+            )
+        ix = _ipfind_wrapper(token)
+        if ix == 0:
+            raise KeyError(key)
+        parameter = abs(ix - int(ix / 100) * 100)
+        entries = self._entries(parameter)
+        if not entries:
+            raise KeyError(key)
+        ident = token.upper().split("(", 1)[0][:9]
+        for index, _ in entries:
+            _fortrancore.rmvprm(ix, index, ident.ljust(30))
+
+    def __contains__(self, key):
+        try:
+            self[key]
+        except Exception:
+            return False
+        return True
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def __len__(self):
+        return self._count()
+
+    def keys(self):
+        result = []
+        for pos in range(self._count()):
+            label = self._core.parcom.tag[pos]
+            if isinstance(label, bytes):
+                label = label.decode("ascii")
+            label = label.rstrip()
+            if label:
+                result.append(label.lower())
+        return result
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
+
+    def values(self):
+        return [self[key] for key in self.keys()]
+
+    def clear(self):
+        keys = self.keys()
+        for key in reversed(keys):
+            self.__delitem__(key)
+
+    def update(self, other):
+        if isinstance(other, dict):
+            items = other.items()
+        else:
+            items = other
+        for key, val in items:
+            self[key] = val
+
+
 class fit_params(dict):
     """Mapping-like interface for adjusting NLSL fit parameters.
 
@@ -41,6 +349,7 @@ class fit_params(dict):
             n.decode("ascii").strip().lower()
             for n in self._core.lmcom.ilmprm_name.tolist()
         ]
+        self._vary = FitParameterVaryMapping(self)
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -91,6 +400,11 @@ class fit_params(dict):
             items = other
         for k, v in items:
             self[k] = v
+
+    @property
+    def vary(self):
+        """Dictionary-like view of the optimiser's variable parameter list."""
+        return self._vary
 
 
 class nlsl(object):
@@ -800,6 +1114,21 @@ class nlsl(object):
         if self._last_layout is None:
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_layout
+
+    @property
+    def field_axes(self):
+        """Return uniformly spaced field axes for each active spectrum."""
+
+        layout = self.layout
+        counts = np.asarray(layout["npts"], dtype=int)
+        if counts.size == 0:
+            return tuple()
+        starts = np.asarray(layout["sbi"], dtype=float).reshape(-1, 1)
+        steps = np.asarray(layout["sdb"], dtype=float).reshape(-1, 1)
+        span = int(counts.max())
+        base = np.arange(span, dtype=float)
+        grid = starts + steps * base
+        return tuple(grid[idx, :count] for idx, count in enumerate(counts))
 
     @property
     def site_spectra(self):

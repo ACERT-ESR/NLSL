@@ -134,7 +134,6 @@ jobs:
         env:
           NEW_VERSION: ${{ needs.test.outputs.new_version }}
 
-
       - name: Commit version bump
         env:
           NEW_VERSION: ${{ needs.test.outputs.new_version }}
