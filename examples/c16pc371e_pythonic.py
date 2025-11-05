@@ -25,48 +25,69 @@ INITIAL_PARAMETERS = {
     "ipnmx": 2,
 }
 
-# TODO: This is not pythonic.  Set all these
-# through a dictionary-like format.  Check in
-# general that NONE of the examples called
-# "pythonic" use the procline function AT ALL.
-SETUP_COMMANDS = [
-    "sites 2",
-    "let rpll(1) = 9",
-    "let rprp(1) = 8.21131",
-    "let rpll(2) = 9.5",
-    "let rprp(2) = 9",
-    "let c20(1) = 0.86071",
-    "let c22(1) = -0.67687",
-    "let c20(2) = 2.04448",
-    "let c22(2) = 1.00135",
-    "let oss(2) = 8.938",
-    "let gib0(1) = 1.5",
-    "let gib2(1) = -0.5",
-    "let gib0(2) = 2.0",
-    "let gib2(2) = -0.5",
-    "let nstep,cgtol,shiftr = 300,1e-4,1.0",
-]
+SITE_PARAMETER_VALUES = {
+    "rpll": np.array([9.0, 9.5]),
+    "rprp": np.array([8.21131, 9.0]),
+    "c20": np.array([0.86071, 2.04448]),
+    "c22": np.array([-0.67687, 1.00135]),
+    "oss": np.array([0.0, 8.938]),
+    "gib0": np.array([1.5, 2.0]),
+    "gib2": np.array([-0.5, -0.5]),
+}
+
+GLOBAL_CONTROLS = {
+    "nstep": 300,
+    "cgtol": 1.0e-4,
+    "shiftr": 1.0,
+}
+
+INITIAL_VARIATIONS = {
+    "gib0": [1, 2],
+    "rbar": [1, 2],
+}
 
 INITIAL_FIT = {
     "maxitr": 10,
     "maxfun": 250,
 }
 
-# TODO: These should all be controlled
-# pythonically through the
-# FitParameterVaryMapping attribute of the model
-# class.
-# TODO: in keeping with the comments inside
-# FitParameterVaryMapping, these need to be
-# controlled in an array format now.
-REFINEMENT_SEQUENCE = [
-    ["vary rprp(1) rpll(1) c20(1) c22(1) oss(2)"],
-    [
-        "fix rprp(1) rpll(1) c20(1) c22(1) oss(2)",
-        "vary rprp(2) rpll(2) c20(2) c22(2)",
-    ],
-    ["fix rprp(2) rpll(2) c20(2) c22(2)", "vary gib0(1)", "vary gib0(2)"],
-]
+REFINEMENT_STEPS = (
+    {
+        "remove": (),
+        "add": {
+            "rprp": [1],
+            "rpll": [1],
+            "c20": [1],
+            "c22": [1],
+            "oss": [2],
+        },
+    },
+    {
+        "remove": ("rprp", "rpll", "c20", "c22", "oss"),
+        "add": {
+            "rprp": [2],
+            "rpll": [2],
+            "c20": [2],
+            "c22": [2],
+        },
+    },
+    {
+        "remove": ("rprp", "rpll", "c20", "c22"),
+        "add": {
+            "gib0": [1, 2],
+        },
+    },
+)
+
+
+def apply_variation_changes(model, step):
+    """Synchronise the vary list with the supplied stage configuration."""
+
+    for token in step["remove"]:
+        if token in model.fit_params.vary:
+            del model.fit_params.vary[token]
+    for token, indices in step["add"].items():
+        model.fit_params.vary[token] = {"index": indices}
 
 
 def main():
@@ -74,10 +95,13 @@ def main():
 
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
+    model["nsites"] = 2
     model.update(INITIAL_PARAMETERS)
+    model.update(SITE_PARAMETER_VALUES)
+    model.update(GLOBAL_CONTROLS)
 
-    for command in SETUP_COMMANDS:
-        model.procline(command)
+    for token, indices in INITIAL_VARIATIONS.items():
+        model.fit_params.vary[token] = {"index": indices}
 
     model.load_data(
         examples_dir / "c16pc371e.dat",
@@ -88,14 +112,13 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for key in INITIAL_FIT:
-        model.fit_params[key] = INITIAL_FIT[key]
+    for key, value in INITIAL_FIT.items():
+        model.fit_params[key] = value
 
     site_spectra = model.fit()
 
-    for commands in REFINEMENT_SEQUENCE:
-        for command in commands:
-            model.procline(command)
+    for step in REFINEMENT_STEPS:
+        apply_variation_changes(model, step)
         site_spectra = model.fit()
 
     site_spectra = model.fit()
@@ -113,25 +136,17 @@ def main():
         component_curves = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
 
     experimental_block = model.experimental_data
-    fields = []
-    experimental_series = []
-    simulated_series = []
-    component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
-        experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
-        )
-        simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
-        )
-        component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
-        )
+    fields = model.field_axes
+    windows = model.layout["relative_windows"]
+    experimental_series = tuple(
+        experimental_block[idx, window] for idx, window in enumerate(windows)
+    )
+    simulated_series = tuple(
+        simulated_total[idx, window] for idx, window in enumerate(windows)
+    )
+    component_series = tuple(
+        component_curves[idx, :, window] for idx, window in enumerate(windows)
+    )
 
     combined_num = 0.0
     combined_den = 0.0
