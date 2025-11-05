@@ -43,6 +43,9 @@ FIT_CONTROLS = {
 # These parameters are refined during the optimisation.  The new
 # ``fit_params.vary`` mapping mirrors the Fortran vary list so each entry
 # below behaves the same way as the original ``vary`` commands in the runfile.
+# TODO: in keeping with the comments inside
+# FitParameterVaryMapping, the following need to
+# be controlled in an array format now.
 PARAMETERS_TO_VARY = ["gib0", "rbar(1)", "rbar(2)"]
 
 

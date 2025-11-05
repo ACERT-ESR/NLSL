@@ -35,6 +35,7 @@ FIT_CONTROLS = {
     "xtol": 1.0e-3,
 }
 
+# TODO: it's now possible to control the variation pythonically through the FitParameterVaryMapping attribute of the nlsl (model) class (1) implement that for all the examples
 VARY_COMMANDS = ["vary rpll, rprp, gib0"]
 
 
@@ -76,6 +77,13 @@ def main():
     experimental_series = []
     simulated_series = []
     component_series = []
+    # TODO: (1) this code is not vectorized! Use
+    # numpy! (2) there should be a property of
+    # model that should provide the field axis
+    # based on the parameters here (3) use the
+    # field property throughout all the examples
+    # rather than doing this complicated
+    # conversion.
     for idx in range(int(model.layout["nspc"])):
         fields.append(
             float(model.layout["sbi"][idx])

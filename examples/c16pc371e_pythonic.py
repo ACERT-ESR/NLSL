@@ -25,6 +25,10 @@ INITIAL_PARAMETERS = {
     "ipnmx": 2,
 }
 
+# TODO: This is not pythonic.  Set all these
+# through a dictionary-like format.  Check in
+# general that NONE of the examples called
+# "pythonic" use the procline function AT ALL.
 SETUP_COMMANDS = [
     "sites 2",
     "let rpll(1) = 9",
@@ -48,6 +52,13 @@ INITIAL_FIT = {
     "maxfun": 250,
 }
 
+# TODO: These should all be controlled
+# pythonically through the
+# FitParameterVaryMapping attribute of the model
+# class.
+# TODO: in keeping with the comments inside
+# FitParameterVaryMapping, these need to be
+# controlled in an array format now.
 REFINEMENT_SEQUENCE = [
     ["vary rprp(1) rpll(1) c20(1) c22(1) oss(2)"],
     [
