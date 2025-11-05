@@ -4,31 +4,25 @@ import numpy as np
 
 
 def run_sample1_manual():
-    print("*" * 70)
-    # TODO: collect all the following as a single triple-quoted string
-    print("file SAMPL1.RUN:  sample NLSL script file")
-    print()
-    print("  Illustrates fitting of anisotropic rotation of CSL spin probe")
-    print("  in an isotropic solvent at X-band.")
-    print()
-    print(
-        "  Test data in file SAMPL1.DAT calculated with the following"
-        " parameters:"
-    )
-    print("               {g}   = 2.0089, 2.0021, 2.0058")
-    print("               {A}   = 5.6, 33.8, 5.3  (gauss)")
-    print("               betad = 15 degrees")
-    print("               Rpll  = 1e7")
-    print("               Rperp = 1e8")
-    print("               B0    = 3400 G")
-    print(
-        "               GIB   = 2.0 G (p-p width of Gaussian inhomog."
-        " linewidth)"
-    )
-    print("*" * 70)
-    print()
-    print("  --- Open file 'sampl1.log' to save a record of this session")
-    print()
+    intro = '''**********************************************************************
+file SAMPL1.RUN:  sample NLSL script file
+
+  Illustrates fitting of anisotropic rotation of CSL spin probe
+  in an isotropic solvent at X-band.
+
+  Test data in file SAMPL1.DAT calculated with the following parameters:
+               {g}   = 2.0089, 2.0021, 2.0058
+               {A}   = 5.6, 33.8, 5.3  (gauss)
+               betad = 15 degrees
+               Rpll  = 1e7
+               Rperp = 1e8
+               B0    = 3400 G
+               GIB   = 2.0 G (p-p width of Gaussian inhomog. linewidth)
+**********************************************************************
+
+  --- Open file 'sampl1.log' to save a record of this session
+'''
+    print(intro)
 
     examples_dir = os.path.join(
         os.path.dirname(__file__), os.pardir, "examples"

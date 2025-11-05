@@ -35,8 +35,7 @@ FIT_CONTROLS = {
     "xtol": 1.0e-3,
 }
 
-# TODO: it's now possible to control the variation pythonically through the FitParameterVaryMapping attribute of the nlsl (model) class (1) implement that for all the examples
-VARY_COMMANDS = ["vary rpll, rprp, gib0"]
+PARAMETERS_TO_VARY = ("rpll", "rprp", "gib0")
 
 
 def main():
@@ -55,8 +54,10 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for command in VARY_COMMANDS:
-        model.procline(command)
+    for token in PARAMETERS_TO_VARY:
+        # ``fit_params.vary`` mirrors the Fortran vary list, so toggling each
+        # entry exposes the same optimisation controls as the legacy runfile.
+        model.fit_params.vary[token] = True
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
@@ -73,48 +74,37 @@ def main():
         component_curves = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
 
     experimental_block = model.experimental_data
-    fields = []
-    experimental_series = []
-    simulated_series = []
-    component_series = []
-    # TODO: (1) this code is not vectorized! Use
-    # numpy! (2) there should be a property of
-    # model that should provide the field axis
-    # based on the parameters here (3) use the
-    # field property throughout all the examples
-    # rather than doing this complicated
-    # conversion.
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
-        experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
-        )
-        simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
-        )
-        component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
-        )
+    fields = model.field_axes
+    windows = model.layout["relative_windows"]
+    experimental_series = tuple(
+        experimental_block[idx, window] for idx, window in enumerate(windows)
+    )
+    simulated_series = tuple(
+        simulated_total[idx, window] for idx, window in enumerate(windows)
+    )
+    component_series = tuple(
+        component_curves[idx, :, window] for idx, window in enumerate(windows)
+    )
 
-    combined_num = 0.0
-    combined_den = 0.0
+    numerators = []
+    denominators = []
     for idx, experimental in enumerate(experimental_series):
-        simulated = simulated_series[idx]
-        residual = simulated - experimental
+        residual = simulated_series[idx] - experimental
         numerator = float(np.linalg.norm(residual))
         denominator = float(np.linalg.norm(experimental))
         if denominator > 0.0:
+            numerators.append(numerator)
+            denominators.append(denominator)
             print(
                 f"sampl1 spectrum {idx + 1}: relative rms = {numerator / denominator:.6f}"
             )
-        combined_num += numerator ** 2
-        combined_den += denominator ** 2
-    if combined_den > 0.0:
-        print(f"sampl1: overall relative rms = {np.sqrt(combined_num / combined_den):.6f}")
+    if denominators:
+        combined_num = float(np.sum(np.square(numerators)))
+        combined_den = float(np.sum(np.square(denominators)))
+        if combined_den > 0.0:
+            print(
+                f"sampl1: overall relative rms = {np.sqrt(combined_num / combined_den):.6f}"
+            )
 
     figure, axes = plt.subplots(len(fields), 1, figsize=(10, 5 * len(fields)))
     if not isinstance(axes, np.ndarray):

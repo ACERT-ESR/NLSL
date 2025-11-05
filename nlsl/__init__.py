@@ -28,70 +28,21 @@ class FitParameterVaryMapping(object):
     def __init__(self, owner):
         self._owner = owner
         self._core = owner._core
-        # TODO -- none of the following are helpful, since this is
-        # automatically generated code, it would be more legible to just leave
-        # the long-format references in place
-        self._parcom = self._core.parcom
-        self._ixpr = self._parcom.ixpr
-        self._ixst = self._parcom.ixst
-        self._prmin = self._parcom.prmin
-        self._prmax = self._parcom.prmax
-        self._prscl = self._parcom.prscl
-        self._xfdstp = self._parcom.xfdstp
-
-    def _parse_key(self, key):
-        # TODO -- this is just extra code.
-        # Rather, edit __getitem__ to look for parens in the expression that is
-        # fed, and return an error that explains how the parens should be
-        # replaced by treating the result of __getitem__ or the input to
-        # __setitem__ as an array whenever there is more than one site.
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        index = 0
-        if "(" in token:
-            start = token.index("(")
-            end = token.find(")", start)
-            if end == -1:
-                raise KeyError(key)
-            body = token[start + 1 : end].strip()
-            if not body:
-                raise KeyError(key)
-            if body == "*":
-                raise NotImplementedError(
-                    "wildcard variation is not supported yet"
-                )
-            index = int(body)
-            token = token[:start].strip()
-            if not token:
-                raise KeyError(key)
-        return token, index
-
-    def _format_ident(self, token):
-        # TODO: this function should not exist (supports other functions above
-        # that we do not want
-        label = token.upper()
-        if "(" in label:
-            label = label.split("(", 1)[0]
-        return label[:9]
 
     def _count(self):
-        return int(self._parcom.nprm)
+        return int(self._core.parcom.nprm)
 
-    def _find_position(self, parameter, index):
-        # TODO: this function should not exist.  Rather, if there are multiple
-        # sites, then __getitem__ and __setitem__ should return or accept
-        # arrays rather than single values.  Note that you might need to change
-        # both examples and tests in order to reflect this new scheme.
-        for pos in range(self._count()):
-            if (
-                int(self._ixpr[pos]) == parameter
-                and int(self._ixst[pos]) == index
-            ):
-                return pos
-        return -1
+    def _entries(self, parameter):
+        """Return ``(index, position)`` pairs for the requested parameter."""
+
+        records = []
+        parcom = self._core.parcom
+        for position in range(self._count()):
+            if int(parcom.ixpr[position]) == parameter:
+                # Preserve the recorded index so callers can manage all slots
+                # associated with the parameter in question.
+                records.append((int(parcom.ixst[position]), position))
+        return records
 
     def _is_spectrum_parameter(self, parameter):
         spectral = []
@@ -116,12 +67,12 @@ class FitParameterVaryMapping(object):
 
     def _index_limit(self, spectral):
         if spectral:
-            limit = int(getattr(self._parcom, "nser", 0))
+            limit = int(getattr(self._core.parcom, "nser", 0))
             nspc = int(getattr(self._core.expdat, "nspc", 0))
             if nspc > limit:
                 limit = nspc
         else:
-            limit = int(self._parcom.nsite)
+            limit = int(self._core.parcom.nsite)
         if limit <= 0:
             limit = 1
         return limit
@@ -131,28 +82,64 @@ class FitParameterVaryMapping(object):
         return float(self._core.getprm(parameter, site))
 
     def __getitem__(self, key):
-        token, index = self._parse_key(key)
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if "(" in token:
+            raise KeyError(
+                "parameter keys no longer accept explicit indices; use the"
+                " array returned for multi-site parameters instead"
+            )
+
         ix = _ipfind_wrapper(token)
         if ix == 0:
             raise KeyError(key)
         parameter = abs(ix - int(ix / 100) * 100)
-        pos = self._find_position(parameter, index)
-        if pos < 0:
+        entries = self._entries(parameter)
+        if not entries:
             raise KeyError(key)
+        parcom = self._core.parcom
+        ordered = sorted(entries, key=lambda item: item[0])
+        minima = []
+        maxima = []
+        scales = []
+        steps = []
+        indices = []
+        for index_value, position in ordered:
+            minima.append(float(parcom.prmin[position]))
+            maxima.append(float(parcom.prmax[position]))
+            scales.append(float(parcom.prscl[position]))
+            steps.append(float(parcom.xfdstp[position]))
+            indices.append(int(index_value))
+        if len(indices) == 1:
+            return {
+                "minimum": minima[0],
+                "maximum": maxima[0],
+                "scale": scales[0],
+                "fdstep": steps[0],
+                "index": indices[0],
+            }
         return {
-            "minimum": float(self._prmin[pos]),
-            "maximum": float(self._prmax[pos]),
-            "scale": float(self._prscl[pos]),
-            "fdstep": float(self._xfdstp[pos]),
-            "index": int(self._ixst[pos]),
+            "minimum": np.array(minima, dtype=float),
+            "maximum": np.array(maxima, dtype=float),
+            "scale": np.array(scales, dtype=float),
+            "fdstep": np.array(steps, dtype=float),
+            "index": np.array(indices, dtype=int),
         }
 
     def __setitem__(self, key, value):
-        # TODO: as explained elsewhere, remove the parsing and indexing here.
-        # Rather, if there is more than one site, then accept an array for
-        # values.  If there is more than one site, and a single value is passed
-        # for values, take that and multiply by ones(nsites)
-        token, index = self._parse_key(key)
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if "(" in token:
+            raise KeyError(
+                "parameter keys no longer accept explicit indices; provide"
+                " arrays when multiple sites are present"
+            )
         if isinstance(value, bool):
             if not value:
                 self.__delitem__(key)
@@ -164,70 +151,133 @@ class FitParameterVaryMapping(object):
             config = value
         else:
             raise TypeError("vary requires bool or mapping values")
-        if "index" in config:
-            index = int(config["index"])
-        elif "site" in config:
-            index = int(config["site"])
-        elif "spectrum" in config:
-            index = int(config["spectrum"])
         ix = _ipfind_wrapper(token)
         if ix == 0:
             raise KeyError(key)
         parameter = abs(ix - int(ix / 100) * 100)
         spectral = self._is_spectrum_parameter(parameter)
         limit = self._index_limit(spectral)
-        if index < 0:
-            raise ValueError("negative indices are not supported")
-        if index > limit:
-            raise ValueError("index out of range")
-        minimum = float(config["minimum"]) if "minimum" in config else 0.0
-        maximum = float(config["maximum"]) if "maximum" in config else 0.0
-        scale = float(config["scale"]) if "scale" in config else 1.0
-        step_value = float(config["fdstep"]) if "fdstep" in config else None
-        boundary = 0
-        if "minimum" in config and boundary % 2 == 0:
-            boundary += 1
+        indices = None
+        if "index" in config:
+            indices = config["index"]
+        elif "site" in config:
+            indices = config["site"]
+        elif "spectrum" in config:
+            indices = config["spectrum"]
+
+        if indices is None:
+            if limit > 1:
+                indices = list(range(1, limit + 1))
+            else:
+                indices = [0]
+        elif np.isscalar(indices):
+            indices = [int(indices)]
+        else:
+            indices = [int(item) for item in indices]
+
+        for index in indices:
+            if index < 0:
+                raise ValueError("negative indices are not supported")
+            if index > limit:
+                raise ValueError("index out of range")
+
+        count = len(indices)
+        boundary_flags = np.zeros(count, dtype=int)
+        minima = np.zeros(count, dtype=float)
+        maxima = np.zeros(count, dtype=float)
+        scales = np.ones(count, dtype=float)
+        steps = np.empty(count, dtype=float)
+        step_mask = np.zeros(count, dtype=bool)
+
+        if "minimum" in config:
+            # Accept either a scalar or per-site sequence for each option; when
+            # a scalar is supplied, broadcast it across the active indices.
+            if np.isscalar(config["minimum"]):
+                minima[:] = float(config["minimum"])
+            else:
+                array = np.asarray(config["minimum"], dtype=float)
+                if array.size != count:
+                    raise ValueError("minimum entries must match the index list")
+                minima[:] = array
+            boundary_flags += 1
         if "maximum" in config:
-            boundary += 2
-        base_value = self._parameter_value(parameter, index)
-        if step_value is None:
-            default_step = 1.0e-6
-            step_value = default_step * base_value
-            if abs(step_value) < float(np.finfo(float).eps):
-                step_value = default_step
-        step_factor = step_value
-        if abs(base_value) >= float(np.finfo(float).eps):
-            step_factor = step_value / base_value
-        existing = self._find_position(parameter, index)
-        ident = self._format_ident(token)
-        if existing >= 0:
-            # ``rmvprm`` only removes a single entry, so clear any stale
-            # configuration before registering the updated settings.
-            _fortrancore.rmvprm(ix, index, ident.ljust(30))
-        # ``addprm`` replaces ``procline`` for managing the vary list.  The
-        # wrapper stores floats directly into ``parcom`` so future reads see
-        # the values immediately.
-        _fortrancore.addprm(
-            ix,
-            index,
-            boundary,
-            minimum,
-            maximum,
-            scale,
-            step_factor,
-            ident.ljust(9),
-        )
+            if np.isscalar(config["maximum"]):
+                maxima[:] = float(config["maximum"])
+            else:
+                array = np.asarray(config["maximum"], dtype=float)
+                if array.size != count:
+                    raise ValueError("maximum entries must match the index list")
+                maxima[:] = array
+            boundary_flags += 2
+        if "scale" in config:
+            if np.isscalar(config["scale"]):
+                scales[:] = float(config["scale"])
+            else:
+                array = np.asarray(config["scale"], dtype=float)
+                if array.size != count:
+                    raise ValueError("scale entries must match the index list")
+                scales[:] = array
+        if "fdstep" in config:
+            if np.isscalar(config["fdstep"]):
+                steps[:] = float(config["fdstep"])
+            else:
+                array = np.asarray(config["fdstep"], dtype=float)
+                if array.size != count:
+                    raise ValueError("fdstep entries must match the index list")
+                steps[:] = array
+            step_mask[:] = True
+
+        entries = self._entries(parameter)
+        ident = token.upper().split("(", 1)[0][:9]
+        for existing_index, _ in entries:
+            # Clear any stale configuration so the updated records replace the
+            # full vary list for the parameter.
+            _fortrancore.rmvprm(ix, existing_index, ident.ljust(30))
+
+        for idx, index in enumerate(indices):
+            base_value = self._parameter_value(parameter, index)
+            if not step_mask[idx]:
+                default_step = 1.0e-6
+                step_value = default_step * base_value
+                if abs(step_value) < float(np.finfo(float).eps):
+                    step_value = default_step
+            else:
+                step_value = steps[idx]
+            step_factor = step_value
+            if abs(base_value) >= float(np.finfo(float).eps):
+                step_factor = step_value / base_value
+            _fortrancore.addprm(
+                ix,
+                index,
+                int(boundary_flags[idx]),
+                float(minima[idx]),
+                float(maxima[idx]),
+                float(scales[idx]),
+                float(step_factor),
+                ident.ljust(9),
+            )
 
     def __delitem__(self, key):
-        token, index = self._parse_key(key)
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if "(" in token:
+            raise KeyError(
+                "parameter keys no longer accept explicit indices; remove"
+                " entries by requesting the base name"
+            )
         ix = _ipfind_wrapper(token)
         if ix == 0:
             raise KeyError(key)
         parameter = abs(ix - int(ix / 100) * 100)
-        if self._find_position(parameter, index) < 0:
+        entries = self._entries(parameter)
+        if not entries:
             raise KeyError(key)
-        ident = self._format_ident(token)
-        _fortrancore.rmvprm(ix, index, ident.ljust(30))
+        ident = token.upper().split("(", 1)[0][:9]
+        for index, _ in entries:
+            _fortrancore.rmvprm(ix, index, ident.ljust(30))
 
     def __contains__(self, key):
         try:
@@ -245,7 +295,7 @@ class FitParameterVaryMapping(object):
     def keys(self):
         result = []
         for pos in range(self._count()):
-            label = self._parcom.tag[pos]
+            label = self._core.parcom.tag[pos]
             if isinstance(label, bytes):
                 label = label.decode("ascii")
             label = label.rstrip()
@@ -1060,6 +1110,21 @@ class nlsl(object):
         if self._last_layout is None:
             raise RuntimeError("no spectra have been evaluated yet")
         return self._last_layout
+
+    @property
+    def field_axes(self):
+        """Return uniformly spaced field axes for each active spectrum."""
+
+        layout = self.layout
+        counts = np.asarray(layout["npts"], dtype=int)
+        if counts.size == 0:
+            return tuple()
+        starts = np.asarray(layout["sbi"], dtype=float).reshape(-1, 1)
+        steps = np.asarray(layout["sdb"], dtype=float).reshape(-1, 1)
+        span = int(counts.max())
+        base = np.arange(span, dtype=float)
+        grid = starts + steps * base
+        return tuple(grid[idx, :count] for idx, count in enumerate(counts))
 
     @property
     def site_spectra(self):
