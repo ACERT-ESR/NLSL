@@ -164,8 +164,16 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("weight 2", row2)
 
         # --- Integer params tab (auto-inferred from dict literal types) ---
+        # Wrap the form in a QScrollArea and cap the tab height to
+        # half the screen so the plot retains most of the space.
+        int_outer = QtWidgets.QWidget()
+        self.tabs.addTab(int_outer, "integer params")
+        int_vbox = QtWidgets.QVBoxLayout(int_outer)
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        int_vbox.addWidget(scroll)
         int_tab = QtWidgets.QWidget()
-        self.tabs.addTab(int_tab, "integer params")
+        scroll.setWidget(int_tab)
         int_form = QtWidgets.QFormLayout(int_tab)
         self.int_boxes = {}
         for k, v in SAMPL4_FINAL_PARAMETERS.items():
@@ -176,8 +184,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 spin.valueChanged.connect(self._make_int_param_handler(k))
                 int_form.addRow(k, spin)
                 self.int_boxes[k] = spin
+        # Limit vertical size of the integer-params tab to 50% of screen height
+        screen_h = QtWidgets.QApplication.primaryScreen().availableGeometry().height()
+        int_outer.setMaximumHeight(int(screen_h * 0.5))
 
         # ---- Site tabs with nested subtabs for tensor groups ----
+
         # Detect tensor groups by keys ending with xx/yy/zz
         self.tensor_groups = self._detect_tensor_groups(SAMPL4_FINAL_PARAMETERS)
         self.tensor_ranges = {
@@ -295,7 +307,7 @@ class MainWindow(QtWidgets.QMainWindow):
             normalize=False,
             nspline=NSPLINE_POINTS,
             shift=True,
-            label="sampl4-single-eval",
+            label=f"sampl4-eval-{point_count}",
             reset=True,
         )
         model.set_data(sl, y_exp[:point_count])
