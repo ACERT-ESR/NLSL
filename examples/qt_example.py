@@ -1,4 +1,5 @@
 from pathlib import Path
+import re
 import numpy as np
 
 # Use Qt backend BEFORE importing pyplot
@@ -115,25 +116,33 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(central)
         vbox = QtWidgets.QVBoxLayout(central)
 
-        # Matplotlib figure/canvas (transparent background)
+        # Use a splitter so the plot keeps most of the space
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Vertical)
+        vbox.addWidget(splitter)
+
+        # Matplotlib figure/canvas (transparent figure, white axes)
         self.fig, self.ax = plt.subplots(figsize=(10, 6))
         self.fig.patch.set_alpha(0.0)  # figure transparent
         self.ax.set_facecolor("white")  # axes transparent
         self.canvas = FigureCanvas(self.fig)
         self.canvas.setAutoFillBackground(False)
         self.canvas.setStyleSheet("background: transparent")
-        vbox.addWidget(self.canvas, stretch=1)
+        splitter.addWidget(self.canvas)
 
         # Tab widget below plot
         self.tabs = QtWidgets.QTabWidget()
-        vbox.addWidget(self.tabs, stretch=0)
+        # keep tabs compact
+        self.tabs.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+        splitter.addWidget(self.tabs)
+        splitter.setStretchFactor(0, 5)
+        splitter.setStretchFactor(1, 1)
 
-        # --- General tab: weight sliders ---
+        # --- General tab: weight sliders (0..1, complementary) ---
         general = QtWidgets.QWidget()
         self.tabs.addTab(general, "general")
         form = QtWidgets.QFormLayout(general)
 
-        self.weight_steps = 1000  # sliders 0..1 with fine resolution
+        self.weight_steps = 1000
         self.s1 = QtWidgets.QSlider(QtCore.Qt.Horizontal)
         self.s1.setRange(0, self.weight_steps)
         self.s1.setValue(int(SAMPL4_FINAL_WEIGHTS[0] * self.weight_steps))
@@ -168,42 +177,49 @@ class MainWindow(QtWidgets.QMainWindow):
                 int_form.addRow(k, spin)
                 self.int_boxes[k] = spin
 
-        # ---- Site tabs: per-site gxx/gyy/gzz and axx/ayy/azz ----
-        self.tensor_defs = {
-            # key: (min, max, slider_steps)
-            "gxx": (1.95, 2.05, 1000),
-            "gyy": (1.95, 2.05, 1000),
-            "gzz": (1.95, 2.05, 1000),
-            "axx": (0.0, 50.0, 1000),
-            "ayy": (0.0, 50.0, 1000),
-            "azz": (0.0, 50.0, 1000),
+        # ---- Site tabs with nested subtabs for tensor groups ----
+        # Detect tensor groups by keys ending with xx/yy/zz
+        self.tensor_groups = self._detect_tensor_groups(SAMPL4_FINAL_PARAMETERS)
+        self.tensor_ranges = {
+            "g": (1.95, 2.05, 1000, 4),   # (min,max,steps,decimals)
+            "a": (0.0, 50.0, 1000, 3),
+            "w": (0.0, 20.0, 1000, 3),
+            # extend here if more tensors (rxx, etc.) are added later
         }
-        self.site_sliders = []  # list per site of {param: (slider,label)}
+
         for site in range(self.nsite):
-            tab = QtWidgets.QWidget()
-            self.tabs.addTab(tab, f"site {site+1}")
-            grid = QtWidgets.QGridLayout(tab)
-            widgets = {}
-            r = 0
-            for key in ("gxx", "gyy", "gzz", "axx", "ayy", "azz"):
-                smin, smax, steps = self.tensor_defs[key]
-                slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-                slider.setRange(0, steps)
-                label = QtWidgets.QLabel()
-                # init from model (scalar replicated if needed)
-                current = self._site_value_from_model(key, site)
-                slider.setValue(self._float_to_slider(current, smin, smax, steps))
-                label.setText(f"{current:.4f}" if key.startswith("g") else f"{current:.3f}")
-                # connect with bound args
-                slider.valueChanged.connect(
-                    self._make_tensor_handler(key, site, smin, smax, steps, label)
-                )
-                grid.addWidget(QtWidgets.QLabel(key), r, 0)
-                grid.addWidget(slider, r, 1)
-                grid.addWidget(label, r, 2)
-                widgets[key] = (slider, label)
-                r += 1
-            self.site_sliders.append(widgets)
+            site_tab = QtWidgets.QWidget()
+            self.tabs.addTab(site_tab, f"site {site+1}")
+            site_layout = QtWidgets.QVBoxLayout(site_tab)
+            sub = QtWidgets.QTabWidget()
+            site_layout.addWidget(sub)
+
+            for base, comps in self.tensor_groups.items():
+                # choose a human label for the subtab
+                label = {"g": "g tensor", "a": "A tensor", "w": "linewidth tensor"}.get(base, f"{base} tensor")
+                page = QtWidgets.QWidget()
+                grid = QtWidgets.QGridLayout(page)
+                sub.addTab(page, label)
+
+                # slider settings by family
+                vmin, vmax, steps, dec = self.tensor_ranges.get(base, (0.0, 1.0, 1000, 3))
+
+                # components in order xx, yy, zz if available
+                for r, comp in enumerate(["xx", "yy", "zz"]):
+                    key = base + comp
+                    if key not in comps:
+                        continue
+                    slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+                    slider.setRange(0, steps)
+                    current = self._site_value_from_model(key, site)
+                    slider.setValue(self._float_to_slider(current, vmin, vmax, steps))
+                    label_val = QtWidgets.QLabel(f"{current:.{dec}f}")
+                    slider.valueChanged.connect(
+                        self._make_tensor_handler(key, site, vmin, vmax, steps, label_val)
+                    )
+                    grid.addWidget(QtWidgets.QLabel(key), r, 0)
+                    grid.addWidget(slider, r, 1)
+                    grid.addWidget(label_val, r, 2)
 
         # ---- Initial plot (keep Line2D handles to update ydata only) ----
         colours = ["#1f77b4", "#2ca02c", "#9467bd", "#8c564b"]  # stylistic example
@@ -295,7 +311,7 @@ class MainWindow(QtWidgets.QMainWindow):
         x = field_start + field_step * np.arange(point_count)
         return x, y_exp, model, site_spectra
 
-    # ---- Weight change handler: update only line ydata ----
+    # ---- Weight change handlers ----
     @QtCore.pyqtSlot()
     def on_weight1_changed(self, value=None):
         # s1 drove change; enforce w1 + w2 = 1 and update partner slider
@@ -320,9 +336,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self._recompute_and_redraw()
 
     # ---- Tensor slider handlers ----
-    def _make_tensor_handler(self, key, site, smin, smax, steps, label_widget):
+    def _make_tensor_handler(self, key, site, vmin, vmax, steps, label_widget):
         def handler(value_int):
-            val = self._slider_to_float(value_int, smin, smax, steps)
+            val = self._slider_to_float(value_int, vmin, vmax, steps)
+            # numeric label formatting by family
             if key.startswith("g"):
                 label_widget.setText(f"{val:.4f}")
             else:
@@ -371,6 +388,21 @@ class MainWindow(QtWidgets.QMainWindow):
         vf = max(min(value_float, vmax), vmin)
         return int(round((vf - vmin) / (vmax - vmin) * steps))
 
+    # ---- Tensor-group detection ----
+    @staticmethod
+    def _detect_tensor_groups(param_dict):
+        groups = {}
+        pat = re.compile(r"^(?P<base>[a-z]+)(xx|yy|zz)$")
+        for k in param_dict.keys():
+            m = pat.match(k)
+            if not m:
+                continue
+            base = m.group("base")
+            # use first letter of base to map to families like g/a/w
+            fam = base[0]
+            groups.setdefault(fam, set()).add(k)
+        return groups
+
     # ---- Recompute components & update line ydata only ----
     def _recompute_and_redraw(self, update_components_only=False):
         if not update_components_only:
@@ -409,7 +441,7 @@ def main():
     # Let the Qt window show its own background; make central widget default palette
     app.setStyleSheet("QMainWindow{background:#d6d6d6}")  # subtle Qt grey (optional)
     w = MainWindow()
-    w.resize(1000, 820)
+    w.resize(1100, 820)
     w.show()
     app.exec_()
 
