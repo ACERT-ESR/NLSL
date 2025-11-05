@@ -108,6 +108,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model,
             self.site_spectra,
         ) = self.prepare_model()
+        self.nsite = int(self.model["nsite"]) if "nsite" in self.model else len(self.site_spectra)
 
         # ---- Build UI ----
         central = QtWidgets.QWidget()
@@ -124,12 +125,12 @@ class MainWindow(QtWidgets.QMainWindow):
         vbox.addWidget(self.canvas, stretch=1)
 
         # Tab widget below plot
-        tabs = QtWidgets.QTabWidget()
-        vbox.addWidget(tabs, stretch=0)
+        self.tabs = QtWidgets.QTabWidget()
+        vbox.addWidget(self.tabs, stretch=0)
 
         # --- General tab: weight sliders ---
         general = QtWidgets.QWidget()
-        tabs.addTab(general, "general")
+        self.tabs.addTab(general, "general")
         form = QtWidgets.QFormLayout(general)
 
         self.s1 = QtWidgets.QSlider(QtCore.Qt.Horizontal)
@@ -142,7 +143,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.s2.setValue(int(SAMPL4_FINAL_WEIGHTS[1] * 100))
         self.l2 = QtWidgets.QLabel()
 
-        # rows
         row1 = QtWidgets.QHBoxLayout()
         row1.addWidget(self.s1)
         row1.addWidget(self.l1)
@@ -153,8 +153,45 @@ class MainWindow(QtWidgets.QMainWindow):
         form.addRow("weight 1", row1)
         form.addRow("weight 2", row2)
 
+        # ---- Site tabs: per-site gxx/gyy/gzz and axx/ayy/azz ----
+        self.tensor_defs = {
+            # key: (min, max, slider_steps)
+            "gxx": (1.95, 2.05, 1000),
+            "gyy": (1.95, 2.05, 1000),
+            "gzz": (1.95, 2.05, 1000),
+            "axx": (0.0, 50.0, 1000),
+            "ayy": (0.0, 50.0, 1000),
+            "azz": (0.0, 50.0, 1000),
+        }
+        self.site_sliders = []  # list per site of {param: (slider,label)}
+        for site in range(self.nsite):
+            tab = QtWidgets.QWidget()
+            self.tabs.addTab(tab, f"site {site+1}")
+            grid = QtWidgets.QGridLayout(tab)
+            widgets = {}
+            r = 0
+            for key in ("gxx", "gyy", "gzz", "axx", "ayy", "azz"):
+                smin, smax, steps = self.tensor_defs[key]
+                slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+                slider.setRange(0, steps)
+                label = QtWidgets.QLabel()
+                # init from model (scalar replicated if needed)
+                current = self._site_value_from_model(key, site)
+                slider.setValue(self._float_to_slider(current, smin, smax, steps))
+                label.setText(f"{current:.4f}" if key.startswith("g") else f"{current:.3f}")
+                # connect with bound args
+                slider.valueChanged.connect(
+                    self._make_tensor_handler(key, site, smin, smax, steps, label)
+                )
+                grid.addWidget(QtWidgets.QLabel(key), r, 0)
+                grid.addWidget(slider, r, 1)
+                grid.addWidget(label, r, 2)
+                widgets[key] = (slider, label)
+                r += 1
+            self.site_sliders.append(widgets)
+
         # ---- Initial plot (keep Line2D handles to update ydata only) ----
-        colours = ["#1f77b4", "#2ca02c"]  # stylistic example
+        colours = ["#1f77b4", "#2ca02c", "#9467bd", "#8c564b"]  # stylistic example
         self.exp_line, = self.ax.plot(
             self.x, self.y_exp, color="black", linewidth=1.0, label="experimental"
         )
@@ -251,14 +288,63 @@ class MainWindow(QtWidgets.QMainWindow):
         s = max(w1 + w2, 1e-12)
         self.weights = np.array([w1 / s, w2 / s], dtype=float)
         self.update_weight_labels()
+        self._recompute_and_redraw()
 
-        # recompute components/total from cached site spectra
+    # ---- Tensor slider handlers ----
+    def _make_tensor_handler(self, key, site, smin, smax, steps, label_widget):
+        def handler(value_int):
+            val = self._slider_to_float(value_int, smin, smax, steps)
+            if key.startswith("g"):
+                label_widget.setText(f"{val:.4f}")
+            else:
+                label_widget.setText(f"{val:.3f}")
+            self._set_site_param(key, site, val)
+            # current_spectrum is a PROPERTY; re-read after param change
+            self.site_spectra = self.model.current_spectrum
+            self._recompute_and_redraw(update_components_only=True)
+        return handler
+
+    # ---- Helpers for model param array management ----
+    def _site_value_from_model(self, key, site):
+        n = self.nsite
+        v = self.model[key]
+        arr = np.full(n, float(v)) if np.ndim(v) == 0 else np.array(v, dtype=float)
+        if arr.size != n:
+            arr = np.resize(arr, n)
+        return float(arr[site])
+
+    def _set_site_param(self, key, site, value):
+        n = self.nsite
+        v = self.model[key]
+        arr = np.full(n, float(v)) if np.ndim(v) == 0 else np.array(v, dtype=float)
+        if arr.size != n:
+            arr = np.resize(arr, n)
+        arr[site] = float(value)
+        self.model[key] = arr
+
+    # ---- Slider <-> float mapping ----
+    @staticmethod
+    def _slider_to_float(value_int, vmin, vmax, steps):
+        return vmin + (vmax - vmin) * (value_int / steps)
+
+    @staticmethod
+    def _float_to_slider(value_float, vmin, vmax, steps):
+        # clamp then map
+        vf = max(min(value_float, vmax), vmin)
+        return int(round((vf - vmin) / (vmax - vmin) * steps))
+
+    # ---- Recompute components & update line ydata only ----
+    def _recompute_and_redraw(self, update_components_only=False):
+        if not update_components_only:
+            # If weights changed but site spectra didn't, reuse cached spectra
+            self.site_spectra = self.site_spectra
         comp = self.weights[:, None] * self.site_spectra
         total = self.weights @ self.site_spectra
-
-        # update line ydata only (no re-plotting)
+        # update component lines
         for i, line in enumerate(self.comp_lines):
-            line.set_ydata(comp[i])
+            if i < comp.shape[0]:
+                line.set_ydata(comp[i])
+        # update total line
         self.total_line.set_ydata(total)
         self.canvas.draw_idle()
 
@@ -272,7 +358,7 @@ def main():
     # Let the Qt window show its own background; make central widget default palette
     app.setStyleSheet("QMainWindow{background:#d6d6d6}")  # subtle Qt grey (optional)
     w = MainWindow()
-    w.resize(1000, 720)
+    w.resize(1000, 820)
     w.show()
     app.exec_()
 
