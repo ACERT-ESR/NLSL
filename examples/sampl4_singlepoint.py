@@ -82,7 +82,8 @@ SAMPL4_FINAL_PARAMETERS = {
     "ndim": 156,
 }
 
-# Site populations and spectral metadata for reproducing the converged simulation
+# Site populations and spectral metadata for reproducing the converged
+# simulation
 SAMPL4_FINAL_WEIGHTS = np.array([0.2848810, 0.7155313])
 SAMPL4_FINAL_SB0 = None  # set from processed data below (uses b0)
 SAMPL4_FINAL_SRNG = None  # set from processed data below (uses range)
@@ -146,7 +147,6 @@ def main():
 
     # Pull the per-site spectra directly (no calls to fit)
     site_spectra = model.current_spectrum  # shape: (nsite, npts)
-    total = np.squeeze(model.weights @ site_spectra)
 
     # X-axis matching the processed field grid
     x = field_start + field_step * np.arange(point_count)
@@ -164,7 +164,9 @@ def main():
             weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
         )
         simulated_total = weights @ site_spectra
-        component_curves = weighted_components.reshape(-1, site_spectra.shape[1])
+        component_curves = weighted_components.reshape(
+            -1, site_spectra.shape[1]
+        )
 
     residual = simulated_total - y_exp
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(y_exp)

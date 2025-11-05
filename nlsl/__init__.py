@@ -22,6 +22,7 @@ def _ipfind_wrapper(name: str) -> int:
         raise ValueError("zero-length token!")
     return int(_fortrancore.ipfind(token, lth))
 
+
 class FitParameterVaryMapping(object):
     """Expose the active set of variable parameters through a mapping."""
 
@@ -197,7 +198,9 @@ class FitParameterVaryMapping(object):
             else:
                 array = np.asarray(config["minimum"], dtype=float)
                 if array.size != count:
-                    raise ValueError("minimum entries must match the index list")
+                    raise ValueError(
+                        "minimum entries must match the index list"
+                    )
                 minima[:] = array
             boundary_flags += 1
         if "maximum" in config:
@@ -206,7 +209,9 @@ class FitParameterVaryMapping(object):
             else:
                 array = np.asarray(config["maximum"], dtype=float)
                 if array.size != count:
-                    raise ValueError("maximum entries must match the index list")
+                    raise ValueError(
+                        "maximum entries must match the index list"
+                    )
                 maxima[:] = array
             boundary_flags += 2
         if "scale" in config:
@@ -223,7 +228,9 @@ class FitParameterVaryMapping(object):
             else:
                 array = np.asarray(config["fdstep"], dtype=float)
                 if array.size != count:
-                    raise ValueError("fdstep entries must match the index list")
+                    raise ValueError(
+                        "fdstep entries must match the index list"
+                    )
                 steps[:] = array
             step_mask[:] = True
 
@@ -779,12 +786,9 @@ class nlsl(object):
             idx = self._iepr_names.index(key)
             vals = self._iparm[idx, : self.nsites]
         else:
-            vals = np.array(
-                [
-                    _fortrancore.getprm(res, i)
-                    for i in range(1, self.nsites + 1)
-                ]
-            )
+            vals = np.array([
+                _fortrancore.getprm(res, i) for i in range(1, self.nsites + 1)
+            ])
         if np.allclose(vals, vals[0]):
             return vals[0]
         return vals

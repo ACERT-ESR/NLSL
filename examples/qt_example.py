@@ -1,17 +1,19 @@
 from pathlib import Path
 import re
 import numpy as np
+from PyQt5 import QtCore, QtWidgets
+import nlsl
+from nlsl.data import process_spectrum
 
 # Use Qt backend BEFORE importing pyplot
 import matplotlib
+
 matplotlib.use("Qt5Agg")  # PyQt5
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import (
+    FigureCanvasQTAgg as FigureCanvas,
+)
 
-from PyQt5 import QtCore, QtWidgets
-
-import nlsl
-from nlsl.data import process_spectrum
 
 # --- Hard-coded SAMPL4 setup (no imports from tests or references) ---
 NSPLINE_POINTS = 200
@@ -90,7 +92,8 @@ SAMPL4_FINAL_PARAMETERS = {
     "ndim": 156,
 }
 
-# Site populations and spectral metadata for reproducing the converged simulation
+# Site populations and spectral metadata for reproducing the converged
+# simulation
 SAMPL4_FINAL_WEIGHTS = np.array([0.2848810, 0.7155313])
 SAMPL4_FINAL_ISHFT = np.array([1], dtype=np.int32)
 SAMPL4_FINAL_SHFT = np.array([0.0])
@@ -109,7 +112,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.model,
             self.site_spectra,
         ) = self.prepare_model()
-        self.nsite = int(self.model["nsite"]) if "nsite" in self.model else len(self.site_spectra)
+        self.nsite = (
+            int(self.model["nsite"])
+            if "nsite" in self.model
+            else len(self.site_spectra)
+        )
 
         # ---- Build UI ----
         central = QtWidgets.QWidget()
@@ -132,7 +139,9 @@ class MainWindow(QtWidgets.QMainWindow):
         # Tab widget below plot
         self.tabs = QtWidgets.QTabWidget()
         # keep tabs compact
-        self.tabs.setSizePolicy(QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum)
+        self.tabs.setSizePolicy(
+            QtWidgets.QSizePolicy.Preferred, QtWidgets.QSizePolicy.Maximum
+        )
         splitter.addWidget(self.tabs)
         splitter.setStretchFactor(0, 1)
         splitter.setStretchFactor(1, 1)
@@ -173,7 +182,11 @@ class MainWindow(QtWidgets.QMainWindow):
         int_scroll.setWidget(int_inner)
         int_grid = QtWidgets.QGridLayout(int_inner)
         self.int_boxes = {}
-        int_keys = [k for k, v in SAMPL4_FINAL_PARAMETERS.items() if isinstance(v, (int, np.integer))]
+        int_keys = [
+            k
+            for k, v in SAMPL4_FINAL_PARAMETERS.items()
+            if isinstance(v, (int, np.integer))
+        ]
         int_keys.sort()
         for idx, k in enumerate(int_keys):
             v = SAMPL4_FINAL_PARAMETERS[k]
@@ -192,9 +205,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # ---- Site tabs with nested subtabs for tensor groups ----
 
         # Detect tensor groups by keys ending with xx/yy/zz
-        self.tensor_groups = self._detect_tensor_groups(SAMPL4_FINAL_PARAMETERS)
+        self.tensor_groups = self._detect_tensor_groups(
+            SAMPL4_FINAL_PARAMETERS
+        )
         self.tensor_ranges = {
-            "g": (1.95, 2.05, 1000, 4),   # (min,max,steps,decimals)
+            "g": (1.95, 2.05, 1000, 4),  # (min,max,steps,decimals)
             "a": (0.0, 50.0, 1000, 3),
             "w": (0.0, 20.0, 1000, 3),
             "r": (0.0, 8.0, 1000, 3),
@@ -202,25 +217,39 @@ class MainWindow(QtWidgets.QMainWindow):
             "d": (0.0, 8.0, 1000, 3),
         }
 
-        self.site_family_tabs = []  # list of dicts: per site -> {fam: (subwidget, index)}
+        # list of dicts: per site -> {fam: (subwidget, index)}
+        self.site_family_tabs = []
         for site in range(self.nsite):
             site_tab = QtWidgets.QWidget()
-            self.tabs.addTab(site_tab, f"site {site+1}")
+            self.tabs.addTab(site_tab, f"site {site + 1}")
             site_layout = QtWidgets.QVBoxLayout(site_tab)
             sub = QtWidgets.QTabWidget()
             site_layout.addWidget(sub)
 
             fam_map = {}
             for base, comps in self.tensor_groups.items():
-                label = {"g": "g tensor", "a": "A tensor", "w": "linewidth tensor", "r": "R tensor (rotational diffusion)", "p": "P tensor (non-Brownian)", "d": "Dj tensor (anisotropic viscosity)"}.get(base, f"{base} tensor")
+                label = {
+                    "g": "g tensor",
+                    "a": "A tensor",
+                    "w": "linewidth tensor",
+                    "r": "R tensor (rotational diffusion)",
+                    "p": "P tensor (non-Brownian)",
+                    "d": "Dj tensor (anisotropic viscosity)",
+                }.get(base, f"{base} tensor")
                 page = QtWidgets.QWidget()
                 grid = QtWidgets.QGridLayout(page)
                 idx = sub.addTab(page, label)
                 fam_map[base] = (sub, idx)
 
-                vmin, vmax, steps, dec = self.tensor_ranges.get(base, (0.0, 1.0, 1000, 3))
+                vmin, vmax, steps, dec = self.tensor_ranges.get(
+                    base, (0.0, 1.0, 1000, 3)
+                )
                 # choose which component suffix set exists for this family
-                comp_set = [s for s in ("xx","yy","zz","x","y","z") if (base + s) in comps]
+                comp_set = [
+                    s
+                    for s in ("xx", "yy", "zz", "x", "y", "z")
+                    if (base + s) in comps
+                ]
                 for r, comp in enumerate(comp_set):
                     key = base + comp
                     if key not in comps:
@@ -228,10 +257,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
                     slider.setRange(0, steps)
                     current = self._site_value_from_model(key, site)
-                    slider.setValue(self._float_to_slider(current, vmin, vmax, steps))
+                    slider.setValue(
+                        self._float_to_slider(current, vmin, vmax, steps)
+                    )
                     label_val = QtWidgets.QLabel(f"{current:.{dec}f}")
                     slider.valueChanged.connect(
-                        self._make_tensor_handler(key, site, vmin, vmax, steps, label_val)
+                        self._make_tensor_handler(
+                            key, site, vmin, vmax, steps, label_val
+                        )
                     )
                     grid.addWidget(QtWidgets.QLabel(key), r, 0)
                     grid.addWidget(slider, r, 1)
@@ -242,9 +275,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self._refresh_family_visibility()
 
         # ---- Initial plot (keep Line2D handles to update ydata only) ----
-        colours = ["#1f77b4", "#2ca02c", "#9467bd", "#8c564b"]  # stylistic example
-        self.exp_line, = self.ax.plot(
-            self.x, self.y_exp, color="black", linewidth=1.0, label="experimental"
+        colours = [
+            "#1f77b4",
+            "#2ca02c",
+            "#9467bd",
+            "#8c564b",
+        ]  # stylistic example
+        (self.exp_line,) = self.ax.plot(
+            self.x,
+            self.y_exp,
+            color="black",
+            linewidth=1.0,
+            label="experimental",
         )
 
         # weighted components and total using current weights
@@ -260,17 +302,24 @@ class MainWindow(QtWidgets.QMainWindow):
                 color=colours[i % len(colours)],
                 linewidth=1.2,
                 alpha=0.7,
-                label=f"component {i+1}",
+                label=f"component {i + 1}",
             )
             self.comp_lines.append(line)
 
         (self.total_line,) = self.ax.plot(
-            self.x, total, color="#d62728", linewidth=2.0, alpha=0.8, label="sum"
+            self.x,
+            total,
+            color="#d62728",
+            linewidth=2.0,
+            alpha=0.8,
+            label="sum",
         )
 
         self.ax.set_xlabel("Magnetic field (G)")
         self.ax.set_ylabel("Intensity (arb. units)")
-        self.ax.set_title("sampl4 components from model.current_spectrum (no fit)")
+        self.ax.set_title(
+            "sampl4 components from model.current_spectrum (no fit)"
+        )
         self.ax.legend(loc="upper right")
         self.ax.grid(True, linestyle=":", linewidth=0.5, alpha=0.5)
         self.fig.tight_layout()
@@ -368,13 +417,18 @@ class MainWindow(QtWidgets.QMainWindow):
             # current_spectrum is a PROPERTY; re-read after param change
             self.site_spectra = self.model.current_spectrum
             self._recompute_and_redraw(update_components_only=True)
+
         return handler
 
     # ---- Helpers for model param array management ----
     def _site_value_from_model(self, key, site):
         n = self.nsite
         v = self.model[key]
-        arr = np.full(n, float(v)) if np.ndim(v) == 0 else np.array(v, dtype=float)
+        arr = (
+            np.full(n, float(v))
+            if np.ndim(v) == 0
+            else np.array(v, dtype=float)
+        )
         if arr.size != n:
             arr = np.resize(arr, n)
         return float(arr[site])
@@ -382,7 +436,11 @@ class MainWindow(QtWidgets.QMainWindow):
     def _set_site_param(self, key, site, value):
         n = self.nsite
         v = self.model[key]
-        arr = np.full(n, float(v)) if np.ndim(v) == 0 else np.array(v, dtype=float)
+        arr = (
+            np.full(n, float(v))
+            if np.ndim(v) == 0
+            else np.array(v, dtype=float)
+        )
         if arr.size != n:
             arr = np.resize(arr, n)
         arr[site] = float(value)
@@ -398,6 +456,7 @@ class MainWindow(QtWidgets.QMainWindow):
             # Re-evaluate spectrum after model integer change
             self.site_spectra = self.model.current_spectrum
             self._recompute_and_redraw(update_components_only=True)
+
         return handler
 
     # ---- Slider <-> float mapping ----
@@ -415,10 +474,10 @@ class MainWindow(QtWidgets.QMainWindow):
     @staticmethod
     def _detect_tensor_groups(param_dict):
         """
-        Detect true tensor families only. Excludes integer/basis keys that begin
-        with i/k/l/m (e.g., ipnmx, kmx, lomx, mxy, mzz, etc.). Only families
-        starting with g, a, w, r, p, d are considered, and they may use
-        xx/yy/zz or x/y/z suffixes.
+        Detect true tensor families only. Excludes integer/basis keys that
+        begin with i/k/l/m (e.g., ipnmx, kmx, lomx, mxy, mzz, etc.). Only
+        families starting with g, a, w, r, p, d are considered, and they may
+        use xx/yy/zz or x/y/z suffixes.
         """
         groups = {}
         pat = re.compile(r"^(?P<fam>[gawrpd])[a-z]*(?:xx|yy|zz|x|y|z)$")
@@ -437,14 +496,20 @@ class MainWindow(QtWidgets.QMainWindow):
         # ipdf=0 → Brownian (R tensor active)
         # ipdf=1 → Non‑Brownian (P tensor active)
         # ipdf=2 → Anisotropic viscosity (Dj tensor active)
-        enable_by_fam = {"g": True, "a": True, "w": True, "r": (ipdf == 0), "p": (ipdf == 1), "d": (ipdf == 2)}
+        enable_by_fam = {
+            "g": True,
+            "a": True,
+            "w": True,
+            "r": ipdf == 0,
+            "p": ipdf == 1,
+            "d": ipdf == 2,
+        }
         for site, fam_map in enumerate(self.site_family_tabs):
             for fam, (sub, idx) in fam_map.items():
                 if hasattr(sub, "setTabVisible"):
                     sub.setTabVisible(idx, bool(enable_by_fam.get(fam, True)))
                 else:
                     sub.setTabEnabled(idx, bool(enable_by_fam.get(fam, True)))
-
 
     # ---- Recompute components & update line ydata only ----
     def _recompute_and_redraw(self, update_components_only=False):
@@ -481,8 +546,11 @@ class MainWindow(QtWidgets.QMainWindow):
 
 def main():
     app = QtWidgets.QApplication([])
-    # Let the Qt window show its own background; make central widget default palette
-    app.setStyleSheet("QMainWindow{background:#d6d6d6}")  # subtle Qt grey (optional)
+    # Let the Qt window show its own background; make central widget default
+    # palette
+    app.setStyleSheet(
+        "QMainWindow{background:#d6d6d6}"
+    )  # subtle Qt grey (optional)
     w = MainWindow()
     w.resize(1100, 820)
     w.show()

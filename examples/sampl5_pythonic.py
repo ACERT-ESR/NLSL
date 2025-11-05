@@ -106,7 +106,9 @@ def main():
         component_curves = component_curves[np.newaxis, :, :]
     else:
         simulated_total = weights @ site_spectra
-        component_curves = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        component_curves = (
+            weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        )
 
     experimental_block = model.experimental_data
     fields = []
@@ -138,12 +140,16 @@ def main():
         denominator = float(np.linalg.norm(experimental))
         if denominator > 0.0:
             print(
-                f"sampl5 spectrum {idx + 1}: relative rms = {numerator / denominator:.6f}"
+                f"sampl5 spectrum {idx + 1}: relative rms ="
+                f" {numerator / denominator:.6f}"
             )
-        combined_num += numerator ** 2
-        combined_den += denominator ** 2
+        combined_num += numerator**2
+        combined_den += denominator**2
     if combined_den > 0.0:
-        print(f"sampl5: overall relative rms = {np.sqrt(combined_num / combined_den):.6f}")
+        print(
+            "sampl5: overall relative rms ="
+            f" {np.sqrt(combined_num / combined_den):.6f}"
+        )
 
     figure, axes = plt.subplots(len(fields), 1, figsize=(10, 5 * len(fields)))
     if not isinstance(axes, np.ndarray):
@@ -179,7 +185,9 @@ def main():
         axis.legend(loc="upper right")
         axis.set_ylabel("Intensity (arb. units)")
     axes[-1].set_xlabel("Magnetic field (G)")
-    axes[0].set_title("sampl5 two-orientation, two-site fit reproduced from Python")
+    axes[0].set_title(
+        "sampl5 two-orientation, two-site fit reproduced from Python"
+    )
     plt.tight_layout()
     plt.show()
 

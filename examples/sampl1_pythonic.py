@@ -71,7 +71,9 @@ def main():
         component_curves = component_curves[np.newaxis, :, :]
     else:
         simulated_total = weights @ site_spectra
-        component_curves = weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        component_curves = (
+            weights[:, :, np.newaxis] * site_spectra[np.newaxis, :, :]
+        )
 
     experimental_block = model.experimental_data
     fields = model.field_axes
@@ -96,14 +98,16 @@ def main():
             numerators.append(numerator)
             denominators.append(denominator)
             print(
-                f"sampl1 spectrum {idx + 1}: relative rms = {numerator / denominator:.6f}"
+                f"sampl1 spectrum {idx + 1}: relative rms ="
+                f" {numerator / denominator:.6f}"
             )
     if denominators:
         combined_num = float(np.sum(np.square(numerators)))
         combined_den = float(np.sum(np.square(denominators)))
         if combined_den > 0.0:
             print(
-                f"sampl1: overall relative rms = {np.sqrt(combined_num / combined_den):.6f}"
+                "sampl1: overall relative rms ="
+                f" {np.sqrt(combined_num / combined_den):.6f}"
             )
 
     figure, axes = plt.subplots(len(fields), 1, figsize=(10, 5 * len(fields)))

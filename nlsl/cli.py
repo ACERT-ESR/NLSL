@@ -9,6 +9,7 @@ from pathlib import Path
 ZIP_URL = "https://github.com/acert-esr/nlsl/archive/refs/heads/master.zip"
 DEST_DIR = Path("NLSL_examples")
 
+
 def download_and_extract_examples():
     fd, tmp = tempfile.mkstemp(suffix=".zip")
     tmp_path = Path(tmp)
@@ -42,10 +43,13 @@ def download_and_extract_examples():
             except OSError:
                 pass
 
+
 def exampledir(argv=None):
     parser = argparse.ArgumentParser(prog="nlsl")
     sub = parser.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("exampledir", help="unpack NLSL examples into ./NLSL_examples")
+    sub.add_parser(
+        "exampledir", help="unpack NLSL examples into ./NLSL_examples"
+    )
     args = parser.parse_args(argv)
     if args.cmd == "exampledir":
         download_and_extract_examples()

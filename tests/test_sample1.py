@@ -1,11 +1,13 @@
 import os
 import math
 import numpy as np
+import nlsl
 
 
 def run_sample1_manual():
-    intro = '''**********************************************************************
-file SAMPL1.RUN:  sample NLSL script file
+    intro = (
+        "*" * 70
+        + """file SAMPL1.RUN:  sample NLSL script file
 
   Illustrates fitting of anisotropic rotation of CSL spin probe
   in an isotropic solvent at X-band.
@@ -21,16 +23,14 @@ file SAMPL1.RUN:  sample NLSL script file
 **********************************************************************
 
   --- Open file 'sampl1.log' to save a record of this session
-'''
+"""
+    )
     print(intro)
 
     examples_dir = os.path.join(
         os.path.dirname(__file__), os.pardir, "examples"
     )
     os.chdir(examples_dir)
-
-    import nlsl
-
     n = nlsl.nlsl()
     data_files_out = []
 
