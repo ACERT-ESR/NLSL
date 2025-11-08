@@ -24,45 +24,67 @@
 !  Note that blanks are specified for parameters that are not 
 !  intended to be user-accessible, but must still be passed to EPRLS
 !
-      character*6, dimension(NFPRM), save ::
-     # parnam = (/'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
+      integer, parameter, private :: parnam_strlen_value = 6
+      integer, save :: parnam_strlen
+      data parnam_strlen /parnam_strlen_value/
+      character*6 parnam(NFPRM)
+      save parnam
+      data parnam /
+     # 'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
      #            'WZZ   ', 'GXX   ', 'GYY   ', 'GZZ   ', 'AXX   ',
-     #            'AYY   ', 'AZZ   ', 'RX    ', 'RY    ', 'RZ    ', 
+     #            'AYY   ', 'AZZ   ', 'RX    ', 'RY    ', 'RZ    ',
      #            'PML   ', 'PMXY  ', 'PMZZ  ', 'DJF   ', 'DJFPRP',
-     #            'OSS   ', 'PSI   ', 'ALPHAD', 'BETAD ', 'GAMMAD',  
+     #            'OSS   ', 'PSI   ', 'ALPHAD', 'BETAD ', 'GAMMAD',
      #            'ALPHAM', 'BETAM ', 'GAMMAM', 'C20   ', 'C22   ',
      #            'C40   ', 'C42   ', 'C44   ', 'LB    ', 'DC20  ',
      #            'B0    ', 'GAMMAN', 'CGTOL ', 'SHIFTR', 'SHIFTI',
-     #            'RANGE ', '      ', '      ' /)
+     #            'RANGE ', '      ', '      ' /
 !
-      character*6, dimension(NIPRM), save ::
-     # iprnam = (/'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
-     #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',   
+      integer, parameter, private :: iprnam_strlen_value = 6
+      integer, save :: iprnam_strlen
+      data iprnam_strlen /iprnam_strlen_value/
+      character*6 iprnam(NIPRM)
+      save iprnam
+      data iprnam /
+     # 'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
+     #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',
      #            'MMN   ', 'MMX   ', 'IPNMX ', 'NORT  ', 'NSTEP ',
      #            'NFIELD', 'IDERIV', '      ', '      ', '      ',
-     #            '      ', '      ', '      ', '      ' /)
+     #            '      ', '      ', '      ', '      ' /
 !
-      character*6, dimension(NALIAS), save ::
-     # alias1 = (/  'W1    ', 'W2    ', 'W3    ', 
-     #              'G1    ', 'G2    ', 'G3    ',  
-     #              'A1    ', 'A2    ', 'A3    ', 
-     #              'RBAR  ', 'N     ', 'NXY   ' /)
+      integer, parameter, private :: alias_strlen_value = 6
+      integer, save :: alias_strlen
+      data alias_strlen /alias_strlen_value/
+      character*6 alias1(NALIAS)
+      save alias1
+      data alias1 /
+     #   'W1    ', 'W2    ', 'W3    ',
+     #   'G1    ', 'G2    ', 'G3    ',
+     #   'A1    ', 'A2    ', 'A3    ',
+     #   'RBAR  ', 'N     ', 'NXY   ' /
 !
-      character*6, dimension(NALIAS), save ::
-     # alias2 = (/  'WPRP  ', '      ', 'WPLL  ',  
-     #              'GPRP  ', '      ', 'GPLL  ',
-     #              'APRP  ', '      ', 'APLL  ',
-     #              'RPRP  ', '      ', 'RPLL  ' /)
+      character*6 alias2(NALIAS)
+      save alias2
+      data alias2 /
+     #   'WPRP  ', '      ', 'WPLL  ',
+     #   'GPRP  ', '      ', 'GPLL  ',
+     #   'APRP  ', '      ', 'APLL  ',
+     #   'RPRP  ', '      ', 'RPLL  ' /
 !
-      character*10, dimension(NSYMTR), save ::
+      integer, parameter, private :: symstr_strlen_value = 10
+      integer, save :: symstr_strlen
+      data symstr_strlen /symstr_strlen_value/
+      character*10, dimension(NSYMTR), save, target ::
      # symstr = (/'CARTESIAN ', 'SPHERICAL ', 'AXIAL     '/)
 !
-      character*10, dimension(NSYMBL), save ::
+      integer, parameter, private :: symbol_strlen_value = 10
+      integer, save :: symbol_strlen
+      data symbol_strlen /symbol_strlen_value/
+      character*10, dimension(NSYMBL), save, target ::
      # symbol = (/'BROWNIAN  ', 'NONBROWNIA', 'ANISOVISCO',
      #            'FREE      ', 'JUMP      '/)
 !
-      integer, dimension(NSYMBL), save ::
+      integer, dimension(NSYMBL), save, target ::
      # symval = (/ 0,            1,            2,
      #             1,            0          /)
-
       end module lpnam
