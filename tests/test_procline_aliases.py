@@ -17,7 +17,7 @@ ALIASES = [
 def test_procline_sets_alias(alias):
     n = nlsl.nlsl()
     n.procline(f"let {alias} = 1.234")
-    canonical = n.canonical_name(alias)
+    canonical, _ = n.canonical_name(alias)
     assert pytest.approx(n[canonical]) == 1.234
     assert pytest.approx(n[alias]) == 1.234
 
