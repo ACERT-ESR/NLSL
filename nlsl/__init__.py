@@ -76,7 +76,8 @@ class FitParameterVaryMapping(object):
                 records.append((int(parcom.ixst[position]), position))
         return records
 
-    # TODO: this should not be a private function.  Make it a method of the class.
+    # TODO: this should not be a private function.  Make it a method of the
+    # class.
     def _resolve_parameter(self, token):
         """Resolve *token* into canonical metadata and index codes."""
 
@@ -498,7 +499,8 @@ class nlsl(object):
         # with the fixed-width Fortran character arrays.
         self._lpnam_tables = {}
         lpnam_module = _fortrancore.lpnam
-        # TODO the following several lines could be implemented more compactly with a loop
+        # TODO the following several lines could be implemented more compactly
+        # with a loop
         self._lpnam_tables["parnam"] = _decode_lpnam_array(
             lpnam_module.parnam,
             int(lpnam_module.parnam_strlen),
