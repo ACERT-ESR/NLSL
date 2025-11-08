@@ -29,8 +29,7 @@
       data parnam_strlen /parnam_strlen_value/
       character*6 parnam(NFPRM)
       save parnam
-      data parnam /
-     # 'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
+      data parnam /'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
      #            'WZZ   ', 'GXX   ', 'GYY   ', 'GZZ   ', 'AXX   ',
      #            'AYY   ', 'AZZ   ', 'RX    ', 'RY    ', 'RZ    ',
      #            'PML   ', 'PMXY  ', 'PMZZ  ', 'DJF   ', 'DJFPRP',
@@ -45,8 +44,7 @@
       data iprnam_strlen /iprnam_strlen_value/
       character*6 iprnam(NIPRM)
       save iprnam
-      data iprnam /
-     # 'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
+      data iprnam /'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
      #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',
      #            'MMN   ', 'MMX   ', 'IPNMX ', 'NORT  ', 'NSTEP ',
      #            'NFIELD', 'IDERIV', '      ', '      ', '      ',
@@ -57,19 +55,17 @@
       data alias_strlen /alias_strlen_value/
       character*6 alias1(NALIAS)
       save alias1
-      data alias1 /
-     #   'W1    ', 'W2    ', 'W3    ',
-     #   'G1    ', 'G2    ', 'G3    ',
-     #   'A1    ', 'A2    ', 'A3    ',
-     #   'RBAR  ', 'N     ', 'NXY   ' /
+      data alias1 /  'W1    ', 'W2    ', 'W3    ', 
+     #              'G1    ', 'G2    ', 'G3    ',  
+     #              'A1    ', 'A2    ', 'A3    ', 
+     #              'RBAR  ', 'N     ', 'NXY   ' /
 !
       character*6 alias2(NALIAS)
       save alias2
-      data alias2 /
-     #   'WPRP  ', '      ', 'WPLL  ',
-     #   'GPRP  ', '      ', 'GPLL  ',
-     #   'APRP  ', '      ', 'APLL  ',
-     #   'RPRP  ', '      ', 'RPLL  ' /
+      data alias2 /  'WPRP  ', '      ', 'WPLL  ',  
+     #              'GPRP  ', '      ', 'GPLL  ',
+     #              'APRP  ', '      ', 'APLL  ',
+     #              'RPRP  ', '      ', 'RPLL  ' /
 !
       integer, parameter, private :: symstr_strlen_value = 10
       integer, save :: symstr_strlen
@@ -80,9 +76,10 @@
       integer, parameter, private :: symbol_strlen_value = 10
       integer, save :: symbol_strlen
       data symbol_strlen /symbol_strlen_value/
-      character*10, dimension(NSYMBL), save, target ::
-     # symbol = (/'BROWNIAN  ', 'NONBROWNIA', 'ANISOVISCO',
-     #            'FREE      ', 'JUMP      '/)
+      character*10 symbol(NSYMBL)
+      save symbol
+      data symbol /'BROWNIAN  ', 'NONBROWNIA', 'ANISOVISCO',
+     #            'FREE      ', 'JUMP      '/
 !
       integer, dimension(NSYMBL), save, target ::
      # symval = (/ 0,            1,            2,
