@@ -24,8 +24,11 @@
 !  Note that blanks are specified for parameters that are not 
 !  intended to be user-accessible, but must still be passed to EPRLS
 !
-      character*6, dimension(NFPRM), save ::
-     # parnam = (/'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
+      integer, save :: parnam_strlen
+      data parnam_strlen /6/
+      character*6 parnam(NFPRM)
+      save parnam
+      data parnam /'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
      #            'WZZ   ', 'GXX   ', 'GYY   ', 'GZZ   ', 'AXX   ',
      #            'AYY   ', 'AZZ   ', 'RX    ', 'RY    ', 'RZ    ', 
      #            'PML   ', 'PMXY  ', 'PMZZ  ', 'DJF   ', 'DJFPRP',
@@ -33,36 +36,47 @@
      #            'ALPHAM', 'BETAM ', 'GAMMAM', 'C20   ', 'C22   ',
      #            'C40   ', 'C42   ', 'C44   ', 'LB    ', 'DC20  ',
      #            'B0    ', 'GAMMAN', 'CGTOL ', 'SHIFTR', 'SHIFTI',
-     #            'RANGE ', '      ', '      ' /)
+     #            'RANGE ', '      ', '      ' /
 !
-      character*6, dimension(NIPRM), save ::
-     # iprnam = (/'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
+      integer, save :: iprnam_strlen
+      data iprnam_strlen /6/
+      character*6 iprnam(NIPRM)
+      save iprnam
+      data iprnam /'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
      #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',   
      #            'MMN   ', 'MMX   ', 'IPNMX ', 'NORT  ', 'NSTEP ',
      #            'NFIELD', 'IDERIV', '      ', '      ', '      ',
-     #            '      ', '      ', '      ', '      ' /)
+     #            '      ', '      ', '      ', '      ' /
 !
-      character*6, dimension(NALIAS), save ::
-     # alias1 = (/  'W1    ', 'W2    ', 'W3    ', 
+      integer, save :: alias_strlen
+      data alias_strlen /6/
+      character*6 alias1(NALIAS)
+      save alias1
+      data alias1 /  'W1    ', 'W2    ', 'W3    ', 
      #              'G1    ', 'G2    ', 'G3    ',  
      #              'A1    ', 'A2    ', 'A3    ', 
-     #              'RBAR  ', 'N     ', 'NXY   ' /)
+     #              'RBAR  ', 'N     ', 'NXY   ' /
 !
-      character*6, dimension(NALIAS), save ::
-     # alias2 = (/  'WPRP  ', '      ', 'WPLL  ',  
+      character*6 alias2(NALIAS)
+      save alias2
+      data alias2 /  'WPRP  ', '      ', 'WPLL  ',  
      #              'GPRP  ', '      ', 'GPLL  ',
      #              'APRP  ', '      ', 'APLL  ',
-     #              'RPRP  ', '      ', 'RPLL  ' /)
+     #              'RPRP  ', '      ', 'RPLL  ' /
 !
-      character*10, dimension(NSYMTR), save ::
+      integer, save :: symstr_strlen
+      data symstr_strlen /10/
+      character*10, dimension(NSYMTR), save, target ::
      # symstr = (/'CARTESIAN ', 'SPHERICAL ', 'AXIAL     '/)
 !
-      character*10, dimension(NSYMBL), save ::
-     # symbol = (/'BROWNIAN  ', 'NONBROWNIA', 'ANISOVISCO',
-     #            'FREE      ', 'JUMP      '/)
+      integer, save :: symbol_strlen
+      data symbol_strlen /10/
+      character*10 symbol(NSYMBL)
+      save symbol
+      data symbol /'BROWNIAN  ', 'NONBROWNIA', 'ANISOVISCO',
+     #            'FREE      ', 'JUMP      '/
 !
-      integer, dimension(NSYMBL), save ::
+      integer, dimension(NSYMBL), save, target ::
      # symval = (/ 0,            1,            2,
      #             1,            0          /)
-
       end module lpnam
