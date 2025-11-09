@@ -61,13 +61,9 @@ get started with real datasets and typical NLSL workflows:
 
 ### Download the examples directory
 
-You can download the full repository ZIP directly from GitHub and extract only the `examples/` folder:
-
-[⬇️ Download ZIP (GitHub)](https://github.com/acert-esr/nlsl/archive/refs/heads/master.zip)
-
-```bash
-unzip NLSL-master.zip "NLSL-master/examples/*"
-```
+After installing, you should be able to run ``nlsl exampledir`` on any command
+line, which will unpack the examples directory as `NLSL_examples`.
+(This is the examples directory that it gets from unpacking a zip of the current code on github.)
 
 ### Description of examples
 
