@@ -1180,24 +1180,24 @@ class nlsl(object):
 
         # ``alias1`` encodes the traditional ``W1``/``G1``/etc. shorthands.
         alias_index = _match_parameter_token(token, self._lpnam_tables["alias1"])
-        if alias_index is not None:
+        if alias_index is None:
+            # ``alias2`` hosts the extended ``WPRP``/``GPLL``-style mnemonics.
+            alias_index = _match_parameter_token(token, self._lpnam_tables["alias2"])
+            if alias_index is not None:
+                if self._lpnam_tables["iwxx"] is None:
+                    raise KeyError(name)
+                base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
+                if base_idx < 0 or base_idx >= len(self._fepr_names):
+                    raise KeyError(name)
+                index_code = -(99 + self._lpnam_tables["iwxx"] + alias_index + 1)
+                return self._fepr_names[base_idx], index_code, base_idx + 1
+        else:
             if self._lpnam_tables["iwxx"] is None:
                 raise KeyError(name)
             base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
             if base_idx < 0 or base_idx >= len(self._fepr_names):
                 raise KeyError(name)
             index_code = 1 - (self._lpnam_tables["iwxx"] + alias_index + 1)
-            return self._fepr_names[base_idx], index_code, base_idx + 1
-
-        # ``alias2`` hosts the extended ``WPRP``/``GPLL``-style mnemonics.
-        alias_index = _match_parameter_token(token, self._lpnam_tables["alias2"])
-        if alias_index is not None:
-            if self._lpnam_tables["iwxx"] is None:
-                raise KeyError(name)
-            base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
-            if base_idx < 0 or base_idx >= len(self._fepr_names):
-                raise KeyError(name)
-            index_code = -(99 + self._lpnam_tables["iwxx"] + alias_index + 1)
             return self._fepr_names[base_idx], index_code, base_idx + 1
 
         # Integral parameters are offset by 100 so they remain distinct from
