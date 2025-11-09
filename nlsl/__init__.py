@@ -76,22 +76,6 @@ class FitParameterVaryMapping(object):
                 records.append((int(parcom.ixst[position]), position))
         return records
 
-    # Expose the parameter resolver so callers configuring the vary table can
-    # share the canonical metadata and the underlying index codes.
-    def resolve_parameter(self, token):
-        """Resolve *token* into canonical metadata and index codes."""
-
-        if self._model is None:
-            raise RuntimeError("parameter resolution requires an nlsl model")
-        canonical, code = self._model.canonical_name(token)
-        if canonical in self._model._fepr_names:
-            base = self._model._fepr_names.index(canonical) + 1
-        elif canonical in self._model._iepr_names:
-            base = self._model._iepr_names.index(canonical) + 1
-        else:
-            raise KeyError(token)
-        return canonical, code, base
-
     def _is_spectrum_parameter(self, parameter):
         spectral = []
         for attr in (
@@ -141,8 +125,11 @@ class FitParameterVaryMapping(object):
                 " array returned for multi-site parameters instead"
             )
 
+        # Require an attached model so canonical resolution can proceed.
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
         try:
-            _, ix, parameter = self.resolve_parameter(token)
+            _, ix, parameter = self._model.canonical_name(token)
         except KeyError:
             raise KeyError(f"{token} doesn't seem to be a parameter")
         entries = self._entries(parameter)
@@ -199,8 +186,11 @@ class FitParameterVaryMapping(object):
             config = value
         else:
             raise TypeError("vary requires bool or mapping values")
+        # Require an attached model so canonical resolution can proceed.
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
         try:
-            _, ix, parameter = self.resolve_parameter(token)
+            _, ix, parameter = self._model.canonical_name(token)
         except KeyError:
             raise KeyError(f"{token} doesn't seem to be a parameter")
         spectral = self._is_spectrum_parameter(parameter)
@@ -322,8 +312,11 @@ class FitParameterVaryMapping(object):
                 "parameter keys no longer accept explicit indices; remove"
                 " entries by requesting the base name"
             )
+        # Require an attached model so canonical resolution can proceed.
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
         try:
-            _, ix, parameter = self.resolve_parameter(token)
+            _, ix, parameter = self._model.canonical_name(token)
         except KeyError:
             raise KeyError(f"{token} doesn't seem to be a parameter")
         entries = self._entries(parameter)
@@ -840,25 +833,25 @@ class nlsl(object):
         # Resolve the canonical mnemonic together with its index so the
         # fallback paths behave like the historic resolver.
         try:
-            canonical_key, res = self.canonical_name(key)
+            canonical_key, res, base = self.canonical_name(key)
         except KeyError:
-            canonical_key, res = None, 0
+            canonical_key, res, base = None, 0, 0
         if res == 0:
             if canonical_key in self._iepr_names:
-                idx = self._iepr_names.index(canonical_key)
+                idx = base - 1 if base else self._iepr_names.index(canonical_key)
                 vals = self._iparm[idx, : self.nsites]
                 if np.all(vals == vals[0]):
                     return int(vals[0])
                 return vals.copy()
             if canonical_key in self._fepr_names:
-                idx = self._fepr_names.index(canonical_key)
+                idx = base - 1 if base else self._fepr_names.index(canonical_key)
                 vals = self._fparm[idx, : self.nsites]
                 if np.allclose(vals, vals[0]):
                     return float(vals[0])
                 return vals.copy()
             raise KeyError(key)
         if res > 100:
-            idx = self._iepr_names.index(canonical_key)
+            idx = base - 1 if base else self._iepr_names.index(canonical_key)
             vals = self._iparm[idx, : self.nsites]
         else:
             vals = np.array([
@@ -1104,12 +1097,12 @@ class nlsl(object):
             return
         iterinput = isinstance(v, (list, tuple, np.ndarray))
         try:
-            canonical_key, res = self.canonical_name(key)
+            canonical_key, res, base = self.canonical_name(key)
         except KeyError:
-            canonical_key, res = None, 0
+            canonical_key, res, base = None, 0, 0
         if res == 0:
             if canonical_key in self._iepr_names:
-                idx = self._iepr_names.index(canonical_key)
+                idx = base - 1 if base else self._iepr_names.index(canonical_key)
                 if iterinput:
                     limit = min(len(v), self.nsites)
                     self._iparm[idx, :limit] = np.asarray(v[:limit], dtype=int)
@@ -1117,7 +1110,7 @@ class nlsl(object):
                     self._iparm[idx, : self.nsites] = int(v)
                 return
             if canonical_key in self._fepr_names:
-                idx = self._fepr_names.index(canonical_key)
+                idx = base - 1 if base else self._fepr_names.index(canonical_key)
                 values = np.asarray(v, dtype=float)
                 if values.ndim == 0:
                     self._fparm[idx, : self.nsites] = float(values)
@@ -1162,12 +1155,13 @@ class nlsl(object):
             return False
         return True
 
-    def canonical_name(self, name: str) -> tuple[str, int]:
-        """Return the canonical parameter name and index code for *name*.
+    def canonical_name(self, name):
+        """Return canonical metadata and index codes for *name*.
 
         The resolver mirrors the legacy ``ipfind`` routine so callers always
-        receive both the canonical identifier and the Fortran index that refers
-        to it.  ``KeyError`` is raised when the name cannot be resolved.
+        receive the canonical mnemonic, the Fortran index code, and the 1-based
+        table position used by the vary machinery.  ``KeyError`` is raised when
+        the name cannot be resolved.
         """
 
         raw = name.strip()
@@ -1176,13 +1170,13 @@ class nlsl(object):
 
         token = raw.upper()
         if token in ("NSITE", "NSITES"):
-            return "nsite", 0
+            return "nsite", 0, 0
 
         # Search the floating-parameter table first so canonical mnemonics and
         # their historic abbreviations map to the corresponding positive codes.
         token_idx = _match_parameter_token(token, self._lpnam_tables["parnam"])
         if token_idx is not None:
-            return self._fepr_names[token_idx], token_idx + 1
+            return self._fepr_names[token_idx], token_idx + 1, token_idx + 1
 
         # ``alias1`` encodes the traditional ``W1``/``G1``/etc. shorthands.
         alias_index = _match_parameter_token(token, self._lpnam_tables["alias1"])
@@ -1193,7 +1187,7 @@ class nlsl(object):
             if base_idx < 0 or base_idx >= len(self._fepr_names):
                 raise KeyError(name)
             index_code = 1 - (self._lpnam_tables["iwxx"] + alias_index + 1)
-            return self._fepr_names[base_idx], index_code
+            return self._fepr_names[base_idx], index_code, base_idx + 1
 
         # ``alias2`` hosts the extended ``WPRP``/``GPLL``-style mnemonics.
         alias_index = _match_parameter_token(token, self._lpnam_tables["alias2"])
@@ -1204,21 +1198,21 @@ class nlsl(object):
             if base_idx < 0 or base_idx >= len(self._fepr_names):
                 raise KeyError(name)
             index_code = -(99 + self._lpnam_tables["iwxx"] + alias_index + 1)
-            return self._fepr_names[base_idx], index_code
+            return self._fepr_names[base_idx], index_code, base_idx + 1
 
         # Integral parameters are offset by 100 so they remain distinct from
         # the floating parameter table when mirrored into the Fortran layer.
         token_idx = _match_parameter_token(token, self._lpnam_tables["iprnam"])
         if token_idx is not None:
-            return self._iepr_names[token_idx], 100 + token_idx + 1
+            return self._iepr_names[token_idx], 100 + token_idx + 1, token_idx + 1
 
         lowered = raw.lower()
         if lowered in self._fepr_names:
             idx = self._fepr_names.index(lowered)
-            return lowered, idx + 1
+            return lowered, idx + 1, idx + 1
         if lowered in self._iepr_names:
             idx = self._iepr_names.index(lowered)
-            return lowered, 100 + idx + 1
+            return lowered, 100 + idx + 1, idx + 1
 
         raise KeyError(name)
 
