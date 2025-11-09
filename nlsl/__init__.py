@@ -14,21 +14,52 @@ _SPECTRAL_PARAMETER_NAMES = {
 }
 
 
-def _ipfind_wrapper(name: str) -> int:
-    """Call the Fortran ``ipfind`` routine if available."""
-    token = name.strip().upper()
-    lth = len(token)
-    if lth == 0:
-        raise ValueError("zero-length token!")
-    return int(_fortrancore.ipfind(token, lth))
+def _decode_lpnam_array(array, width):
+    """Return uppercase tokens extracted from a Fortran character array."""
+
+    matrix = np.asarray(array, order="F")
+    if matrix.ndim == 1:
+        if matrix.dtype.kind == "S" and matrix.dtype.itemsize == width:
+            raw_entries = matrix.tolist()
+        else:
+            raw_entries = (
+                matrix.reshape(-1, width)
+                .view(dtype="|S%d" % width)[:, 0]
+                .tolist()
+            )
+    else:
+        raw_entries = (
+            matrix.T.reshape(-1, width)
+            .view(dtype="|S%d" % width)[:, 0]
+            .tolist()
+        )
+    tokens = []
+    # TODO: the following loop should be handled with a list comprehension
+    for raw in raw_entries:
+        if isinstance(raw, bytes):
+            text = raw.decode("ascii")
+        else:
+            text = str(raw)
+        tokens.append(text.upper().rstrip())
+    return tuple(tokens)
+
+
+def _match_parameter_token(token, entries):
+    """Return the first index whose entry begins with *token*."""
+
+    for index, candidate in enumerate(entries):
+        if candidate and candidate.startswith(token):
+            return index
+    return None
 
 
 class FitParameterVaryMapping(object):
     """Expose the active set of variable parameters through a mapping."""
 
-    def __init__(self, owner):
+    def __init__(self, owner, model):
         self._owner = owner
         self._core = owner._core
+        self._model = model
 
     def _count(self):
         return int(self._core.parcom.nprm)
@@ -44,6 +75,23 @@ class FitParameterVaryMapping(object):
                 # associated with the parameter in question.
                 records.append((int(parcom.ixst[position]), position))
         return records
+
+    # TODO: this should not be a private function.  Make it a method of the
+    # class.
+    def _resolve_parameter(self, token):
+        """Resolve *token* into canonical metadata and index codes."""
+
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
+        canonical = self._model.canonical_name(token)
+        code = self._model.parameter_index(token)
+        if canonical in self._model._fepr_names:
+            base = self._model._fepr_names.index(canonical) + 1
+        elif canonical in self._model._iepr_names:
+            base = self._model._iepr_names.index(canonical) + 1
+        else:
+            raise KeyError(token)
+        return canonical, code, base
 
     def _is_spectrum_parameter(self, parameter):
         spectral = []
@@ -94,10 +142,10 @@ class FitParameterVaryMapping(object):
                 " array returned for multi-site parameters instead"
             )
 
-        ix = _ipfind_wrapper(token)
-        if ix == 0:
-            raise KeyError(key)
-        parameter = abs(ix - int(ix / 100) * 100)
+        try:
+            _, ix, parameter = self._resolve_parameter(token)
+        except KeyError:
+            raise KeyError(f"{token} doesn't seem to be a parameter")
         entries = self._entries(parameter)
         if not entries:
             raise KeyError(key)
@@ -152,10 +200,10 @@ class FitParameterVaryMapping(object):
             config = value
         else:
             raise TypeError("vary requires bool or mapping values")
-        ix = _ipfind_wrapper(token)
-        if ix == 0:
-            raise KeyError(key)
-        parameter = abs(ix - int(ix / 100) * 100)
+        try:
+            _, ix, parameter = self._resolve_parameter(token)
+        except KeyError:
+            raise KeyError(f"{token} doesn't seem to be a parameter")
         spectral = self._is_spectrum_parameter(parameter)
         limit = self._index_limit(spectral)
         indices = None
@@ -275,10 +323,10 @@ class FitParameterVaryMapping(object):
                 "parameter keys no longer accept explicit indices; remove"
                 " entries by requesting the base name"
             )
-        ix = _ipfind_wrapper(token)
-        if ix == 0:
-            raise KeyError(key)
-        parameter = abs(ix - int(ix / 100) * 100)
+        try:
+            _, ix, parameter = self._resolve_parameter(token)
+        except KeyError:
+            raise KeyError(f"{token} doesn't seem to be a parameter")
         entries = self._entries(parameter)
         if not entries:
             raise KeyError(key)
@@ -338,9 +386,10 @@ class fit_params(dict):
     that no ``procline`` call is needed.
     """
 
-    def __init__(self):
+    def __init__(self, model=None):
         super().__init__()
         self._core = _fortrancore
+        self._model = model
         self._fl_names = [
             n.decode("ascii").strip().lower()
             for n in self._core.lmcom.flmprm_name.tolist()
@@ -349,7 +398,7 @@ class fit_params(dict):
             n.decode("ascii").strip().lower()
             for n in self._core.lmcom.ilmprm_name.tolist()
         ]
-        self._vary = FitParameterVaryMapping(self)
+        self._vary = FitParameterVaryMapping(self, model)
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -411,7 +460,6 @@ class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
-        global _fortrancore
         _fortrancore.nlsinit()
 
         self._fepr_names = [
@@ -445,9 +493,38 @@ class nlsl(object):
             ["iwflg", "igflg", "iaflg", "irflg", "jkmn", "jmmn", "ndim"],
         ):
             self._iepr_names[idx] = label
+        # Decode the Fortran ``lpnam`` tables once so later lookups can run
+        # without touching the legacy ``ipfind`` resolver.  The string length
+        # metadata exposed by ``lpnam`` keeps the NumPy reshaping logic in sync
+        # with the fixed-width Fortran character arrays.
+        self._lpnam_tables = {}
+        lpnam_module = _fortrancore.lpnam
+        # TODO the following several lines could be implemented more compactly
+        # with a loop
+        self._lpnam_tables["parnam"] = _decode_lpnam_array(
+            lpnam_module.parnam,
+            int(lpnam_module.parnam_strlen),
+        )
+        self._lpnam_tables["iprnam"] = _decode_lpnam_array(
+            lpnam_module.iprnam,
+            int(lpnam_module.iprnam_strlen),
+        )
+        self._lpnam_tables["alias1"] = _decode_lpnam_array(
+            lpnam_module.alias1,
+            int(lpnam_module.alias_strlen),
+        )
+        self._lpnam_tables["alias2"] = _decode_lpnam_array(
+            lpnam_module.alias2,
+            int(lpnam_module.alias_strlen),
+        )
+        self._lpnam_tables["iwxx"] = None
+        for position, token in enumerate(self._lpnam_tables["parnam"]):
+            if token == "WXX":
+                self._lpnam_tables["iwxx"] = position + 1
+                break
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
-        self.fit_params = fit_params()
+        self.fit_params = fit_params(self)
         self._last_layout = None
         self._last_site_spectra = None
         self._last_experimental_data = None
@@ -649,6 +726,22 @@ class nlsl(object):
 
     # -- mapping protocol -------------------------------------------------
 
+    # TODO: rather than having this be separate, just have canonical_name
+    # return the idx as well, then replace all calls to
+    # _canonical_and_index with calls to canonical_name
+    def _canonical_and_index(self, token):
+        """Return the canonical name and index code for *token*."""
+
+        try:
+            canonical_key = self.canonical_name(token)
+        except KeyError:
+            canonical_key = None
+        try:
+            code = self.parameter_index(token)
+        except KeyError:
+            code = 0
+        return canonical_key, code
+
     def __getitem__(self, key):
         key = key.lower()
         if key in ("nsite", "nsites"):
@@ -659,7 +752,7 @@ class nlsl(object):
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
                 try:
-                    idx = _ipfind_wrapper("b0")
+                    idx = self.parameter_index("b0")
                     if idx > 0:
                         return float(_fortrancore.getprm(idx, 1))
                 except Exception:
@@ -682,7 +775,7 @@ class nlsl(object):
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
                 try:
-                    idx = _ipfind_wrapper("range")
+                    idx = self.parameter_index("range")
                     if idx > 0:
                         return float(_fortrancore.getprm(idx, 1))
                 except Exception:
@@ -767,23 +860,23 @@ class nlsl(object):
             return values
         if key in ("weights", "weight", "sfac"):
             return self.weights
-        res = _ipfind_wrapper(key)
+        canonical_key, res = self._canonical_and_index(key)
         if res == 0:
-            if key in self._iepr_names:
-                idx = self._iepr_names.index(key)
+            if canonical_key in self._iepr_names:
+                idx = self._iepr_names.index(canonical_key)
                 vals = self._iparm[idx, : self.nsites]
                 if np.all(vals == vals[0]):
                     return int(vals[0])
                 return vals.copy()
-            if key in self._fepr_names:
-                idx = self._fepr_names.index(key)
+            if canonical_key in self._fepr_names:
+                idx = self._fepr_names.index(canonical_key)
                 vals = self._fparm[idx, : self.nsites]
                 if np.allclose(vals, vals[0]):
                     return float(vals[0])
                 return vals.copy()
             raise KeyError(key)
         if res > 100:
-            idx = self._iepr_names.index(key)
+            idx = self._iepr_names.index(canonical_key)
             vals = self._iparm[idx, : self.nsites]
         else:
             vals = np.array([
@@ -1027,19 +1120,19 @@ class nlsl(object):
             expdat.nrmlz[:nspc] = filled
             self._last_site_spectra = None
             return
-        res = _ipfind_wrapper(key)
         iterinput = isinstance(v, (list, tuple, np.ndarray))
+        canonical_key, res = self._canonical_and_index(key)
         if res == 0:
-            if key in self._iepr_names:
-                idx = self._iepr_names.index(key)
+            if canonical_key in self._iepr_names:
+                idx = self._iepr_names.index(canonical_key)
                 if iterinput:
                     limit = min(len(v), self.nsites)
                     self._iparm[idx, :limit] = np.asarray(v[:limit], dtype=int)
                 else:
                     self._iparm[idx, : self.nsites] = int(v)
                 return
-            if key in self._fepr_names:
-                idx = self._fepr_names.index(key)
+            if canonical_key in self._fepr_names:
+                idx = self._fepr_names.index(canonical_key)
                 values = np.asarray(v, dtype=float)
                 if values.ndim == 0:
                     self._fparm[idx, : self.nsites] = float(values)
@@ -1048,7 +1141,7 @@ class nlsl(object):
                     self._fparm[idx, :limit] = values[:limit]
                 return
             raise KeyError(key)
-        is_spectral = key in _SPECTRAL_PARAMETER_NAMES
+        is_spectral = canonical_key in _SPECTRAL_PARAMETER_NAMES
         if res > 100:
             if iterinput:
                 limit = len(v)
@@ -1078,32 +1171,99 @@ class nlsl(object):
             return True
         if key in self._fepr_names or key in self._iepr_names:
             return True
-        return _ipfind_wrapper(key) != 0
+        try:
+            self.parameter_index(key)
+        except KeyError:
+            return False
+        return True
 
     def canonical_name(self, name: str) -> str:
         """Return the canonical parameter name for *name*.
 
-        Uses the Fortran ``ipfind`` routine to resolve aliases.  If *name*
+        The lookup mirrors the legacy ``ipfind`` routine in pure Python so the
+        resolver works even when the Fortran helper is unavailable.  If *name*
         is already canonical it is returned unchanged.  ``KeyError`` is raised
         when the name cannot be resolved.
         """
-        key = name.lower()
+        key = name.strip().lower()
+        if not key:
+            raise KeyError(name)
         if key in ("nsite", "nsites"):
             return "nsite"
         if key in self._fepr_names or key in self._iepr_names:
             return key
-        res = _ipfind_wrapper(key)
-        if res == 0:
-            raise KeyError(name)
-        if res > 100:
-            return self._iepr_names[res - 101]
-        if res > 0:
-            return self._fepr_names[res - 1]
-        if res > -100:
-            idx = -res - 1
+        token = name.strip().upper()
+        token_idx = _match_parameter_token(token, self._lpnam_tables["parnam"])
+        if token_idx is None:
+            alias_index = _match_parameter_token(
+                token, self._lpnam_tables["alias1"]
+            )
+            if alias_index is None:
+                alias_index = _match_parameter_token(
+                    token, self._lpnam_tables["alias2"]
+                )
+                if alias_index is None:
+                    token_idx = _match_parameter_token(
+                        token, self._lpnam_tables["iprnam"]
+                    )
+                    if token_idx is not None:
+                        return self._iepr_names[token_idx]
+                    raise KeyError(name)
+                else:
+                    if self._lpnam_tables["iwxx"] is None:
+                        raise KeyError(name)
+                    base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
+                    if base_idx >= 0 and base_idx < len(self._fepr_names):
+                        return self._fepr_names[base_idx]
+            else:
+                if self._lpnam_tables["iwxx"] is None:
+                    raise KeyError(name)
+                else:
+                    base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
+                    if base_idx >= 0 and base_idx < len(self._fepr_names):
+                        return self._fepr_names[base_idx]
         else:
-            idx = -res - 101
-        return self._fepr_names[idx]
+            return self._fepr_names[token_idx]
+
+    def parameter_index(self, name):
+        """Return the Fortran-style index code for *name*."""
+
+        token = name.strip().upper()
+        if not token:
+            raise KeyError(name)
+        canonical = self.canonical_name(name)
+        alias_index = _match_parameter_token(
+            token, self._lpnam_tables["alias1"]
+        )
+        if alias_index is None:
+            alias_index = _match_parameter_token(
+                token, self._lpnam_tables["alias2"]
+            )
+            if alias_index is None:
+                token_idx = _match_parameter_token(
+                    canonical.upper(),
+                    self._lpnam_tables["parnam"],
+                )
+                if token_idx is None:
+                    token_idx = _match_parameter_token(
+                        canonical.upper(),
+                        self._lpnam_tables["iprnam"],
+                    )
+                    if token_idx is not None:
+                        return 100 + token_idx + 1
+                    if canonical == "nsite":
+                        return 0
+                    raise KeyError(name)
+                else:
+                    return token_idx + 1
+            else:
+                if self._lpnam_tables["iwxx"] is None:
+                    raise KeyError(name)
+                return -(99 + self._lpnam_tables["iwxx"] + alias_index + 1)
+        else:
+            if self._lpnam_tables["iwxx"] is None:
+                raise KeyError(name)
+            return 1 - (self._lpnam_tables["iwxx"] + alias_index + 1)
 
     def __iter__(self):
         return iter(self.keys())

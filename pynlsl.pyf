@@ -335,6 +335,25 @@ python module fortrancore ! in
             subroutine prm_ptr_init ! in :eprprm:eprprm.f90:eprprm
             end subroutine prm_ptr_init
         end module eprprm
+        module lpnam ! in :fortrancore:src/fortran/core/lpnam.f90
+            use nlsdim
+            integer, parameter,optional :: parnam_strlen=6
+            integer, parameter,optional :: iprnam_strlen=6
+            integer, parameter,optional :: alias_strlen=6
+            integer, parameter,optional :: symstr_strlen=10
+            integer, parameter,optional :: symbol_strlen=10
+            character*6, save,dimension(nfprm) :: parnam
+            cf2py intent(in) parnam
+            character*6, save,dimension(niprm) :: iprnam
+            cf2py intent(in) iprnam
+            character*6, save,dimension(nalias) :: alias1
+            cf2py intent(in) alias1
+            character*6, save,dimension(nalias) :: alias2
+            cf2py intent(in) alias2
+            character*10, save,target,dimension(nsymtr) :: symstr
+            character*10, save,target,dimension(nsymbl) :: symbol
+            integer, save,target,dimension(nsymbl) :: symval
+        end module lpnam
         module mspctr ! in :fortrancore:src/fortran/core/mspctr.f90
             use nlsdim
             integer, save,target,dimension((mxsite)) :: iscal
