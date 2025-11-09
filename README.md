@@ -32,6 +32,23 @@ Fortran components stay in sync with your working tree:
 pip install -e . --no-build-isolation
 ```
 
+### If you see errors about NumPy being “incompatible”
+
+`acert_nlsl` requires **NumPy ≥ 2.0**.  
+If your environment already has older packages that *pin NumPy < 2.0* (e.g., `gensim`, `numba`), you must upgrade those packages so they accept modern NumPy.
+
+Run:
+
+```bash
+pip install --upgrade gensim numba
+```
+
+If additional packages report similar “requires numpy<2.x” errors, upgrade them the same way. After all incompatible packages are upgraded, install NLSL normally:
+
+```bash
+pip install acert_nlsl
+```
+
 ## Usage overview
 
 Instantiate :class:`nlsl.nlsl` to work with parameters programmatically, or
