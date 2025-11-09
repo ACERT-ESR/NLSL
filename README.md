@@ -35,7 +35,20 @@ pip install -e . --no-build-isolation
 ### If you see errors about NumPy being “incompatible”
 
 `acert_nlsl` requires **NumPy ≥ 2.0**.  
-If your environment already has older packages that *pin NumPy < 2.0* (e.g., `gensim`, `numba`), you must upgrade those packages so they accept modern NumPy.
+This might lead to errors that have two solutions.
+
+One option is to create a new python environment -- e.g.
+on Anaconda, you would do:
+```bash
+conda create -n env python=3.13
+```
+and then install again.
+
+The other option is to upgrade your existing environment:
+
+If your environment already has older packages that *pin NumPy < 2.0* (e.g.,
+`gensim`, `numba`), you must upgrade those packages so they accept modern
+NumPy.
 
 Run:
 
