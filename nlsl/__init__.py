@@ -1109,39 +1109,42 @@ class nlsl(object):
                 else:
                     self._iparm[idx, : self.nsites] = int(v)
                 return
-            if canonical_key in self._fepr_names:
-                idx = base - 1 if base else self._fepr_names.index(canonical_key)
-                values = np.asarray(v, dtype=float)
-                if values.ndim == 0:
-                    self._fparm[idx, : self.nsites] = float(values)
-                else:
-                    limit = min(values.size, self.nsites)
-                    self._fparm[idx, :limit] = values[:limit]
-                return
-            raise KeyError(key)
-        is_spectral = canonical_key in _SPECTRAL_PARAMETER_NAMES
-        if res > 100:
-            if iterinput:
-                limit = len(v)
-                if not is_spectral:
-                    limit = min(limit, self.nsites)
-                else:
-                    limit = min(limit, int(_fortrancore.expdat.nspc))
-                for site_idx in range(limit):
-                    _fortrancore.setipr(res, site_idx + 1, int(v[site_idx]))
             else:
-                _fortrancore.setipr(res, 0, int(v))
+                if canonical_key in self._fepr_names:
+                    idx = base - 1 if base else self._fepr_names.index(canonical_key)
+                    values = np.asarray(v, dtype=float)
+                    if values.ndim == 0:
+                        self._fparm[idx, : self.nsites] = float(values)
+                    else:
+                        limit = min(values.size, self.nsites)
+                        self._fparm[idx, :limit] = values[:limit]
+                    return
+                else:
+                    raise KeyError(key)
         else:
-            if iterinput:
-                limit = len(v)
-                if not is_spectral:
-                    limit = min(limit, self.nsites)
+            is_spectral = canonical_key in _SPECTRAL_PARAMETER_NAMES
+            if res > 100:
+                if iterinput:
+                    limit = len(v)
+                    if not is_spectral:
+                        limit = min(limit, self.nsites)
+                    else:
+                        limit = min(limit, int(_fortrancore.expdat.nspc))
+                    for site_idx in range(limit):
+                        _fortrancore.setipr(res, site_idx + 1, int(v[site_idx]))
                 else:
-                    limit = min(limit, int(_fortrancore.expdat.nspc))
-                for site_idx in range(limit):
-                    _fortrancore.setprm(res, site_idx + 1, float(v[site_idx]))
+                    _fortrancore.setipr(res, 0, int(v))
             else:
-                _fortrancore.setprm(res, 0, float(v))
+                if iterinput:
+                    limit = len(v)
+                    if not is_spectral:
+                        limit = min(limit, self.nsites)
+                    else:
+                        limit = min(limit, int(_fortrancore.expdat.nspc))
+                    for site_idx in range(limit):
+                        _fortrancore.setprm(res, site_idx + 1, float(v[site_idx]))
+                else:
+                    _fortrancore.setprm(res, 0, float(v))
 
     def __contains__(self, key):
         key = key.lower()
@@ -1167,54 +1170,84 @@ class nlsl(object):
         raw = name.strip()
         if not raw:
             raise KeyError(name)
-
-        token = raw.upper()
-        if token in ("NSITE", "NSITES"):
-            return "nsite", 0, 0
-
-        # Search the floating-parameter table first so canonical mnemonics and
-        # their historic abbreviations map to the corresponding positive codes.
-        token_idx = _match_parameter_token(token, self._lpnam_tables["parnam"])
-        if token_idx is not None:
-            return self._fepr_names[token_idx], token_idx + 1, token_idx + 1
-
-        # ``alias1`` encodes the traditional ``W1``/``G1``/etc. shorthands.
-        alias_index = _match_parameter_token(token, self._lpnam_tables["alias1"])
-        if alias_index is None:
-            # ``alias2`` hosts the extended ``WPRP``/``GPLL``-style mnemonics.
-            alias_index = _match_parameter_token(token, self._lpnam_tables["alias2"])
-            if alias_index is not None:
-                if self._lpnam_tables["iwxx"] is None:
-                    raise KeyError(name)
-                base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
-                if base_idx < 0 or base_idx >= len(self._fepr_names):
-                    raise KeyError(name)
-                index_code = -(99 + self._lpnam_tables["iwxx"] + alias_index + 1)
-                return self._fepr_names[base_idx], index_code, base_idx + 1
         else:
-            if self._lpnam_tables["iwxx"] is None:
-                raise KeyError(name)
-            base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
-            if base_idx < 0 or base_idx >= len(self._fepr_names):
-                raise KeyError(name)
-            index_code = 1 - (self._lpnam_tables["iwxx"] + alias_index + 1)
-            return self._fepr_names[base_idx], index_code, base_idx + 1
-
-        # Integral parameters are offset by 100 so they remain distinct from
-        # the floating parameter table when mirrored into the Fortran layer.
-        token_idx = _match_parameter_token(token, self._lpnam_tables["iprnam"])
-        if token_idx is not None:
-            return self._iepr_names[token_idx], 100 + token_idx + 1, token_idx + 1
-
-        lowered = raw.lower()
-        if lowered in self._fepr_names:
-            idx = self._fepr_names.index(lowered)
-            return lowered, idx + 1, idx + 1
-        if lowered in self._iepr_names:
-            idx = self._iepr_names.index(lowered)
-            return lowered, 100 + idx + 1, idx + 1
-
-        raise KeyError(name)
+            token = raw.upper()
+            if token in ("NSITE", "NSITES"):
+                return "nsite", 0, 0
+            else:
+                # Search the floating-parameter table first so canonical mnemonics and
+                # their historic abbreviations map to the corresponding positive codes.
+                token_idx = _match_parameter_token(token, self._lpnam_tables["parnam"])
+                if token_idx is None:
+                    # ``alias1`` encodes the traditional ``W1``/``G1``/etc. shorthands.
+                    alias_index = _match_parameter_token(token, self._lpnam_tables["alias1"])
+                    if alias_index is None:
+                        # ``alias2`` hosts the extended ``WPRP``/``GPLL``-style mnemonics.
+                        alias_index = _match_parameter_token(token, self._lpnam_tables["alias2"])
+                        if alias_index is None:
+                            # Integral parameters are offset by 100 so they remain distinct from
+                            # the floating parameter table when mirrored into the Fortran layer.
+                            token_idx = _match_parameter_token(
+                                token, self._lpnam_tables["iprnam"]
+                            )
+                            if token_idx is None:
+                                lowered = raw.lower()
+                                if lowered in self._fepr_names:
+                                    idx = self._fepr_names.index(lowered)
+                                    return lowered, idx + 1, idx + 1
+                                else:
+                                    if lowered in self._iepr_names:
+                                        idx = self._iepr_names.index(lowered)
+                                        return lowered, 100 + idx + 1, idx + 1
+                                    else:
+                                        raise KeyError(name)
+                            else:
+                                return (
+                                    self._iepr_names[token_idx],
+                                    100 + token_idx + 1,
+                                    token_idx + 1,
+                                )
+                        else:
+                            if self._lpnam_tables["iwxx"] is None:
+                                raise KeyError(name)
+                            else:
+                                base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
+                                if base_idx < 0 or base_idx >= len(self._fepr_names):
+                                    raise KeyError(name)
+                                else:
+                                    index_code = -(
+                                        99
+                                        + self._lpnam_tables["iwxx"]
+                                        + alias_index
+                                        + 1
+                                    )
+                                    return (
+                                        self._fepr_names[base_idx],
+                                        index_code,
+                                        base_idx + 1,
+                                    )
+                    else:
+                        if self._lpnam_tables["iwxx"] is None:
+                            raise KeyError(name)
+                        else:
+                            base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
+                            if base_idx < 0 or base_idx >= len(self._fepr_names):
+                                raise KeyError(name)
+                            else:
+                                index_code = 1 - (
+                                    self._lpnam_tables["iwxx"] + alias_index + 1
+                                )
+                                return (
+                                    self._fepr_names[base_idx],
+                                    index_code,
+                                    base_idx + 1,
+                                )
+                else:
+                    return (
+                        self._fepr_names[token_idx],
+                        token_idx + 1,
+                        token_idx + 1,
+                    )
 
     def parameter_index(self, name):
         """Return the Fortran-style index code for *name*."""
