@@ -32,6 +32,36 @@ Fortran components stay in sync with your working tree:
 pip install -e . --no-build-isolation
 ```
 
+### If you see errors about NumPy being “incompatible”
+
+`acert_nlsl` requires **NumPy ≥ 2.0**.  
+This might lead to errors that have two solutions.
+
+One option is to create a new python environment -- e.g.
+on Anaconda, you would do:
+```bash
+conda create -n env python=3.13
+```
+and then install again.
+
+The other option is to upgrade your existing environment:
+
+If your environment already has older packages that *pin NumPy < 2.0* (e.g.,
+`gensim`, `numba`), you must upgrade those packages so they accept modern
+NumPy.
+
+Run:
+
+```bash
+pip install --upgrade gensim numba
+```
+
+If additional packages report similar “requires numpy<2.x” errors, upgrade them the same way. After all incompatible packages are upgraded, install NLSL normally:
+
+```bash
+pip install acert_nlsl
+```
+
 ## Usage overview
 
 Instantiate :class:`nlsl.nlsl` to work with parameters programmatically, or
@@ -61,13 +91,9 @@ get started with real datasets and typical NLSL workflows:
 
 ### Download the examples directory
 
-You can download the full repository ZIP directly from GitHub and extract only the `examples/` folder:
-
-[⬇️ Download ZIP (GitHub)](https://github.com/acert-esr/nlsl/archive/refs/heads/master.zip)
-
-```bash
-unzip NLSL-master.zip "NLSL-master/examples/*"
-```
+After installing, you should be able to run ``nlsl exampledir`` on any command
+line, which will unpack the examples directory as `NLSL_examples`.
+(This is the examples directory that it gets from unpacking a zip of the current code on github.)
 
 ### Description of examples
 
