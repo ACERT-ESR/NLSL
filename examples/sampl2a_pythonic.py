@@ -40,6 +40,10 @@ FIT_CONTROLS = {
 
 SERIES_COMMANDS = ["series psi = 0, 90"]
 
+# TODO to implement the following, you'll need to add more kwargs to the new
+# function that replaces search.  As commented in the other example, replace
+# the search command throughout ALL examples and tests with a pythonic
+# equivalent.
 SEARCH_COMMANDS = [
     "search rbar",
     "search betad step 5 bound 45",
@@ -48,6 +52,10 @@ SEARCH_COMMANDS = [
     "search gib0",
 ]
 
+# TODO this should not be necessary, because it's possible to replace with a
+# pythonic equivalent -- just replace ALL calls to procline and vary in all
+# examples (including when called from a list of commands like this with
+# pythonic equivalents.
 VARY_PHASE_ONE = ["vary gib0, rbar, c20"]
 VARY_PHASE_TWO = ["vary gib2, n, c22, betad"]
 

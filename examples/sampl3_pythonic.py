@@ -32,6 +32,11 @@ FIT_CONTROLS = {
     "xtol": 1.0e-3,
 }
 
+# TODO you need to make a new method that replaces the "basis" command
+# pythonically.  Be sure to add an explanatory docstring.
+# TODO Also replace the "axial" command with a dictionary-like call
+# I believe this controls the format (and possibly the name) of the tensors,
+# and you should add comments here to explain appropriately.
 SETUP_COMMANDS = [
     "basis sampl3",
     "search rbar",
@@ -39,6 +44,12 @@ SETUP_COMMANDS = [
     "axial r",
 ]
 
+# TODO Also replace the "spherical" command with a dictionary-like call
+# I believe this controls the format (and possibly the name) of the tensors,
+# and you should add comments here to explain appropriately.
+# TODO as you should already be doing based on previous todos, all the procline
+# calls to vary and fix should be replaced by setting appropriate elements of
+# fit_params
 FIRST_VARY = ["vary rpll,rprp,c20,gib0"]
 SECOND_PHASE = [
     "fix rpll",

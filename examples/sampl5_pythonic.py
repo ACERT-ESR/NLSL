@@ -48,6 +48,10 @@ FIT_STEPS = [
     ["vary n(*) c22(*)"],
 ]
 
+# TODO make a method of nlsl that performs "search" pythonically.  It will
+# have to take the parameter name and the site (site can be kwarg default to 1)
+# do this by exposing all the necessary routines in the pyf file.  Remember
+# you are forbidden from using ctypes!
 FINAL_REFINEMENT = [
     "search gib2(1)",
     "search gib2(2)",
@@ -64,6 +68,9 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
+    # TODO replace the following with the appropriate pythonic commands.
+    # it should be possible to replace the "fix" and "vary" by setting the
+    # appropriate values of the fit parameters attribute.
     for command in SETUP_COMMANDS:
         model.procline(command)
 
@@ -86,14 +93,17 @@ def main():
 
     model.weights = np.ones((2, 2))
 
+    # TODO replace this with pythonic equivalents (modify values of the fit params attribute)
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
+    # TODO replace this with pythonic equivalents (modify values of the fit params attribute)
     for commands in FIT_STEPS:
         for command in commands:
             model.procline(command)
         model.fit()
 
+    # TODO replace this with pythonic equivalents (modify values of the fit params attribute)
     for command in FINAL_REFINEMENT:
         model.procline(command)
     site_spectra = model.fit()
