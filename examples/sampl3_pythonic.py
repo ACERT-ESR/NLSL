@@ -32,33 +32,6 @@ FIT_CONTROLS = {
     "xtol": 1.0e-3,
 }
 
-# TODO you need to make a new method that replaces the "basis" command
-# pythonically.  Be sure to add an explanatory docstring.
-# TODO Also replace the "axial" command with a dictionary-like call
-# I believe this controls the format (and possibly the name) of the tensors,
-# and you should add comments here to explain appropriately.
-SETUP_COMMANDS = [
-    "basis sampl3",
-    "search rbar",
-    "search c20",
-    "axial r",
-]
-
-# TODO Also replace the "spherical" command with a dictionary-like call
-# I believe this controls the format (and possibly the name) of the tensors,
-# and you should add comments here to explain appropriately.
-# TODO as you should already be doing based on previous todos, all the procline
-# calls to vary and fix should be replaced by setting appropriate elements of
-# fit_params
-FIRST_VARY = ["vary rpll,rprp,c20,gib0"]
-SECOND_PHASE = [
-    "fix rpll",
-    "fix rprp",
-    "spherical r",
-    "vary rbar",
-]
-FINAL_COMMANDS = ["vary gib2"]
-
 
 def main():
     """Execute the ``sampl3`` workflow and plot the resulting fit."""
@@ -67,8 +40,19 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
-    for command in SETUP_COMMANDS:
-        model.procline(command)
+    # ``load_basis`` mirrors the runfile ``basis`` directive so the
+    # diffusion tensor truncation is identical to the original script.
+    model.load_basis("sampl3")
+
+    # The legacy ``search`` commands become direct method calls.  Each
+    # invocation wraps the 1-D minimiser used by the runfile interface.
+    model.search("rbar")
+    model.search("c20")
+
+    # ``tensor_symmetry`` controls how tensor components are represented.
+    # Selecting the axial form keeps the diffusion tensor locked to the
+    # same coordinate system as the historical ``axial r`` command.
+    model.tensor_symmetry["r"] = "axial"
 
     model.load_data(
         examples_dir / "sampl3.dat",
@@ -82,16 +66,20 @@ def main():
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    for command in FIRST_VARY:
-        model.procline(command)
+    for token in ("rpll", "rprp", "c20", "gib0"):
+        model.fit_params.vary[token] = True
     model.fit()
 
-    for command in SECOND_PHASE:
-        model.procline(command)
+    for token in ("rpll", "rprp"):
+        if token in model.fit_params.vary:
+            del model.fit_params.vary[token]
+    # Switching the tensor back to spherical coordinates matches the
+    # behaviour of the second-stage ``spherical r`` command in the runfile.
+    model.tensor_symmetry["r"] = "spherical"
+    model.fit_params.vary["rbar"] = True
     model.fit()
 
-    for command in FINAL_COMMANDS:
-        model.procline(command)
+    model.fit_params.vary["gib2"] = True
     site_spectra = model.fit()
 
     weights = model.weights

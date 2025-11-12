@@ -38,28 +38,6 @@ FIT_CONTROLS = {
     "maxfun": 1000,
 }
 
-SERIES_COMMANDS = ["series psi = 0, 90"]
-
-# TODO to implement the following, you'll need to add more kwargs to the new
-# function that replaces search.  As commented in the other example, replace
-# the search command throughout ALL examples and tests with a pythonic
-# equivalent.
-SEARCH_COMMANDS = [
-    "search rbar",
-    "search betad step 5 bound 45",
-    "search c20",
-    "search c22",
-    "search gib0",
-]
-
-# TODO this should not be necessary, because it's possible to replace with a
-# pythonic equivalent -- just replace ALL calls to procline and vary in all
-# examples (including when called from a list of commands like this with
-# pythonic equivalents.
-VARY_PHASE_ONE = ["vary gib0, rbar, c20"]
-VARY_PHASE_TWO = ["vary gib2, n, c22, betad"]
-
-
 def main():
     """Execute the ``sampl2a`` fitting workflow without legacy scripts."""
 
@@ -67,8 +45,7 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
-    for command in SERIES_COMMANDS:
-        model.procline(command)
+    model.series("psi", (0.0, 90.0))
 
     model.load_data(
         examples_dir / "sampl200.dat",
@@ -87,18 +64,21 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for command in SEARCH_COMMANDS:
-        model.procline(command)
+    model.search("rbar")
+    model.search("betad", step=5, bound=45)
+    model.search("c20")
+    model.search("c22")
+    model.search("gib0")
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    for command in VARY_PHASE_ONE:
-        model.procline(command)
+    for token in ("gib0", "rbar", "c20"):
+        model.fit_params.vary[token] = True
     model.fit()
 
-    for command in VARY_PHASE_TWO:
-        model.procline(command)
+    for token in ("gib2", "n", "c22", "betad"):
+        model.fit_params.vary[token] = True
     model.fit()
 
     site_spectra = model.fit()

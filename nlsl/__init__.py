@@ -370,6 +370,176 @@ class FitParameterVaryMapping(object):
             self[key] = val
 
 
+class TensorSymmetryMapping(object):
+    """Dictionary-style view of the tensor symmetry flags."""
+
+    _TOKEN_MAP = {
+        "r": ("R", "irflg"),
+        "diffusion": ("R", "irflg"),
+        "g": ("G", "igflg"),
+        "magnetic": ("G", "igflg"),
+        "a": ("A", "iaflg"),
+        "hyperfine": ("A", "iaflg"),
+        "w": ("W", "iwflg"),
+        "linewidth": ("W", "iwflg"),
+    }
+    _MODE_CODES = {
+        "cartesian": 1,
+        "cart": 1,
+        "spherical": 2,
+        "spher": 2,
+        "axial": 3,
+    }
+    _MODE_LABELS = {
+        0: "unset",
+        1: "cartesian",
+        2: "spherical",
+        3: "axial",
+    }
+    _BASE_PARAMETER = {
+        "W": "WXX",
+        "G": "GXX",
+        "A": "AXX",
+        "R": "RX",
+    }
+
+    def __init__(self, model):
+        self._model = model
+
+    def _resolve_token(self, key):
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if token not in self._TOKEN_MAP:
+            raise KeyError(key)
+        return self._TOKEN_MAP[token]
+
+    def __getitem__(self, key):
+        _, flag_name = self._resolve_token(key)
+        if flag_name not in self._model._iepr_names:
+            raise KeyError(key)
+        row = self._model._iepr_names.index(flag_name)
+        active_sites = max(self._model.nsites, 1)
+        values = self._model._iparm[row, :active_sites]
+        labels = [self._MODE_LABELS.get(int(val), "unknown") for val in values]
+        if len(labels) == 1:
+            return labels[0]
+        return np.array(labels, dtype=object)
+
+    def __setitem__(self, key, value):
+        canonical, flag_name = self._resolve_token(key)
+        if isinstance(value, str):
+            mode_label = value
+            indices = None
+        elif isinstance(value, Mapping):
+            if "mode" not in value:
+                raise ValueError("tensor symmetry assignments need a mode")
+            mode_label = value["mode"]
+            if "site" in value:
+                indices = value["site"]
+            elif "index" in value:
+                indices = value["index"]
+            elif "spectrum" in value:
+                indices = value["spectrum"]
+            else:
+                indices = None
+        else:
+            raise TypeError(
+                "tensor symmetry values must be strings or mappings"
+            )
+        if not isinstance(mode_label, str):
+            raise ValueError("tensor symmetry mode must be text")
+        mode = mode_label.strip().lower()
+        if mode not in self._MODE_CODES:
+            raise ValueError(f"unknown tensor symmetry '{mode_label}'")
+        flag_row = self._model._iepr_names.index(flag_name)
+        _, _, table_index = self._model.canonical_name(
+            self._BASE_PARAMETER[canonical]
+        )
+        component_start = table_index - 1
+        total_sites = self._model._iparm.shape[1]
+        if indices is None:
+            site_indices = range(total_sites)
+        elif np.isscalar(indices):
+            index = int(indices)
+            if index < 0:
+                raise ValueError("site indices must be non-negative")
+            if index == 0:
+                site_indices = range(total_sites)
+            else:
+                if index > total_sites:
+                    raise IndexError("site index exceeds available entries")
+                site_indices = [index - 1]
+        else:
+            site_indices = []
+            for entry in indices:
+                index = int(entry)
+                if index <= 0:
+                    raise ValueError(
+                        "explicit site indices must be positive integers"
+                    )
+                if index > total_sites:
+                    raise IndexError("site index exceeds available entries")
+                site_indices.append(index - 1)
+        # Look up the converter and bookkeeping tables through the model so the
+        # mapping stays aligned with the instance it manages.
+        core = self._model._core
+        converter = None
+        if mode in ("spherical", "spher"):
+            converter = core.tensym.tosphr
+        elif mode == "axial":
+            converter = core.tensym.toaxil
+        else:
+            converter = core.tensym.tocart
+        ixx_table = core.parcom.ixx
+        tag_table = core.parcom.tag
+        for site_index in site_indices:
+            # Guard against converting tensors whose components are currently
+            # varied so the optimiser's bookkeeping stays consistent.
+            for offset in range(3):
+                var_index = int(ixx_table[component_start + offset, site_index])
+                if var_index != 0:
+                    label = tag_table[var_index - 1].decode("ascii").strip()
+                    raise RuntimeError(
+                        f"tensor symmetry unchanged: {canonical} tensor "
+                        f"component is being varied as {label}"
+                    )
+            current_mode = int(self._model._iparm[flag_row, site_index])
+            if current_mode == 0:
+                self._model._iparm[flag_row, site_index] = self._MODE_CODES[mode]
+                continue
+            if current_mode == self._MODE_CODES[mode]:
+                continue
+            # Apply the requested conversion in-place so the tensor components
+            # match the new symmetry before updating the bookkeeping flag.
+            converter(
+                self._model._fparm[
+                    component_start : component_start + 3, site_index
+                ],
+                current_mode,
+            )
+            self._model._iparm[flag_row, site_index] = self._MODE_CODES[mode]
+        self._model._last_site_spectra = None
+
+    def __contains__(self, key):
+        try:
+            self._resolve_token(key)
+        except KeyError:
+            return False
+        return True
+
+    def keys(self):
+        return list(self._TOKEN_MAP.keys())
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
+
+    def values(self):
+        return [self[key] for key in self.keys()]
+
+
 class fit_params(dict):
     """Mapping-like interface for adjusting NLSL fit parameters.
 
@@ -454,6 +624,10 @@ class nlsl(object):
     def __init__(self):
         _fortrancore.nlsinit()
 
+        # Keep a reference to the shared Fortran bindings so helper mappings can
+        # reach the active runtime state through this instance.
+        self._core = _fortrancore
+
         self._fepr_names = [
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
@@ -511,6 +685,7 @@ class nlsl(object):
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params(self)
+        self.tensor_symmetry = TensorSymmetryMapping(self)
         self._last_layout = None
         self._last_site_spectra = None
         self._last_experimental_data = None
@@ -709,6 +884,85 @@ class nlsl(object):
 
         if shift:
             _fortrancore.expdat.ishglb = 1
+
+    def load_basis(self, identifier, spectrum=None, site=None):
+        """Load a basis index file and assign it to optional targets."""
+
+        if not isinstance(identifier, str):
+            raise ValueError("basis identifiers must be strings")
+        token = identifier.strip()
+        if not token:
+            raise ValueError("basis identifier cannot be empty")
+        parts = [token]
+        if spectrum is not None:
+            parts.append("spectrum")
+            parts.append(str(int(spectrum)))
+        if site is not None:
+            parts.append("site")
+            parts.append(str(int(site)))
+        command = " ".join(parts)
+        if len(command) > 80:
+            raise ValueError("basis command exceeds the 80 character limit")
+        _fortrancore.basisc(command)
+        self._last_site_spectra = None
+
+    def search(self, parameter, site=1, **options):
+        """Perform a one-dimensional search for *parameter* at *site*."""
+
+        if not isinstance(parameter, str):
+            raise ValueError("search expects the parameter name as text")
+        token = parameter.strip()
+        if not token:
+            raise ValueError("parameter name cannot be empty")
+        parts = [token]
+        if site is not None:
+            parts.append(str(int(site)))
+        # ``srchc`` recognises a small, fixed vocabulary of modifiers for the
+        # golden-section driver.  Mirror that list so callers receive a
+        # meaningful error whenever an unsupported keyword slips through.
+        allowed = {
+            "xtol",
+            "ftol",
+            "step",
+            "bound",
+            "maxfun",
+            "srange",
+        }
+        for key, value in options.items():
+            label = key.strip().lower()
+            if label not in allowed:
+                raise ValueError(f"unsupported search option '{key}'")
+            parts.append(label)
+            if label == "maxfun":
+                parts.append(str(int(value)))
+            else:
+                parts.append(str(float(value)))
+        command = " ".join(parts)
+        if len(command) > 80:
+            raise ValueError("search command exceeds the 80 character limit")
+        _fortrancore.srchc(command)
+        self._last_site_spectra = None
+
+    def series(self, parameter, values):
+        """Configure a series definition for *parameter* with *values*."""
+
+        if not isinstance(parameter, str):
+            raise ValueError("series expects the parameter name as text")
+        token = parameter.strip()
+        if not token:
+            raise ValueError("series parameter cannot be empty")
+        if np.isscalar(values):
+            raise ValueError("series requires a sequence of at least two values")
+        sequence = [float(item) for item in values]
+        if len(sequence) < 2:
+            raise ValueError("series requires at least two values")
+        parts = [token]
+        parts.extend(str(entry) for entry in sequence)
+        command = " ".join(parts)
+        if len(command) > 80:
+            raise ValueError("series command exceeds the 80 character limit")
+        _fortrancore.series(command)
+        self._last_site_spectra = None
 
     # -- mapping protocol -------------------------------------------------
 

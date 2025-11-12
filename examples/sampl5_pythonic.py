@@ -11,6 +11,7 @@ BASELINE_EDGE_POINTS = 20
 DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
+    "nsite": 2,
     "in2": 2,
     "gxx": 2.0089,
     "gyy": 2.0021,
@@ -31,36 +32,6 @@ FIT_CONTROLS = {
     "maxfun": 1000,
 }
 
-SETUP_COMMANDS = [
-    "sites 2",
-    "series psi 0 90",
-    "basis sampl5",
-    "let c20(1) = 4",
-    "let c22(1) = 1",
-    "let c20(2) = 0.2",
-    "let c22(2) = 0",
-    "let nort(2) = 10",
-]
-
-FIT_STEPS = [
-    ["vary gib0(*) rbar(*)"],
-    ["vary c20(*)"],
-    ["vary n(*) c22(*)"],
-]
-
-# TODO make a method of nlsl that performs "search" pythonically.  It will
-# have to take the parameter name and the site (site can be kwarg default to 1)
-# do this by exposing all the necessary routines in the pyf file.  Remember
-# you are forbidden from using ctypes!
-FINAL_REFINEMENT = [
-    "search gib2(1)",
-    "search gib2(2)",
-    "search rbar(2)",
-    "fix all",
-    "vary rbar(2) n(2) c20(2) c22(2) gib0(2)",
-]
-
-
 def main():
     """Execute the ``sampl5`` MOMD refinement from Python."""
 
@@ -68,11 +39,11 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
-    # TODO replace the following with the appropriate pythonic commands.
-    # it should be possible to replace the "fix" and "vary" by setting the
-    # appropriate values of the fit parameters attribute.
-    for command in SETUP_COMMANDS:
-        model.procline(command)
+    model.series("psi", (0.0, 90.0))
+    model.load_basis("sampl5")
+    model["c20"] = np.array([4.0, 0.2])
+    model["c22"] = np.array([1.0, 0.0])
+    model["nort"] = np.array([0.0, 10.0])
 
     model.load_data(
         examples_dir / "sampl500.dat",
@@ -93,19 +64,28 @@ def main():
 
     model.weights = np.ones((2, 2))
 
-    # TODO replace this with pythonic equivalents (modify values of the fit params attribute)
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    # TODO replace this with pythonic equivalents (modify values of the fit params attribute)
-    for commands in FIT_STEPS:
-        for command in commands:
-            model.procline(command)
-        model.fit()
+    all_sites = {"index": [1, 2]}
+    model.fit_params.vary["gib0"] = all_sites
+    model.fit_params.vary["rbar"] = all_sites
+    model.fit()
 
-    # TODO replace this with pythonic equivalents (modify values of the fit params attribute)
-    for command in FINAL_REFINEMENT:
-        model.procline(command)
+    model.fit_params.vary["c20"] = all_sites
+    model.fit()
+
+    model.fit_params.vary["n"] = all_sites
+    model.fit_params.vary["c22"] = all_sites
+    model.fit()
+
+    model.search("gib2", site=1)
+    model.search("gib2", site=2)
+    model.search("rbar", site=2)
+
+    model.fit_params.vary.clear()
+    for token in ("rbar", "n", "c20", "c22", "gib0"):
+        model.fit_params.vary[token] = {"index": 2}
     site_spectra = model.fit()
 
     weights = model.weights
