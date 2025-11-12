@@ -1,7 +1,10 @@
 import pytest
 import numpy as np
 import os
+from pathlib import Path
 import nlsl
+
+from .runfile_helpers import run_runfile
 
 EXAMPLES = [
     (1, [0.0404]),
@@ -24,24 +27,15 @@ def run_example(example, allowed_rel_rms=None):
     print(f"about to run nlsl example {example} in location {runfile_location}")
     os.chdir(runfile_location)
 
-    filename_base = f"sampl{example}"
+    runfile_path = Path(__file__).with_name(f"sampl{example}.run")
     data_files_out = []
     n = nlsl.nlsl()
 
-    def run_file(thisfp):
-        for thisline in thisfp.readlines():
-            if thisline[:5] == "call ":
-                fp_called = open(thisline[5:].strip())
-                run_file(fp_called)
-                fp_called.close()
-            elif thisline[:5] == "data ":
-                n.procline(thisline)
-                data_files_out.append(thisline[5:].strip().split(' ')[0])
-            else:
-                n.procline(thisline)
-        thisfp.close()
+    def record_commands(command):
+        if command.lower().startswith("data "):
+            data_files_out.append(command[5:].strip().split(' ')[0])
 
-    run_file(open(filename_base + '.run'))
+    run_runfile(n, runfile_path, command_callback=record_commands)
     n.write_spc()
 
     rel_rms_list = []
