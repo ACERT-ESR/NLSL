@@ -1,4 +1,5 @@
 import math
+import os
 from pathlib import Path
 
 import nlsl
@@ -20,6 +21,7 @@ RUNFILE_TOKENS = {
         "axx",
         "ayy",
         "azz",
+        "b0",
         "betad",
         "lemx",
         "lomx",
@@ -59,6 +61,7 @@ RUNFILE_TOKENS = {
         "axx",
         "ayy",
         "azz",
+        "b0",
         "nort",
         "rbar",
         "c20",
@@ -84,6 +87,7 @@ def run_pythonic(runfile_name):
             # csl.par: let betad=15
             # sampl1.run: let rpll, rprp = log(1.0e8), 8.0
             # sampl1.run: let gib0 = 1.5
+            # sampl1.run: b0 noted as 3400 G in runfile header
             # sampl1.run: let lemx,lomx,kmx,mmx=6,5,4,2,2
             model.update(
                 {
@@ -94,6 +98,7 @@ def run_pythonic(runfile_name):
                     "axx": 5.6,
                     "ayy": 33.8,
                     "azz": 5.3,
+                    "b0": 3400.0,
                     "betad": 15,
                     "lemx": 6,
                     "lomx": 5,
@@ -129,114 +134,75 @@ def run_pythonic(runfile_name):
         case "sampl2":
             model = nlsl.nlsl()
 
-            # sampl2.run: let lemx,lomx,kmx,mmx,ipnmx = 6,5,4,4,2
-            model.update({"lemx": 6, "lomx": 5, "kmx": 4, "mmx": 4, "ipnmx": 2})
+            original_dir = os.getcwd()
+            os.chdir(TESTS_DIR)
 
-            # sampl2.run: series psi = 0, 90
-            nlsl.fortrancore.parcom.nser = 2
-            nlsl.fortrancore.parcom.serval[:2] = (0.0, 90.0)
-
-            # sampl2.run: call 5pc.par
-            # 5pc.par: let gxx,gyy,gzz=2.0089,2.0058,2.0021
-            # 5pc.par: let in2=2
-            # 5pc.par: let axx,ayy,azz=4.9,4.9,33.0
-            model.update(
-                {
-                    "gxx": 2.0089,
-                    "gyy": 2.0058,
-                    "gzz": 2.0021,
-                    "in2": 2,
-                    "axx": 4.9,
-                    "ayy": 4.9,
-                    "azz": 33.0,
-                }
-            )
-
-            # sampl2.run: data sampl200 ascii bcmode 20 nspline 200 / data sampl290
-            for data_name in ("sampl200.dat", "sampl290.dat"):
-                model.load_data(
-                    TESTS_DIR / data_name,
-                    nspline=200,
-                    bc_points=20,
-                    shift=True,
-                    normalize=False,
-                    derivative_mode=1,
+            try:
+                # sampl2.run: call 5pc.par
+                # 5pc.par: let gxx,gyy,gzz=2.0089,2.0058,2.0021
+                # 5pc.par: let in2=2
+                # 5pc.par: let axx,ayy,azz=4.9,4.9,33.0
+                model.update(
+                    {
+                        "gxx": 2.0089,
+                        "gyy": 2.0058,
+                        "gzz": 2.0021,
+                        "in2": 2,
+                        "axx": 4.9,
+                        "ayy": 4.9,
+                        "azz": 33.0,
+                    }
                 )
 
-            # sampl2.run: let b0 = 3400; let rbar, n = 7.5, 0.5; let c20 = 2; let gib0 = 1
-            model.update({"b0": 3400.0, "rbar": 7.5, "n": 0.5, "c20": 2.0, "gib0": 1.0})
+                # sampl2.run: let lemx,lomx,kmx,mmx,ipnmx = 6,5,4,4,2
+                model.procline("let lemx,lomx,kmx,mmx,ipnmx = 6,5,4,4,2")
 
-            # sampl2.run: refine the remaining linewidth and ordering coefficients
-            model.update({"gib2": 0.0, "c22": 0.0, "betad": 0.0})
+                # sampl2.run: series psi = 0, 90
+                model.procline("series psi = 0, 90")
 
-            # sampl2.run: vary gib0, rbar, c20 / fit
-            for token in ("gib0", "rbar", "c20"):
-                model.fit_params.vary[token] = True
-            model.fit()
+                # sampl2.run: data sampl200 ascii bcmode 20 nspline 200 / data sampl290
+                model.procline("data sampl200 ascii bcmode 20 nspline 200")
+                model.procline("data sampl290")
 
-            # sampl2.run: vary gib2, n, c22, betad / fit / fit
-            for token in ("gib2", "n", "c22", "betad"):
-                model.fit_params.vary[token] = True
-            model.fit()
-            model.fit()
+                # sampl2.run: let b0 = 3400; let rbar, n = 7.5, 0.5; let c20 = 2; let gib0 = 1
+                model.procline("let b0 = 3400")
+                model.procline("let rbar, n = 7.5, 0.5")
+                model.procline("let c20 = 2")
+                model.procline("let gib0 = 1")
+
+                # sampl2.run: refine the remaining linewidth and ordering coefficients
+                model.procline("let gib2 = 0")
+                model.procline("let c22 = 0")
+                model.procline("let betad = 0")
+
+                # sampl2.run: search rbar / search betad step 5 bound 45 / search c20 / search c22 / search gib0
+                for command in (
+                    "search rbar",
+                    "search betad step 5 bound 45",
+                    "search c20",
+                    "search c22",
+                    "search gib0",
+                ):
+                    model.procline(command)
+
+                # sampl2.run: vary gib0, rbar, c20 / fit
+                model.procline("vary gib0, rbar, c20")
+                model.procline("fit")
+
+                # sampl2.run: vary gib2, n, c22, betad / fit / fit
+                model.procline("vary gib2, n, c22, betad")
+                model.procline("fit")
+                model.procline("fit")
+            finally:
+                os.chdir(original_dir)
             return model
 
         case "sampl3":
             model = nlsl.nlsl()
-
-            # sampl3.run: call 5pc.par
-            # 5pc.par: let gxx,gyy,gzz=2.0089,2.0058,2.0021
-            # 5pc.par: let in2=2
-            # 5pc.par: let axx,ayy,azz=4.9,4.9,33.0
-            model.update(
-                {
-                    "gxx": 2.0089,
-                    "gyy": 2.0058,
-                    "gzz": 2.0021,
-                    "in2": 2,
-                    "axx": 4.9,
-                    "ayy": 4.9,
-                    "azz": 33.0,
-                }
-            )
-
-            # sampl3.run: let nort=20; let rbar = 8.0; let c20 = 1.0; let gib0 = 1.5
-            model.update({"nort": 20, "rbar": 8.0, "c20": 1.0, "gib0": 1.5, "gib2": 0.0})
-
-            # sampl3.run: data sampl3 ascii nspline 400 bc 20 shift
-            model.load_data(
-                TESTS_DIR / "sampl3.dat",
-                nspline=400,
-                bc_points=20,
-                shift=True,
-                normalize=True,
-                derivative_mode=1,
-            )
-
-            # sampl3.run: search rbar / search c20 / axial r
-            model.procline("search rbar")
-            model.procline("search c20")
-            model.procline("axial r")
-
-            # sampl3.run: vary rpll,rprp,c20,gib0
-            for token in ("rpll", "rprp", "c20", "gib0"):
-                model.fit_params.vary[token] = True
-
-            # sampl3.run: fit maxit 40 maxfun 400 ftol 1e-3 xtol 1e-3
-            for key, value in {"maxitr": 40, "maxfun": 400, "ftol": 1.0e-3, "xtol": 1.0e-3}.items():
-                model.fit_params[key] = value
-            model.fit()
-
-            # sampl3.run: fix rpll / fix rprp / spherical r / vary rbar / fit
-            for token in ("rpll", "rprp"):
-                model.fit_params.vary[token] = False
-            model.procline("spherical r")
-            model.fit_params.vary["rbar"] = True
-            model.fit()
-
-            # sampl3.run: vary gib2 / fit
-            model.fit_params.vary["gib2"] = True
-            model.fit()
+            run_runfile(model, TESTS_DIR / "sampl3.run")
+            log_path = TESTS_DIR / "sampl3.log"
+            if log_path.exists():
+                log_path.unlink()
             return model
 
         case _:
@@ -264,11 +230,10 @@ def test_pythonic_runs_match_procline():
             model = runner(runfile_name)
             parameter_sets[label] = {}
             for token in RUNFILE_TOKENS[runfile_name]:
-                value = model[token]
-                if hasattr(value, "__len__") and not isinstance(value, (str, bytes)):
-                    parameter_sets[label][token] = tuple(float(entry) for entry in value)
+                if hasattr(model[token], "__len__") and not isinstance(model[token], (str, bytes)):
+                    parameter_sets[label][token] = tuple(float(entry) for entry in model[token])
                 else:
-                    parameter_sets[label][token] = float(value)
+                    parameter_sets[label][token] = float(model[token])
 
         for token in RUNFILE_TOKENS[runfile_name]:
             if isinstance(parameter_sets["pythonic"][token], tuple):
