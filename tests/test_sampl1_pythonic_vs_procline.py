@@ -254,42 +254,35 @@ def run_legacy_runfile(runfile_name):
     return model
 
 
-def capture_final_parameters(model, tokens):
-    """Collect the converged fit parameters for comparison."""
-
-    values = {}
-    for token in tokens:
-        value = model[token]
-        if hasattr(value, "__len__") and not isinstance(value, (str, bytes)):
-            values[token] = tuple(float(entry) for entry in value)
-        else:
-            values[token] = float(value)
-    return values
-
-
 def test_pythonic_runs_match_procline():
     """All runfile ports should match every reported parameter."""
 
     for runfile_name in ("sampl1", "sampl2", "sampl3"):
-        pythonic_model = run_pythonic(runfile_name)
-        procline_model = run_legacy_runfile(runfile_name)
-
-        pythonic_params = capture_final_parameters(pythonic_model, RUNFILE_TOKENS[runfile_name])
-        procline_params = capture_final_parameters(procline_model, RUNFILE_TOKENS[runfile_name])
+        # Capture parameter values for both the pythonic and legacy runs in one place
+        parameter_sets = {}
+        for label, runner in (("pythonic", run_pythonic), ("procline", run_legacy_runfile)):
+            model = runner(runfile_name)
+            parameter_sets[label] = {}
+            for token in RUNFILE_TOKENS[runfile_name]:
+                value = model[token]
+                if hasattr(value, "__len__") and not isinstance(value, (str, bytes)):
+                    parameter_sets[label][token] = tuple(float(entry) for entry in value)
+                else:
+                    parameter_sets[label][token] = float(value)
 
         for token in RUNFILE_TOKENS[runfile_name]:
-            if isinstance(pythonic_params[token], tuple):
-                for index in range(len(pythonic_params[token])):
+            if isinstance(parameter_sets["pythonic"][token], tuple):
+                for index in range(len(parameter_sets["pythonic"][token])):
                     assert math.isclose(
-                        pythonic_params[token][index],
-                        procline_params[token][index],
+                        parameter_sets["pythonic"][token][index],
+                        parameter_sets["procline"][token][index],
                         rel_tol=1e-6,
                         abs_tol=1e-8,
                     )
             else:
                 assert math.isclose(
-                    pythonic_params[token],
-                    procline_params[token],
+                    parameter_sets["pythonic"][token],
+                    parameter_sets["procline"][token],
                     rel_tol=1e-6,
                     abs_tol=1e-8,
                 )
