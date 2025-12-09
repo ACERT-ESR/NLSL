@@ -199,10 +199,67 @@ def run_pythonic(runfile_name):
 
         case "sampl3":
             model = nlsl.nlsl()
-            run_runfile(model, TESTS_DIR / "sampl3.run")
-            log_path = TESTS_DIR / "sampl3.log"
-            if log_path.exists():
-                log_path.unlink()
+
+            original_dir = os.getcwd()
+            os.chdir(TESTS_DIR)
+
+            try:
+                # sampl3.run: log sampl3
+                model.procline("log sampl3")
+
+                # sampl3.run: call 5pc.par
+                # 5pc.par: let gxx,gyy,gzz=2.0089,2.0058,2.0021
+                # 5pc.par: let in2=2
+                # 5pc.par: let axx,ayy,azz=4.9,4.9,33.0
+                model.update(
+                    {
+                        "gxx": 2.0089,
+                        "gyy": 2.0058,
+                        "gzz": 2.0021,
+                        "in2": 2,
+                        "axx": 4.9,
+                        "ayy": 4.9,
+                        "azz": 33.0,
+                    }
+                )
+
+                # sampl3.run: let nort=20 / let rbar = 8.0 / let c20 = 1.0 / let gib0 = 1.5
+                model.procline("let nort=20")
+                model.procline("let rbar = 8.0")
+                model.procline("let c20 = 1.0")
+                model.procline("let gib0 = 1.5")
+
+                # sampl3.run: basis sampl3
+                model.procline("basis sampl3")
+
+                # sampl3.run: data sampl3 ascii nspline 400 bc 20 shift
+                model.procline("data sampl3 ascii nspline 400 bc 20 shift")
+
+                # sampl3.run: search rbar / search c20 / axial r
+                model.procline("search rbar")
+                model.procline("search c20")
+                model.procline("axial r")
+
+                # sampl3.run: vary rpll,rprp,c20,gib0
+                model.procline("vary rpll,rprp,c20,gib0")
+
+                # sampl3.run: fit maxit 40 maxfun 400 ftol 1e-3 xtol 1e-3
+                model.procline("fit maxit 40 maxfun 400 ftol 1e-3 xtol 1e-3")
+
+                # sampl3.run: fix rpll / fix rprp / spherical r / vary rbar
+                model.procline("fix rpll")
+                model.procline("fix rprp")
+                model.procline("spherical r")
+                model.procline("vary rbar")
+
+                # sampl3.run: vary gib2 / fit
+                model.procline("vary gib2")
+                model.procline("fit")
+            finally:
+                os.chdir(original_dir)
+                log_path = TESTS_DIR / "sampl3.log"
+                if log_path.exists():
+                    log_path.unlink()
             return model
 
         case _:
