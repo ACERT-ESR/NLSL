@@ -103,8 +103,12 @@ def test_load_nddata_runs_fit_cycle():
     model = nlsl.nlsl()
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
-    fields = SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * np.arange(SAMPL4_POINT_COUNT)
-    dataset = nddata(SAMPL4_SPECTRAL_DATA.copy(), [SAMPL4_POINT_COUNT], ["field"])
+    fields = SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * np.arange(
+        SAMPL4_POINT_COUNT
+    )
+    dataset = nddata(
+        SAMPL4_SPECTRAL_DATA.copy(), [SAMPL4_POINT_COUNT], ["field"]
+    )
     dataset.setaxis(dataset.dimlabels[0], fields)
 
     model.load_nddata(

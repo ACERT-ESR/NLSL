@@ -499,7 +499,9 @@ class TensorSymmetryMapping(object):
             # Guard against converting tensors whose components are currently
             # varied so the optimiser's bookkeeping stays consistent.
             for offset in range(3):
-                var_index = int(ixx_table[component_start + offset, site_index])
+                var_index = int(
+                    ixx_table[component_start + offset, site_index]
+                )
                 if var_index != 0:
                     label = tag_table[var_index - 1].decode("ascii").strip()
                     raise RuntimeError(
@@ -508,7 +510,9 @@ class TensorSymmetryMapping(object):
                     )
             current_mode = int(self._model._iparm[flag_row, site_index])
             if current_mode == 0:
-                self._model._iparm[flag_row, site_index] = self._MODE_CODES[mode]
+                self._model._iparm[flag_row, site_index] = self._MODE_CODES[
+                    mode
+                ]
                 continue
             if current_mode == self._MODE_CODES[mode]:
                 continue
@@ -624,8 +628,8 @@ class nlsl(object):
     def __init__(self):
         _fortrancore.nlsinit()
 
-        # Keep a reference to the shared Fortran bindings so helper mappings can
-        # reach the active runtime state through this instance.
+        # Keep a reference to the shared Fortran bindings so helper mappings
+        # can reach the active runtime state through this instance.
         self._core = _fortrancore
 
         self._fepr_names = [
@@ -885,7 +889,9 @@ class nlsl(object):
         if shift:
             _fortrancore.expdat.ishglb = 1
 
-    def load_nddata(self, dataset, shift, normalize=True, derivative_mode=None):
+    def load_nddata(
+        self, dataset, shift, normalize=True, derivative_mode=None
+    ):
         """Load experimental data from a :mod:`pyspecdata` ``nddata`` object.
 
         Parameters
@@ -898,8 +904,8 @@ class nlsl(object):
             If true, shift applies the same global offset logic as
             :meth:`load_data`.
         normalize
-            Normalize the spectrum when ``True``.  Defaults to ``True`` to match
-            the behaviour of :meth:`load_data`.
+            Normalize the spectrum when ``True``.  Defaults to ``True`` to
+            match the behaviour of :meth:`load_data`.
         derivative_mode
             Derivative mode to request during coordinate generation.  Mirrors
             the argument to :meth:`load_data`.  When omitted, the mode defaults
@@ -924,23 +930,27 @@ class nlsl(object):
         Notes
         -----
         The provided ``nddata`` must describe exactly one spectrum.  The field
-        coordinates are taken from ``dataset[dataset.dimlabels[0]]`` and must be
-        uniformly spaced to infer the step size.  Because the caller supplies
-        both the field axis and intensities, this loader avoids ASCII parsing
-        and spline resampling while still populating the experimental buffer and
-        associated metadata.
+        coordinates are taken from ``dataset[dataset.dimlabels[0]]`` and must
+        be uniformly spaced to infer the step size.  Because the caller
+        supplies both the field axis and intensities, this loader avoids ASCII
+        parsing and spline resampling while still populating the experimental
+        buffer and associated metadata.
         """
 
         try:
             from pyspecdata.core import nddata
         except ImportError as exc:
-            raise ImportError("pyspecdata is required to load nddata objects") from exc
+            raise ImportError(
+                "pyspecdata is required to load nddata objects"
+            ) from exc
 
         if not isinstance(dataset, nddata):
             raise TypeError("load_nddata expects a pyspecdata nddata instance")
 
         if not dataset.dimlabels:
-            raise ValueError("nddata objects must supply at least one dimension label")
+            raise ValueError(
+                "nddata objects must supply at least one dimension label"
+            )
 
         axis_label = dataset.dimlabels[0]
         fields = np.asarray(dataset[axis_label], dtype=float).reshape(-1)
@@ -949,7 +959,9 @@ class nlsl(object):
         if fields.size == 0:
             raise ValueError("nddata field axis contained no points")
         if fields.size != intensities.size:
-            raise ValueError("field axis and intensity vector lengths do not match")
+            raise ValueError(
+                "field axis and intensity vector lengths do not match"
+            )
 
         if fields.size > 1:
             steps = np.diff(fields)
@@ -1049,7 +1061,9 @@ class nlsl(object):
         if not token:
             raise ValueError("series parameter cannot be empty")
         if np.isscalar(values):
-            raise ValueError("series requires a sequence of at least two values")
+            raise ValueError(
+                "series requires a sequence of at least two values"
+            )
         sequence = [float(item) for item in values]
         if len(sequence) < 2:
             raise ValueError("series requires at least two values")
