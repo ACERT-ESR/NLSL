@@ -27,14 +27,29 @@ n = nlsl.nlsl()
 max_points = n._core.expdat.data.shape[0] // max(
     n._core.expdat.nft.shape[0], 1
 )
+# {{{ we use convolution to downsample the data
+# ☐ TODO -- while preserving this example, we ALSO should be able to use
+# d.spline_lambda from pyspecdata to directly generate a spline, and then
+# utilize that spline DIRECTLY, rather than either not making a spline,
+# or relying on the internal spline mechanism.
+# This definitely means we need to modify load_data so that it can accept
+# a spline.
+# This likely also means that the pyf file will need to be modified to
+# allow us to directly access/supply the spline information from the
+# output of spline_lambda
 if d.data.shape[0] > max_points:
     divisor = d.shape["$B_0$"] // max_points + 1
     dB = np.diff(d["$B_0$"][r_[0, 1]]).item()
-    d_orig = d.C
+    d_orig_max = d.data.max()
+    # (at 6σ, pretty much falls to zero between points
     d.convolve("$B_0$", dB / 6 * divisor)
     d = d["$B_0$", 0::divisor]
-    d *= d_orig.data.max() / d.data.max()
+    # I'm a little confused b/c normalization should be preserved, and we end
+    # up needing to do following
+    d *= d_orig_max / d.data.max()
+# }}}
 
+# ☐ TODO: the st
 # Provide reasonable starting parameters so the fit can run immediately.
 n.update({
     "gxx": 2.0089,
