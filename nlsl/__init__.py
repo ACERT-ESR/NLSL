@@ -885,6 +885,103 @@ class nlsl(object):
         if shift:
             _fortrancore.expdat.ishglb = 1
 
+    def load_nddata(self, dataset, shift, normalize=True, derivative_mode=None):
+        """Load experimental data from a :mod:`pyspecdata` ``nddata`` object.
+
+        Parameters
+        ----------
+        dataset
+            ``nddata`` instance containing the measured spectrum.  The
+            intensity values must be accessible through ``dataset.data`` and
+            the first entry in ``dataset.dimlabels`` defines the field axis.
+        shift
+            If true, shift applies the same global offset logic as
+            :meth:`load_data`.
+        normalize
+            Normalize the spectrum when ``True``.  Defaults to ``True`` to match
+            the behaviour of :meth:`load_data`.
+        derivative_mode
+            Derivative mode to request during coordinate generation.  Mirrors
+            the argument to :meth:`load_data`.  When omitted, the mode defaults
+            to the first derivative.
+
+        Returns
+        -------
+        None
+            Experimental buffers are populated in-place.
+
+        Raises
+        ------
+        ImportError
+            Raised when :mod:`pyspecdata` is not installed.
+        TypeError
+            Raised when ``dataset`` is not a ``pyspecdata.nddata`` instance.
+        ValueError
+            Raised when the provided data lacks a labelled axis, contains no
+            points, mismatched field and intensity lengths, or a non-uniform
+            field grid.
+
+        Notes
+        -----
+        The provided ``nddata`` must describe exactly one spectrum.  The field
+        coordinates are taken from ``dataset[dataset.dimlabels[0]]`` and must be
+        uniformly spaced to infer the step size.  Because the caller supplies
+        both the field axis and intensities, this loader avoids ASCII parsing
+        and spline resampling while still populating the experimental buffer and
+        associated metadata.
+        """
+
+        try:
+            from pyspecdata.core import nddata
+        except ImportError as exc:
+            raise ImportError("pyspecdata is required to load nddata objects") from exc
+
+        if not isinstance(dataset, nddata):
+            raise TypeError("load_nddata expects a pyspecdata nddata instance")
+
+        if not dataset.dimlabels:
+            raise ValueError("nddata objects must supply at least one dimension label")
+
+        axis_label = dataset.dimlabels[0]
+        fields = np.asarray(dataset[axis_label], dtype=float).reshape(-1)
+        intensities = np.asarray(dataset.data, dtype=float).reshape(-1)
+
+        if fields.size == 0:
+            raise ValueError("nddata field axis contained no points")
+        if fields.size != intensities.size:
+            raise ValueError("field axis and intensity vector lengths do not match")
+
+        if fields.size > 1:
+            steps = np.diff(fields)
+            step = float(steps[0])
+            if not np.allclose(steps, step):
+                raise ValueError("nddata field axis must be uniformly spaced")
+        else:
+            step = 0.0
+
+        start = float(fields[0])
+        mode = int(derivative_mode) if derivative_mode is not None else 1
+
+        idx, data_slice = self.generate_coordinates(
+            int(fields.size),
+            start=start,
+            step=step,
+            derivative_mode=mode,
+            baseline_points=0,
+            normalize=normalize,
+            nspline=0,
+            shift=shift,
+            label=str(axis_label),
+        )
+
+        noise = float(np.std(intensities))
+        eps = float(np.finfo(float).eps)
+        if noise <= eps:
+            noise = 1.0
+        _fortrancore.expdat.rmsn[idx] = noise
+
+        self.set_data(data_slice, intensities)
+
     def load_basis(self, identifier, spectrum=None, site=None):
         """Load a basis index file and assign it to optional targets."""
 
