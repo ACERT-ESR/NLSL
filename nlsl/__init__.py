@@ -890,7 +890,7 @@ class nlsl(object):
             _fortrancore.expdat.ishglb = 1
 
     def load_nddata(
-        self, dataset, shift, normalize=True, derivative_mode=None
+        self, dataset, shift=False, normalize=True, derivative_mode=None
     ):
         """Load experimental data from a :mod:`pyspecdata` ``nddata`` object.
 
@@ -902,7 +902,8 @@ class nlsl(object):
             the first entry in ``dataset.dimlabels`` defines the field axis.
         shift
             If true, shift applies the same global offset logic as
-            :meth:`load_data`.
+            :meth:`load_data`.  Defaults to ``False`` so callers may omit the
+            flag when no offset is needed.
         normalize
             Normalize the spectrum when ``True``.  Defaults to ``True`` to
             match the behaviour of :meth:`load_data`.
@@ -973,6 +974,20 @@ class nlsl(object):
 
         start = float(fields[0])
         mode = int(derivative_mode) if derivative_mode is not None else 1
+
+        # The legacy Fortran workspace allocates a fixed buffer per spectrum,
+        # so oversized inputs must be rejected with a clear message.
+        max_points = self._core.expdat.data.shape[0] // max(
+            self._core.expdat.nft.shape[0], 1
+        )
+        if fields.size > max_points:
+            raise ValueError(
+                "nddata field axis has "
+                + str(int(fields.size))
+                + " points; reduce it to "
+                + str(int(max_points))
+                + " or fewer to fit the NLSL buffers"
+            )
 
         idx, data_slice = self.generate_coordinates(
             int(fields.size),
