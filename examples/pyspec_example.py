@@ -20,7 +20,7 @@ with psd.figlist_var() as fl:
     # there are in the dimension, and what it must be reduced to.
     # ☐ TODO -- make shift a kwarg (default 0) of load_nddata, rather than a
     # required arg
-    #n.load_nddata(d, 0)
+    n.load_nddata(d, 0)
     # ☐ TODO -- now, we want to run a fit of the loaded data.  MOMD shouldn't
     # be required, so use any of the examples that doesn't use MOMD as an
     # example
