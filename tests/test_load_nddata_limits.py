@@ -2,7 +2,9 @@ import numpy as np
 import pytest
 import nlsl
 
-pytest.importorskip("pyspecdata", exc_type=ImportError, reason="pyspecdata is required")
+pytest.importorskip(
+    "pyspecdata", exc_type=ImportError, reason="pyspecdata is required"
+)
 from pyspecdata.core import nddata
 
 
