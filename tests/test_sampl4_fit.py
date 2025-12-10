@@ -1,15 +1,18 @@
 import numpy as np
 import pytest
-
 import nlsl
 from tests.sampl4_reference import (
     BASELINE_EDGE_POINTS,
     DERIVATIVE_MODE,
     NSPLINE_POINTS,
     SAMPL4_DATA_PATH,
+    SAMPL4_FIELD_START,
+    SAMPL4_FIELD_STEP,
     SAMPL4_FIT_CONTROLS,
     SAMPL4_INITIAL_PARAMETERS,
+    SAMPL4_POINT_COUNT,
     SAMPL4_PARAMETERS_TO_VARY,
+    SAMPL4_SPECTRAL_DATA,
 )
 
 
@@ -87,3 +90,46 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
         sampl4_fit_result["simulated_total"],
         atol=3e-6,
     )
+
+
+def test_load_nddata_runs_fit_cycle():
+    """Verify ``load_nddata`` ingests a prepared spectrum and converges."""
+
+    try:
+        from pyspecdata.core import nddata
+    except ImportError:
+        pytest.fail("pyspecdata is required for the nddata loader test")
+
+    model = nlsl.nlsl()
+    model.update(SAMPL4_INITIAL_PARAMETERS)
+
+    fields = SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * np.arange(
+        SAMPL4_POINT_COUNT
+    )
+    dataset = nddata(
+        SAMPL4_SPECTRAL_DATA.copy(), [SAMPL4_POINT_COUNT], ["field"]
+    )
+    dataset.setaxis(dataset.dimlabels[0], fields)
+
+    model.load_nddata(
+        dataset,
+        shift=True,
+        normalize=False,
+        derivative_mode=DERIVATIVE_MODE,
+    )
+
+    for token in SAMPL4_PARAMETERS_TO_VARY:
+        model.procline(f"vary {token}")
+
+    for key in SAMPL4_FIT_CONTROLS:
+        model.fit_params[key] = SAMPL4_FIT_CONTROLS[key]
+
+    model.fit()
+    site_spectra = model.fit()
+
+    simulated_total = np.squeeze(model.weights @ site_spectra)
+    experimental = np.squeeze(model.experimental_data)
+    residual = simulated_total - experimental
+    rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
+
+    assert rel_rms < 0.0401
