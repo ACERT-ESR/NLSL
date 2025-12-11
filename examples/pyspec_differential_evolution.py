@@ -59,12 +59,12 @@ initial_params = {
 }
 n.update(initial_params)
 param_tokens = list(
-    set(initial_params.keys()) - set(["in2", "kmx", "mmx", "lemx", "lomx", "ipnmx", "b0"])
+    set(initial_params.keys())
+    - set(["in2", "kmx", "mmx", "lemx", "lomx", "ipnmx", "b0"])
 )
-#param_tokens = ['gxx','gyy','gzz','axx','ayy','azz']
 print(param_tokens)
 
-d.data /= d.data.max()-d.data.min()
+d.data /= d.data.max() - d.data.min()
 
 # Load nddata into the optimiser buffers
 n.load_nddata(d)
@@ -76,19 +76,22 @@ n.load_nddata(d)
 bounds = []
 for k in param_tokens:
     v = n[k]
-    if k.startswith("g"):
+    if k in ["gxx", "gyy", "gzz"]:
         bounds.append((((v - 2) * 0.6) + 2, ((v - 2) * 1.4) + 2))
+    elif k == "betad":
+        bounds.append((0, 180))
+    elif v < 0:
+        bounds.append((v * 2.0, v * 0.1))
     else:
         bounds.append((v * 0.1, v * 2.0))
-    if k == "betad":
-        bounds.append((0, 180))
 
 
 def objective(n):
     site_spectra = n.current_spectrum
     simulated_total = np.squeeze(n.weights @ site_spectra)
-    simulated_total /= simulated_total.max()-simulated_total.min()
+    simulated_total /= simulated_total.max() - simulated_total.min()
     return simulated_total
+
 
 def residual_norm(candidate):
     for value, token in zip(candidate, param_tokens):
@@ -96,13 +99,43 @@ def residual_norm(candidate):
     return np.linalg.norm(d.data - objective(n))
 
 
+# Target residual (L2 norm) for early stopping; tune as needed
+target_residual = 5e-2
+
+
+def de_callback(xk, convergence):
+    """Progress callback for differential evolution.
+
+    Prints iteration, current best residual, and convergence metric.
+    Returns True if target_residual has been reached, causing early stop.
+    """
+    current_resid = residual_norm(xk)
+    print(
+        f"DE iter {de_callback.iteration}: residual={current_resid:.5g},"
+        f" conv={convergence:.3g}"
+    )
+    de_callback.iteration += 1
+    return current_resid < target_residual
+
+
+de_callback.iteration = 0
+
+print("params before", n.items())
+
 result = differential_evolution(
     residual_norm,
     bounds,
-    maxiter=8,
-    popsize=8,
-    polish=False,
+    strategy="best1bin",
+    maxiter=2000,
+    popsize=200,
+    tol=1e-4,
+    mutation=(0.5, 1.0),
+    recombination=0.7,
+    polish=True,
     updating="deferred",
+    workers=-1,
+    callback=de_callback,
+    disp=True,
 )
 
 # Apply optimized parameters
@@ -112,6 +145,7 @@ for value, token in zip(result.x, param_tokens):
 site_spectra = n.current_spectrum
 simulated_total = objective(n)
 residual = d.data - simulated_total
+print("final params", n.items())
 
 with psd.figlist_var() as fl:
     fl.next("Differential evolution on pyspecdata trace")
@@ -122,3 +156,4 @@ with psd.figlist_var() as fl:
         field_axis, simulated_total, alpha=0.9, label="differential evolution"
     )
     fl.plot(field_axis, residual, alpha=0.8, label="residual")
+print("final params", n.items())
