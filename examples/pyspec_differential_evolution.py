@@ -26,73 +26,76 @@ max_points = n._core.expdat.data.shape[0] // max(
     n._core.expdat.nft.shape[0], 1
 )
 # {{{ we use convolution to downsample the data
-# ☐ TODO -- while preserving this example, we ALSO should be able to use
-# d.spline_lambda from pyspecdata to directly generate a spline, and then
-# utilize that spline DIRECTLY, rather than either not making a spline,
-# or relying on the internal spline mechanism.
-# This definitely means we need to modify load_data so that it can accept
-# a spline.
-# This likely also means that the pyf file will need to be modified to
-# allow us to directly access/supply the spline information from the
-# output of spline_lambda
 if d.data.shape[0] > max_points:
     divisor = d.shape["$B_0$"] // max_points + 1
     dB = np.diff(d["$B_0$"][r_[0, 1]]).item()
     d_orig_max = d.data.max()
-    # (at 6σ, pretty much falls to zero between points
     d.convolve("$B_0$", dB / 6 * divisor)
     d = d["$B_0$", 0::divisor]
-    # I'm a little confused b/c normalization should be preserved, and we end
-    # up needing to do following
     d *= d_orig_max / d.data.max()
 # }}}
 
-# Provide reasonable starting parameters so the fit can run immediately.
-# These match the values in the pyspecdata example and will be adjusted by the
-# optimizer below.
-n.update({
-    "gxx": 2.0089,
-    "gyy": 2.0021,
-    "gzz": 2.0058,
-    "in2": 2,
-    "axx": 5.6,
-    "ayy": 33.8,
-    "azz": 5.3,
-    "lemx": 6,
-    "lomx": 5,
-    "kmx": 4,
-    "mmx": (2, 2),
-    "rpll": np.log10(1.0e8),
-    "rprp": 8.0,
-    "gib0": 1.5,
-})
+# Provide reasonable starting parameters
+initial_params = {
+    "in2": np.int32(2),
+    "gxx": np.float64(2.0089),
+    "gyy": np.float64(2.0058),
+    "gzz": np.float64(2.0021),
+    "axx": np.float64(4.9),
+    "ayy": np.float64(4.9),
+    "azz": np.float64(33.0),
+    "lemx": np.int32(6),
+    "lomx": np.int32(5),
+    "kmx": np.int32(4),
+    "mmx": np.int32(4),
+    "ipnmx": np.int32(2),
+    "rbar": np.float64(7.935044819885658),
+    "n": np.float64(0.6932829362508512),
+    "c20": np.float64(2.5061887785331742),
+    "c22": np.float64(-1.2608085913642202),
+    "betad": np.float64(29.942804557290664),
+    "gib0": np.float64(2.0101124440329796),
+    "gib2": np.float64(0.5050889997199121),
+}
+n.update(initial_params)
+param_tokens = list(
+    set(initial_params.keys()) - set(["in2", "kmx", "mmx", "lemx", "lomx", "ipnmx", "b0"])
+)
+#param_tokens = ['gxx','gyy','gzz','axx','ayy','azz']
+print(param_tokens)
 
-# Load the nddata into the optimiser buffers without shifting the field.
+d.data /= d.data.max()-d.data.min()
+
+# Load nddata into the optimiser buffers
 n.load_nddata(d)
 
-# Differential evolution will adjust a few relaxation-related parameters.  The
-# parameter order here matches the bounds below and is reused when applying the
-# optimized values back onto the model.
-param_tokens = ["rpll", "rprp", "gib0"]
+# -------------------------
+# Allow differential evolution to optimize ALL scalar parameters
+# -------------------------
 
-# Bounds are kept modest so the global search remains quick for the example.
-bounds = [
-    (np.log10(1.0e7), np.log10(5.0e9)),
-    (4.0, 12.0),
-    (0.5, 4.0),
-]
+bounds = []
+for k in param_tokens:
+    v = n[k]
+    if k.startswith("g"):
+        bounds.append((((v - 2) * 0.6) + 2, ((v - 2) * 1.4) + 2))
+    else:
+        bounds.append((v * 0.1, v * 2.0))
+    if k == "betad":
+        bounds.append((0, 180))
 
-# Evaluate the spectrum for a proposed parameter set and return the residual
-# norm against the experimental trace for use by differential evolution.
+
+def objective(n):
+    site_spectra = n.current_spectrum
+    simulated_total = np.squeeze(n.weights @ site_spectra)
+    simulated_total /= simulated_total.max()-simulated_total.min()
+    return simulated_total
+
 def residual_norm(candidate):
     for value, token in zip(candidate, param_tokens):
         n[token] = value
-    site_spectra = n.current_spectrum
-    simulated_total = np.squeeze(n.weights @ site_spectra)
-    return np.linalg.norm(d.data - simulated_total)
+    return np.linalg.norm(d.data - objective(n))
 
-# Run a small number of iterations to demonstrate the search flow without
-# making the example overly time-consuming.
+
 result = differential_evolution(
     residual_norm,
     bounds,
@@ -102,12 +105,12 @@ result = differential_evolution(
     updating="deferred",
 )
 
-# Apply the optimized parameters back to the model to generate the final curves
-# for plotting.
+# Apply optimized parameters
 for value, token in zip(result.x, param_tokens):
     n[token] = value
+
 site_spectra = n.current_spectrum
-simulated_total = np.squeeze(n.weights @ site_spectra)
+simulated_total = objective(n)
 residual = d.data - simulated_total
 
 with psd.figlist_var() as fl:
@@ -115,6 +118,7 @@ with psd.figlist_var() as fl:
     fl.plot(d, alpha=0.6, label="experimental")
 
     field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
-    fl.plot(field_axis, simulated_total, alpha=0.9, label="differential evolution")
+    fl.plot(
+        field_axis, simulated_total, alpha=0.9, label="differential evolution"
+    )
     fl.plot(field_axis, residual, alpha=0.8, label="residual")
-    fl.show_legend()
