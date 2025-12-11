@@ -4,7 +4,8 @@ import re
 from pathlib import Path
 from numpy import r_
 from pyspecdata.datadir import pyspec_config
-from scipy.optimize import differential_evolution
+import pygmo as pg
+from scipy.optimize import minimize
 import nlsl
 
 # Register the example directory with pyspecdata if it is not already present.
@@ -70,20 +71,24 @@ d.data /= d.data.max() - d.data.min()
 n.load_nddata(d)
 
 # -------------------------
-# Allow differential evolution to optimize ALL scalar parameters
+# Build bounds for all optimizable scalar parameters
 # -------------------------
 
 bounds = []
 for k in param_tokens:
     v = n[k]
     if k in ["gxx", "gyy", "gzz"]:
+        # g-tensor is really a difference about 2
         bounds.append((((v - 2) * 0.6) + 2, ((v - 2) * 1.4) + 2))
     elif k == "betad":
-        bounds.append((0, 180))
-    elif v < 0:
-        bounds.append((v * 2.0, v * 0.1))
+        bounds.append((0.0, 180.0))
     else:
-        bounds.append((v * 0.1, v * 2.0))
+        # generic: allow roughly one order of magnitude around current value,
+        # handling negative values safely
+        low, high = v * 0.1, v * 2.0
+        if low > high:
+            low, high = high, low
+        bounds.append((low, high))
 
 
 def objective(n):
@@ -99,64 +104,119 @@ def residual_norm(candidate):
     return np.linalg.norm(d.data - objective(n))
 
 
-# Target residual (L2 norm) for early stopping; tune as needed
+# Target residual (L2 norm) for guidance / restarts
 target_residual = 5e-2
 
 
-def de_callback(xk, convergence):
-    """Progress callback for differential evolution.
+class NLSLFitness:
+    """Pagmo problem wrapper around the NLSL spectrum fit."""
 
-    Prints iteration, current best residual, and convergence metric.
-    Returns True if target_residual has been reached, causing early stop.
-    """
-    current_resid = residual_norm(xk)
-    print(
-        f"DE iter {de_callback.iteration}: residual={current_resid:.5g},"
-        f" conv={convergence:.3g}"
-    )
-    de_callback.iteration += 1
-    return current_resid < target_residual
+    def __init__(self, param_tokens, bounds, n_obj, data_nd):
+        self.param_tokens = list(param_tokens)
+        self.bounds = list(bounds)
+        self.n = n_obj
+        self.d = data_nd
+
+    def fitness(self, x):
+        for value, token in zip(x, self.param_tokens):
+            self.n[token] = value
+        res = self.d.data - objective(self.n)
+        # single-objective minimization: L2 residual norm
+        return [float(np.linalg.norm(res))]
+
+    def get_bounds(self):
+        lb = [b[0] for b in self.bounds]
+        ub = [b[1] for b in self.bounds]
+        return (lb, ub)
 
 
-de_callback.iteration = 0
+# Build pagmo problem and archipelago (islands + migration)
+prob = pg.problem(NLSLFitness(param_tokens, bounds, n, d))
 
-print("params before", n.items())
+pop_size = 40
+num_islands = 8
 
-result = differential_evolution(
-    residual_norm,
-    bounds,
-    strategy="best1bin",
-    maxiter=2000,
-    popsize=200,
-    tol=1e-4,
-    mutation=(0.5, 1.0),
-    recombination=0.7,
-    polish=True,
-    updating="deferred",
-    workers=-1,
-    callback=de_callback,
-    disp=True,
+algo = pg.algorithm(pg.de1220(gen=20))
+algo.set_verbosity(1)
+
+archi = pg.archipelago(
+    n=num_islands,
+    algo=algo,
+    prob=prob,
+    pop_size=pop_size,
 )
 
+max_epochs = 50
+
+for epoch in range(max_epochs):
+    archi.evolve()
+    archi.wait_check()
+
+    # Gather full population across all islands to measure spread
+    all_pop = [isl.get_population().get_x() for isl in archi]
+    all_x = np.vstack(all_pop)
+    mean_vec = np.mean(all_x, axis=0)
+    std_vec = np.std(all_x, axis=0)
+    spread = float(np.mean(std_vec / (np.abs(mean_vec) + 1e-12)))
+
+    champs_f = archi.get_champions_f()
+    best_resid = float(min(f[0] for f in champs_f))
+
+    print(f"epoch {epoch}: best_resid={best_resid:.5g}, spread={spread:.3g}")
+
+    # Diversity reinjection if population has collapsed but fit is still poor
+    if spread < 1e-3 and best_resid > target_residual:
+        for isl in archi:
+            if np.random.rand() < 0.3:
+                isl.set_population(pg.population(prob, pop_size))
+
+
+# Extract best solution from the archipelago
+champ_f = archi.get_champions_f()
+champ_x = archi.get_champions_x()
+idx_best = np.argmin([f[0] for f in champ_f])
+best_x = np.array(champ_x[idx_best], dtype=float)
+
+# -------------------------
+# Local refinement with Powell (derivative-free), inspired by
+# GA+Powell hybrids used successfully for EPR spectral fitting.
+# -------------------------
+
+lb = np.array([b[0] for b in bounds], dtype=float)
+ub = np.array([b[1] for b in bounds], dtype=float)
+
+
+def residual_for_scipy(x_vec):
+    # Project onto bounds to be robust against Powell overshooting
+    x_vec = np.clip(x_vec, lb, ub)
+    for value, token in zip(x_vec, param_tokens):
+        n[token] = value
+    res = d.data - objective(n)
+    return float(np.linalg.norm(res))
+
+
+powell_result = minimize(
+    residual_for_scipy,
+    best_x,
+    method="Powell",
+    options={"maxiter": 2000, "xtol": 1e-4, "ftol": 1e-4},
+)
+
+best_x_refined = np.clip(powell_result.x, lb, ub)
+
 # Apply optimized parameters
-for value, token in zip(result.x, param_tokens):
+for value, token in zip(best_x_refined, param_tokens):
     n[token] = value
 
 site_spectra = n.current_spectrum
 simulated_total = objective(n)
 residual = d.data - simulated_total
-print("final params", n.items())
 
 with psd.figlist_var() as fl:
-    fl.next("Differential evolution on pyspecdata trace")
+    fl.next("Global+local DE/Powell fit on pyspecdata trace")
     fl.plot(d, alpha=0.6, label="experimental")
 
     field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
-    fl.plot(
-        field_axis, simulated_total, alpha=0.9, label="differential evolution"
-    )
+    fl.plot(field_axis, simulated_total, alpha=0.9, label="global+local fit")
     fl.plot(field_axis, residual, alpha=0.8, label="residual")
 print("final params", n.items())
-# After 2000, this yields:
-# final params [('phase', np.float64(0.0)), ('gib0', np.float64(2.8942090758485755)), ('gib2', np.float64(0.39199600654614813)), ('wxx', np.float64(0.0)), ('wyy', np.float64(0.0)), ('wzz', np.float64(0.0)), ('gxx', np.float64(2.009693371157006)), ('gyy', np.float64(2.003828298929847)), ('gzz', np.float64(2.0017474417927743)), ('axx', np.float64(9.747522328835789)), ('ayy', np.float64(6.1568728496855165)), ('azz', np.float64(34.19413456987792)), ('rx', np.float64(8.439735530155293)), ('ry', np.float64(0.5860118162618787)), ('rz', np.float64(0.0)), ('pml', np.float64(0.0)), ('pmxy', np.float64(0.0)), ('pmzz', np.float64(0.0)), ('djf', np.float64(0.0)), ('djfprp', np.float64(0.0)), ('oss', np.float64(0.0)), ('psi', np.float64(0.0)), ('alphad', np.float64(0.0)), ('betad', np.float64(62.09432531668076)), ('gammad', np.float64(0.0)), ('alpham', np.float64(0.0)), ('betam', np.float64(0.0)), ('gammam', np.float64(0.0)), ('c20', np.float64(3.7138981992212816)), ('c22', np.float64(-2.4697889291020028)), ('c40', np.float64(0.0)), ('c42', np.float64(0.0)), ('c44', np.float64(0.0)), ('lb', np.float64(0.0)), ('dc20', np.float64(0.0)), ('b0', 3505.41974782382), ('gamman', np.float64(0.0)), ('cgtol', np.float64(0.001)), ('shiftr', np.float64(0.001)), ('shifti', np.float64(0.0)), ('range', 149.8242011869138), ('fldi', 3430.2000000000003), ('dfld', 0.3076472303632727), ('in2', np.int32(2)), ('ipdf', np.int32(0)), ('ist', np.int32(0)), ('ml', np.int32(0)), ('mxy', np.int32(0)), ('mzz', np.int32(0)), ('lemx', np.int32(6)), ('lomx', np.int32(5)), ('kmn', np.int32(0)), ('kmx', np.int32(4)), ('mmn', np.int32(0)), ('mmx', np.int32(4)), ('ipnmx', np.int32(2)), ('nort', np.int32(0)), ('nstep', np.int32(0)), ('nfield', np.int32(488)), ('ideriv', np.int32(1)), ('iwflg', np.int32(0)), ('igflg', np.int32(0)), ('iaflg', np.int32(0)), ('irflg', np.int32(0)), ('jkmn', np.int32(0)), ('jmmn', np.int32(0)), ('ndim', np.int32(60))]
-
