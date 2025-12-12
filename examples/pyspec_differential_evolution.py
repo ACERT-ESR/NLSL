@@ -5,6 +5,7 @@ from pathlib import Path
 from numpy import r_
 from pyspecdata.datadir import pyspec_config
 import pygmo as pg
+import os
 from scipy.optimize import minimize
 import nlsl
 
@@ -12,29 +13,39 @@ import nlsl
 if not Path(psd.getDATADIR("nlsl_examples")).exists():
     pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(Path.cwd()))
 
-# Load and prepare the experimental spectrum using the same workflow as the
-# pyspecdata example.  All TODO markers from that script are intentionally left
-# untouched here.
-d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
-d.set_units("$B_0$", None)
-d = d.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
+# Heavy objects (nddata + compiled NLSL state) MUST NOT be created at import time,
+# because multiprocessing (spawn) will import this module in each worker.
+# Instead, we create exactly one NLSL instance per *process* lazily.
 
-n = nlsl.nlsl()
 
-# ☐ TODO -- the max points should be an accessible property or attribute supplied by the
-# class -- we should not need to do the following in our script
-max_points = n._core.expdat.data.shape[0] // max(
-    n._core.expdat.nft.shape[0], 1
-)
-# {{{ we use convolution to downsample the data
-if d.data.shape[0] > max_points:
-    divisor = d.shape["$B_0$"] // max_points + 1
-    dB = np.diff(d["$B_0$"][r_[0, 1]]).item()
-    d_orig_max = d.data.max()
-    d.convolve("$B_0$", dB / 6 * divisor)
-    d = d["$B_0$", 0::divisor]
-    d *= d_orig_max / d.data.max()
-# }}}
+def _build_experimental_spectrum():
+    """Load and preprocess the experimental spectrum (runs in each process once)."""
+    d_local = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
+    d_local.set_units("$B_0$", None)
+    d_local = d_local.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
+
+    # We need a temporary NLSL instance only to read the expdat max_points limit.
+    n_tmp = nlsl.nlsl()
+
+    # ☐ TODO -- the max points should be an accessible property or attribute supplied by the
+    # class -- we should not need to do the following in our script
+    max_points = n_tmp._core.expdat.data.shape[0] // max(n_tmp._core.expdat.nft.shape[0], 1)
+
+    # {{{ we use convolution to downsample the data
+    if d_local.data.shape[0] > max_points:
+        divisor = d_local.shape["$B_0$"] // max_points + 1
+        dB = np.diff(d_local["$B_0$"][r_[0, 1]]).item()
+        d_orig_max = d_local.data.max()
+        d_local.convolve("$B_0$", dB / 6 * divisor)
+        d_local = d_local["$B_0$", 0::divisor]
+        d_local *= d_orig_max / d_local.data.max()
+    # }}}
+
+    # Normalize experimental data (keep your existing convention)
+    d_local.data /= d_local.data.max() - d_local.data.min()
+
+    return d_local
+
 
 # Provide reasonable starting parameters
 initial_params = {
@@ -58,25 +69,21 @@ initial_params = {
     "gib0": np.float64(2.0101124440329796),
     "gib2": np.float64(0.5050889997199121),
 }
-n.update(initial_params)
+
 param_tokens = sorted(
     set(initial_params.keys())
     - set(["in2", "kmx", "mmx", "lemx", "lomx", "ipnmx", "b0"])
 )
 print(param_tokens)
 
-d.data /= d.data.max() - d.data.min()
-
-# Load nddata into the optimiser buffers
-n.load_nddata(d)
-
 # -------------------------
 # Build bounds for all optimizable scalar parameters
+# (computed from initial_params only; does not touch NLSL at import time)
 # -------------------------
 
 bounds = []
 for k in param_tokens:
-    v = n[k]
+    v = float(initial_params[k])
     if k in ["gxx", "gyy", "gzz"]:
         # g-tensor is really a difference about 2
         bounds.append((((v - 2) * 0.6) + 2, ((v - 2) * 1.4) + 2))
@@ -91,20 +98,43 @@ for k in param_tokens:
         bounds.append((low, high))
 
 
+# -------------------------
+# Per-process NLSL + nddata cache (ONE instance per process)
+# -------------------------
+
+_WORKER = {"pid": None, "n": None, "d": None}
+
+
+def _get_ctx():
+    pid = os.getpid()
+    if _WORKER["pid"] == pid and _WORKER["n"] is not None and _WORKER["d"] is not None:
+        return _WORKER
+
+    d_local = _build_experimental_spectrum()
+
+    n_local = nlsl.nlsl()
+    n_local.update(initial_params)
+    n_local.load_nddata(d_local)
+
+    _WORKER.update({"pid": pid, "n": n_local, "d": d_local})
+    return _WORKER
+
 def objective(x_vec):
-    # apply parameter vector to n
+    ctx = _get_ctx()
+    n_local = ctx["n"]
     for value, token in zip(x_vec, param_tokens):
-        n[token] = value
-    # compute simulated spectrum
-    site_spectra = n.current_spectrum
-    simulated_total = np.squeeze(n.weights @ site_spectra)
+        n_local[token] = value
+    site_spectra = n_local.current_spectrum
+    simulated_total = np.squeeze(n_local.weights @ site_spectra)
     simulated_total /= simulated_total.max() - simulated_total.min()
     return simulated_total
 
 
 def residual_norm(x_vec):
+    ctx = _get_ctx()
+    d_local = ctx["d"]
     sim = objective(x_vec)
-    return np.linalg.norm(d.data - sim)
+    return np.linalg.norm(d_local.data - sim)
 
 
 # Target residual (L2 norm) for guidance / restarts
@@ -128,6 +158,8 @@ class NLSLFitness:
 
 
 if __name__ == '__main__':
+    from multiprocessing import freeze_support
+    freeze_support()
     # Build pagmo problem and archipelago (islands + migration)
     prob = pg.problem(NLSLFitness(param_tokens, bounds))
 
@@ -142,6 +174,7 @@ if __name__ == '__main__':
         algo=algo,
         prob=prob,
         pop_size=pop_size,
+        udi=pg.mp_island(),
     )
 
     max_epochs = 50
@@ -187,10 +220,10 @@ if __name__ == '__main__':
     def residual_for_scipy(x_vec):
         # Project onto bounds to be robust against Powell overshooting
         x_vec = np.clip(x_vec, lb, ub)
-        for value, token in zip(x_vec, param_tokens):
-            n[token] = value
         sim = objective(x_vec)
-        res = d.data - sim
+        ctx = _get_ctx()
+        d_local = ctx["d"]
+        res = d_local.data - sim
         return float(np.linalg.norm(res))
 
 
@@ -203,19 +236,22 @@ if __name__ == '__main__':
 
     best_x_refined = np.clip(powell_result.x, lb, ub)
 
-    # Apply optimized parameters
-    for value, token in zip(best_x_refined, param_tokens):
-        n[token] = value
+    # Apply optimized parameters in the main process context
+    ctx = _get_ctx()
+    n_local = ctx["n"]
+    d_local = ctx["d"]
 
-    site_spectra = n.current_spectrum
-    simulated_total = objective(n)
-    residual = d.data - simulated_total
+    for value, token in zip(best_x_refined, param_tokens):
+        n_local[token] = value
+
+    simulated_total = objective(best_x_refined)
+    residual = d_local.data - simulated_total
 
     with psd.figlist_var() as fl:
         fl.next("Global+local DE/Powell fit on pyspecdata trace")
-        fl.plot(d, alpha=0.6, label="experimental")
+        fl.plot(d_local, alpha=0.6, label="experimental")
 
-        field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
+        field_axis = np.asarray(d_local[d_local.dimlabels[0]], dtype=float)
         fl.plot(field_axis, simulated_total, alpha=0.9, label="global+local fit")
         fl.plot(field_axis, residual, alpha=0.8, label="residual")
-    print("final params", n.items())
+    print("final params", n_local.items())
