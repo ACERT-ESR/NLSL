@@ -59,7 +59,7 @@ initial_params = {
     "gib2": np.float64(0.5050889997199121),
 }
 n.update(initial_params)
-param_tokens = list(
+param_tokens = sorted(
     set(initial_params.keys())
     - set(["in2", "kmx", "mmx", "lemx", "lomx", "ipnmx", "b0"])
 )
@@ -91,17 +91,20 @@ for k in param_tokens:
         bounds.append((low, high))
 
 
-def objective(n):
+def objective(x_vec):
+    # apply parameter vector to n
+    for value, token in zip(x_vec, param_tokens):
+        n[token] = value
+    # compute simulated spectrum
     site_spectra = n.current_spectrum
     simulated_total = np.squeeze(n.weights @ site_spectra)
     simulated_total /= simulated_total.max() - simulated_total.min()
     return simulated_total
 
 
-def residual_norm(candidate):
-    for value, token in zip(candidate, param_tokens):
-        n[token] = value
-    return np.linalg.norm(d.data - objective(n))
+def residual_norm(x_vec):
+    sim = objective(x_vec)
+    return np.linalg.norm(d.data - sim)
 
 
 # Target residual (L2 norm) for guidance / restarts
@@ -111,18 +114,12 @@ target_residual = 5e-2
 class NLSLFitness:
     """Pagmo problem wrapper around the NLSL spectrum fit."""
 
-    def __init__(self, param_tokens, bounds, n_obj, data_nd):
+    def __init__(self, param_tokens, bounds):
         self.param_tokens = list(param_tokens)
         self.bounds = list(bounds)
-        self.n = n_obj
-        self.d = data_nd
 
     def fitness(self, x):
-        for value, token in zip(x, self.param_tokens):
-            self.n[token] = value
-        res = self.d.data - objective(self.n)
-        # single-objective minimization: L2 residual norm
-        return [float(np.linalg.norm(res))]
+        return [residual_norm(x)]
 
     def get_bounds(self):
         lb = [b[0] for b in self.bounds]
@@ -130,93 +127,95 @@ class NLSLFitness:
         return (lb, ub)
 
 
-# Build pagmo problem and archipelago (islands + migration)
-prob = pg.problem(NLSLFitness(param_tokens, bounds, n, d))
+if __name__ == '__main__':
+    # Build pagmo problem and archipelago (islands + migration)
+    prob = pg.problem(NLSLFitness(param_tokens, bounds))
 
-pop_size = 40
-num_islands = 8
+    pop_size = 40
+    num_islands = 8
 
-algo = pg.algorithm(pg.de1220(gen=20))
-algo.set_verbosity(1)
+    algo = pg.algorithm(pg.de1220(gen=20))
+    algo.set_verbosity(1)
 
-archi = pg.archipelago(
-    n=num_islands,
-    algo=algo,
-    prob=prob,
-    pop_size=pop_size,
-)
+    archi = pg.archipelago(
+        n=num_islands,
+        algo=algo,
+        prob=prob,
+        pop_size=pop_size,
+    )
 
-max_epochs = 50
+    max_epochs = 50
 
-for epoch in range(max_epochs):
-    archi.evolve()
-    archi.wait_check()
+    for epoch in range(max_epochs):
+        archi.evolve()
+        archi.wait_check()
 
-    # Gather full population across all islands to measure spread
-    all_pop = [isl.get_population().get_x() for isl in archi]
-    all_x = np.vstack(all_pop)
-    mean_vec = np.mean(all_x, axis=0)
-    std_vec = np.std(all_x, axis=0)
-    spread = float(np.mean(std_vec / (np.abs(mean_vec) + 1e-12)))
+        # Gather full population across all islands to measure spread
+        all_pop = [isl.get_population().get_x() for isl in archi]
+        all_x = np.vstack(all_pop)
+        mean_vec = np.mean(all_x, axis=0)
+        std_vec = np.std(all_x, axis=0)
+        spread = float(np.mean(std_vec / (np.abs(mean_vec) + 1e-12)))
 
-    champs_f = archi.get_champions_f()
-    best_resid = float(min(f[0] for f in champs_f))
+        champs_f = archi.get_champions_f()
+        best_resid = float(min(f[0] for f in champs_f))
 
-    print(f"epoch {epoch}: best_resid={best_resid:.5g}, spread={spread:.3g}")
+        print(f"epoch {epoch}: best_resid={best_resid:.5g}, spread={spread:.3g}")
 
-    # Diversity reinjection if population has collapsed but fit is still poor
-    if spread < 1e-3 and best_resid > target_residual:
-        for isl in archi:
-            if np.random.rand() < 0.3:
-                isl.set_population(pg.population(prob, pop_size))
-
-
-# Extract best solution from the archipelago
-champ_f = archi.get_champions_f()
-champ_x = archi.get_champions_x()
-idx_best = np.argmin([f[0] for f in champ_f])
-best_x = np.array(champ_x[idx_best], dtype=float)
-
-# -------------------------
-# Local refinement with Powell (derivative-free), inspired by
-# GA+Powell hybrids used successfully for EPR spectral fitting.
-# -------------------------
-
-lb = np.array([b[0] for b in bounds], dtype=float)
-ub = np.array([b[1] for b in bounds], dtype=float)
+        # Diversity reinjection if population has collapsed but fit is still poor
+        if spread < 1e-3 and best_resid > target_residual:
+            for isl in archi:
+                if np.random.rand() < 0.3:
+                    isl.set_population(pg.population(prob, pop_size))
 
 
-def residual_for_scipy(x_vec):
-    # Project onto bounds to be robust against Powell overshooting
-    x_vec = np.clip(x_vec, lb, ub)
-    for value, token in zip(x_vec, param_tokens):
+    # Extract best solution from the archipelago
+    champ_f = archi.get_champions_f()
+    champ_x = archi.get_champions_x()
+    idx_best = np.argmin([f[0] for f in champ_f])
+    best_x = np.array(champ_x[idx_best], dtype=float)
+
+    # -------------------------
+    # Local refinement with Powell (derivative-free), inspired by
+    # GA+Powell hybrids used successfully for EPR spectral fitting.
+    # -------------------------
+
+    lb = np.array([b[0] for b in bounds], dtype=float)
+    ub = np.array([b[1] for b in bounds], dtype=float)
+
+
+    def residual_for_scipy(x_vec):
+        # Project onto bounds to be robust against Powell overshooting
+        x_vec = np.clip(x_vec, lb, ub)
+        for value, token in zip(x_vec, param_tokens):
+            n[token] = value
+        sim = objective(x_vec)
+        res = d.data - sim
+        return float(np.linalg.norm(res))
+
+
+    powell_result = minimize(
+        residual_for_scipy,
+        best_x,
+        method="Powell",
+        options={"maxiter": 2000, "xtol": 1e-4, "ftol": 1e-4},
+    )
+
+    best_x_refined = np.clip(powell_result.x, lb, ub)
+
+    # Apply optimized parameters
+    for value, token in zip(best_x_refined, param_tokens):
         n[token] = value
-    res = d.data - objective(n)
-    return float(np.linalg.norm(res))
 
+    site_spectra = n.current_spectrum
+    simulated_total = objective(n)
+    residual = d.data - simulated_total
 
-powell_result = minimize(
-    residual_for_scipy,
-    best_x,
-    method="Powell",
-    options={"maxiter": 2000, "xtol": 1e-4, "ftol": 1e-4},
-)
+    with psd.figlist_var() as fl:
+        fl.next("Global+local DE/Powell fit on pyspecdata trace")
+        fl.plot(d, alpha=0.6, label="experimental")
 
-best_x_refined = np.clip(powell_result.x, lb, ub)
-
-# Apply optimized parameters
-for value, token in zip(best_x_refined, param_tokens):
-    n[token] = value
-
-site_spectra = n.current_spectrum
-simulated_total = objective(n)
-residual = d.data - simulated_total
-
-with psd.figlist_var() as fl:
-    fl.next("Global+local DE/Powell fit on pyspecdata trace")
-    fl.plot(d, alpha=0.6, label="experimental")
-
-    field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
-    fl.plot(field_axis, simulated_total, alpha=0.9, label="global+local fit")
-    fl.plot(field_axis, residual, alpha=0.8, label="residual")
-print("final params", n.items())
+        field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
+        fl.plot(field_axis, simulated_total, alpha=0.9, label="global+local fit")
+        fl.plot(field_axis, residual, alpha=0.8, label="residual")
+    print("final params", n.items())
