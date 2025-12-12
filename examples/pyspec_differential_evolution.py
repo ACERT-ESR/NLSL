@@ -7,7 +7,6 @@ from pyspecdata.datadir import pyspec_config
 import pygmo as pg
 import os
 from scipy.optimize import minimize
-import nlsl
 
 # Register the example directory with pyspecdata if it is not already present.
 if not Path(psd.getDATADIR("nlsl_examples")).exists():
@@ -25,7 +24,8 @@ def _build_experimental_spectrum():
     d_local = d_local.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
 
     # We need a temporary NLSL instance only to read the expdat max_points limit.
-    n_tmp = nlsl.nlsl()
+    import nlsl as _nlsl
+    n_tmp = _nlsl.nlsl()
 
     # ☐ TODO -- the max points should be an accessible property or attribute supplied by the
     # class -- we should not need to do the following in our script
@@ -112,7 +112,8 @@ def _get_ctx():
 
     d_local = _build_experimental_spectrum()
 
-    n_local = nlsl.nlsl()
+    import nlsl as _nlsl
+    n_local = _nlsl.nlsl()
     n_local.update(initial_params)
     n_local.load_nddata(d_local)
 
@@ -246,7 +247,6 @@ if __name__ == '__main__':
 
     simulated_total = objective(best_x_refined)
     residual = d_local.data - simulated_total
-
     with psd.figlist_var() as fl:
         fl.next("Global+local DE/Powell fit on pyspecdata trace")
         fl.plot(d_local, alpha=0.6, label="experimental")
