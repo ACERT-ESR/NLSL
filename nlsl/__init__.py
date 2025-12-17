@@ -3,7 +3,16 @@ import os
 from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
-from .data import process_spectrum
+from .data import fit_linear_baseline, normalize_spectrum, process_spectrum
+
+try:
+    import pyspecdata
+    from pyspecdata import nddata
+    _HAS_PYSPECDATA = True
+except ImportError:
+    pyspecdata = None
+    nddata = None
+    _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
     "phase",
@@ -698,6 +707,14 @@ class nlsl(object):
         self._explicit_field_step = False
 
     @property
+    def max_points(self):
+        """Maximum number of points available for a single spectrum."""
+
+        mxpt = self._core.expdat.data.shape[0]
+        mxspc = self._core.expdat.nft.shape[0]
+        return int(mxpt // max(mxspc, 1))
+
+    @property
     def nsites(self) -> int:
         """Number of active sites."""
         self._sync_weight_matrix()
@@ -819,22 +836,15 @@ class nlsl(object):
         _fortrancore.wrspc()
 
     def load_data(
-        self,
-        data_id: str | os.PathLike,
-        *,
-        nspline: int,
-        bc_points: int,
-        shift: bool,
-        normalize: bool = True,
-        derivative_mode: int | None = None,
-    ) -> None:
+        self, data_id, nspline, bc_points, shift, normalize=True,
+        derivative_mode=None
+    ):
         """Load experimental data and update the Fortran state.
 
         The workflow mirrors the legacy ``datac`` command but avoids the
         Fortran file I/O path so that tests can exercise the data
         preparation logic directly from Python.
         """
-
         path = Path(data_id)
         if not path.exists():
             if path.suffix:
@@ -846,9 +856,7 @@ class nlsl(object):
 
         token = str(path)
         base_name = token[:-4] if token.lower().endswith(".dat") else token
-        mxpt = _fortrancore.expdat.data.shape[0]
-        mxspc = _fortrancore.expdat.nft.shape[0]
-        mxspt = mxpt // max(mxspc, 1)
+        mxspt = self.max_points
 
         requested_points = int(nspline)
         if requested_points > 0:
@@ -938,12 +946,8 @@ class nlsl(object):
         buffer and associated metadata.
         """
 
-        try:
-            from pyspecdata.core import nddata
-        except ImportError as exc:
-            raise ImportError(
-                "pyspecdata is required to load nddata objects"
-            ) from exc
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required to load nddata objects")
 
         if not isinstance(dataset, nddata):
             raise TypeError("load_nddata expects a pyspecdata nddata instance")
@@ -977,9 +981,7 @@ class nlsl(object):
 
         # The legacy Fortran workspace allocates a fixed buffer per spectrum,
         # so oversized inputs must be rejected with a clear message.
-        max_points = self._core.expdat.data.shape[0] // max(
-            self._core.expdat.nft.shape[0], 1
-        )
+        max_points = self.max_points
         if fields.size > max_points:
             raise ValueError(
                 "nddata field axis has "
@@ -1008,6 +1010,94 @@ class nlsl(object):
         _fortrancore.expdat.rmsn[idx] = noise
 
         self.set_data(data_slice, intensities)
+
+    def load_spline(
+        self, spline_func, field_axis, bc_points, shift, normalize=True,
+        derivative_mode=None
+    ):
+        """Evaluate a pyspecdata spline and load the result.
+
+        The callable should come from ``nddata.spline_lambda`` so the
+        resulting object preserves the dimension labels required by
+        :mod:`pyspecdata`.  ``field_axis`` supplies the coordinates where the
+        spline should be sampled.
+        """
+
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required to load pyspecdata splines")
+
+        if not callable(spline_func):
+            raise TypeError("load_spline expects a callable spline generator")
+
+        fields = np.asarray(field_axis, dtype=float).reshape(-1)
+        if fields.size == 0:
+            raise ValueError("spline field axis contained no points")
+
+        max_points = self.max_points
+        if fields.size > max_points:
+            raise ValueError(
+                "spline field axis has "
+                + str(int(fields.size))
+                + " points; reduce it to "
+                + str(int(max_points))
+                + " or fewer to fit the NLSL buffers"
+            )
+
+        spectrum = spline_func(fields)
+        if not isinstance(spectrum, nddata):
+            raise TypeError(
+                "spline callable must return a pyspecdata nddata instance"
+            )
+        if not spectrum.dimlabels:
+            raise ValueError("spline output must include a dimension label")
+
+        intensities = np.asarray(spectrum.data, dtype=float).reshape(-1)
+        if intensities.size != fields.size:
+            raise ValueError("spline returned an unexpected number of points")
+
+        if fields.size > 1:
+            spacing = np.diff(fields)
+            step = float(spacing[0])
+            if not np.allclose(spacing, step):
+                raise ValueError("spline field axis must be uniformly spaced")
+        else:
+            step = 0.0
+
+        start = float(fields[0])
+        mode = int(derivative_mode) if derivative_mode is not None else 1
+        baseline_points = int(bc_points)
+
+        corrected, _, _, noise = fit_linear_baseline(
+            fields, intensities, baseline_points
+        )
+
+        normalization_factor = 0.0
+        processed = corrected
+        if normalize:
+            processed, normalization_factor = normalize_spectrum(
+                processed, step, mode
+            )
+            if normalization_factor != 0.0:
+                noise /= normalization_factor
+
+        idx, data_slice = self.generate_coordinates(
+            int(fields.size),
+            start=start,
+            step=step,
+            derivative_mode=mode,
+            baseline_points=baseline_points,
+            normalize=normalize,
+            nspline=int(fields.size),
+            shift=shift,
+            label=str(spectrum.dimlabels[0]),
+        )
+
+        eps = float(np.finfo(float).eps)
+        if noise <= eps:
+            noise = 1.0
+        _fortrancore.expdat.rmsn[idx] = noise
+
+        self.set_data(data_slice, processed)
 
     def load_basis(self, identifier, spectrum=None, site=None):
         """Load a basis index file and assign it to optional targets."""
