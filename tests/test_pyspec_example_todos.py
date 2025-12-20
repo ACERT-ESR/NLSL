@@ -1,11 +1,9 @@
 import importlib.resources as resources
-import os
 import numpy as np
 import nlsl
-import pyspecdata as psd
 import warnings
 from pathlib import Path
-from pyspecdata.datadir import pyspec_config
+from pyspecdata.datadir import pyspec_config, getDATADIR
 
 
 def _clear_example_registration():
@@ -26,14 +24,17 @@ def test_register_nlsl_examples_sets_packaged_path():
 
     try:
         example_root = resources.files("nlsl").joinpath("examples")
-        if example_root.is_dir() and hasattr(example_root, "__fspath__"):
-            target_dir = Path(example_root)
-        elif example_root.is_dir():
-            target_dir = Path(__file__).resolve().parent.parent / "examples"
-        else:
+        target_dir = None
+        if example_root.is_dir():
+            try:
+                with resources.as_file(example_root) as materialized:
+                    target_dir = Path(materialized)
+            except IsADirectoryError:
+                target_dir = None
+        if target_dir is None:
             target_dir = Path(__file__).resolve().parent.parent / "examples"
 
-        if not Path(psd.getDATADIR("nlsl_examples")).exists():
+        if not Path(getDATADIR("nlsl_examples")).exists():
             pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
 
         stored_path = pyspec_config.get_setting("nlsl_examples", section="ExpTypes")

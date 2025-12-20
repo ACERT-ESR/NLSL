@@ -8,17 +8,19 @@ from pathlib import Path
 from pyspecdata.datadir import pyspec_config
 from numpy import r_
 
-if not (Path(psd.getDATADIR("nlsl_examples")).exists()):
-    # if we haven't registered the example directory then register it
+if not Path(psd.getDATADIR("nlsl_examples")).exists():
+    # Register the packaged examples directory when possible.  Some loaders
+    # expose the directory only as a traversable, so we attempt to materialize
+    # it with ``as_file`` before falling back to the source tree.
     example_root = resources.files("nlsl").joinpath("examples")
-    if example_root.is_dir() and hasattr(example_root, "__fspath__"):
-        target_dir = Path(example_root)
-    elif example_root.is_dir():
-        # Meson and other editable loaders provide a traversable without
-        # filesystem semantics, so fall back to the source tree in that case.
-        target_dir = Path(__file__).resolve().parent
-    else:
-        # When the package is not installed, fall back to the source tree.
+    target_dir = None
+    if example_root.is_dir():
+        try:
+            with resources.as_file(example_root) as materialized:
+                target_dir = Path(materialized)
+        except IsADirectoryError:
+            target_dir = None
+    if target_dir is None:
         target_dir = Path(__file__).resolve().parent
     pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
 

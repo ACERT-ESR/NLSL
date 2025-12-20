@@ -10,10 +10,17 @@ try:
     import pyspecdata
     from pyspecdata import nddata
     _HAS_PYSPECDATA = True
-except ImportError:
-    pyspecdata = None
-    nddata = None
-    _HAS_PYSPECDATA = False
+except Exception:
+    # Fall back to importing the core nddata implementation when the full
+    # package cannot load optional GUI backends (e.g., Qt bindings).
+    try:
+        from pyspecdata.core import nddata  # type: ignore
+        pyspecdata = None
+        _HAS_PYSPECDATA = True
+    except Exception:
+        pyspecdata = None
+        nddata = None
+        _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
     "phase",
