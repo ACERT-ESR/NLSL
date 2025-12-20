@@ -11,17 +11,16 @@ from numpy import r_
 if not (Path(psd.getDATADIR("nlsl_examples")).exists()):
     # if we haven't registered the example directory then register it
     example_root = resources.files("nlsl").joinpath("examples")
-    if example_root.is_dir():
-        sample_file = example_root.joinpath("pyspec_example.py")
-        try:
-            with resources.as_file(sample_file) as sample_path:
-                target_dir = sample_path.parent
-        except FileNotFoundError:
-            target_dir = Path(__file__).resolve().parent
+    if example_root.is_dir() and hasattr(example_root, "__fspath__"):
+        target_dir = Path(example_root)
+    elif example_root.is_dir():
+        # Meson and other editable loaders provide a traversable without
+        # filesystem semantics, so fall back to the source tree in that case.
+        target_dir = Path(__file__).resolve().parent
     else:
         # When the package is not installed, fall back to the source tree.
         target_dir = Path(__file__).resolve().parent
-    pyspec_config.set_setting("ExpTypes", "nlsl_examples", os.fspath(target_dir))
+    pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
 d.set_units(

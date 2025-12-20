@@ -26,13 +26,10 @@ def test_register_nlsl_examples_sets_packaged_path():
 
     try:
         example_root = resources.files("nlsl").joinpath("examples")
-        if example_root.is_dir():
-            sample_file = example_root.joinpath("pyspec_example.py")
-            try:
-                with resources.as_file(sample_file) as sample_path:
-                    target_dir = sample_path.parent
-            except FileNotFoundError:
-                target_dir = Path(__file__).resolve().parent.parent / "examples"
+        if example_root.is_dir() and hasattr(example_root, "__fspath__"):
+            target_dir = Path(example_root)
+        elif example_root.is_dir():
+            target_dir = Path(__file__).resolve().parent.parent / "examples"
         else:
             target_dir = Path(__file__).resolve().parent.parent / "examples"
 
@@ -40,7 +37,7 @@ def test_register_nlsl_examples_sets_packaged_path():
             pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
 
         stored_path = pyspec_config.get_setting("nlsl_examples", section="ExpTypes")
-        assert Path(stored_path) == Path(target_dir)
+        assert Path(stored_path) == Path(str(target_dir))
     finally:
         if original_path is None:
             _clear_example_registration()
