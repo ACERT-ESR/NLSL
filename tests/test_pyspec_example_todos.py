@@ -23,22 +23,21 @@ def test_register_nlsl_examples_sets_packaged_path():
     _clear_example_registration()
 
     try:
-        example_root = resources.files("nlsl").joinpath("examples")
-        target_dir = None
-        if example_root.is_dir():
-            try:
-                with resources.as_file(example_root) as materialized:
-                    target_dir = Path(materialized)
-            except IsADirectoryError:
-                target_dir = None
-        if target_dir is None:
-            target_dir = Path(__file__).resolve().parent.parent / "examples"
+        packaged_dir = None
+        with resources.as_file(resources.files("nlsl").joinpath("__init__.py")) as init_file:
+            package_root = Path(init_file).parent
+            candidate = package_root / "examples"
+            if (candidate / "230621_w0_10.DSC").exists():
+                packaged_dir = candidate
+
+        if packaged_dir is None:
+            packaged_dir = Path(__file__).resolve().parent.parent / "examples"
 
         if not Path(getDATADIR("nlsl_examples")).exists():
-            pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
+            pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(packaged_dir))
 
         stored_path = pyspec_config.get_setting("nlsl_examples", section="ExpTypes")
-        assert Path(stored_path) == Path(str(target_dir))
+        assert Path(stored_path) == Path(str(packaged_dir))
     finally:
         if original_path is None:
             _clear_example_registration()

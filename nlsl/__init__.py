@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
-from .data import fit_linear_baseline, normalize_spectrum, process_spectrum
+from .data import process_spectrum
 import warnings
 
 try:
@@ -845,8 +845,7 @@ class nlsl(object):
 
     def load_data(
         self, data_id, nspline=None, bc_points=None, shift=False,
-        normalize=True, derivative_mode=None, spline_axis=None,
-        spline_values=None
+        normalize=True, derivative_mode=None
     ):
         """Load experimental data and update the Fortran state.
 
@@ -867,11 +866,7 @@ class nlsl(object):
         base_name = token[:-4] if token.lower().endswith(".dat") else token
         mxspt = self.max_points
 
-        spline_params_used = (
-            nspline is not None
-            or spline_axis is not None
-            or spline_values is not None
-        )
+        spline_params_used = nspline is not None
         if spline_params_used:
             warnings.warn(
                 "load_data spline arguments are retained only for backwards "
@@ -890,67 +885,19 @@ class nlsl(object):
         normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
 
         mode = int(derivative_mode) if derivative_mode is not None else 1
-        if spline_axis is not None or spline_values is not None:
-            if spline_axis is None or spline_values is None:
-                raise ValueError("both spline_axis and spline_values are required")
-
-            x_values = np.asarray(spline_axis, dtype=float).reshape(-1)
-            y_values = np.asarray(spline_values, dtype=float).reshape(-1)
-
-            if x_values.size == 0:
-                raise ValueError("spline_axis contained no points")
-            if x_values.size != y_values.size:
-                raise ValueError("spline_axis and spline_values lengths differ")
-            if x_values.size > mxspt:
-                raise ValueError(
-                    "spline supplied more points than the NLSL buffers support"
-                )
-
-            if x_values.size > 1:
-                x_steps = np.diff(x_values)
-                x_step = float(x_steps[0])
-                if not np.allclose(x_steps, x_step):
-                    raise ValueError("spline_axis must be uniformly spaced")
-            else:
-                x_step = 0.0
-
-            requested_points = int(x_values.size)
-
-            corrected, intercept, slope, noise = fit_linear_baseline(
-                x_values, y_values, int(bc_points)
-            )
-
-            normalization_factor = 0.0
-            processed = corrected
-            if normalize_active:
-                processed, normalization_factor = normalize_spectrum(
-                    processed, x_step, mode
-                )
-                if normalization_factor != 0.0:
-                    noise /= normalization_factor
-
-            start = float(x_values[0])
-            step = x_step
-            y_data = processed
-            baseline_intercept = intercept
-            baseline_slope = slope
-            noise_level = float(noise)
-            normalization_value = normalization_factor
-        else:
-            spectrum = process_spectrum(
-                path,
-                requested_points,
-                int(bc_points),
-                derivative_mode=mode,
-                normalize=normalize_active,
-            )
-            start = spectrum.start
-            step = spectrum.step
-            y_data = spectrum.y
-            baseline_intercept = spectrum.baseline_intercept
-            baseline_slope = spectrum.baseline_slope
-            noise_level = spectrum.noise
-            normalization_value = spectrum.normalization
+        spectrum = process_spectrum(
+            path,
+            requested_points,
+            int(bc_points),
+            derivative_mode=mode,
+            normalize=normalize_active,
+        )
+        start = spectrum.start
+        step = spectrum.step
+        y_data = spectrum.y
+        baseline_intercept = spectrum.baseline_intercept
+        baseline_slope = spectrum.baseline_slope
+        noise_level = spectrum.noise
 
         idx, data_slice = self.generate_coordinates(
             int(y_data.size),

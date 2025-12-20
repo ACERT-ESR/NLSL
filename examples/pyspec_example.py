@@ -9,20 +9,24 @@ from pyspecdata.datadir import pyspec_config
 from numpy import r_
 
 if not Path(psd.getDATADIR("nlsl_examples")).exists():
-    # Register the packaged examples directory when possible.  Some loaders
-    # expose the directory only as a traversable, so we attempt to materialize
-    # it with ``as_file`` before falling back to the source tree.
-    example_root = resources.files("nlsl").joinpath("examples")
-    target_dir = None
-    if example_root.is_dir():
-        try:
-            with resources.as_file(example_root) as materialized:
-                target_dir = Path(materialized)
-        except IsADirectoryError:
-            target_dir = None
-    if target_dir is None:
-        target_dir = Path(__file__).resolve().parent
-    pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
+    # Register the packaged examples directory.  We materialize a file that we
+    # know is part of the wheel (``__init__.py``) to locate the installed
+    # package root; this works with meson and other editable loaders that
+    # refuse to materialize directories.  If the packaged DSC is unavailable,
+    # fall back to the source tree copy.
+    packaged_dir = None
+    try:
+        with resources.as_file(resources.files("nlsl").joinpath("__init__.py")) as init_file:
+            package_root = Path(init_file).parent
+            candidate = package_root / "examples"
+            if (candidate / "230621_w0_10.DSC").exists():
+                packaged_dir = candidate
+    except FileNotFoundError:
+        packaged_dir = None
+
+    if packaged_dir is None:
+        packaged_dir = Path(__file__).resolve().parent
+    pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(packaged_dir))
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
 d.set_units(
