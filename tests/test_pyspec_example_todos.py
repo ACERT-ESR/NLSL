@@ -1,4 +1,5 @@
 import importlib.resources as resources
+import os
 import numpy as np
 import nlsl
 import pyspecdata as psd
@@ -24,10 +25,12 @@ def test_register_nlsl_examples_sets_packaged_path():
     _clear_example_registration()
 
     try:
-        with resources.as_file(resources.files("nlsl").joinpath("examples")) as packaged_dir:
-            target_dir = packaged_dir
-
-        if not target_dir.exists():
+        example_root = resources.files("nlsl") / "examples"
+        try:
+            target_dir = Path(os.fspath(example_root))
+        except TypeError:
+            target_dir = None
+        if target_dir is None or not target_dir.exists():
             target_dir = Path(__file__).resolve().parent.parent / "examples"
 
         if not Path(psd.getDATADIR("nlsl_examples")).exists():

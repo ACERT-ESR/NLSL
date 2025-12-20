@@ -4,6 +4,7 @@ from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
 from .data import fit_linear_baseline, normalize_spectrum, process_spectrum
+import warnings
 
 try:
     import pyspecdata
@@ -837,7 +838,7 @@ class nlsl(object):
 
     def load_data(
         self, data_id, nspline, bc_points, shift, normalize=True,
-        derivative_mode=None
+        derivative_mode=None, spline_axis=None, spline_values=None
     ):
         """Load experimental data and update the Fortran state.
 
@@ -866,18 +867,79 @@ class nlsl(object):
         normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
 
         mode = int(derivative_mode) if derivative_mode is not None else 1
-        spectrum = process_spectrum(
-            path,
-            requested_points,
-            int(bc_points),
-            derivative_mode=mode,
-            normalize=normalize_active,
-        )
+        if spline_axis is not None or spline_values is not None:
+            warnings.warn(
+                "load_data spline arguments are retained only for backwards "
+                "compatibility; prefer using pyspecdata or scipy to smooth the "
+                "data before loading.",
+                stacklevel=2,
+            )
+
+            if spline_axis is None or spline_values is None:
+                raise ValueError("both spline_axis and spline_values are required")
+
+            x_values = np.asarray(spline_axis, dtype=float).reshape(-1)
+            y_values = np.asarray(spline_values, dtype=float).reshape(-1)
+
+            if x_values.size == 0:
+                raise ValueError("spline_axis contained no points")
+            if x_values.size != y_values.size:
+                raise ValueError("spline_axis and spline_values lengths differ")
+            if x_values.size > mxspt:
+                raise ValueError(
+                    "spline supplied more points than the NLSL buffers support"
+                )
+
+            if x_values.size > 1:
+                x_steps = np.diff(x_values)
+                x_step = float(x_steps[0])
+                if not np.allclose(x_steps, x_step):
+                    raise ValueError("spline_axis must be uniformly spaced")
+            else:
+                x_step = 0.0
+
+            requested_points = int(x_values.size)
+
+            corrected, intercept, slope, noise = fit_linear_baseline(
+                x_values, y_values, int(bc_points)
+            )
+
+            normalization_factor = 0.0
+            processed = corrected
+            if normalize_active:
+                processed, normalization_factor = normalize_spectrum(
+                    processed, x_step, mode
+                )
+                if normalization_factor != 0.0:
+                    noise /= normalization_factor
+
+            start = float(x_values[0])
+            step = x_step
+            y_data = processed
+            baseline_intercept = intercept
+            baseline_slope = slope
+            noise_level = float(noise)
+            normalization_value = normalization_factor
+        else:
+            spectrum = process_spectrum(
+                path,
+                requested_points,
+                int(bc_points),
+                derivative_mode=mode,
+                normalize=normalize_active,
+            )
+            start = spectrum.start
+            step = spectrum.step
+            y_data = spectrum.y
+            baseline_intercept = spectrum.baseline_intercept
+            baseline_slope = spectrum.baseline_slope
+            noise_level = spectrum.noise
+            normalization_value = spectrum.normalization
 
         idx, data_slice = self.generate_coordinates(
-            int(spectrum.y.size),
-            start=spectrum.start,
-            step=spectrum.step,
+            int(y_data.size),
+            start=start,
+            step=step,
             derivative_mode=mode,
             baseline_points=int(bc_points),
             normalize=normalize_active,
@@ -887,12 +949,10 @@ class nlsl(object):
         )
 
         eps = float(np.finfo(float).eps)
-        _fortrancore.expdat.rmsn[idx] = (
-            spectrum.noise if spectrum.noise > eps else 1.0
-        )
+        _fortrancore.expdat.rmsn[idx] = noise_level if noise_level > eps else 1.0
 
-        _fortrancore.expdat.data[data_slice] = spectrum.y
-        _fortrancore.lmcom.fvec[data_slice] = spectrum.y
+        _fortrancore.expdat.data[data_slice] = y_data
+        _fortrancore.lmcom.fvec[data_slice] = y_data
 
         if shift:
             _fortrancore.expdat.ishglb = 1

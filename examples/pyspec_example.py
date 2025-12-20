@@ -9,12 +9,13 @@ from numpy import r_
 
 if not (Path(psd.getDATADIR("nlsl_examples")).exists()):
     # if we haven't registered the example directory then register it
-    with resources.as_file(resources.files("nlsl").joinpath("examples")) as packaged_dir:
-        target_dir = packaged_dir
-
-    if not target_dir.exists():
+    example_root = resources.files("nlsl") / "examples"
+    try:
+        target_dir = Path(example_root)
+    except TypeError:
+        target_dir = None
+    if target_dir is None or not target_dir.exists():
         target_dir = Path(__file__).resolve().parent
-
     pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
@@ -24,12 +25,9 @@ d.set_units(
 d = d.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
 n = nlsl.nlsl()
 
-spline_func = d.spline_lambda()
 field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
 max_points = n.max_points
 # {{{ we use convolution to downsample the data
-# while preserving this example, we also demonstrate using a pyspecdata spline
-# directly to keep the sampling under the solver's buffer limit.
 if field_axis.size > max_points:
     divisor = d.shape["$B_0$"] // max_points + 1
     dB = np.diff(d["$B_0$"][r_[0, 1]]).item()
@@ -40,9 +38,6 @@ if field_axis.size > max_points:
     # I'm a little confused b/c normalization should be preserved, and we end
     # up needing to do following
     d *= d_orig_max / d.data.max()
-    spline_axis = np.linspace(field_axis[0], field_axis[-1], max_points)
-else:
-    spline_axis = field_axis
 # }}}
 
 # Provide reasonable starting parameters so the fit can run immediately.
@@ -76,9 +71,8 @@ for key, value in {
 with psd.figlist_var() as fl:
     fl.next("RS ESR figure")
     fl.plot(d)
-    # Load the spline-evaluated nddata into the optimiser buffers without
-    # shifting the field.
-    n.load_spline(spline_func, spline_axis, bc_points=0, shift=False)
+    # Load the nddata into the optimiser buffers without shifting the field.
+    n.load_nddata(d)
 
     # Run a quick fit using the single-site parameters above.
     site_spectra = n.fit()
