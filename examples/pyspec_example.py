@@ -1,3 +1,4 @@
+import os
 import importlib.resources as resources
 import numpy as np
 import pyspecdata as psd
@@ -9,14 +10,18 @@ from numpy import r_
 
 if not (Path(psd.getDATADIR("nlsl_examples")).exists()):
     # if we haven't registered the example directory then register it
-    example_root = resources.files("nlsl") / "examples"
-    try:
-        target_dir = Path(example_root)
-    except TypeError:
-        target_dir = None
-    if target_dir is None or not target_dir.exists():
+    example_root = resources.files("nlsl").joinpath("examples")
+    if example_root.is_dir():
+        sample_file = example_root.joinpath("pyspec_example.py")
+        try:
+            with resources.as_file(sample_file) as sample_path:
+                target_dir = sample_path.parent
+        except FileNotFoundError:
+            target_dir = Path(__file__).resolve().parent
+    else:
+        # When the package is not installed, fall back to the source tree.
         target_dir = Path(__file__).resolve().parent
-    pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
+    pyspec_config.set_setting("ExpTypes", "nlsl_examples", os.fspath(target_dir))
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
 d.set_units(
@@ -25,7 +30,7 @@ d.set_units(
 d = d.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
 n = nlsl.nlsl()
 
-field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
+field_axis = d[d.dimlabels[0]]
 max_points = n.max_points
 # {{{ we use convolution to downsample the data
 if field_axis.size > max_points:
@@ -79,5 +84,5 @@ with psd.figlist_var() as fl:
     simulated_total = np.squeeze(n.weights @ site_spectra)
 
     # Overlay the simulated spectrum on the experimental trace.
-    field_axis = np.asarray(d[d.dimlabels[0]], dtype=float)
+    field_axis = d[d.dimlabels[0]]
     fl.plot(field_axis, simulated_total, alpha=0.8, label="NLSL fit")

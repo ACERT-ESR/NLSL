@@ -837,8 +837,9 @@ class nlsl(object):
         _fortrancore.wrspc()
 
     def load_data(
-        self, data_id, nspline, bc_points, shift, normalize=True,
-        derivative_mode=None, spline_axis=None, spline_values=None
+        self, data_id, nspline=None, bc_points=None, shift=False,
+        normalize=True, derivative_mode=None, spline_axis=None,
+        spline_values=None
     ):
         """Load experimental data and update the Fortran state.
 
@@ -859,15 +860,12 @@ class nlsl(object):
         base_name = token[:-4] if token.lower().endswith(".dat") else token
         mxspt = self.max_points
 
-        requested_points = int(nspline)
-        if requested_points > 0:
-            requested_points = max(4, min(requested_points, mxspt))
-
-        nser = max(0, int(getattr(_fortrancore.parcom, "nser", 0)))
-        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
-
-        mode = int(derivative_mode) if derivative_mode is not None else 1
-        if spline_axis is not None or spline_values is not None:
+        spline_params_used = (
+            nspline is not None
+            or spline_axis is not None
+            or spline_values is not None
+        )
+        if spline_params_used:
             warnings.warn(
                 "load_data spline arguments are retained only for backwards "
                 "compatibility; prefer using pyspecdata or scipy to smooth the "
@@ -875,6 +873,17 @@ class nlsl(object):
                 stacklevel=2,
             )
 
+        requested_points = int(nspline) if nspline is not None else 0
+        if requested_points > 0:
+            requested_points = max(4, min(requested_points, mxspt))
+        if bc_points is None:
+            bc_points = 0
+
+        nser = max(0, int(getattr(_fortrancore.parcom, "nser", 0)))
+        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
+
+        mode = int(derivative_mode) if derivative_mode is not None else 1
+        if spline_axis is not None or spline_values is not None:
             if spline_axis is None or spline_values is None:
                 raise ValueError("both spline_axis and spline_values are required")
 
@@ -1070,94 +1079,6 @@ class nlsl(object):
         _fortrancore.expdat.rmsn[idx] = noise
 
         self.set_data(data_slice, intensities)
-
-    def load_spline(
-        self, spline_func, field_axis, bc_points, shift, normalize=True,
-        derivative_mode=None
-    ):
-        """Evaluate a pyspecdata spline and load the result.
-
-        The callable should come from ``nddata.spline_lambda`` so the
-        resulting object preserves the dimension labels required by
-        :mod:`pyspecdata`.  ``field_axis`` supplies the coordinates where the
-        spline should be sampled.
-        """
-
-        if not _HAS_PYSPECDATA:
-            raise ImportError("pyspecdata is required to load pyspecdata splines")
-
-        if not callable(spline_func):
-            raise TypeError("load_spline expects a callable spline generator")
-
-        fields = np.asarray(field_axis, dtype=float).reshape(-1)
-        if fields.size == 0:
-            raise ValueError("spline field axis contained no points")
-
-        max_points = self.max_points
-        if fields.size > max_points:
-            raise ValueError(
-                "spline field axis has "
-                + str(int(fields.size))
-                + " points; reduce it to "
-                + str(int(max_points))
-                + " or fewer to fit the NLSL buffers"
-            )
-
-        spectrum = spline_func(fields)
-        if not isinstance(spectrum, nddata):
-            raise TypeError(
-                "spline callable must return a pyspecdata nddata instance"
-            )
-        if not spectrum.dimlabels:
-            raise ValueError("spline output must include a dimension label")
-
-        intensities = np.asarray(spectrum.data, dtype=float).reshape(-1)
-        if intensities.size != fields.size:
-            raise ValueError("spline returned an unexpected number of points")
-
-        if fields.size > 1:
-            spacing = np.diff(fields)
-            step = float(spacing[0])
-            if not np.allclose(spacing, step):
-                raise ValueError("spline field axis must be uniformly spaced")
-        else:
-            step = 0.0
-
-        start = float(fields[0])
-        mode = int(derivative_mode) if derivative_mode is not None else 1
-        baseline_points = int(bc_points)
-
-        corrected, _, _, noise = fit_linear_baseline(
-            fields, intensities, baseline_points
-        )
-
-        normalization_factor = 0.0
-        processed = corrected
-        if normalize:
-            processed, normalization_factor = normalize_spectrum(
-                processed, step, mode
-            )
-            if normalization_factor != 0.0:
-                noise /= normalization_factor
-
-        idx, data_slice = self.generate_coordinates(
-            int(fields.size),
-            start=start,
-            step=step,
-            derivative_mode=mode,
-            baseline_points=baseline_points,
-            normalize=normalize,
-            nspline=int(fields.size),
-            shift=shift,
-            label=str(spectrum.dimlabels[0]),
-        )
-
-        eps = float(np.finfo(float).eps)
-        if noise <= eps:
-            noise = 1.0
-        _fortrancore.expdat.rmsn[idx] = noise
-
-        self.set_data(data_slice, processed)
 
     def load_basis(self, identifier, spectrum=None, site=None):
         """Load a basis index file and assign it to optional targets."""

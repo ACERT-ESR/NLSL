@@ -3,8 +3,8 @@ import os
 import numpy as np
 import nlsl
 import pyspecdata as psd
+import warnings
 from pathlib import Path
-from pyspecdata import nddata
 from pyspecdata.datadir import pyspec_config
 
 
@@ -25,19 +25,22 @@ def test_register_nlsl_examples_sets_packaged_path():
     _clear_example_registration()
 
     try:
-        example_root = resources.files("nlsl") / "examples"
-        try:
-            target_dir = Path(os.fspath(example_root))
-        except TypeError:
-            target_dir = None
-        if target_dir is None or not target_dir.exists():
+        example_root = resources.files("nlsl").joinpath("examples")
+        if example_root.is_dir():
+            sample_file = example_root.joinpath("pyspec_example.py")
+            try:
+                with resources.as_file(sample_file) as sample_path:
+                    target_dir = sample_path.parent
+            except FileNotFoundError:
+                target_dir = Path(__file__).resolve().parent.parent / "examples"
+        else:
             target_dir = Path(__file__).resolve().parent.parent / "examples"
 
         if not Path(psd.getDATADIR("nlsl_examples")).exists():
             pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(target_dir))
 
         stored_path = pyspec_config.get_setting("nlsl_examples", section="ExpTypes")
-        assert Path(stored_path) == target_dir
+        assert Path(stored_path) == Path(target_dir)
     finally:
         if original_path is None:
             _clear_example_registration()
@@ -52,28 +55,29 @@ def test_max_points_property_matches_buffers():
     )
     assert model.max_points == expected_points
 
-def test_load_spline_accepts_pyspecdata_lambda():
+def test_load_data_warns_for_spline_arguments():
     model = nlsl.nlsl()
-    target_points = min(model.max_points, 10)
-    field_axis = np.linspace(3360.0, 3370.0, target_points)
+    sample_path = Path(__file__).parent / "sampl1.dat"
 
-    dataset = nddata(np.linspace(0.0, 1.0, target_points), "$B_0$")
-    dataset.setaxis("$B_0$", field_axis)
-    spline = dataset.spline_lambda()
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        model.load_data(
+            sample_path,
+            nspline=10,
+            bc_points=0,
+            shift=False,
+            normalize=False,
+        )
+    assert any("backwards compatibility" in str(item.message) for item in caught)
 
-    model.load_spline(
-        spline,
-        field_axis,
-        bc_points=0,
-        shift=False,
-        normalize=False,
-    )
 
-    stored_points = model._core.expdat.data[:target_points]
-    assert np.allclose(stored_points, dataset.data)
+def test_load_data_defaults_without_spline_arguments():
+    model = nlsl.nlsl()
+    sample_path = Path(__file__).parent / "sampl1.dat"
 
-    if target_points > 1:
-        expected_step = field_axis[1] - field_axis[0]
-    else:
-        expected_step = 0.0
-    assert np.isclose(model._core.expdat.sdb[0], expected_step)
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("error")
+        model.load_data(sample_path, bc_points=0, shift=False, normalize=False)
+
+    data_span = model._core.expdat.data[: model.max_points]
+    assert np.count_nonzero(data_span) > 0
