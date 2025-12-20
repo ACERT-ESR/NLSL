@@ -892,17 +892,10 @@ class nlsl(object):
             derivative_mode=mode,
             normalize=normalize_active,
         )
-        start = spectrum.start
-        step = spectrum.step
-        y_data = spectrum.y
-        baseline_intercept = spectrum.baseline_intercept
-        baseline_slope = spectrum.baseline_slope
-        noise_level = spectrum.noise
-
         idx, data_slice = self.generate_coordinates(
-            int(y_data.size),
-            start=start,
-            step=step,
+            int(spectrum.y.size),
+            start=spectrum.start,
+            step=spectrum.step,
             derivative_mode=mode,
             baseline_points=int(bc_points),
             normalize=normalize_active,
@@ -912,10 +905,12 @@ class nlsl(object):
         )
 
         eps = float(np.finfo(float).eps)
-        _fortrancore.expdat.rmsn[idx] = noise_level if noise_level > eps else 1.0
+        _fortrancore.expdat.rmsn[idx] = (
+            spectrum.noise if spectrum.noise > eps else 1.0
+        )
 
-        _fortrancore.expdat.data[data_slice] = y_data
-        _fortrancore.lmcom.fvec[data_slice] = y_data
+        _fortrancore.expdat.data[data_slice] = spectrum.y
+        _fortrancore.lmcom.fvec[data_slice] = spectrum.y
 
         if shift:
             _fortrancore.expdat.ishglb = 1

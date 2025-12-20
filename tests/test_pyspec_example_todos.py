@@ -25,10 +25,9 @@ def test_register_nlsl_examples_sets_packaged_path():
     try:
         packaged_dir = None
         with resources.as_file(resources.files("nlsl").joinpath("__init__.py")) as init_file:
-            package_root = Path(init_file).parent
-            candidate = package_root / "examples"
-            if (candidate / "230621_w0_10.DSC").exists():
-                packaged_dir = candidate
+            example_root = Path(init_file).parent / "examples"
+            if (example_root / "230621_w0_10.DSC").exists():
+                packaged_dir = example_root
 
         if packaged_dir is None:
             packaged_dir = Path(__file__).resolve().parent.parent / "examples"

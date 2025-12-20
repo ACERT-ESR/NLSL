@@ -17,10 +17,9 @@ if not Path(psd.getDATADIR("nlsl_examples")).exists():
     packaged_dir = None
     try:
         with resources.as_file(resources.files("nlsl").joinpath("__init__.py")) as init_file:
-            package_root = Path(init_file).parent
-            candidate = package_root / "examples"
-            if (candidate / "230621_w0_10.DSC").exists():
-                packaged_dir = candidate
+            example_root = Path(init_file).parent / "examples"
+            if (example_root / "230621_w0_10.DSC").exists():
+                packaged_dir = example_root
     except FileNotFoundError:
         packaged_dir = None
 
