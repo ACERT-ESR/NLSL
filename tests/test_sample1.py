@@ -79,7 +79,8 @@ def run_sample1_manual():
             "lemx": 6,
             "lomx": 5,
             "kmx": 4,
-            "mmx": (2, 2),
+            "mmx": 2,
+            "ipnmx": 2,
         }
     )
     print()
@@ -97,7 +98,8 @@ def run_sample1_manual():
     print("   --- Specify parameters to be varied in fitting procedure")
     print()
     for token in ("rpll", "rprp", "gib0"):
-        n.fit_params.vary[token] = True
+        param_key = f"{token}_0"
+        n.parameters[param_key].vary = True
     print()
     print("   --- Carry out nonlinear least-squares procedure:")
     print("   ---    (1) Stop after a maximum of 40 iterations")

@@ -1,4 +1,5 @@
 from . import fortrancore as _fortrancore
+import lmfit
 import os
 from pathlib import Path
 from collections.abc import Mapping
@@ -53,321 +54,256 @@ def _match_parameter_token(token, entries):
     return None
 
 
-class FitParameterVaryMapping(object):
-    """Expose the active set of variable parameters through a mapping."""
+class NLSLParameter(lmfit.parameter.Parameter):
+    """Parameter object that mirrors the Fortran-backed storage."""
 
-    def __init__(self, owner, model):
-        self._owner = owner
-        self._core = owner._core
+    def __init__(self, model, container, canonical_name, index_code, key, site_index):
         self._model = model
+        self._container = container
+        self._canonical_name = canonical_name
+        self._index_code = index_code
+        self._site_index = site_index
+        self._spectral = site_index is None
+        initial = self._model._parameter_value_from_core(index_code, site_index)
+        super().__init__(
+            key,
+            value=initial,
+            vary=False,
+            min=-np.inf,
+            max=np.inf,
+            expr=None,
+            brute_step=None,
+            user_data=None,
+        )
 
-    def _count(self):
-        return int(self._core.parcom.nprm)
+    def _target_index(self):
+        if self._spectral:
+            return 1
+        return self._site_index + 1
 
-    def _entries(self, parameter):
-        """Return ``(index, position)`` pairs for the requested parameter."""
+    def _sync_from_core(self):
+        current = self._model._parameter_value_from_core(
+            self._index_code, self._site_index
+        )
+        self._val = current
+        if self._expr_eval is not None:
+            self._expr_eval.symtable[self.name] = self._val
 
-        records = []
-        parcom = self._core.parcom
-        for position in range(self._count()):
-            if int(parcom.ixpr[position]) == parameter:
-                # Preserve the recorded index so callers can manage all slots
-                # associated with the parameter in question.
-                records.append((int(parcom.ixst[position]), position))
-        return records
+    @property
+    def value(self):
+        self._sync_from_core()
+        return lmfit.parameter.Parameter.value.fget(self)
 
-    def _is_spectrum_parameter(self, parameter):
-        spectral = []
-        for attr in (
-            "iphase",
-            "ipsi",
-            "ilb",
-            "ib0",
-            "ifldi",
-            "idfld",
-            "irange",
-        ):
-            if hasattr(self._core.eprprm, attr):
-                spectral.append(int(getattr(self._core.eprprm, attr)))
-        if parameter in spectral:
-            return True
-        integral = []
-        for attr in ("infld", "iiderv"):
-            if hasattr(self._core.eprprm, attr):
-                integral.append(int(getattr(self._core.eprprm, attr)))
-        return parameter in integral
+    @value.setter
+    def value(self, val):
+        lmfit.parameter.Parameter.value.fset(self, val)
+        self._model._update_parameter_value(
+            self._canonical_name, self._index_code, self._site_index, self._val
+        )
+        if not self._container._refreshing:
+            self._container.apply_single_vary(self)
 
-    def _index_limit(self, spectral):
-        if spectral:
-            limit = int(getattr(self._core.parcom, "nser", 0))
-            nspc = int(getattr(self._core.expdat, "nspc", 0))
-            if nspc > limit:
-                limit = nspc
+    @property
+    def vary(self):
+        return self._vary
+
+    @vary.setter
+    def vary(self, val):
+        lmfit.parameter.Parameter.vary.fset(self, val)
+        if not self._container._refreshing:
+            self._container.apply_single_vary(self)
+
+
+class NLSLParameters(lmfit.Parameters):
+    """Container of lmfit Parameters that stay aligned with the NLSL core."""
+
+    def __init__(self, model):
+        super().__init__()
+        self._model = model
+        self._refreshing = False
+        self._site_count = 0
+        self._build_parameters()
+
+    def _normalized_parameter_key(self, key):
+        # Resolve aliases and numeric suffixes so callers can use any mnemonic
+        # accepted by canonical_name while still landing on the stored key.
+        if not isinstance(key, str):
+            raise KeyError(key)
+        raw = key.strip()
+        if not raw:
+            raise KeyError(key)
+        base = raw
+        site_index = None
+        if "_" in raw:
+            base_candidate, maybe_index = raw.rsplit("_", 1)
+            if maybe_index.isdigit():
+                base = base_candidate
+                site_index = int(maybe_index)
+        canonical, index_code, _ = self._model.canonical_name(base)
+        if canonical in _SPECTRAL_PARAMETER_NAMES:
+            if site_index not in (None, 0):
+                raise KeyError(key)
+            normalized = canonical
+            resolved_index = None
         else:
-            limit = int(self._core.parcom.nsite)
-        if limit <= 0:
-            limit = 1
-        return limit
-
-    def _parameter_value(self, parameter, index):
-        site = index if index > 0 else 1
-        return float(self._core.getprm(parameter, site))
+            if site_index is None:
+                raise KeyError(key)
+            if site_index < 0:
+                raise KeyError(key)
+            normalized = f"{canonical}_{site_index}"
+            resolved_index = site_index
+        return normalized, canonical, index_code, resolved_index
 
     def __getitem__(self, key):
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        if "(" in token:
-            raise KeyError(
-                "parameter keys no longer accept explicit indices; use the"
-                " array returned for multi-site parameters instead"
-            )
-
-        # Require an attached model so canonical resolution can proceed.
-        if self._model is None:
-            raise RuntimeError("parameter resolution requires an nlsl model")
-        try:
-            _, ix, parameter = self._model.canonical_name(token)
-        except KeyError:
-            raise KeyError(f"{token} doesn't seem to be a parameter")
-        entries = self._entries(parameter)
-        if not entries:
-            raise KeyError(key)
-        parcom = self._core.parcom
-        ordered = sorted(entries, key=lambda item: item[0])
-        minima = []
-        maxima = []
-        scales = []
-        steps = []
-        indices = []
-        for index_value, position in ordered:
-            minima.append(float(parcom.prmin[position]))
-            maxima.append(float(parcom.prmax[position]))
-            scales.append(float(parcom.prscl[position]))
-            steps.append(float(parcom.xfdstp[position]))
-            indices.append(int(index_value))
-        if len(indices) == 1:
-            return {
-                "minimum": minima[0],
-                "maximum": maxima[0],
-                "scale": scales[0],
-                "fdstep": steps[0],
-                "index": indices[0],
-            }
-        return {
-            "minimum": np.array(minima, dtype=float),
-            "maximum": np.array(maxima, dtype=float),
-            "scale": np.array(scales, dtype=float),
-            "fdstep": np.array(steps, dtype=float),
-            "index": np.array(indices, dtype=int),
-        }
+        normalized, _, _, _ = self._normalized_parameter_key(key)
+        return super().__getitem__(normalized)
 
     def __setitem__(self, key, value):
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        if "(" in token:
-            raise KeyError(
-                "parameter keys no longer accept explicit indices; provide"
-                " arrays when multiple sites are present"
-            )
-        if isinstance(value, bool):
-            if not value:
-                self.__delitem__(key)
-                return
-            config = {}
-        elif value is None:
-            config = {}
-        elif isinstance(value, Mapping):
-            config = value
-        else:
-            raise TypeError("vary requires bool or mapping values")
-        # Require an attached model so canonical resolution can proceed.
-        if self._model is None:
-            raise RuntimeError("parameter resolution requires an nlsl model")
-        try:
-            _, ix, parameter = self._model.canonical_name(token)
-        except KeyError:
-            raise KeyError(f"{token} doesn't seem to be a parameter")
-        spectral = self._is_spectrum_parameter(parameter)
-        limit = self._index_limit(spectral)
-        indices = None
-        if "index" in config:
-            indices = config["index"]
-        elif "site" in config:
-            indices = config["site"]
-        elif "spectrum" in config:
-            indices = config["spectrum"]
-
-        if indices is None:
-            if limit > 1:
-                indices = list(range(1, limit + 1))
-            else:
-                indices = [0]
-        elif np.isscalar(indices):
-            indices = [int(indices)]
-        else:
-            indices = [int(item) for item in indices]
-
-        for index in indices:
-            if index < 0:
-                raise ValueError("negative indices are not supported")
-            if index > limit:
-                raise ValueError("index out of range")
-
-        count = len(indices)
-        boundary_flags = np.zeros(count, dtype=int)
-        minima = np.zeros(count, dtype=float)
-        maxima = np.zeros(count, dtype=float)
-        scales = np.ones(count, dtype=float)
-        steps = np.empty(count, dtype=float)
-        step_mask = np.zeros(count, dtype=bool)
-
-        if "minimum" in config:
-            # Accept either a scalar or per-site sequence for each option; when
-            # a scalar is supplied, broadcast it across the active indices.
-            if np.isscalar(config["minimum"]):
-                minima[:] = float(config["minimum"])
-            else:
-                array = np.asarray(config["minimum"], dtype=float)
-                if array.size != count:
-                    raise ValueError(
-                        "minimum entries must match the index list"
-                    )
-                minima[:] = array
-            boundary_flags += 1
-        if "maximum" in config:
-            if np.isscalar(config["maximum"]):
-                maxima[:] = float(config["maximum"])
-            else:
-                array = np.asarray(config["maximum"], dtype=float)
-                if array.size != count:
-                    raise ValueError(
-                        "maximum entries must match the index list"
-                    )
-                maxima[:] = array
-            boundary_flags += 2
-        if "scale" in config:
-            if np.isscalar(config["scale"]):
-                scales[:] = float(config["scale"])
-            else:
-                array = np.asarray(config["scale"], dtype=float)
-                if array.size != count:
-                    raise ValueError("scale entries must match the index list")
-                scales[:] = array
-        if "fdstep" in config:
-            if np.isscalar(config["fdstep"]):
-                steps[:] = float(config["fdstep"])
-            else:
-                array = np.asarray(config["fdstep"], dtype=float)
-                if array.size != count:
-                    raise ValueError(
-                        "fdstep entries must match the index list"
-                    )
-                steps[:] = array
-            step_mask[:] = True
-
-        entries = self._entries(parameter)
-        ident = token.upper().split("(", 1)[0][:9]
-        for existing_index, _ in entries:
-            # Clear any stale configuration so the updated records replace the
-            # full vary list for the parameter.
-            _fortrancore.rmvprm(ix, existing_index, ident.ljust(30))
-
-        for idx, index in enumerate(indices):
-            base_value = self._parameter_value(parameter, index)
-            if not step_mask[idx]:
-                default_step = 1.0e-6
-                step_value = default_step * base_value
-                if abs(step_value) < float(np.finfo(float).eps):
-                    step_value = default_step
-            else:
-                step_value = steps[idx]
-            step_factor = step_value
-            if abs(base_value) >= float(np.finfo(float).eps):
-                step_factor = step_value / base_value
-            _fortrancore.addprm(
-                ix,
-                index,
-                int(boundary_flags[idx]),
-                float(minima[idx]),
-                float(maxima[idx]),
-                float(scales[idx]),
-                float(step_factor),
-                ident.ljust(9),
-            )
-
-    def __delitem__(self, key):
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        if "(" in token:
-            raise KeyError(
-                "parameter keys no longer accept explicit indices; remove"
-                " entries by requesting the base name"
-            )
-        # Require an attached model so canonical resolution can proceed.
-        if self._model is None:
-            raise RuntimeError("parameter resolution requires an nlsl model")
-        try:
-            _, ix, parameter = self._model.canonical_name(token)
-        except KeyError:
-            raise KeyError(f"{token} doesn't seem to be a parameter")
-        entries = self._entries(parameter)
-        if not entries:
-            raise KeyError(key)
-        ident = token.upper().split("(", 1)[0][:9]
-        for index, _ in entries:
-            _fortrancore.rmvprm(ix, index, ident.ljust(30))
+        normalized, _, _, _ = self._normalized_parameter_key(key)
+        return super().__setitem__(normalized, value)
 
     def __contains__(self, key):
         try:
-            self[key]
-        except Exception:
+            normalized, _, _, _ = self._normalized_parameter_key(key)
+        except KeyError:
             return False
-        return True
+        return super().__contains__(normalized)
 
-    def __iter__(self):
-        return iter(self.keys())
+    def _parameter_state_key(self, canonical_name, site_index):
+        return (canonical_name, site_index)
 
-    def __len__(self):
-        return self._count()
+    def _snapshot_states(self):
+        states = {}
+        for param in self.values():
+            states[self._parameter_state_key(param._canonical_name, param._site_index)] = {
+                "vary": param.vary,
+                "min": param.min,
+                "max": param.max,
+                "brute_step": param.brute_step,
+                "expr": param.expr,
+            }
+        return states
 
-    def keys(self):
-        result = []
-        for pos in range(self._count()):
-            label = self._core.parcom.tag[pos]
-            if isinstance(label, bytes):
-                label = label.decode("ascii")
-            label = label.rstrip()
-            if label:
-                result.append(label.lower())
-        return result
+    def _restore_states(self, states):
+        for param in self.values():
+            key = self._parameter_state_key(param._canonical_name, param._site_index)
+            if key in states:
+                saved = states[key]
+                param.min = saved["min"]
+                param.max = saved["max"]
+                param.brute_step = saved["brute_step"]
+                param.expr = saved["expr"]
+                param.vary = saved["vary"]
 
-    def items(self):
-        return [(key, self[key]) for key in self.keys()]
+    def _build_parameters(self):
+        states = self._snapshot_states()
+        self.clear()
+        site_total = max(self._model.nsites, 1)
+        for idx, name in enumerate(self._model._fepr_names):
+            if not name:
+                continue
+            canonical, index_code, _ = self._model.canonical_name(name)
+            if canonical in _SPECTRAL_PARAMETER_NAMES:
+                key = canonical
+                self[key] = NLSLParameter(
+                    self._model, self, canonical, index_code, key, None
+                )
+                continue
+            for site_index in range(site_total):
+                key = f"{canonical}_{site_index}"
+                self[key] = NLSLParameter(
+                    self._model,
+                    self,
+                    canonical,
+                    index_code,
+                    key,
+                    site_index,
+                )
+        self._site_count = site_total
+        if states:
+            self._restore_states(states)
+        self.refresh_vary_from_core()
 
-    def values(self):
-        return [self[key] for key in self.keys()]
+    def refresh_vary_from_core(self):
+        self._refreshing = True
+        active = {}
+        parcom = self._model._core.parcom
+        total = int(parcom.nprm)
+        for position in range(total):
+            code = int(parcom.ixpr[position])
+            site_index = int(parcom.ixst[position])
+            if code not in active:
+                active[code] = set()
+            active[code].add(site_index)
+        for param in self.values():
+            target = param._target_index()
+            if param._index_code in active:
+                indices = active[param._index_code]
+                param._vary = 0 in indices or target in indices
+            else:
+                param._vary = False
+        self._refreshing = False
 
-    def clear(self):
-        keys = self.keys()
-        for key in reversed(keys):
-            self.__delitem__(key)
+    def apply_single_vary(self, param):
+        self._remove_core_entries(param)
+        if not param.vary:
+            return
+        self._add_core_entry(param)
 
-    def update(self, other):
-        if isinstance(other, dict):
-            items = other.items()
-        else:
-            items = other
-        for key, val in items:
-            self[key] = val
+    def apply_all_vary(self):
+        for param in self.values():
+            self._remove_core_entries(param)
+        for param in self.values():
+            if param.vary:
+                self._add_core_entry(param)
+
+    def _remove_core_entries(self, param):
+        parcom = self._model._core.parcom
+        count = int(parcom.nprm)
+        ident = param._canonical_name.upper()[:9].ljust(30)
+        target = param._target_index()
+        for position in range(count - 1, -1, -1):
+            if int(parcom.ixpr[position]) == param._index_code:
+                index_value = int(parcom.ixst[position])
+                if index_value == target or index_value == 0:
+                    _fortrancore.rmvprm(param._index_code, index_value, ident)
+
+    def _add_core_entry(self, param):
+        boundary_flags = 0
+        prmin = 0.0
+        prmax = 0.0
+        if param.min != -np.inf:
+            boundary_flags += 1
+            prmin = float(param.min)
+        if param.max != np.inf:
+            boundary_flags += 2
+            prmax = float(param.max)
+        step_value = param.brute_step
+        if step_value is None:
+            base_value = self._model._parameter_value_from_core(
+                param._index_code, param._site_index
+            )
+            step_value = 1.0e-6 * base_value
+            if abs(step_value) < float(np.finfo(float).eps):
+                step_value = 1.0e-6
+        ident = param._canonical_name.upper()[:9].ljust(9)
+        _fortrancore.addprm(
+            param._index_code,
+            param._target_index(),
+            int(boundary_flags),
+            prmin,
+            prmax,
+            1.0,
+            float(step_value),
+            ident,
+        )
+
+    def refresh_from_core(self):
+        expected_sites = max(self._model.nsites, 1)
+        if expected_sites != self._site_count:
+            self._build_parameters()
+            return
+        self.refresh_vary_from_core()
 
 
 class TensorSymmetryMapping(object):
@@ -564,7 +500,6 @@ class fit_params(dict):
             n.decode("ascii").strip().lower()
             for n in self._core.lmcom.ilmprm_name.tolist()
         ]
-        self._vary = FitParameterVaryMapping(self, model)
 
     def __setitem__(self, key, value):
         key = key.lower()
@@ -618,8 +553,17 @@ class fit_params(dict):
 
     @property
     def vary(self):
-        """Dictionary-like view of the optimiser's variable parameter list."""
-        return self._vary
+        raise RuntimeError(
+            "Parameter variation now lives on the lmfit Parameters container. "
+            "Use model.parameters['name_index'].vary/min/max/expr instead."
+        )
+
+    @vary.setter
+    def vary(self, value):
+        raise RuntimeError(
+            "Parameter variation now lives on the lmfit Parameters container. "
+            "Use model.parameters['name_index'].vary/min/max/expr instead."
+        )
 
 
 class nlsl(object):
@@ -696,6 +640,69 @@ class nlsl(object):
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
+        self.parameters = NLSLParameters(self)
+
+    def _spectral_values(self, name):
+        # Expose spectral work arrays in a consistent way so callers see the
+        # same values regardless of whether spectra have been loaded yet.
+        if name == "b0":
+            source = _fortrancore.expdat.sb0
+        elif name == "range":
+            source = _fortrancore.expdat.srng
+        elif name == "phase":
+            source = _fortrancore.expdat.sphs
+        elif name == "psi":
+            source = _fortrancore.expdat.spsi
+        elif name == "lb":
+            source = _fortrancore.expdat.slb
+        else:
+            raise KeyError(name)
+        count = int(_fortrancore.expdat.nspc)
+        if count <= 0:
+            count = 1
+        values = source[:count].copy()
+        if np.allclose(values, values[0]):
+            return float(values[0])
+        return values
+
+    def _parameter_value_from_core(self, index_code, site_index):
+        """Read the live value for a single slot from the Fortran layer."""
+
+        # Mirror the spectral work arrays so reads pick up values set through
+        # ``procline`` even when no spectra have been registered yet.
+        if index_code > 0 and index_code <= len(self._fepr_names):
+            row = index_code - 1
+            name = self._fepr_names[row]
+            if name in _SPECTRAL_PARAMETER_NAMES:
+                return self._spectral_values(name)
+            target = 0 if site_index is None else site_index
+            if target >= self._fparm.shape[1]:
+                target = 0
+            return float(self._fparm[row, target])
+        target = 1 if site_index is None else site_index + 1
+        return float(_fortrancore.getprm(index_code, target))
+
+    def _update_parameter_value(self, canonical_name, index_code, site_index, value):
+        """Apply a single parameter value through the dictionary interface."""
+
+        if canonical_name in _SPECTRAL_PARAMETER_NAMES:
+            self[canonical_name] = float(value)
+            return
+        if site_index is None:
+            self[canonical_name] = float(value)
+            return
+        current = self[canonical_name]
+        if np.isscalar(current):
+            values = np.full(max(self.nsites, 1), float(current), dtype=float)
+        else:
+            values = np.asarray(current, dtype=float)
+            if values.size < self.nsites:
+                expanded = np.empty(self.nsites, dtype=float)
+                expanded[:] = values[0]
+                expanded[: values.size] = values
+                values = expanded
+        values[site_index] = float(value)
+        self[canonical_name] = values
 
     @property
     def nsites(self) -> int:
@@ -709,6 +716,7 @@ class nlsl(object):
         # exposed rows default to unity populations.
         _fortrancore.parcom.nsite = int(value)
         self._sync_weight_matrix()
+        self.parameters.refresh_from_core()
 
     @property
     def nspec(self):
@@ -779,6 +787,7 @@ class nlsl(object):
     def procline(self, val):
         """Process a line of a traditional format text NLSL runfile."""
         _fortrancore.procline(val)
+        self.parameters.refresh_from_core()
 
     def fit(self):
         """Run the nonlinear least-squares fit using current parameters."""
@@ -1099,51 +1108,15 @@ class nlsl(object):
         if key in ("nspc", "nspec", "nspectra"):
             return self.nspec
         if key in ("sb0", "b0"):
-            nspc = int(_fortrancore.expdat.nspc)
-            if nspc <= 0:
-                try:
-                    idx = self.parameter_index("b0")
-                    if idx > 0:
-                        return float(_fortrancore.getprm(idx, 1))
-                except Exception:
-                    pass
-                if "b0" in self._fepr_names:
-                    row = self._fepr_names.index("b0")
-                    columns = max(self.nsites, 1)
-                    columns = min(columns, self._fparm.shape[1])
-                    if columns > 0:
-                        values = self._fparm[row, :columns]
-                        if np.allclose(values, values[0]):
-                            return float(values[0])
-                        return values.copy()
-                return 0.0
-            values = _fortrancore.expdat.sb0[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._spectral_values("b0")
         if key in ("srng", "range"):
-            nspc = int(_fortrancore.expdat.nspc)
-            if nspc <= 0:
-                try:
-                    idx = self.parameter_index("range")
-                    if idx > 0:
-                        return float(_fortrancore.getprm(idx, 1))
-                except Exception:
-                    pass
-                if "range" in self._fepr_names:
-                    row = self._fepr_names.index("range")
-                    columns = max(self.nsites, 1)
-                    columns = min(columns, self._fparm.shape[1])
-                    if columns > 0:
-                        values = self._fparm[row, :columns]
-                        if np.allclose(values, values[0]):
-                            return float(values[0])
-                        return values.copy()
-                return 0.0
-            values = _fortrancore.expdat.srng[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._spectral_values("range")
+        if key == "phase":
+            return self._spectral_values("phase")
+        if key == "psi":
+            return self._spectral_values("psi")
+        if key == "lb":
+            return self._spectral_values("lb")
         if key == "fldi":
             # ``fldi`` mirrors the field origin stored in ``expdat.sbi`` so
             # callers can recover the absolute coordinates used for the most
@@ -1216,6 +1189,14 @@ class nlsl(object):
             canonical_key, res, base = self.canonical_name(key)
         except KeyError:
             canonical_key, res, base = None, 0, 0
+        if canonical_key in self._fepr_names:
+            if canonical_key in _SPECTRAL_PARAMETER_NAMES:
+                return self._spectral_values(canonical_key)
+            idx = base - 1 if base else self._fepr_names.index(canonical_key)
+            vals = self._fparm[idx, : self.nsites]
+            if np.allclose(vals, vals[0]):
+                return float(vals[0])
+            return vals
         if res == 0:
             if canonical_key in self._iepr_names:
                 idx = (
@@ -1224,14 +1205,6 @@ class nlsl(object):
                 vals = self._iparm[idx, : self.nsites]
                 if np.all(vals == vals[0]):
                     return int(vals[0])
-                return vals.copy()
-            if canonical_key in self._fepr_names:
-                idx = (
-                    base - 1 if base else self._fepr_names.index(canonical_key)
-                )
-                vals = self._fparm[idx, : self.nsites]
-                if np.allclose(vals, vals[0]):
-                    return float(vals[0])
                 return vals.copy()
             raise KeyError(key)
         if res > 100:

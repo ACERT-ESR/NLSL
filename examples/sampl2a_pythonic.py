@@ -74,11 +74,15 @@ def main():
         model.fit_params[key] = FIT_CONTROLS[key]
 
     for token in ("gib0", "rbar", "c20"):
-        model.fit_params.vary[token] = True
+        for site_index in range(max(model.nsites, 1)):
+            param_key = f"{token}_{site_index}"
+            model.parameters[param_key].vary = True
     model.fit()
 
     for token in ("gib2", "n", "c22", "betad"):
-        model.fit_params.vary[token] = True
+        for site_index in range(max(model.nsites, 1)):
+            param_key = f"{token}_{site_index}"
+            model.parameters[param_key].vary = True
     model.fit()
 
     site_spectra = model.fit()

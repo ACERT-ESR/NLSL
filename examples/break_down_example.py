@@ -69,7 +69,9 @@ n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 print()
 print("   --- Specify parameters to be varied in fitting procedure\n")
 for token in ("rpll", "rprp", "gib0"):
-    n.fit_params.vary[token] = True
+    canonical = n.canonical_name(token)[0]
+    key = f"{canonical}_0"
+    n.parameters[key].vary = True
 print()
 print("   --- Carry out nonlinear least-squares procedure:")
 print("   ---    (1) Stop after a maximum of 40 iterations")

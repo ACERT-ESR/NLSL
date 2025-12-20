@@ -67,19 +67,20 @@ def main():
         model.fit_params[key] = FIT_CONTROLS[key]
 
     for token in ("rpll", "rprp", "c20", "gib0"):
-        model.fit_params.vary[token] = True
+        canonical = model.canonical_name(token)[0]
+        model.parameters[f"{canonical}_0"].vary = True
     model.fit()
 
     for token in ("rpll", "rprp"):
-        if token in model.fit_params.vary:
-            del model.fit_params.vary[token]
+        canonical = model.canonical_name(token)[0]
+        model.parameters[f"{canonical}_0"].vary = False
     # Switching the tensor back to spherical coordinates matches the
     # behaviour of the second-stage ``spherical r`` command in the runfile.
     model.tensor_symmetry["r"] = "spherical"
-    model.fit_params.vary["rbar"] = True
+    model.parameters[f"{model.canonical_name('rbar')[0]}_0"].vary = True
     model.fit()
 
-    model.fit_params.vary["gib2"] = True
+    model.parameters[f"{model.canonical_name('gib2')[0]}_0"].vary = True
     site_spectra = model.fit()
 
     weights = model.weights
