@@ -183,6 +183,7 @@ def main():
     axes[-1].set_xlabel("Magnetic field (G)")
     axes[0].set_title("sampl2 two-spectrum series reproduced from Python")
     plt.tight_layout()
+    print({j:model[j] for j in INITIAL_PARAMETERS.keys()})
     plt.show()
 
 
