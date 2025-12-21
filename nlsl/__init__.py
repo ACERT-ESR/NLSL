@@ -4,6 +4,14 @@ from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
 from .data import process_spectrum
+import warnings
+
+try:
+    from pyspecdata import nddata
+
+    _HAS_PYSPECDATA = True
+except Exception:
+    _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
     "phase",
@@ -698,6 +706,14 @@ class nlsl(object):
         self._explicit_field_step = False
 
     @property
+    def max_points(self):
+        """Maximum number of points available for a single spectrum."""
+
+        mxpt = self._core.expdat.data.shape[0]
+        mxspc = self._core.expdat.nft.shape[0]
+        return int(mxpt // max(mxspc, 1))
+
+    @property
     def nsites(self) -> int:
         """Number of active sites."""
         self._sync_weight_matrix()
@@ -820,21 +836,19 @@ class nlsl(object):
 
     def load_data(
         self,
-        data_id: str | os.PathLike,
-        *,
-        nspline: int,
-        bc_points: int,
-        shift: bool,
-        normalize: bool = True,
-        derivative_mode: int | None = None,
-    ) -> None:
+        data_id,
+        nspline=None,
+        bc_points=None,
+        shift=False,
+        normalize=True,
+        derivative_mode=None,
+    ):
         """Load experimental data and update the Fortran state.
 
         The workflow mirrors the legacy ``datac`` command but avoids the
         Fortran file I/O path so that tests can exercise the data
         preparation logic directly from Python.
         """
-
         path = Path(data_id)
         if not path.exists():
             if path.suffix:
@@ -846,13 +860,22 @@ class nlsl(object):
 
         token = str(path)
         base_name = token[:-4] if token.lower().endswith(".dat") else token
-        mxpt = _fortrancore.expdat.data.shape[0]
-        mxspc = _fortrancore.expdat.nft.shape[0]
-        mxspt = mxpt // max(mxspc, 1)
+        mxspt = self.max_points
 
-        requested_points = int(nspline)
+        spline_params_used = nspline is not None
+        if spline_params_used:
+            warnings.warn(
+                "load_data spline arguments are retained only for backwards"
+                " compatibility; prefer using pyspecdata or scipy to smooth"
+                " the data before loading.",
+                stacklevel=2,
+            )
+
+        requested_points = int(nspline) if nspline is not None else 0
         if requested_points > 0:
             requested_points = max(4, min(requested_points, mxspt))
+        if bc_points is None:
+            bc_points = 0
 
         nser = max(0, int(getattr(_fortrancore.parcom, "nser", 0)))
         normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
@@ -865,7 +888,6 @@ class nlsl(object):
             derivative_mode=mode,
             normalize=normalize_active,
         )
-
         idx, data_slice = self.generate_coordinates(
             int(spectrum.y.size),
             start=spectrum.start,
@@ -938,12 +960,8 @@ class nlsl(object):
         buffer and associated metadata.
         """
 
-        try:
-            from pyspecdata.core import nddata
-        except ImportError as exc:
-            raise ImportError(
-                "pyspecdata is required to load nddata objects"
-            ) from exc
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required to load nddata objects")
 
         if not isinstance(dataset, nddata):
             raise TypeError("load_nddata expects a pyspecdata nddata instance")
@@ -977,9 +995,7 @@ class nlsl(object):
 
         # The legacy Fortran workspace allocates a fixed buffer per spectrum,
         # so oversized inputs must be rejected with a clear message.
-        max_points = self._core.expdat.data.shape[0] // max(
-            self._core.expdat.nft.shape[0], 1
-        )
+        max_points = self.max_points
         if fields.size > max_points:
             raise ValueError(
                 "nddata field axis has "
