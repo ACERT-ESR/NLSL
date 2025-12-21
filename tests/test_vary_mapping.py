@@ -55,6 +55,71 @@ def test_vary_stores_bounds_and_steps(clean_model):
     assert np.isclose(parcom.xfdstp[position], expected_step_value)
 
 
+def test_vary_records_fortran_slots(clean_model):
+    """The Fortran parcom arrays should store limits and steps at each slot."""
+
+    model = clean_model
+    model["nsite"] = 2
+    model["gxx"] = (2.01, 2.02)
+    model["gzz"] = (2.15, 2.25)
+
+    vary_mapping = model.fit_params.vary
+    vary_mapping["gxx"] = {
+        "minimum": [1.9, 2.05],
+        "maximum": [2.2, 2.35],
+        "scale": [0.6, 0.85],
+        "fdstep": [1.0e-4, 2.5e-4],
+    }
+    vary_mapping["gzz"] = {
+        "index": [2],
+        "minimum": [2.1],
+        "maximum": [2.6],
+        "scale": [1.1],
+        "fdstep": [3.0e-4],
+    }
+
+    parcom = model.fit_params._core.parcom
+    gxx_code = model.parameter_index("gxx")
+    gzz_code = model.parameter_index("gzz")
+
+    # The bookkeeping structure assigns one slot per varied site.  Each slot
+    # records the parameter code, site index, and bound/step arrays.
+    assert int(parcom.nprm) == 3
+
+    gxx_entries = vary_mapping._entries(gxx_code)
+    ordered_gxx = sorted(gxx_entries, key=lambda item: item[0])
+    assert len(ordered_gxx) == 2
+
+    first_index, first_position = ordered_gxx[0]
+    assert first_index == 1
+    assert np.isclose(parcom.prmin[first_position], 1.9)
+    assert np.isclose(parcom.prmax[first_position], 2.2)
+    assert np.isclose(parcom.prscl[first_position], 0.6)
+    assert np.isclose(parcom.xfdstp[first_position], 1.0e-4)
+    assert int(parcom.ixpr[first_position]) == gxx_code
+    assert int(parcom.ixst[first_position]) == first_index
+
+    second_index, second_position = ordered_gxx[1]
+    assert second_index == 2
+    assert np.isclose(parcom.prmin[second_position], 2.05)
+    assert np.isclose(parcom.prmax[second_position], 2.35)
+    assert np.isclose(parcom.prscl[second_position], 0.85)
+    assert np.isclose(parcom.xfdstp[second_position], 2.5e-4)
+    assert int(parcom.ixpr[second_position]) == gxx_code
+    assert int(parcom.ixst[second_position]) == second_index
+
+    gzz_entries = vary_mapping._entries(gzz_code)
+    assert len(gzz_entries) == 1
+    gzz_index, gzz_position = gzz_entries[0]
+    assert gzz_index == 2
+    assert np.isclose(parcom.prmin[gzz_position], 2.1)
+    assert np.isclose(parcom.prmax[gzz_position], 2.6)
+    assert np.isclose(parcom.prscl[gzz_position], 1.1)
+    assert np.isclose(parcom.xfdstp[gzz_position], 3.0e-4)
+    assert int(parcom.ixpr[gzz_position]) == gzz_code
+    assert int(parcom.ixst[gzz_position]) == gzz_index
+
+
 def test_vary_toggle_removes_parameter(clean_model):
     """Assigning ``False`` should drop an existing vary entry."""
 
