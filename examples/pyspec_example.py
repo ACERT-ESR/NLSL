@@ -14,18 +14,15 @@ if not Path(psd.getDATADIR("nlsl_examples")).exists():
     # package root; this works with meson and other editable loaders that
     # refuse to materialize directories.  If the packaged DSC is unavailable,
     # fall back to the source tree copy.
-    packaged_dir = None
-    try:
-        with resources.as_file(resources.files("nlsl").joinpath("__init__.py")) as init_file:
-            example_root = Path(init_file).parent / "examples"
-            if (example_root / "230621_w0_10.DSC").exists():
-                packaged_dir = example_root
-    except FileNotFoundError:
-        packaged_dir = None
-
-    if packaged_dir is None:
-        packaged_dir = Path(__file__).resolve().parent
-    pyspec_config.set_setting("ExpTypes", "nlsl_examples", str(packaged_dir))
+    with resources.as_file(
+        resources.files("nlsl").joinpath("__init__.py")
+    ) as installed_loc:
+        example_root = Path(installed_loc).parent.parent / "examples"
+        if (example_root / "230621_w0_10.DSC").exists():
+            packaged_dir = example_root
+    pyspec_config.set_setting(
+        "ExpTypes", "nlsl_examples", str(packaged_dir.absolute)
+    )
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
 d.set_units(

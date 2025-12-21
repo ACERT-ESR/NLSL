@@ -7,20 +7,11 @@ from .data import process_spectrum
 import warnings
 
 try:
-    import pyspecdata
     from pyspecdata import nddata
+
     _HAS_PYSPECDATA = True
 except Exception:
-    # Fall back to importing the core nddata implementation when the full
-    # package cannot load optional GUI backends (e.g., Qt bindings).
-    try:
-        from pyspecdata.core import nddata  # type: ignore
-        pyspecdata = None
-        _HAS_PYSPECDATA = True
-    except Exception:
-        pyspecdata = None
-        nddata = None
-        _HAS_PYSPECDATA = False
+    _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
     "phase",
@@ -844,8 +835,13 @@ class nlsl(object):
         _fortrancore.wrspc()
 
     def load_data(
-        self, data_id, nspline=None, bc_points=None, shift=False,
-        normalize=True, derivative_mode=None
+        self,
+        data_id,
+        nspline=None,
+        bc_points=None,
+        shift=False,
+        normalize=True,
+        derivative_mode=None,
     ):
         """Load experimental data and update the Fortran state.
 
@@ -869,9 +865,9 @@ class nlsl(object):
         spline_params_used = nspline is not None
         if spline_params_used:
             warnings.warn(
-                "load_data spline arguments are retained only for backwards "
-                "compatibility; prefer using pyspecdata or scipy to smooth the "
-                "data before loading.",
+                "load_data spline arguments are retained only for backwards"
+                " compatibility; prefer using pyspecdata or scipy to smooth"
+                " the data before loading.",
                 stacklevel=2,
             )
 
