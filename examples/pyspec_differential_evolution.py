@@ -1,12 +1,23 @@
-import numpy as np
-import pyspecdata as psd
+import importlib
+import multiprocessing
+from multiprocessing import freeze_support
+import os
 import re
 from pathlib import Path
+
+import numpy as np
+import pyspecdata as psd
 from numpy import r_
 from pyspecdata.datadir import pyspec_config
-import pygmo as pg
-import os
 from scipy.optimize import minimize
+
+# pygmo is optional so that importing this module for tests does not fail when
+# the optimizer dependency is absent.
+pg_spec = importlib.util.find_spec("pygmo")
+if pg_spec is not None:
+    import pygmo as pg
+else:
+    pg = None
 
 # Register the example directory with pyspecdata if it is not already present.
 if not Path(psd.getDATADIR("nlsl_examples")).exists():
@@ -120,6 +131,7 @@ def _get_ctx():
     _WORKER.update({"pid": pid, "n": n_local, "d": d_local})
     return _WORKER
 
+
 def objective(x_vec):
     ctx = _get_ctx()
     n_local = ctx["n"]
@@ -159,7 +171,9 @@ class NLSLFitness:
 
 
 if __name__ == '__main__':
-    from multiprocessing import freeze_support
+    if pg is None:
+        raise ImportError("pygmo must be installed to run the differential evolution example.")
+    multiprocessing.set_start_method("spawn", force=True)
     freeze_support()
     # Build pagmo problem and archipelago (islands + migration)
     prob = pg.problem(NLSLFitness(param_tokens, bounds))
@@ -170,6 +184,9 @@ if __name__ == '__main__':
     algo = pg.algorithm(pg.de1220(gen=20))
     algo.set_verbosity(1)
 
+    # mp_island honors the multiprocessing start method.  We force "spawn" above to
+    # guarantee that each worker builds its own NLSL instance instead of inheriting
+    # state from a forked parent.
     archi = pg.archipelago(
         n=num_islands,
         algo=algo,
