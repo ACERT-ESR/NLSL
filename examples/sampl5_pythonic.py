@@ -67,25 +67,29 @@ def main():
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    all_sites = {"index": [1, 2]}
-    model.fit_params.vary["gib0"] = all_sites
-    model.fit_params.vary["rbar"] = all_sites
+    for token in ("gib0", "rbar"):
+        for site_index in range(max(model.nsites, 1)):
+            param_key = f"{token}_{site_index}"
+            model.parameters[param_key].vary = True
     model.fit()
 
-    model.fit_params.vary["c20"] = all_sites
+    for site_index in range(max(model.nsites, 1)):
+        model.parameters[f"c20_{site_index}"].vary = True
     model.fit()
 
-    model.fit_params.vary["n"] = all_sites
-    model.fit_params.vary["c22"] = all_sites
+    for site_index in range(max(model.nsites, 1)):
+        model.parameters[f"n_{site_index}"].vary = True
+        model.parameters[f"c22_{site_index}"].vary = True
     model.fit()
 
     model.search("gib2", site=1)
     model.search("gib2", site=2)
     model.search("rbar", site=2)
 
-    model.fit_params.vary.clear()
+    for param in model.parameters.values():
+        param.vary = False
     for token in ("rbar", "n", "c20", "c22", "gib0"):
-        model.fit_params.vary[token] = {"index": 2}
+        model.parameters[f"{token}_1"].vary = True
     site_spectra = model.fit()
 
     weights = model.weights

@@ -55,9 +55,10 @@ def main():
     )
 
     for token in PARAMETERS_TO_VARY:
-        # ``fit_params.vary`` mirrors the Fortran vary list, so toggling each
-        # entry exposes the same optimisation controls as the legacy runfile.
-        model.fit_params.vary[token] = True
+        # Toggle the lmfit-backed parameters directly so the vary list matches
+        # the runfile-driven configuration.
+        param_key = f"{token}_0"
+        model.parameters[param_key].vary = True
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]

@@ -11,7 +11,6 @@ from tests.sampl4_reference import (
     SAMPL4_FIT_CONTROLS,
     SAMPL4_INITIAL_PARAMETERS,
     SAMPL4_POINT_COUNT,
-    SAMPL4_PARAMETERS_TO_VARY,
     SAMPL4_SPECTRAL_DATA,
 )
 
@@ -32,8 +31,11 @@ def run_pythonic_sampl4_fit():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for token in SAMPL4_PARAMETERS_TO_VARY:
-        model.procline(f"vary {token}")
+    model.parameters["gib0_0"].vary = True
+    model.parameters["gib0_1"].expr = "gib0_0"
+
+    model.parameters["rbar_0"].vary = True
+    model.parameters["rbar_1"].vary = True
 
     for key in SAMPL4_FIT_CONTROLS:
         model.fit_params[key] = SAMPL4_FIT_CONTROLS[key]
@@ -95,10 +97,9 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
 def test_load_nddata_runs_fit_cycle():
     """Verify ``load_nddata`` ingests a prepared spectrum and converges."""
 
-    try:
-        from pyspecdata.core import nddata
-    except ImportError:
-        pytest.fail("pyspecdata is required for the nddata loader test")
+    nddata = pytest.importorskip(
+        "pyspecdata.core", reason="pyspecdata is required for the nddata loader test"
+    ).nddata
 
     model = nlsl.nlsl()
     model.update(SAMPL4_INITIAL_PARAMETERS)
@@ -118,8 +119,11 @@ def test_load_nddata_runs_fit_cycle():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for token in SAMPL4_PARAMETERS_TO_VARY:
-        model.procline(f"vary {token}")
+    model.parameters["gib0_0"].vary = True
+    model.parameters["gib0_1"].expr = "gib0_0"
+
+    model.parameters["rbar_0"].vary = True
+    model.parameters["rbar_1"].vary = True
 
     for key in SAMPL4_FIT_CONTROLS:
         model.fit_params[key] = SAMPL4_FIT_CONTROLS[key]

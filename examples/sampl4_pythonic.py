@@ -40,9 +40,9 @@ FIT_CONTROLS = {
     "xtol": 1.0e-4,
 }
 
-# These parameters are refined during the optimisation.  The new
-# ``fit_params.vary`` mapping mirrors the Fortran vary list so each entry
-# below behaves the same way as the original ``vary`` commands in the runfile.
+# These parameters are refined during the optimisation.  The lmfit-backed
+# ``parameters`` mapping mirrors the Fortran vary list so each entry below
+# behaves the same way as the original ``vary`` commands in the runfile.
 PARAMETERS_TO_VARY = {
     "gib0": [1, 2],
     "rbar": [1, 2],
@@ -71,7 +71,9 @@ def main():
     )
 
     for token, indices in PARAMETERS_TO_VARY.items():
-        model.fit_params.vary[token] = {"index": indices}
+        for idx in indices:
+            key = f"{token}_{idx - 1}"
+            model.parameters[key].vary = True
 
     for key, value in FIT_CONTROLS.items():
         model.fit_params[key] = value

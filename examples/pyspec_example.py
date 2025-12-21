@@ -65,7 +65,9 @@ n.update({
 })
 
 for token in ("rpll", "rprp", "gib0"):
-    n.fit_params.vary[token] = True
+    canonical = n.canonical_name(token)[0]
+    key = f"{canonical}_0"
+    n.parameters[key].vary = True
 
 for key, value in {
     "maxitr": 20,

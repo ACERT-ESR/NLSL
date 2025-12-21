@@ -177,7 +177,8 @@ def run_pythonic(runfile_name):
                     "lemx": 6,
                     "lomx": 5,
                     "kmx": 4,
-                    "mmx": (2, 2),
+                    "mmx": 2,
+                    "ipnmx": 2,
                     "rpll": math.log10(1.0e8),
                     "rprp": 8.0,
                     "gib0": 1.5,
@@ -196,7 +197,8 @@ def run_pythonic(runfile_name):
 
             # sampl1.run: vary rpll, rprp, gib0
             for token in ("rpll", "rprp", "gib0"):
-                model.fit_params.vary[token] = True
+                param_key = f"{token}_0"
+                model.parameters[param_key].vary = True
 
             # sampl1.run: fit maxit 40 maxfun 1000 ftol 1e-3 xtol 1e-3
             for key, value in {"maxitr": 40, "maxfun": 1000, "ftol": 1e-3, "xtol": 1e-3}.items():

@@ -84,10 +84,15 @@ def apply_variation_changes(model, step):
     """Synchronise the vary list with the supplied stage configuration."""
 
     for token in step["remove"]:
-        if token in model.fit_params.vary:
-            del model.fit_params.vary[token]
+        canonical = model.canonical_name(token)[0]
+        for site_index in range(max(model.nsites, 1)):
+            key = f"{canonical}_{site_index}"
+            if key in model.parameters:
+                model.parameters[key].vary = False
     for token, indices in step["add"].items():
-        model.fit_params.vary[token] = {"index": indices}
+        canonical = model.canonical_name(token)[0]
+        for idx in indices:
+            model.parameters[f"{canonical}_{idx - 1}"].vary = True
 
 
 def main():
@@ -101,7 +106,9 @@ def main():
     model.update(GLOBAL_CONTROLS)
 
     for token, indices in INITIAL_VARIATIONS.items():
-        model.fit_params.vary[token] = {"index": indices}
+        canonical = model.canonical_name(token)[0]
+        for idx in indices:
+            model.parameters[f"{canonical}_{idx - 1}"].vary = True
 
     model.load_data(
         examples_dir / "c16pc371e.dat",
