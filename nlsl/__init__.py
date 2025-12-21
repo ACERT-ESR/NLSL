@@ -3,6 +3,8 @@ import os
 from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
+from lmfit import Parameter as LmfitParameter
+from lmfit import Parameters as LmfitParameters
 from .data import process_spectrum
 
 _SPECTRAL_PARAMETER_NAMES = {
@@ -456,6 +458,109 @@ class fit_params(dict):
         return self._vary
 
 
+class NLSLParameter(LmfitParameter):
+    """Parameter entry that writes directly into the NLSL site slots."""
+
+    def __init__(self, owner, name, site_index):
+        canonical = owner.canonical_name(name)
+        code = owner.parameter_index(canonical)
+        self._owner = owner
+        self._canonical = canonical
+        self._site_index = int(site_index)
+        label = f"{canonical}_{self._site_index}"
+        value = _fortrancore.getprm(code, self._site_index + 1)
+        LmfitParameter.__init__(self, name=label, value=value)
+
+    @property
+    def value(self):
+        code = self._owner.parameter_index(self._canonical)
+        return float(_fortrancore.getprm(code, self._site_index + 1))
+
+    @value.setter
+    def value(self, new):
+        code = self._owner.parameter_index(self._canonical)
+        _fortrancore.setprm(code, self._site_index + 1, float(new))
+        self._val = float(new)
+
+
+class NLSLParameters(LmfitParameters):
+    """Lmfit-compatible collection linked to the nlsl parameter table."""
+
+    def __init__(self, owner):
+        LmfitParameters.__init__(self)
+        self._owner = owner
+        self._site_count = 0
+        self._base_names = []
+        self.refresh_sites()
+
+    def refresh_sites(self):
+        """Keep parameter entries aligned with the active site count."""
+
+        self._base_names = []
+        for name in self._owner.keys():
+            if name in self._owner._fepr_names and len(name) > 0:
+                try:
+                    self._owner.parameter_index(name)
+                except KeyError:
+                    continue
+                self._base_names.append(name)
+        new_site_count = max(self._owner.nsites, 1)
+        for name in list(self.keys()):
+            base, idx_text = name.rsplit("_", 1)
+            if base not in self._base_names or int(idx_text) >= new_site_count:
+                del self[name]
+        for base in self._base_names:
+            for site in range(new_site_count):
+                label = f"{base}_{site}"
+                if label not in self:
+                    LmfitParameters.__setitem__(
+                        self, label, NLSLParameter(self._owner, base, site)
+                    )
+        self._site_count = new_site_count
+
+    def parse_key(self, key):
+        """Resolve an lmfit-style key into the canonical name and site."""
+
+        if not isinstance(key, str):
+            raise KeyError(key)
+        text = key.strip().lower()
+        if "_" not in text:
+            raise KeyError(key)
+        base, idx_text = text.rsplit("_", 1)
+        canonical = self._owner.canonical_name(base)
+        site = int(idx_text)
+        if site < 0:
+            raise KeyError(key)
+        if site >= max(self._owner.nsites, 1):
+            raise KeyError(key)
+        return canonical, site
+
+    def __getitem__(self, key):
+        canonical, site = self.parse_key(key)
+        internal = f"{canonical}_{site}"
+        if internal not in self:
+            self.refresh_sites()
+        return LmfitParameters.__getitem__(self, internal)
+
+    def __setitem__(self, key, value):
+        canonical, site = self.parse_key(key)
+        internal = f"{canonical}_{site}"
+        if internal not in self:
+            self.refresh_sites()
+        if isinstance(value, LmfitParameter):
+            LmfitParameters.__setitem__(self, internal, value)
+            return
+        LmfitParameters.__getitem__(self, internal).value = value
+
+    def __contains__(self, key):
+        try:
+            canonical, site = self.parse_key(key)
+        except Exception:
+            return False
+        internal = f"{canonical}_{site}"
+        return LmfitParameters.__contains__(self, internal)
+
+
 class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
@@ -531,6 +636,7 @@ class nlsl(object):
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
+        self.parameters = NLSLParameters(self)
 
     @property
     def nsites(self) -> int:
@@ -544,6 +650,8 @@ class nlsl(object):
         # exposed rows default to unity populations.
         _fortrancore.parcom.nsite = int(value)
         self._sync_weight_matrix()
+        if hasattr(self, "parameters"):
+            self.parameters.refresh_sites()
 
     @property
     def nspec(self):
@@ -723,6 +831,18 @@ class nlsl(object):
 
         if shift:
             _fortrancore.expdat.ishglb = 1
+
+        # ``datac`` zeros the site-by-spectrum weight table before each
+        # registration, leaving the leading slot active and the remainder
+        # cleared.  Mirror that behaviour here so the Python data loader
+        # maintains the same initial scaling state as the legacy path.
+        site_count = max(self.nsites, 1)
+        spectrum_count = int(_fortrancore.expdat.nspc)
+        if spectrum_count <= 0:
+            spectrum_count = 1
+        _fortrancore.mspctr.sfac[:, :] = 0.0
+        _fortrancore.mspctr.sfac[:site_count, :spectrum_count] = 1.0
+        self._weight_shape = (site_count, spectrum_count)
 
     # -- mapping protocol -------------------------------------------------
 
