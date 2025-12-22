@@ -82,8 +82,7 @@ def main():
     for command in SEARCH_COMMANDS:
         model.procline(command)
 
-    for key in FIT_CONTROLS:
-        model.fit_params[key] = FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     for command in VARY_PHASE_ONE:
         model.procline(command)

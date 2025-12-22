@@ -18,6 +18,7 @@ dependencies = [
     "sympy",
     "numpy>=1.26.5",
     "scipy",
+    "lmfit",
     "matplotlib",
     "tables",
 ]

@@ -84,10 +84,12 @@ def apply_variation_changes(model, step):
     """Synchronise the vary list with the supplied stage configuration."""
 
     for token in step["remove"]:
-        if token in model.fit_params.vary:
-            del model.fit_params.vary[token]
+        for name in list(model.parameters.keys()):
+            if "_" in name and name.startswith(f"{token}_"):
+                model.parameters[name].vary = False
     for token, indices in step["add"].items():
-        model.fit_params.vary[token] = {"index": indices}
+        for idx in indices:
+            model.parameters[f"{token}_{idx - 1}"].vary = True
 
 
 def main():
@@ -101,7 +103,8 @@ def main():
     model.update(GLOBAL_CONTROLS)
 
     for token, indices in INITIAL_VARIATIONS.items():
-        model.fit_params.vary[token] = {"index": indices}
+        for idx in indices:
+            model.parameters[f"{token}_{idx - 1}"].vary = True
 
     model.load_data(
         examples_dir / "c16pc371e.dat",
@@ -112,8 +115,7 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for key, value in INITIAL_FIT.items():
-        model.fit_params[key] = value
+    model.fortran_lm_engine.update(INITIAL_FIT)
 
     site_spectra = model.fit()
 

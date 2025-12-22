@@ -48,7 +48,7 @@ if __name__ == "__main__":
     print("\n".join(f"{k:20s}{v}" for k, v in n.items()))
     print("final fit parameters:")
     print("→" * 20)
-    print("\n".join(f"{k:20s}{v}" for k, v in n.fit_params.items()))
+    print("\n".join(f"{k:20s}{v}" for k, v in n.parameters.items()))
 
     # Compute relative RMS error for each output spectrum
     rms_values = []

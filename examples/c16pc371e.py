@@ -18,11 +18,12 @@ def read_column_data(filename):
 print("about to run nlsl")
 fp = open("c16pc371e.run")
 n = nlsl.nlsl()
-print("fit_params before is", dict(n.fit_params.items()))
+n.fortran_lm_engine["maxitr"] = 40
+print("parameters before is", dict(n.parameters.items()))
 for thisline in fp.readlines():
     n.procline(thisline)
 fp.close()
-print("fit_params after is", dict(n.fit_params.items()))
+print("parameters after is", dict(n.parameters.items()))
 data = read_column_data("c16pc371e.spc")
 fields = data[:, 0]
 experimental = data[:, 1]

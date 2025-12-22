@@ -30,7 +30,7 @@ INITIAL_PARAMETERS = {
     "rx": np.array([np.log10(3.0e8), np.log10(1.0e7)]),
 }
 
-# Optimisation tolerances are applied through ``fit_params`` instead of the
+# Optimisation tolerances are applied through ``n.parameters`` instead of the
 # ``fit maxit ...`` directive from the runfile.
 FIT_CONTROLS = {
     "maxitr": 40,
@@ -40,9 +40,8 @@ FIT_CONTROLS = {
     "xtol": 1.0e-4,
 }
 
-# These parameters are refined during the optimisation.  The new
-# ``fit_params.vary`` mapping mirrors the Fortran vary list so each entry
-# below behaves the same way as the original ``vary`` commands in the runfile.
+# These parameters are refined during the optimisation.  Each entry listed
+# below mirrors the original ``vary`` commands from the runfile.
 PARAMETERS_TO_VARY = {
     "gib0": [1, 2],
     "rbar": [1, 2],
@@ -71,10 +70,10 @@ def main():
     )
 
     for token, indices in PARAMETERS_TO_VARY.items():
-        model.fit_params.vary[token] = {"index": indices}
+        for idx in indices:
+            model.parameters[f"{token}_{idx - 1}"].vary = True
 
-    for key, value in FIT_CONTROLS.items():
-        model.fit_params[key] = value
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     # Seed equal site populations once the data slot exists so the weight
     # matrix is initialised through the public mapping interface.
