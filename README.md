@@ -11,7 +11,7 @@ resonance models.【F:pyproject.toml†L11-L24】【F:nlsl/__init__.py†L1-L104
   complete parameter set from the legacy NLSL engine through mapping-style
   accessors, making it easy to read or update magnetic, diffusion, and fitting
   options from Python code.【F:nlsl/__init__.py†L60-L170】
-- **Programmable fitting control** – the :class:`nlsl.fit_params` helper keeps
+- **Programmable fitting control** – the :class:`nlsl.NLSLParameters` helper keeps
   the low-level Levenberg–Marquardt settings in sync with the Fortran
   structures, so tolerances, iteration limits, and other solver options can be
   modified directly without crafting text run files.【F:nlsl/__init__.py†L15-L58】
@@ -77,7 +77,7 @@ import nlsl
 
 n = nlsl.nlsl()
 n["nsite"] = 1
-n.fit_params["maxitr"] = 40
+n.parameters["maxitr"] = 40
 n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 site_spectra = n.fit()
 total_spectrum = n["weights"] @ site_spectra

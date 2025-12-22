@@ -29,11 +29,12 @@ def run_pythonic_sampl4_fit():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for token in SAMPL4_PARAMETERS_TO_VARY:
-        model.procline(f"vary {token}")
+    model.parameters["gib0_0"].vary = True
+    model.parameters["rx_0"].vary = True
+    model.parameters["rx_1"].vary = True
 
     for key in SAMPL4_FIT_CONTROLS:
-        model.fit_params[key] = SAMPL4_FIT_CONTROLS[key]
+        model.parameters[key] = SAMPL4_FIT_CONTROLS[key]
 
     # The historical run issues ``fit`` twice; repeating it here mirrors the
     # published optimisation cycle and ensures the spectra are stored.

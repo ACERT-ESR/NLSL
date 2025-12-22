@@ -68,7 +68,7 @@ def main():
     )
 
     for key in FIT_CONTROLS:
-        model.fit_params[key] = FIT_CONTROLS[key]
+        model.parameters[key] = FIT_CONTROLS[key]
 
     site_spectra = model.fit()
 

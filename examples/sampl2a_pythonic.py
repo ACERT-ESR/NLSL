@@ -83,7 +83,7 @@ def main():
         model.procline(command)
 
     for key in FIT_CONTROLS:
-        model.fit_params[key] = FIT_CONTROLS[key]
+        model.parameters[key] = FIT_CONTROLS[key]
 
     for command in VARY_PHASE_ONE:
         model.procline(command)

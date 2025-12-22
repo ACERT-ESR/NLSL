@@ -97,16 +97,16 @@ def run_sample1_manual():
     print("   --- Specify parameters to be varied in fitting procedure")
     print()
     for token in ("rpll", "rprp", "gib0"):
-        n.fit_params.vary[token] = True
+        n.parameters[f"{token}_0"].vary = True
     print()
     print("   --- Carry out nonlinear least-squares procedure:")
     print("   ---    (1) Stop after a maximum of 40 iterations")
     print("   ---    (2) Stop after a maximum of 600 spectral calculations")
     print("   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3")
-    n.fit_params["maxitr"] = 40
-    n.fit_params["maxfun"] = 1000
-    n.fit_params["ftol"] = 1e-3
-    n.fit_params["xtol"] = 1e-3
+    n.parameters["maxitr"] = 40
+    n.parameters["maxfun"] = 1000
+    n.parameters["ftol"] = 1e-3
+    n.parameters["xtol"] = 1e-3
     n.fit()
     n.write_spc()
     procline("log end")

@@ -87,7 +87,7 @@ def main():
     model.weights = np.ones((2, 2))
 
     for key in FIT_CONTROLS:
-        model.fit_params[key] = FIT_CONTROLS[key]
+        model.parameters[key] = FIT_CONTROLS[key]
 
     for commands in FIT_STEPS:
         for command in commands:

@@ -1,7 +1,6 @@
 from . import fortrancore as _fortrancore
 import os
 from pathlib import Path
-from collections.abc import Mapping
 import numpy as np
 from lmfit import Parameter as LmfitParameter
 from lmfit import Parameters as LmfitParameters
@@ -55,409 +54,6 @@ def _match_parameter_token(token, entries):
     return None
 
 
-class FitParameterVaryMapping(object):
-    """Expose the active set of variable parameters through a mapping."""
-
-    def __init__(self, owner, model):
-        self._owner = owner
-        self._core = owner._core
-        self._model = model
-
-    def _count(self):
-        return int(self._core.parcom.nprm)
-
-    def _entries(self, parameter):
-        """Return ``(index, position)`` pairs for the requested parameter."""
-
-        records = []
-        parcom = self._core.parcom
-        for position in range(self._count()):
-            if int(parcom.ixpr[position]) == parameter:
-                # Preserve the recorded index so callers can manage all slots
-                # associated with the parameter in question.
-                records.append((int(parcom.ixst[position]), position))
-        return records
-
-    # TODO: this should not be a private function.  Make it a method of the
-    # class.
-    def _resolve_parameter(self, token):
-        """Resolve *token* into canonical metadata and index codes."""
-
-        if self._model is None:
-            raise RuntimeError("parameter resolution requires an nlsl model")
-        canonical = self._model.canonical_name(token)
-        code = self._model.parameter_index(token)
-        if canonical in self._model._fepr_names:
-            base = self._model._fepr_names.index(canonical) + 1
-        elif canonical in self._model._iepr_names:
-            base = self._model._iepr_names.index(canonical) + 1
-        else:
-            raise KeyError(token)
-        return canonical, code, base
-
-    def _is_spectrum_parameter(self, parameter):
-        spectral = []
-        for attr in (
-            "iphase",
-            "ipsi",
-            "ilb",
-            "ib0",
-            "ifldi",
-            "idfld",
-            "irange",
-        ):
-            if hasattr(self._core.eprprm, attr):
-                spectral.append(int(getattr(self._core.eprprm, attr)))
-        if parameter in spectral:
-            return True
-        integral = []
-        for attr in ("infld", "iiderv"):
-            if hasattr(self._core.eprprm, attr):
-                integral.append(int(getattr(self._core.eprprm, attr)))
-        return parameter in integral
-
-    def _index_limit(self, spectral):
-        if spectral:
-            limit = int(getattr(self._core.parcom, "nser", 0))
-            nspc = int(getattr(self._core.expdat, "nspc", 0))
-            if nspc > limit:
-                limit = nspc
-        else:
-            limit = int(self._core.parcom.nsite)
-        if limit <= 0:
-            limit = 1
-        return limit
-
-    def _parameter_value(self, parameter, index):
-        site = index if index > 0 else 1
-        return float(self._core.getprm(parameter, site))
-
-    def __getitem__(self, key):
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        if "(" in token:
-            raise KeyError(
-                "parameter keys no longer accept explicit indices; use the"
-                " array returned for multi-site parameters instead"
-            )
-
-        try:
-            _, ix, parameter = self._resolve_parameter(token)
-        except KeyError:
-            raise KeyError(f"{token} doesn't seem to be a parameter")
-        entries = self._entries(parameter)
-        if not entries:
-            raise KeyError(key)
-        parcom = self._core.parcom
-        ordered = sorted(entries, key=lambda item: item[0])
-        minima = []
-        maxima = []
-        scales = []
-        steps = []
-        indices = []
-        for index_value, position in ordered:
-            minima.append(float(parcom.prmin[position]))
-            maxima.append(float(parcom.prmax[position]))
-            scales.append(float(parcom.prscl[position]))
-            steps.append(float(parcom.xfdstp[position]))
-            indices.append(int(index_value))
-        if len(indices) == 1:
-            return {
-                "minimum": minima[0],
-                "maximum": maxima[0],
-                "scale": scales[0],
-                "fdstep": steps[0],
-                "index": indices[0],
-            }
-        return {
-            "minimum": np.array(minima, dtype=float),
-            "maximum": np.array(maxima, dtype=float),
-            "scale": np.array(scales, dtype=float),
-            "fdstep": np.array(steps, dtype=float),
-            "index": np.array(indices, dtype=int),
-        }
-
-    def __setitem__(self, key, value):
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        if "(" in token:
-            raise KeyError(
-                "parameter keys no longer accept explicit indices; provide"
-                " arrays when multiple sites are present"
-            )
-        if isinstance(value, bool):
-            if not value:
-                self.__delitem__(key)
-                return
-            config = {}
-        elif value is None:
-            config = {}
-        elif isinstance(value, Mapping):
-            config = value
-        else:
-            raise TypeError("vary requires bool or mapping values")
-        try:
-            _, ix, parameter = self._resolve_parameter(token)
-        except KeyError:
-            raise KeyError(f"{token} doesn't seem to be a parameter")
-        spectral = self._is_spectrum_parameter(parameter)
-        limit = self._index_limit(spectral)
-        indices = None
-        if "index" in config:
-            indices = config["index"]
-        elif "site" in config:
-            indices = config["site"]
-        elif "spectrum" in config:
-            indices = config["spectrum"]
-
-        if indices is None:
-            if limit > 1:
-                indices = list(range(1, limit + 1))
-            else:
-                indices = [0]
-        elif np.isscalar(indices):
-            indices = [int(indices)]
-        else:
-            indices = [int(item) for item in indices]
-
-        for index in indices:
-            if index < 0:
-                raise ValueError("negative indices are not supported")
-            if index > limit:
-                raise ValueError("index out of range")
-
-        count = len(indices)
-        boundary_flags = np.zeros(count, dtype=int)
-        minima = np.zeros(count, dtype=float)
-        maxima = np.zeros(count, dtype=float)
-        scales = np.ones(count, dtype=float)
-        steps = np.empty(count, dtype=float)
-        step_mask = np.zeros(count, dtype=bool)
-
-        if "minimum" in config:
-            # Accept either a scalar or per-site sequence for each option; when
-            # a scalar is supplied, broadcast it across the active indices.
-            if np.isscalar(config["minimum"]):
-                minima[:] = float(config["minimum"])
-            else:
-                array = np.asarray(config["minimum"], dtype=float)
-                if array.size != count:
-                    raise ValueError(
-                        "minimum entries must match the index list"
-                    )
-                minima[:] = array
-            boundary_flags += 1
-        if "maximum" in config:
-            if np.isscalar(config["maximum"]):
-                maxima[:] = float(config["maximum"])
-            else:
-                array = np.asarray(config["maximum"], dtype=float)
-                if array.size != count:
-                    raise ValueError(
-                        "maximum entries must match the index list"
-                    )
-                maxima[:] = array
-            boundary_flags += 2
-        if "scale" in config:
-            if np.isscalar(config["scale"]):
-                scales[:] = float(config["scale"])
-            else:
-                array = np.asarray(config["scale"], dtype=float)
-                if array.size != count:
-                    raise ValueError("scale entries must match the index list")
-                scales[:] = array
-        if "fdstep" in config:
-            if np.isscalar(config["fdstep"]):
-                steps[:] = float(config["fdstep"])
-            else:
-                array = np.asarray(config["fdstep"], dtype=float)
-                if array.size != count:
-                    raise ValueError(
-                        "fdstep entries must match the index list"
-                    )
-                steps[:] = array
-            step_mask[:] = True
-
-        entries = self._entries(parameter)
-        ident = token.upper().split("(", 1)[0][:9]
-        for existing_index, _ in entries:
-            # Clear any stale configuration so the updated records replace the
-            # full vary list for the parameter.
-            _fortrancore.rmvprm(ix, existing_index, ident.ljust(30))
-
-        for idx, index in enumerate(indices):
-            base_value = self._parameter_value(parameter, index)
-            if not step_mask[idx]:
-                default_step = 1.0e-6
-                step_value = default_step * base_value
-                if abs(step_value) < float(np.finfo(float).eps):
-                    step_value = default_step
-            else:
-                step_value = steps[idx]
-            step_factor = step_value
-            if abs(base_value) >= float(np.finfo(float).eps):
-                step_factor = step_value / base_value
-            _fortrancore.addprm(
-                ix,
-                index,
-                int(boundary_flags[idx]),
-                float(minima[idx]),
-                float(maxima[idx]),
-                float(scales[idx]),
-                float(step_factor),
-                ident.ljust(9),
-            )
-
-    def __delitem__(self, key):
-        if not isinstance(key, str):
-            raise KeyError(key)
-        token = key.strip().lower()
-        if not token:
-            raise KeyError(key)
-        if "(" in token:
-            raise KeyError(
-                "parameter keys no longer accept explicit indices; remove"
-                " entries by requesting the base name"
-            )
-        try:
-            _, ix, parameter = self._resolve_parameter(token)
-        except KeyError:
-            raise KeyError(f"{token} doesn't seem to be a parameter")
-        entries = self._entries(parameter)
-        if not entries:
-            raise KeyError(key)
-        ident = token.upper().split("(", 1)[0][:9]
-        for index, _ in entries:
-            _fortrancore.rmvprm(ix, index, ident.ljust(30))
-
-    def __contains__(self, key):
-        try:
-            self[key]
-        except Exception:
-            return False
-        return True
-
-    def __iter__(self):
-        return iter(self.keys())
-
-    def __len__(self):
-        return self._count()
-
-    def keys(self):
-        result = []
-        for pos in range(self._count()):
-            label = self._core.parcom.tag[pos]
-            if isinstance(label, bytes):
-                label = label.decode("ascii")
-            label = label.rstrip()
-            if label:
-                result.append(label.lower())
-        return result
-
-    def items(self):
-        return [(key, self[key]) for key in self.keys()]
-
-    def values(self):
-        return [self[key] for key in self.keys()]
-
-    def clear(self):
-        keys = self.keys()
-        for key in reversed(keys):
-            self.__delitem__(key)
-
-    def update(self, other):
-        if isinstance(other, dict):
-            items = other.items()
-        else:
-            items = other
-        for key, val in items:
-            self[key] = val
-
-
-class fit_params(dict):
-    """Mapping-like interface for adjusting NLSL fit parameters.
-
-    Keys correspond to the options listed in ``nlshlp.txt`` lines 20–38.
-    The values are mirrored directly to the low level ``lmcom`` module so
-    that no ``procline`` call is needed.
-    """
-
-    def __init__(self, model=None):
-        super().__init__()
-        self._core = _fortrancore
-        self._model = model
-        self._fl_names = [
-            n.decode("ascii").strip().lower()
-            for n in self._core.lmcom.flmprm_name.tolist()
-        ]
-        self._il_names = [
-            n.decode("ascii").strip().lower()
-            for n in self._core.lmcom.ilmprm_name.tolist()
-        ]
-        self._vary = FitParameterVaryMapping(self, model)
-
-    def __setitem__(self, key, value):
-        key = key.lower()
-        if key in self._fl_names:
-            idx = self._fl_names.index(key)
-            self._core.lmcom.flmprm[idx] = value
-        elif key in self._il_names:
-            idx = self._il_names.index(key)
-            self._core.lmcom.ilmprm[idx] = value
-        else:
-            raise KeyError(key)
-        super().__setitem__(key, value)
-
-    def __getitem__(self, key):
-        key = key.lower()
-        if key in self._fl_names:
-            return self._core.lmcom.flmprm[self._fl_names.index(key)]
-        elif key in self._il_names:
-            return self._core.lmcom.ilmprm[self._il_names.index(key)]
-        raise KeyError(key)
-
-    def __contains__(self, key):
-        key = key.lower()
-        return key in self._fl_names or key in self._il_names
-
-    def __iter__(self):
-        return iter(self.keys())
-
-    def keys(self):
-        return list(self._fl_names) + list(self._il_names)
-
-    def items(self):
-        return [(k, self[k]) for k in self.keys() if len(k) > 0]
-
-    def values(self):
-        return [self[k] for k in self.keys()]
-
-    def get(self, key, default=None):
-        try:
-            return self[key]
-        except KeyError:
-            return default
-
-    def update(self, other):
-        if isinstance(other, dict):
-            items = other.items()
-        else:
-            items = other
-        for k, v in items:
-            self[k] = v
-
-    @property
-    def vary(self):
-        """Dictionary-like view of the optimiser's variable parameter list."""
-        return self._vary
-
-
 class NLSLParameter(LmfitParameter):
     """Parameter entry that writes directly into the NLSL site slots."""
 
@@ -470,6 +66,69 @@ class NLSLParameter(LmfitParameter):
         label = f"{canonical}_{self._site_index}"
         value = _fortrancore.getprm(code, self._site_index + 1)
         LmfitParameter.__init__(self, name=label, value=value)
+        # Store finite-difference and scaling metadata in ``user_data`` so the
+        # lmfit-facing API exposes the same knobs as the legacy vary mapping.
+        self.user_data = {"scale": 1.0, "fdstep": None}
+        self.vary = False
+
+    def _identifier(self):
+        return self._canonical.upper()[:9]
+
+    def _slot_index(self):
+        if max(self._owner.nsites, 1) == 1:
+            return 0
+        return self._site_index + 1
+
+    def _position(self):
+        parcom = self._owner._core.parcom
+        code = self._owner.parameter_index(self._canonical)
+        target = self._slot_index()
+        for slot in range(int(parcom.nprm)):
+            if int(parcom.ixpr[slot]) == code and int(parcom.ixst[slot]) == target:
+                return slot
+        return None
+
+    def _remove_from_fortran(self):
+        slot = self._position()
+        if slot is None:
+            return
+        code = self._owner.parameter_index(self._canonical)
+        _fortrancore.rmvprm(code, self._slot_index(), self._identifier().ljust(30))
+
+    def _add_to_fortran(self):
+        code = self._owner.parameter_index(self._canonical)
+        base_value = _fortrancore.getprm(code, self._slot_index() or 1)
+        step_value = self.user_data["fdstep"]
+        if step_value is None:
+            step_value = abs(base_value) * 1.0e-6
+            if step_value < float(np.finfo(float).eps):
+                step_value = 1.0e-6
+        scale_value = self.user_data["scale"]
+        flag = 0
+        minimum = self.min
+        maximum = self.max
+        if np.isfinite(minimum):
+            flag += 1
+        else:
+            minimum = 0.0
+        if np.isfinite(maximum):
+            flag += 2
+        else:
+            maximum = 0.0
+        step_factor = step_value
+        if abs(base_value) >= float(np.finfo(float).eps):
+            step_factor = step_value / base_value
+        self._remove_from_fortran()
+        _fortrancore.addprm(
+            code,
+            self._slot_index(),
+            int(flag),
+            float(minimum),
+            float(maximum),
+            float(scale_value),
+            float(step_factor),
+            self._identifier().ljust(9),
+        )
 
     @property
     def value(self):
@@ -482,16 +141,48 @@ class NLSLParameter(LmfitParameter):
         _fortrancore.setprm(code, self._site_index + 1, float(new))
         self._val = float(new)
 
+    def __setattr__(self, name, value):
+        LmfitParameter.__setattr__(self, name, value)
+        if name in ("min", "max"):
+            if hasattr(self, "_owner") and hasattr(self, "_canonical"):
+                if self.vary:
+                    self._add_to_fortran()
+
+    @property
+    def vary(self):
+        return self._position() is not None
+
+    @vary.setter
+    def vary(self, active):
+        if bool(active):
+            self._add_to_fortran()
+        else:
+            self._remove_from_fortran()
+
 
 class NLSLParameters(LmfitParameters):
     """Lmfit-compatible collection linked to the nlsl parameter table."""
 
     def __init__(self, owner):
-        LmfitParameters.__init__(self)
         self._owner = owner
         self._site_count = 0
         self._base_names = []
+        self._fl_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._owner._core.lmcom.flmprm_name.tolist()
+        ]
+        self._il_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._owner._core.lmcom.ilmprm_name.tolist()
+        ]
+        LmfitParameters.__init__(self)
         self.refresh_sites()
+
+    def _is_control_key(self, key):
+        if not isinstance(key, str):
+            return False
+        text = key.strip().lower()
+        return text in self._fl_names or text in self._il_names
 
     def refresh_sites(self):
         """Keep parameter entries aligned with the active site count."""
@@ -506,8 +197,12 @@ class NLSLParameters(LmfitParameters):
                 self._base_names.append(name)
         new_site_count = max(self._owner.nsites, 1)
         for name in list(self.keys()):
+            if "_" not in name:
+                continue
             base, idx_text = name.rsplit("_", 1)
             if base not in self._base_names or int(idx_text) >= new_site_count:
+                if name in self:
+                    self[name]._remove_from_fortran()
                 del self[name]
         for base in self._base_names:
             for site in range(new_site_count):
@@ -524,6 +219,8 @@ class NLSLParameters(LmfitParameters):
         if not isinstance(key, str):
             raise KeyError(key)
         text = key.strip().lower()
+        if self._is_control_key(text):
+            return text, None
         if "_" not in text:
             raise KeyError(key)
         base, idx_text = text.rsplit("_", 1)
@@ -537,6 +234,12 @@ class NLSLParameters(LmfitParameters):
 
     def __getitem__(self, key):
         canonical, site = self.parse_key(key)
+        if site is None:
+            if canonical in self._fl_names:
+                return self._owner._core.lmcom.flmprm[self._fl_names.index(canonical)]
+            if canonical in self._il_names:
+                return self._owner._core.lmcom.ilmprm[self._il_names.index(canonical)]
+            raise KeyError(key)
         internal = f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
@@ -544,6 +247,16 @@ class NLSLParameters(LmfitParameters):
 
     def __setitem__(self, key, value):
         canonical, site = self.parse_key(key)
+        if site is None:
+            if canonical in self._fl_names:
+                idx = self._fl_names.index(canonical)
+                self._owner._core.lmcom.flmprm[idx] = value
+                return
+            if canonical in self._il_names:
+                idx = self._il_names.index(canonical)
+                self._owner._core.lmcom.ilmprm[idx] = value
+                return
+            raise KeyError(key)
         internal = f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
@@ -557,15 +270,39 @@ class NLSLParameters(LmfitParameters):
             canonical, site = self.parse_key(key)
         except Exception:
             return False
+        if site is None:
+            return True
         internal = f"{canonical}_{site}"
         return LmfitParameters.__contains__(self, internal)
 
+    def __iter__(self):
+        return iter(self.keys())
 
+    def keys(self):
+        names = list(LmfitParameters.keys(self))
+        names.extend([n for n in self._fl_names if len(n) > 0])
+        names.extend([n for n in self._il_names if len(n) > 0])
+        return names
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
+
+    def values(self):
+        return [self[key] for key in self.keys()]
+
+    def update(self, other):
+        if isinstance(other, dict):
+            items = other.items()
+        else:
+            items = other
+        for key, val in items:
+            self[key] = val
 class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
     def __init__(self):
         _fortrancore.nlsinit()
+        self._core = _fortrancore
 
         self._fepr_names = [
             name.decode("ascii").strip().lower()
@@ -629,7 +366,6 @@ class nlsl(object):
                 break
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
-        self.fit_params = fit_params(self)
         self._last_layout = None
         self._last_site_spectra = None
         self._last_experimental_data = None
