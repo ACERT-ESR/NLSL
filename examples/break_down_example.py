@@ -75,9 +75,9 @@ print("   --- Carry out nonlinear least-squares procedure:")
 print("   ---    (1) Stop after a maximum of 40 iterations")
 print("   ---    (2) Stop after a maximum of 600 spectral calculations")
 print("   ---    (3) Chi-squared convergence tolerance is 1 part in 10^3\n")
-n.parameters["maxitr"] = 40
-n.parameters["maxfun"] = 1000
-n.parameters["ftol"] = 1e-3
-n.parameters["xtol"] = 1e-3
+n.fortran_lm_engine["maxitr"] = 40
+n.fortran_lm_engine["maxfun"] = 1000
+n.fortran_lm_engine["ftol"] = 1e-3
+n.fortran_lm_engine["xtol"] = 1e-3
 n.fit()
 print(dict(n.items()))

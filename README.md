@@ -77,7 +77,7 @@ import nlsl
 
 n = nlsl.nlsl()
 n["nsite"] = 1
-n.parameters["maxitr"] = 40
+n.fortran_lm_engine["maxitr"] = 40
 n.procline("data sampl1 ascii nspline 200 bc 20 shift")
 site_spectra = n.fit()
 total_spectrum = n["weights"] @ site_spectra

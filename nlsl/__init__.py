@@ -167,22 +167,8 @@ class NLSLParameters(LmfitParameters):
         self._owner = owner
         self._site_count = 0
         self._base_names = []
-        self._fl_names = [
-            n.decode("ascii").strip().lower()
-            for n in self._owner._core.lmcom.flmprm_name.tolist()
-        ]
-        self._il_names = [
-            n.decode("ascii").strip().lower()
-            for n in self._owner._core.lmcom.ilmprm_name.tolist()
-        ]
         LmfitParameters.__init__(self)
         self.refresh_sites()
-
-    def _is_control_key(self, key):
-        if not isinstance(key, str):
-            return False
-        text = key.strip().lower()
-        return text in self._fl_names or text in self._il_names
 
     def refresh_sites(self):
         """Keep parameter entries aligned with the active site count."""
@@ -219,8 +205,6 @@ class NLSLParameters(LmfitParameters):
         if not isinstance(key, str):
             raise KeyError(key)
         text = key.strip().lower()
-        if self._is_control_key(text):
-            return text, None
         if "_" not in text:
             raise KeyError(key)
         base, idx_text = text.rsplit("_", 1)
@@ -234,12 +218,6 @@ class NLSLParameters(LmfitParameters):
 
     def __getitem__(self, key):
         canonical, site = self.parse_key(key)
-        if site is None:
-            if canonical in self._fl_names:
-                return self._owner._core.lmcom.flmprm[self._fl_names.index(canonical)]
-            if canonical in self._il_names:
-                return self._owner._core.lmcom.ilmprm[self._il_names.index(canonical)]
-            raise KeyError(key)
         internal = f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
@@ -247,16 +225,6 @@ class NLSLParameters(LmfitParameters):
 
     def __setitem__(self, key, value):
         canonical, site = self.parse_key(key)
-        if site is None:
-            if canonical in self._fl_names:
-                idx = self._fl_names.index(canonical)
-                self._owner._core.lmcom.flmprm[idx] = value
-                return
-            if canonical in self._il_names:
-                idx = self._il_names.index(canonical)
-                self._owner._core.lmcom.ilmprm[idx] = value
-                return
-            raise KeyError(key)
         internal = f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
@@ -270,8 +238,6 @@ class NLSLParameters(LmfitParameters):
             canonical, site = self.parse_key(key)
         except Exception:
             return False
-        if site is None:
-            return True
         internal = f"{canonical}_{site}"
         return LmfitParameters.__contains__(self, internal)
 
@@ -279,10 +245,7 @@ class NLSLParameters(LmfitParameters):
         return iter(self.keys())
 
     def keys(self):
-        names = list(LmfitParameters.keys(self))
-        names.extend([n for n in self._fl_names if len(n) > 0])
-        names.extend([n for n in self._il_names if len(n) > 0])
-        return names
+        return list(LmfitParameters.keys(self))
 
     def items(self):
         return [(key, self[key]) for key in self.keys()]
@@ -297,6 +260,69 @@ class NLSLParameters(LmfitParameters):
             items = other
         for key, val in items:
             self[key] = val
+
+
+class FortranLMEngine(dict):
+    """Mapping-like access to the Fortran Levenberg–Marquardt controls."""
+
+    def __init__(self, model=None):
+        dict.__init__(self)
+        self._core = _fortrancore
+        self._model = model
+        self._fl_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._core.lmcom.flmprm_name.tolist()
+        ]
+        self._il_names = [
+            n.decode("ascii").strip().lower()
+            for n in self._core.lmcom.ilmprm_name.tolist()
+        ]
+
+    def __setitem__(self, key, value):
+        text = str(key).lower()
+        if text in self._fl_names:
+            idx = self._fl_names.index(text)
+            self._core.lmcom.flmprm[idx] = value
+        elif text in self._il_names:
+            idx = self._il_names.index(text)
+            self._core.lmcom.ilmprm[idx] = value
+        else:
+            raise KeyError(key)
+        dict.__setitem__(self, text, value)
+
+    def __getitem__(self, key):
+        text = str(key).lower()
+        if text in self._fl_names:
+            idx = self._fl_names.index(text)
+            return self._core.lmcom.flmprm[idx]
+        if text in self._il_names:
+            idx = self._il_names.index(text)
+            return self._core.lmcom.ilmprm[idx]
+        raise KeyError(key)
+
+    def __contains__(self, key):
+        text = str(key).lower()
+        return text in self._fl_names or text in self._il_names
+
+    def __iter__(self):
+        return iter(self.keys())
+
+    def keys(self):
+        return list(self._fl_names) + list(self._il_names)
+
+    def items(self):
+        return [(k, self[k]) for k in self.keys() if len(k) > 0]
+
+    def values(self):
+        return [self[k] for k in self.keys() if len(k) > 0]
+
+    def update(self, other):
+        if isinstance(other, dict):
+            items = other.items()
+        else:
+            items = other
+        for k, v in items:
+            self[k] = v
 class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
@@ -372,6 +398,10 @@ class nlsl(object):
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
+        # ``fortran_lm_engine`` mirrors the MINPACK control arrays so callers
+        # can tune iteration limits and tolerances without touching the legacy
+        # ``procline`` path.
+        self.fortran_lm_engine = FortranLMEngine(self)
         self.parameters = NLSLParameters(self)
 
     @property

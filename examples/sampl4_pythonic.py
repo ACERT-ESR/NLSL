@@ -73,8 +73,7 @@ def main():
         for idx in indices:
             model.parameters[f"{token}_{idx - 1}"].vary = True
 
-    for key, value in FIT_CONTROLS.items():
-        model.parameters[key] = value
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     # Seed equal site populations once the data slot exists so the weight
     # matrix is initialised through the public mapping interface.

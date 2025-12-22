@@ -28,11 +28,11 @@ Python interface
 
 The ``nlsl`` package exposes a high-level interface for adjusting fit
 options programmatically.  Create an ``nlsl`` instance and update the
-``parameters`` mapping before calling :py:meth:`nlsl.nlsl.fit`::
+``fortran_lm_engine`` mapping before calling :py:meth:`nlsl.nlsl.fit`::
 
    >>> import nlsl
    >>> n = nlsl.nlsl()
-   >>> n.parameters['maxitr'] = 40
-   >>> n.parameters['maxfun'] = 1000
+   >>> n.fortran_lm_engine['maxitr'] = 40
+   >>> n.fortran_lm_engine['maxfun'] = 1000
    >>> n.fit()  # runs the Levenberg–Marquardt optimiser
 

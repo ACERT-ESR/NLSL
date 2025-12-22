@@ -134,8 +134,7 @@ def test_fixed_parameter_remains_constant_during_fit():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for key in SAMPL4_FIT_CONTROLS:
-        model.parameters[key] = SAMPL4_FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(SAMPL4_FIT_CONTROLS)
 
     model.parameters["gib0_0"].vary = True
 

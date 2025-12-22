@@ -115,8 +115,7 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for key, value in INITIAL_FIT.items():
-        model.parameters[key] = value
+    model.fortran_lm_engine.update(INITIAL_FIT)
 
     site_spectra = model.fit()
 

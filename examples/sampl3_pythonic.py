@@ -68,8 +68,7 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for key in FIT_CONTROLS:
-        model.parameters[key] = FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     for command in FIRST_VARY:
         model.procline(command)

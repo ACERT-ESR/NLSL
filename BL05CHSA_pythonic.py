@@ -68,7 +68,7 @@ def main():
     )
 
     for key in FIT_CONTROLS:
-        model.parameters[key] = FIT_CONTROLS[key]
+        model.fortran_lm_engine[key] = FIT_CONTROLS[key]
 
     site_spectra = model.fit()
 

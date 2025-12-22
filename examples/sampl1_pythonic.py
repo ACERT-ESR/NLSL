@@ -57,8 +57,7 @@ def main():
     for token in PARAMETERS_TO_VARY:
         model.parameters[f"{token}_0"].vary = True
 
-    for key in FIT_CONTROLS:
-        model.parameters[key] = FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     site_spectra = model.fit()
     weights = model.weights

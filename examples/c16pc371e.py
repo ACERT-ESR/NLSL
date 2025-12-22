@@ -18,7 +18,7 @@ def read_column_data(filename):
 print("about to run nlsl")
 fp = open("c16pc371e.run")
 n = nlsl.nlsl()
-n.parameters["maxitr"] = 40
+n.fortran_lm_engine["maxitr"] = 40
 print("parameters before is", dict(n.parameters.items()))
 for thisline in fp.readlines():
     n.procline(thisline)

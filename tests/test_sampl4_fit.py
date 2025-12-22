@@ -30,11 +30,11 @@ def run_pythonic_sampl4_fit():
     )
 
     model.parameters["gib0_0"].vary = True
+    model.parameters["gib0_1"].vary = True
     model.parameters["rx_0"].vary = True
     model.parameters["rx_1"].vary = True
 
-    for key in SAMPL4_FIT_CONTROLS:
-        model.parameters[key] = SAMPL4_FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(SAMPL4_FIT_CONTROLS)
 
     # The historical run issues ``fit`` twice; repeating it here mirrors the
     # published optimisation cycle and ensures the spectra are stored.
