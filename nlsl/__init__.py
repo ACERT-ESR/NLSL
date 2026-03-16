@@ -630,6 +630,166 @@ class fit_params(dict):
         return self._vary
 
 
+class NLSLParameter(object):
+    """Minimal lmfit-style parameter for a single site value."""
+
+    def __init__(self, parameters, name, base_name, site_index):
+        # Keep the owning Parameters object so updates can reach the Fortran
+        # backend without copying any data out of the workspace.
+        self._parameters = parameters
+        self.name = name
+        self._base_name = base_name
+        self._site_index = site_index
+
+    @property
+    def value(self):
+        """Return the current value from the Fortran parameter arrays."""
+        _, index_code, _ = self._parameters._model.canonical_name(
+            self._base_name
+        )
+        return float(
+            self._parameters._core.getprm(
+                index_code, int(self._site_index) + 1
+            )
+        )
+
+    @value.setter
+    def value(self, value):
+        # Update the Fortran workspace in-place so array-style access stays
+        # synchronized with this Parameter object.
+        _, index_code, _ = self._parameters._model.canonical_name(
+            self._base_name
+        )
+        self._parameters._core.setprm(
+            index_code, int(self._site_index) + 1, float(value)
+        )
+
+    @property
+    def vary(self):
+        """Report whether this parameter/site pair is currently varied."""
+        _, _, parameter = self._parameters._model.canonical_name(
+            self._base_name
+        )
+        parcom = self._parameters._core.parcom
+        target_site = int(self._site_index) + 1
+        for position in range(int(parcom.nprm)):
+            if int(parcom.ixpr[position]) != parameter:
+                continue
+            if int(parcom.ixst[position]) == target_site:
+                return True
+        return False
+
+    @vary.setter
+    def vary(self, value):
+        # Mirror lmfit-style toggling by adding/removing entries in the
+        # Fortran vary list.
+        if value:
+            _, index_code, parameter = self._parameters._model.canonical_name(
+                self._base_name
+            )
+            parcom = self._parameters._core.parcom
+            target_site = int(self._site_index) + 1
+            for position in range(int(parcom.nprm)):
+                if int(parcom.ixpr[position]) != parameter:
+                    continue
+                if int(parcom.ixst[position]) == target_site:
+                    return
+
+            base_value = float(
+                self._parameters._core.getprm(parameter, target_site)
+            )
+            default_step = 1.0e-6
+            step_value = default_step * base_value
+            if abs(step_value) < float(np.finfo(float).eps):
+                step_value = default_step
+            step_factor = step_value
+            if abs(base_value) >= float(np.finfo(float).eps):
+                step_factor = step_value / base_value
+
+            ident = self._base_name.upper()[:9]
+            self._parameters._core.addprm(
+                index_code,
+                target_site,
+                0,
+                0.0,
+                0.0,
+                1.0,
+                float(step_factor),
+                ident.ljust(9),
+            )
+        else:
+            _, index_code, parameter = self._parameters._model.canonical_name(
+                self._base_name
+            )
+            target_site = int(self._site_index) + 1
+            ident = self._base_name.upper()[:9]
+            parcom = self._parameters._core.parcom
+            for position in range(int(parcom.nprm)):
+                if int(parcom.ixpr[position]) != parameter:
+                    continue
+                if int(parcom.ixst[position]) == target_site:
+                    self._parameters._core.rmvprm(
+                        index_code, target_site, ident.ljust(30)
+                    )
+                    return
+
+
+class NLSLParameters(object):
+    """Dictionary-like container that mirrors lmfit.Parameters."""
+
+    def __init__(self, model):
+        # Track the owning model so parameters can resolve canonical indices.
+        self._model = model
+        self._core = model._core
+        self._site_count = 0
+        self._parameters = {}
+        self.refresh()
+
+    def refresh(self):
+        """Rebuild the parameter cache when the site count changes."""
+        site_count = int(self._core.parcom.nsite)
+        if site_count <= 0:
+            site_count = 1
+        if site_count == self._site_count and self._parameters:
+            return
+        self._site_count = site_count
+        self._parameters = {}
+        for base_name in self._model._fepr_names:
+            if not base_name:
+                continue
+            for site_index in range(site_count):
+                name = base_name + "_site" + str(site_index)
+                self._parameters[name] = NLSLParameter(
+                    self, name, base_name, site_index
+                )
+
+    def __getitem__(self, key):
+        self.refresh()
+        if key not in self._parameters:
+            raise KeyError(key)
+        return self._parameters[key]
+
+    def __iter__(self):
+        self.refresh()
+        return iter(self._parameters)
+
+    def __len__(self):
+        self.refresh()
+        return len(self._parameters)
+
+    def keys(self):
+        self.refresh()
+        return list(self._parameters.keys())
+
+    def items(self):
+        self.refresh()
+        return [(key, self._parameters[key]) for key in self._parameters]
+
+    def values(self):
+        self.refresh()
+        return [self._parameters[key] for key in self._parameters]
+
+
 class nlsl(object):
     """Dictionary-like interface to the NLSL parameters."""
 
@@ -697,6 +857,8 @@ class nlsl(object):
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params(self)
+        # Provide lmfit-like parameter access backed by the Fortran workspace.
+        self.params = NLSLParameters(self)
         self.tensor_symmetry = TensorSymmetryMapping(self)
         self._last_layout = None
         self._last_site_spectra = None
@@ -725,6 +887,8 @@ class nlsl(object):
         # exposed rows default to unity populations.
         _fortrancore.parcom.nsite = int(value)
         self._sync_weight_matrix()
+        # Rebuild the lmfit-style parameter view so it matches the new count.
+        self.params.refresh()
 
     @property
     def nspec(self):
