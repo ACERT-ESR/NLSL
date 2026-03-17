@@ -47,22 +47,24 @@ if field_axis.size > max_points:
 # }}}
 
 # Provide reasonable starting parameters so the fit can run immediately.
-n.update({
-    "gxx": 2.0089,
-    "gyy": 2.0021,
-    "gzz": 2.0058,
-    "in2": 2,
-    "axx": 5.6,
-    "ayy": 33.8,
-    "azz": 5.3,
-    "lemx": 6,
-    "lomx": 5,
-    "kmx": 4,
-    "mmx": (2, 2),
-    "rpll": np.log10(1.0e8),
-    "rprp": 8.0,
-    "gib0": 1.5,
-})
+n.update(
+    {
+        "gxx": 2.0089,
+        "gyy": 2.0021,
+        "gzz": 2.0058,
+        "in2": 2,
+        "axx": 5.6,
+        "ayy": 33.8,
+        "azz": 5.3,
+        "lemx": 6,
+        "lomx": 5,
+        "kmx": 4,
+        "mmx": (2, 2),
+        "rpll": np.log10(1.0e8),
+        "rprp": 8.0,
+        "gib0": 1.5,
+    }
+)
 
 for token in ("rpll", "rprp", "gib0"):
     n.fit_params.vary[token] = True
@@ -79,11 +81,10 @@ with psd.figlist_var() as fl:
     fl.plot(d)
     # Load the nddata into the optimiser buffers without shifting the field.
     n.load_nddata(d)
-
-    # Run a quick fit using the single-site parameters above.
-    site_spectra = n.fit()
-    simulated_total = np.squeeze(n.weights @ site_spectra)
+    n.normalization = True
 
     # Overlay the simulated spectrum on the experimental trace.
     field_axis = d[d.dimlabels[0]]
-    fl.plot(field_axis, simulated_total, alpha=0.8, label="NLSL fit")
+    fl.plot(
+        field_axis, n.current_spectrum.squeeze(), alpha=0.8, label="NLSL fit"
+    )
