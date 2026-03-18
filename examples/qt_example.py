@@ -1,16 +1,16 @@
 from pathlib import Path
 import re
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 import nlsl
 from nlsl.data import process_spectrum
 
 # Use Qt backend BEFORE importing pyplot
 import matplotlib
 
-matplotlib.use("Qt5Agg")  # PyQt5
+matplotlib.use("QtAgg")  # Qt6 (PySide6/PyQt6 as available)
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import (
+from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
 
@@ -381,7 +381,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return x, y_exp, model, site_spectra
 
     # ---- Weight change handlers ----
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_weight1_changed(self, value=None):
         # s1 drove change; enforce w1 + w2 = 1 and update partner slider
         w1 = self.s1.value() / self.weight_steps
@@ -554,7 +554,11 @@ def main():
     w = MainWindow()
     w.resize(1100, 820)
     w.show()
-    app.exec_()
+    # Qt6 uses exec(), Qt5 historically uses exec_(); support both.
+    if hasattr(app, "exec"):
+        app.exec()
+    else:
+        app.exec_()
 
 
 if __name__ == "__main__":
