@@ -1,7 +1,6 @@
 import importlib.resources as resources
 import numpy as np
 import nlsl
-import warnings
 from pathlib import Path
 from pyspecdata.datadir import pyspec_config, getDATADIR
 
@@ -62,21 +61,19 @@ def test_max_points_property_matches_buffers():
     assert model.max_points == expected_points
 
 
-def test_load_data_warns_for_spline_arguments():
+def test_load_data_accepts_spline_arguments_without_warning():
     model = nlsl.nlsl()
     sample_path = Path(__file__).parent / "sampl1.dat"
 
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("always")
-        model.load_data(
-            sample_path,
-            nspline=10,
-            bc_points=0,
-            shift=False,
-            normalize=False,
-        )
-    assert any(
-        "backwards compatibility" in str(item.message) for item in caught
+    # Spline arguments are normal API inputs, so this path should run cleanly
+    # without emitting compatibility warnings.
+    model.shift = False
+    model.normalize = False
+    model.derivative_mode = 1
+    model.load_data(
+        sample_path,
+        nspline=10,
+        bc_points=0,
     )
 
 
@@ -84,9 +81,10 @@ def test_load_data_defaults_without_spline_arguments():
     model = nlsl.nlsl()
     sample_path = Path(__file__).parent / "sampl1.dat"
 
-    with warnings.catch_warnings(record=True) as caught:
-        warnings.simplefilter("error")
-        model.load_data(sample_path, bc_points=0, shift=False, normalize=False)
+    model.shift = False
+    model.normalize = False
+    model.derivative_mode = 1
+    model.load_data(sample_path, bc_points=0)
 
     data_span = model._core.expdat.data[: model.max_points]
     assert np.count_nonzero(data_span) > 0

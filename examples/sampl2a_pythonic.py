@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 0
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -44,6 +43,8 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = False
+    model.normalize = True
 
     model.series("psi", (0.0, 90.0))
 
@@ -51,17 +52,11 @@ def main():
         examples_dir / "sampl200.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=False,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
     model.load_data(
         examples_dir / "sampl290.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=False,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     model.search("rbar")

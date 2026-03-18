@@ -3,7 +3,6 @@ import pytest
 import nlsl
 from tests.sampl4_reference import (
     BASELINE_EDGE_POINTS,
-    DERIVATIVE_MODE,
     NSPLINE_POINTS,
     SAMPL4_DATA_PATH,
     SAMPL4_FIELD_START,
@@ -23,13 +22,12 @@ def run_pythonic_sampl4_fit():
     model = nlsl.nlsl()
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
+    model.shift = True
+    model.normalize = False
     model.load_data(
         SAMPL4_DATA_PATH,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
@@ -111,12 +109,9 @@ def test_load_nddata_runs_fit_cycle():
     )
     dataset.setaxis(dataset.dimlabels[0], fields)
 
-    model.load_nddata(
-        dataset,
-        shift=True,
-        normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
-    )
+    model.shift = True
+    model.normalize = False
+    model.load_nddata(dataset)
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
         model.procline(f"vary {token}")

@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -58,6 +57,8 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
+    model.normalize = True
 
     for command in SERIES_COMMANDS:
         model.procline(command)
@@ -66,17 +67,11 @@ def main():
         examples_dir / "sampl200.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
     model.load_data(
         examples_dir / "sampl290.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for command in SEARCH_COMMANDS:

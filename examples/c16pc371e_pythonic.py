@@ -7,7 +7,6 @@ from pathlib import Path
 import nlsl
 
 NSPLINE_POINTS = 400
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -99,6 +98,8 @@ def main():
     model.update(INITIAL_PARAMETERS)
     model.update(SITE_PARAMETER_VALUES)
     model.update(GLOBAL_CONTROLS)
+    model.shift = True
+    model.normalize = True
 
     for token, indices in INITIAL_VARIATIONS.items():
         model.fit_params.vary[token] = {"index": indices}
@@ -107,9 +108,6 @@ def main():
         examples_dir / "c16pc371e.dat",
         nspline=NSPLINE_POINTS,
         bc_points=0,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for key, value in INITIAL_FIT.items():

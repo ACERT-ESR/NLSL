@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -45,13 +44,12 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
+    model.shift = True
+    model.normalize = True
     model.load_data(
         examples_dir / "sampl1.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for token in PARAMETERS_TO_VARY:

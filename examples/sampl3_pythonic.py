@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 400
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -39,6 +38,8 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
+    model.normalize = True
 
     # ``load_basis`` mirrors the runfile ``basis`` directive so the
     # diffusion tensor truncation is identical to the original script.
@@ -58,9 +59,6 @@ def main():
         examples_dir / "sampl3.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for key in FIT_CONTROLS:

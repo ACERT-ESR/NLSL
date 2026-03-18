@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "nsite": 2,
@@ -38,6 +37,8 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
+    model.normalize = True
 
     model.series("psi", (0.0, 90.0))
     model.load_basis("sampl5")
@@ -49,17 +50,11 @@ def main():
         examples_dir / "sampl500.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
     model.load_data(
         examples_dir / "sampl590.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     model.weights = np.ones((2, 2))

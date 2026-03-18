@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 # These entries mirror the manual ``let`` statements in ``sampl4.run`` and
 # supply the same initial guesses for the fit.
@@ -57,6 +56,8 @@ def main():
 
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
+    model.normalize = False
 
     # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through
     # the modern Python entry point so the processed intensities stay in
@@ -65,9 +66,6 @@ def main():
         data_path,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for token, indices in PARAMETERS_TO_VARY.items():

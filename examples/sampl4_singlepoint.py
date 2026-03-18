@@ -8,7 +8,6 @@ from nlsl.data import process_spectrum
 # --- Hard-coded SAMPL4 setup (no imports from tests or references) ---
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 # Final parameters (mirror of classic runfile-4 solution)
 SAMPL4_FINAL_PARAMETERS = {
@@ -72,7 +71,7 @@ SAMPL4_FINAL_PARAMETERS = {
     "nort": 0,
     "nstep": 0,
     "nfield": NSPLINE_POINTS,
-    "ideriv": DERIVATIVE_MODE,
+    "ideriv": 1,
     "iwflg": 0,
     "igflg": 0,
     "iaflg": 0,
@@ -99,7 +98,6 @@ def main():
         data_path,
         NSPLINE_POINTS,
         BASELINE_EDGE_POINTS,
-        derivative_mode=DERIVATIVE_MODE,
         normalize=False,
     )
 
@@ -118,23 +116,19 @@ def main():
     # Build the model strictly from the converged (hard-coded) parameters
     model = nlsl.nlsl()
     model["nsite"] = 2
+    model.shift = True
 
     # Generate the coordinate grid to match the processed data exactly
-    index, sl = model.generate_coordinates(
+    index = model.generate_coordinates(
+        field_start,
+        field_start + field_step * max(point_count - 1, 0),
         point_count,
-        start=field_start,
-        step=field_step,
-        derivative_mode=DERIVATIVE_MODE,
-        baseline_points=BASELINE_EDGE_POINTS,
-        normalize=False,
-        nspline=NSPLINE_POINTS,
-        shift=True,
         label="sampl4-single-eval",
         reset=True,
     )
 
-    # Set the experimental intensities on the same slice
-    model.set_data(sl, y_exp[:point_count])
+    # Set the experimental intensities for the active spectrum
+    model.data = y_exp[:point_count]
 
     # Mirror the runfile-4 solution through the dict interface (no fitting)
     model.update(params)
