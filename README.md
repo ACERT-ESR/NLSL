@@ -40,9 +40,14 @@ This might lead to errors that have two solutions.
 One option is to create a new python environment -- e.g.
 on Anaconda, you would do:
 ```bash
-conda create -n env python=3.13
+conda create -n nlsl_env python=3.13
 ```
-and then install again.
+and then install again inside this environment.
+Whenever you went to use the package,
+you would then want to make sure you're inside the right
+environment with:
+`conda activate nlsl_env`
+
 
 The other option is to upgrade your existing environment:
 
