@@ -29,11 +29,20 @@ def run_pythonic_sampl4_fit():
         derivative_mode=DERIVATIVE_MODE,
     )
 
+    # Mirror the runfile ``vary`` directives with site-indexed lmfit entries.
     for token in SAMPL4_PARAMETERS_TO_VARY:
-        model.procline(f"vary {token}")
+        if "(" in token:
+            base, rest = token.split("(", 1)
+            site_number = int(rest.rstrip(")")) - 1
+            canonical = model.canonical_name(base)
+            model.parameters[f"{canonical}_{site_number}"].vary = True
+        else:
+            canonical = model.canonical_name(token)
+            model.parameters[f"{canonical}_all"].vary = True
 
-    for key in SAMPL4_FIT_CONTROLS:
-        model.fit_params[key] = SAMPL4_FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(SAMPL4_FIT_CONTROLS)
+
+    model.weights = np.ones(model.nsites)
 
     # The historical run issues ``fit`` twice; repeating it here mirrors the
     # published optimisation cycle and ensures the spectra are stored.

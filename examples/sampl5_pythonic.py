@@ -86,8 +86,7 @@ def main():
 
     model.weights = np.ones((2, 2))
 
-    for key in FIT_CONTROLS:
-        model.fit_params[key] = FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     for commands in FIT_STEPS:
         for command in commands:

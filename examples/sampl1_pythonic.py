@@ -55,12 +55,9 @@ def main():
     )
 
     for token in PARAMETERS_TO_VARY:
-        # ``fit_params.vary`` mirrors the Fortran vary list, so toggling each
-        # entry exposes the same optimisation controls as the legacy runfile.
-        model.fit_params.vary[token] = True
+        model.parameters[f"{token}_0"].vary = True
 
-    for key in FIT_CONTROLS:
-        model.fit_params[key] = FIT_CONTROLS[key]
+    model.fortran_lm_engine.update(FIT_CONTROLS)
 
     site_spectra = model.fit()
     weights = model.weights
