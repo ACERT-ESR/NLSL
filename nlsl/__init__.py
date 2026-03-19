@@ -57,14 +57,20 @@ def _match_parameter_token(token, entries):
 class NLSLParameter(LmfitParameter):
     """Parameter entry that writes directly into the NLSL site slots."""
 
-    def __init__(self, owner, name, site_index):
+    def __init__(self, owner, name, site_index, code=None):
         canonical = owner.canonical_name(name)
-        code = owner.parameter_index(canonical)
+        if code is None:
+            code = owner.parameter_index(canonical)
         self._owner = owner
         self._canonical = canonical
+        self._code = code
+        self._index_by_spectrum = owner._is_spectrum_parameter(self._code)
         self._site_index = int(site_index)
         label = f"{canonical}_{self._site_index}"
-        value = _fortrancore.getprm(code, self._site_index + 1)
+        # Fetch the current value from the Fortran table using the appropriate
+        # index axis (site or spectrum) so the lmfit wrapper starts in sync with
+        # the core state.
+        value = _fortrancore.getprm(self._code, self._slot_index() or 1)
         LmfitParameter.__init__(self, name=label, value=value)
         # Store finite-difference and scaling metadata in ``user_data`` so the
         # lmfit-facing API exposes the same knobs as the legacy vary mapping.
@@ -75,16 +81,16 @@ class NLSLParameter(LmfitParameter):
         return self._canonical.upper()[:9]
 
     def _slot_index(self):
-        if max(self._owner.nsites, 1) == 1:
+        limit = self._owner._index_limit(self._code, self._index_by_spectrum)
+        if limit == 1:
             return 0
         return self._site_index + 1
 
     def _position(self):
         parcom = self._owner._core.parcom
-        code = self._owner.parameter_index(self._canonical)
         target = self._slot_index()
         for slot in range(int(parcom.nprm)):
-            if int(parcom.ixpr[slot]) == code and int(parcom.ixst[slot]) == target:
+            if int(parcom.ixpr[slot]) == self._code and int(parcom.ixst[slot]) == target:
                 return slot
         return None
 
@@ -92,12 +98,12 @@ class NLSLParameter(LmfitParameter):
         slot = self._position()
         if slot is None:
             return
-        code = self._owner.parameter_index(self._canonical)
-        _fortrancore.rmvprm(code, self._slot_index(), self._identifier().ljust(30))
+        _fortrancore.rmvprm(
+            self._code, self._slot_index(), self._identifier().ljust(30)
+        )
 
     def _add_to_fortran(self):
-        code = self._owner.parameter_index(self._canonical)
-        base_value = _fortrancore.getprm(code, self._slot_index() or 1)
+        base_value = _fortrancore.getprm(self._code, self._slot_index() or 1)
         step_value = self.user_data["fdstep"]
         if step_value is None:
             step_value = abs(base_value) * 1.0e-6
@@ -120,7 +126,7 @@ class NLSLParameter(LmfitParameter):
             step_factor = step_value / base_value
         self._remove_from_fortran()
         _fortrancore.addprm(
-            code,
+            self._code,
             self._slot_index(),
             int(flag),
             float(minimum),
@@ -132,13 +138,11 @@ class NLSLParameter(LmfitParameter):
 
     @property
     def value(self):
-        code = self._owner.parameter_index(self._canonical)
-        return float(_fortrancore.getprm(code, self._site_index + 1))
+        return float(_fortrancore.getprm(self._code, self._slot_index() or 1))
 
     @value.setter
     def value(self, new):
-        code = self._owner.parameter_index(self._canonical)
-        _fortrancore.setprm(code, self._site_index + 1, float(new))
+        _fortrancore.setprm(self._code, self._slot_index() or 1, float(new))
         self._val = float(new)
 
     def __setattr__(self, name, value):
@@ -173,31 +177,40 @@ class NLSLParameters(LmfitParameters):
     def refresh_sites(self):
         """Keep parameter entries aligned with the active site count."""
 
-        self._base_names = []
+        base_pairs = []
         for name in self._owner.keys():
             if name in self._owner._fepr_names and len(name) > 0:
                 try:
-                    self._owner.parameter_index(name)
+                    code = self._owner.parameter_index(name)
                 except KeyError:
                     continue
-                self._base_names.append(name)
-        new_site_count = max(self._owner.nsites, 1)
+                base_pairs.append((name, code))
+
+        self._base_names = [name for name, _ in base_pairs]
+        code_lookup = {name: code for name, code in base_pairs}
+
         for name in list(self.keys()):
             if "_" not in name:
                 continue
             base, idx_text = name.rsplit("_", 1)
-            if base not in self._base_names or int(idx_text) >= new_site_count:
+            if base not in self._base_names:
                 if name in self:
                     self[name]._remove_from_fortran()
                 del self[name]
-        for base in self._base_names:
-            for site in range(new_site_count):
-                label = f"{base}_{site}"
-                if label not in self:
-                    LmfitParameters.__setitem__(
-                        self, label, NLSLParameter(self._owner, base, site)
-                    )
-        self._site_count = new_site_count
+                continue
+
+            limit = self._owner._index_limit(code_lookup[base])
+            if int(idx_text) >= limit:
+                if name in self:
+                    self[name]._remove_from_fortran()
+                del self[name]
+        for base, code in base_pairs:
+            label = f"{base}_0"
+            if label not in self:
+                LmfitParameters.__setitem__(
+                    self, label, NLSLParameter(self._owner, base, 0, code)
+                )
+        self._site_count = max(self._owner.nsites, 1)
 
     def parse_key(self, key):
         """Resolve an lmfit-style key into the canonical name and site."""
@@ -210,9 +223,11 @@ class NLSLParameters(LmfitParameters):
         base, idx_text = text.rsplit("_", 1)
         canonical = self._owner.canonical_name(base)
         site = int(idx_text)
+        code = self._owner.parameter_index(canonical)
+        limit = self._owner._index_limit(code)
         if site < 0:
             raise KeyError(key)
-        if site >= max(self._owner.nsites, 1):
+        if site >= limit:
             raise KeyError(key)
         return canonical, site
 
@@ -221,6 +236,11 @@ class NLSLParameters(LmfitParameters):
         internal = f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
+            limit = self._owner._index_limit(self._owner.parameter_index(canonical))
+            if site < limit and internal not in self:
+                LmfitParameters.__setitem__(
+                    self, internal, NLSLParameter(self._owner, canonical, site)
+                )
         return LmfitParameters.__getitem__(self, internal)
 
     def __setitem__(self, key, value):
@@ -228,6 +248,11 @@ class NLSLParameters(LmfitParameters):
         internal = f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
+            limit = self._owner._index_limit(self._owner.parameter_index(canonical))
+            if site < limit and internal not in self:
+                LmfitParameters.__setitem__(
+                    self, internal, NLSLParameter(self._owner, canonical, site)
+                )
         if isinstance(value, LmfitParameter):
             LmfitParameters.__setitem__(self, internal, value)
             return
@@ -430,6 +455,10 @@ class nlsl(object):
         # Keep the spectrum count and the cached weight matrix in lock-step.
         _fortrancore.expdat.nspc = int(value)
         self._sync_weight_matrix()
+        if hasattr(self, "parameters"):
+            # Spectrum-indexed parameters need to track the active spectrum
+            # count so their ``name_site`` entries stay in sync with ``nspc``.
+            self.parameters.refresh_sites()
 
     @property
     def weights(self):
@@ -627,6 +656,49 @@ class nlsl(object):
         except KeyError:
             code = 0
         return canonical_key, code
+
+    def _is_spectrum_parameter(self, parameter_code):
+        """Return True when the code refers to a spectrum-indexed value."""
+
+        code = abs(int(parameter_code))
+        spectral = []
+        for attr in (
+            "iphase",
+            "ipsi",
+            "ilb",
+            "ib0",
+            "ifldi",
+            "idfld",
+            "irange",
+        ):
+            if hasattr(self._core.eprprm, attr):
+                spectral.append(int(getattr(self._core.eprprm, attr)))
+        integral = []
+        for attr in ("infld", "iiderv"):
+            if hasattr(self._core.eprprm, attr):
+                integral.append(int(getattr(self._core.eprprm, attr)))
+        return code in spectral or code in integral
+
+    def _index_limit(self, parameter_code, spectral=None):
+        """Determine how many indices the parameter exposes.
+
+        The original vary mapping distinguished between site- and spectrum-
+        indexed parameters.  Keep the same logic so ``n.parameters`` builds the
+        correct number of ``name_site`` entries for each parameter family.
+        """
+
+        if spectral is None:
+            spectral = self._is_spectrum_parameter(parameter_code)
+        if spectral:
+            limit = int(getattr(self._core.parcom, "nser", 0))
+            nspc = int(getattr(self._core.expdat, "nspc", 0))
+            if nspc > limit:
+                limit = nspc
+        else:
+            limit = int(self.nsites)
+        if limit <= 0:
+            limit = 1
+        return limit
 
     def __getitem__(self, key):
         key = key.lower()
