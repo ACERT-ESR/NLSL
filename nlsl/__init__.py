@@ -82,8 +82,11 @@ class NLSLParameter(LmfitParameter):
 
     def _slot_index(self):
         limit = self._owner._index_limit(self._code, self._index_by_spectrum)
+        # The Fortran parameter tables expect one-based indices.  Single-slot
+        # parameters therefore map to index ``1`` rather than ``0`` so that
+        # ``addprm`` records the entry in the visible range.
         if limit == 1:
-            return 0
+            return 1
         return self._site_index + 1
 
     def _position(self):
@@ -205,11 +208,13 @@ class NLSLParameters(LmfitParameters):
                     self[name]._remove_from_fortran()
                 del self[name]
         for base, code in base_pairs:
-            label = f"{base}_0"
-            if label not in self:
-                LmfitParameters.__setitem__(
-                    self, label, NLSLParameter(self._owner, base, 0, code)
-                )
+            limit = self._owner._index_limit(code)
+            for site in range(limit):
+                label = f"{base}_{site}"
+                if label not in self:
+                    LmfitParameters.__setitem__(
+                        self, label, NLSLParameter(self._owner, base, site, code)
+                    )
         self._site_count = max(self._owner.nsites, 1)
 
     def parse_key(self, key):
