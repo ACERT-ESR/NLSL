@@ -30,6 +30,7 @@ d.set_units(
     "$B_0$", None
 )  # just for now, because I'm not prepared to deal with the weirdness, yet
 d = d.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
+d.name("230621_w0_10.DSC")
 n = nlsl.nlsl()
 
 field_axis = d[d.dimlabels[0]]

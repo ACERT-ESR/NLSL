@@ -698,9 +698,7 @@ class nlsl(object):
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params(self)
         self.tensor_symmetry = TensorSymmetryMapping(self)
-        self._last_layout = None
         self._last_site_spectra = None
-        self._last_experimental_data = None
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
@@ -863,7 +861,7 @@ class nlsl(object):
 
     @property
     def experimental_data(self):
-        """Return the trimmed experimental traces from the most recent capture.
+        """Return the active experimental traces from the current data buffer.
 
         The matrix is shaped as ``(number of spectra, point span)`` so it
         aligns with ``model.weights @ model.site_spectra``.  Each row contains
@@ -871,9 +869,23 @@ class nlsl(object):
         zeroing any samples that fall outside that spectrum's active window.
         """
 
-        if self._last_experimental_data is None:
+        nspc = int(_fortrancore.expdat.nspc)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        if nspc <= 0 or ndatot <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_experimental_data
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
+        starts = np.asarray(_fortrancore.expdat.ixsp[:nspc], dtype=int) - 1
+        min_start = int(starts.min())
+        max_stop = int((starts + counts).max())
+        relative_windows = tuple(
+            slice(int(start - min_start), int(start - min_start + count))
+            for start, count in zip(starts, counts)
+        )
+        trimmed = _fortrancore.expdat.data[min_start:max_stop].copy()
+        stacked = np.zeros((nspc, max_stop - min_start), dtype=float)
+        for idx, window in enumerate(relative_windows):
+            stacked[idx, window] = trimmed[window]
+        return stacked
 
     def write_spc(self):
         """Write the current spectra to ``.spc`` files."""
@@ -1051,7 +1063,6 @@ class nlsl(object):
                 "nddata objects must supply at least one dimension label"
             )
 
-        dataset = dataset.copy()
         dataset.squeeze()
         if len(dataset.dimlabels) != 1:
             raise ValueError(
@@ -1106,6 +1117,8 @@ class nlsl(object):
                 step,
                 mode,
             )
+            dataset *= 0.0
+            dataset += intensities
             if norm_factor != 0.0:
                 noise /= norm_factor
         eps = float(np.finfo(float).eps)
@@ -1114,15 +1127,18 @@ class nlsl(object):
         _fortrancore.expdat.rmsn[idx] = noise
 
         self.data = intensities
-        # TODO ☐: don't do the following.  Use the .name() of the
-        # nddata.  In examples and tests, you will need to make sure
-        # that you set a .name() based on the filename
-        if dataset.get_units(axis_label) is None:
-            data_id = "nddata:" + str(axis_label)
-        else:
-            data_id = "nddata:" + f"{axis_label} [{dataset.get_units(axis_label)}]"
+        data_id = dataset.name()
+        if data_id is None or len(str(data_id).strip()) == 0:
+            data_id = "nddata"
         _fortrancore.expdat.dataid[idx] = (
-            data_id.encode("ascii", "ignore")[:30].ljust(30, b" ")
+            str(data_id).encode("ascii", "ignore")[:30].ljust(30, b" ")
+        )
+        if dataset.get_units(axis_label) is None:
+            axis_id = "axis:" + str(axis_label)
+        else:
+            axis_id = "axis:" + f"{axis_label}[{dataset.get_units(axis_label)}]"
+        _fortrancore.expdat.wndoid[idx] = (
+            axis_id.encode("ascii", "ignore")[:20].ljust(20, b" ")
         )
         # ``datac`` keeps parser defaults in ``drmode``, ``shftflg``, and
         # ``normflg``.  When a spectrum is loaded, those defaults are copied
@@ -1133,10 +1149,11 @@ class nlsl(object):
         # the current Fortran state.  The fit routines do not re-read
         # ``normflg`` to renormalize later; they simply use the stored data
         # vector and the per-spectrum flags that describe how it was prepared.
-        # TODO ☐: so add a clarification to the end of this useful comment here:
-        #         answer whether or not the fortran actually reads/uses this
-        #         information, or if it's set for purely informational
-        #         purposes?
+        # Once a spectrum exists, the fit/single-point code uses the
+        # per-spectrum entries ``idrv(idx)``, ``ishft(idx)``, ``nrmlz(idx)``,
+        # and the stored data samples; the global defaults below are updated
+        # mainly so status reporting and any future CLI-style loads see the
+        # same state that a Fortran-side ``datac`` call would have left.
         _fortrancore.expdat.drmode = mode
         _fortrancore.expdat.shftflg = 1 if self.shift else 0
         _fortrancore.expdat.normflg = 1 if normalize else 0
@@ -1786,34 +1803,48 @@ class nlsl(object):
     def __iter__(self):
         return iter(self.keys())
 
-    # TODO ☐: this layout property, and the underlying _last_layout are
-    #         cumbersome hacks that dramatically decrease the readability and
-    #         elegance of the python extension.  They need to be completely
-    #         purged.  If I understand correctly, these are all attributes that
-    #         should be accessible through the main nlsl["key"] getitem
-    #         mechanism.  If that's not true, then explain in the codex chat
-    #         and give options for what can be done.
-    @property
-    def layout(self):
-        """Metadata describing the most recent spectral evaluation."""
-        if self._last_layout is None:
-            raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_layout
-
     @property
     def field_axes(self):
         """Return uniformly spaced field axes for each active spectrum."""
 
-        layout = self.layout
-        counts = np.asarray(layout["npts"], dtype=int)
+        nspc = int(_fortrancore.expdat.nspc)
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
         if counts.size == 0:
             return tuple()
-        starts = np.asarray(layout["sbi"], dtype=float).reshape(-1, 1)
-        steps = np.asarray(layout["sdb"], dtype=float).reshape(-1, 1)
+        starts = np.asarray(_fortrancore.expdat.sbi[:nspc], dtype=float).reshape(
+            -1, 1
+        )
+        steps = np.asarray(_fortrancore.expdat.sdb[:nspc], dtype=float).reshape(
+            -1, 1
+        )
         span = int(counts.max())
         base = np.arange(span, dtype=float)
         grid = starts + steps * base
         return tuple(grid[idx, :count] for idx, count in enumerate(counts))
+
+    @property
+    def relative_windows(self):
+        """Return per-spectrum slices into the shared trimmed data span.
+
+        Fortran stores every loaded spectrum inside one flat ``expdat.data``
+        work array.  Each spectrum therefore occupies a contiguous slice
+        determined by ``ixsp`` and ``npts``; that slice is the window for the
+        spectrum.  When Python exposes multiple spectra together, it trims the
+        shared work array down to the smallest block that contains every
+        active spectrum, and ``relative_windows`` remaps each spectrum's
+        absolute slice onto that trimmed block.
+        """
+
+        nspc = int(_fortrancore.expdat.nspc)
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
+        if counts.size == 0:
+            return tuple()
+        starts = np.asarray(_fortrancore.expdat.ixsp[:nspc], dtype=int) - 1
+        min_start = int(starts.min())
+        return tuple(
+            slice(int(start - min_start), int(start - min_start + count))
+            for start, count in zip(starts, counts)
+        )
 
     @property
     def site_spectra(self):
@@ -1949,6 +1980,20 @@ class nlsl(object):
     @property
     def data(self):
         """Return intensities for the most recently allocated spectrum."""
+        # TODO ☐: refactor -- if self.return_nddata is true, then return
+        #         the nddata, if that's not true, but there's more than
+        #         one spectrum, then return a list, where each element
+        #         of the list looks like what we have below.  DO NOT
+        #         spin up new private functions when doing this.  Have a
+        #         nice, legible branching logic structure right here.
+        # TODO ☐: make a python property that natively returns the start
+        #         and stop below as a slice (is this the "window" that
+        #         is referenced elsewhere?), so that we don't need to
+        #         drill down and manually access ixsp and npts like
+        #         this.
+        # TODO ☐: also, I realized I made a mistake.  If we have more
+        #         than one spectrum, that's not a new dimension of
+        #         nddata -- that should also yield a list of nddata.
 
         nspc = int(_fortrancore.expdat.nspc)
         if nspc <= 0:
@@ -1961,6 +2006,17 @@ class nlsl(object):
     @data.setter
     def data(self, values):
         """Assign intensities to the most recently allocated spectrum."""
+        # TODO ☐: refactor -- rename load_data to load_raw_datafile,
+        #         which better reflects its name.  Then, move the code
+        #         from load_nddata to here.  Remove the option to
+        #         normalize the nddata.  In the docstring here, explain
+        #         how we generate a model/simulation that matches the
+        #         size of the ndddata (is that by adjusting the weight?
+        #         can the weights be set to something that doesn't total
+        #         unity? or is there a different parameter to be
+        #         adjusted to match the overall scaling of the model to
+        #         the data?) <-- you will have to carefully review the
+        #         fortran source in order to write this docstring.
 
         nspc = int(_fortrancore.expdat.nspc)
         if nspc <= 0:
@@ -2027,36 +2083,11 @@ class nlsl(object):
             for window in windows
         )
 
-        # TODO ☐: your description of "windows" is very weak.  You need to
-        #         first explain what exactly a "window" is?? Are we slicing out
-        #         a portion of the experimental data? Why don't we just pass
-        #         sliced data when loading, if that's the case?
-        # ``windows`` preserve the absolute indices used by the Fortran work
-        # arrays so callers can recover the recorded experimental data, while
-        # ``relative_windows`` remap the same ranges onto the trimmed spectra
-        # returned below.
-
-        # TODO ☐: see notes above about layout.
-        self._last_layout = {
-            "ixsp": starts,
-            "npts": counts,
-            "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
-            "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
-            "dataid": tuple(
-                (
-                    item.decode("ascii", "ignore")
-                    if isinstance(item, bytes)
-                    else str(item)
-                ).rstrip()
-                for item in _fortrancore.expdat.dataid[:nspc]
-            ),
-            "ndatot": max_stop - min_start,
-            "nsite": nsite,
-            "nspc": nspc,
-            "windows": windows,
-            "relative_windows": relative_windows,
-            "origin": min_start,
-        }
+        # Each spectrum occupies a contiguous slice of the shared Fortran work
+        # arrays.  ``windows`` are those absolute slices in ``expdat.data`` and
+        # ``mspctr.spectr``; ``relative_windows`` remap them onto the trimmed
+        # block ``min_start:max_stop`` returned below so Python callers can
+        # align multi-spectrum arrays without carrying the full unused storage.
 
         span = max_stop - min_start
         if span > 0 and nsite > 0:
@@ -2064,14 +2095,6 @@ class nlsl(object):
             site_spectra = trimmed.swapaxes(0, 1)
         else:
             site_spectra = np.empty((nsite, 0), dtype=float)
-
-        if span > 0 and nspc > 0:
-            trimmed_exp = _fortrancore.expdat.data[min_start:max_stop].copy()
-            stacked = np.zeros((nspc, span), dtype=float)
-            for idx, window in enumerate(relative_windows):
-                stacked[idx, window] = trimmed_exp[window]
-        else:
-            stacked = np.empty((nspc, 0), dtype=float)
 
         if not self.return_nddata:
             site_payload = site_spectra
@@ -2081,23 +2104,24 @@ class nlsl(object):
             array = np.asarray(site_spectra, dtype=float)
             if nspc <= 0:
                 raise RuntimeError("no field axis metadata is available")
-            # TODO ☐: you need comments explaiing what all the following code
-            #         is about.  It doesn't seem to have any purpose.  It seems
-            #         like you are setting a bunch of variables you don't even
-            #         use!
             field_axes = self.field_axes
             field_label = "field"
             field_units = None
             field_coords = None
             for idx in range(nspc):
                 coords = np.asarray(field_axes[idx], dtype=float).reshape(-1)
-                encoded = self._last_layout["dataid"][idx]
+                encoded = _fortrancore.expdat.wndoid[idx]
+                if isinstance(encoded, bytes):
+                    encoded = encoded.decode("ascii", "ignore")
+                else:
+                    encoded = str(encoded)
+                encoded = encoded.rstrip()
                 label = "field"
                 units = None
-                if encoded.startswith("nddata:"):
-                    label = encoded[len("nddata:") :]
-                    if label.endswith("]") and " [" in label:
-                        label, units = label[:-1].rsplit(" [", 1)
+                if encoded.startswith("axis:"):
+                    label = encoded[len("axis:") :]
+                    if label.endswith("]") and "[" in label:
+                        label, units = label[:-1].rsplit("[", 1)
                     if len(label) == 0:
                         label = "field"
                 if field_coords is None:
@@ -2150,12 +2174,7 @@ class nlsl(object):
                 site_payload.set_axis(field_label, field_coords)
                 site_payload.set_units(field_label, field_units)
 
-        # TODO ☐: I see no need for _last_experimental_data.  If there is a
-        #         reason to keep this information around, it needs to be very
-        #         clearly justified.  More likely, however, this is just sloppy
-        #         coding and an attempt to hack your way to passing tests.
         self._last_site_spectra = site_payload
-        self._last_experimental_data = stacked
         return self._last_site_spectra
 
     def _sync_weight_matrix(self):

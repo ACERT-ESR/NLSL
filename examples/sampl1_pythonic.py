@@ -79,7 +79,7 @@ def main():
 
     experimental_block = model.experimental_data
     fields = model.field_axes
-    windows = model.layout["relative_windows"]
+    windows = model.relative_windows
     experimental_series = tuple(
         experimental_block[idx, window] for idx, window in enumerate(windows)
     )

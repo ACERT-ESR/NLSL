@@ -101,24 +101,20 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
+    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, windows[idx]]
         )
 
     combined_num = 0.0

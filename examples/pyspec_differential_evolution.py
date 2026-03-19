@@ -22,6 +22,7 @@ def _build_experimental_spectrum():
     d_local = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
     d_local.set_units("$B_0$", None)
     d_local = d_local.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
+    d_local.name("230621_w0_10.DSC")
 
     # We need a temporary NLSL instance only to read the expdat max_points limit.
     import nlsl as _nlsl

@@ -107,6 +107,7 @@ def test_load_nddata_runs_fit_cycle():
     dataset = nddata(
         SAMPL4_SPECTRAL_DATA.copy(), [SAMPL4_POINT_COUNT], ["field"]
     )
+    dataset.name("sampl4.dat")
     dataset.setaxis(dataset.dimlabels[0], fields)
 
     model.shift = True

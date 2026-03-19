@@ -18,6 +18,7 @@ def test_load_nddata_reports_capacity_limit():
     points = max_points + 1
     fields = np.arange(points, dtype=float)
     dataset = nddata(np.zeros(points), [points], ["field"])
+    dataset.name("oversized.dat")
     dataset.setaxis("field", fields)
 
     with pytest.raises(ValueError) as excinfo:
@@ -35,6 +36,7 @@ def test_load_nddata_defaults_to_no_shift():
     points = 4
     fields = np.linspace(0.0, 3.0, points)
     dataset = nddata(np.linspace(-1.0, 1.0, points), [points], ["field"])
+    dataset.name("synthetic.dat")
     dataset.setaxis("field", fields)
 
     model.load_nddata(dataset)
