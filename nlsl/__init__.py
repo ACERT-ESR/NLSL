@@ -705,7 +705,6 @@ class nlsl(object):
         self._explicit_field_start = False
         self._explicit_field_step = False
         self.return_nddata = False
-        self._source_nddata = []
         # Global model-level controls for data loading and coordinate creation.
         self._shift = False
         self._derivative_mode = 1
@@ -997,7 +996,6 @@ class nlsl(object):
         self.data = spectrum_y
         _fortrancore.expdat.nrmlz[idx] = spectrum_norm
         self.return_nddata = False
-        self._source_nddata = []
 
         if self.shift:
             _fortrancore.expdat.ishglb = 1
@@ -1060,12 +1058,10 @@ class nlsl(object):
                 "load_nddata expects exactly one non-singleton dimension"
             )
         axis_label = dataset.dimlabels[0]
-        # TODO ☐: call this axis_coords, not axis_values
-        axis_values = dataset.getaxis(axis_label)
-        if axis_values is None:
+        axis_coords = dataset.getaxis(axis_label)
+        if axis_coords is None:
             raise ValueError("nddata field axis coordinates are missing")
-        fields = np.asarray(axis_values, dtype=float).reshape(-1)
-        # JF manually rolled back the following line from codex b/c codex made it ridiculously complicated
+        fields = np.asarray(axis_coords, dtype=float).reshape(-1)
         intensities = np.asarray(dataset.data, dtype=float).reshape(-1)
 
         if fields.size == 0:
@@ -1103,13 +1099,10 @@ class nlsl(object):
         )
 
         mode = int(self.derivative_mode)
-        # TODO ☐: the following is unnecessary duplication of resources!
-        # You've already copied the nddata once at the beginning!!
-        intensities_to_store = intensities.copy()
         noise = float(np.std(intensities))
         if normalize:
-            intensities_to_store, norm_factor = normalize_spectrum(
-                intensities_to_store,
+            intensities, norm_factor = normalize_spectrum(
+                intensities,
                 step,
                 mode,
             )
@@ -1120,24 +1113,34 @@ class nlsl(object):
             noise = 1.0
         _fortrancore.expdat.rmsn[idx] = noise
 
-        self.data = intensities_to_store
+        self.data = intensities
+        # TODO ☐: don't do the following.  Use the .name() of the
+        # nddata.  In examples and tests, you will need to make sure
+        # that you set a .name() based on the filename
+        if dataset.get_units(axis_label) is None:
+            data_id = "nddata:" + str(axis_label)
+        else:
+            data_id = "nddata:" + f"{axis_label} [{dataset.get_units(axis_label)}]"
+        _fortrancore.expdat.dataid[idx] = (
+            data_id.encode("ascii", "ignore")[:30].ljust(30, b" ")
+        )
+        # ``datac`` keeps parser defaults in ``drmode``, ``shftflg``, and
+        # ``normflg``.  When a spectrum is loaded, those defaults are copied
+        # into the per-spectrum slots ``idrv(idx)``, ``ishft(idx)``, and
+        # ``nrmlz(idx)`` before ``getdat`` reads the file.  This Python path
+        # bypasses ``datac/getdat``, so we have already performed the optional
+        # normalization above and now mirror the same bookkeeping directly in
+        # the current Fortran state.  The fit routines do not re-read
+        # ``normflg`` to renormalize later; they simply use the stored data
+        # vector and the per-spectrum flags that describe how it was prepared.
+        # TODO ☐: so add a clarification to the end of this useful comment here:
+        #         answer whether or not the fortran actually reads/uses this
+        #         information, or if it's set for purely informational
+        #         purposes?
         _fortrancore.expdat.drmode = mode
         _fortrancore.expdat.shftflg = 1 if self.shift else 0
         _fortrancore.expdat.normflg = 1 if normalize else 0
-        # TODO ☐: here you pass a normalize flag, and above also!  Also,
-        # you need a detailed comment for both the following line and
-        # the preceeding two lines as to what exactly these settings do
-        # inside the fortran module!  Specifically, when exactly are
-        # these parameters read and used? During fitting? When a
-        # particular fortran subroutine is called?  Your explanations
-        # here need a LOT of work.
         _fortrancore.expdat.nrmlz[idx] = 1 if normalize else 0
-        # TODO ☐: this source nddata garbage is completely unneeded!!!
-        if idx == 0:
-            self._source_nddata = []
-        while len(self._source_nddata) <= idx:
-            self._source_nddata.append(None)
-        self._source_nddata[idx] = dataset.copy()
         self.return_nddata = True
 
     def load_basis(self, identifier, spectrum=None, site=None):
@@ -1783,6 +1786,13 @@ class nlsl(object):
     def __iter__(self):
         return iter(self.keys())
 
+    # TODO ☐: this layout property, and the underlying _last_layout are
+    #         cumbersome hacks that dramatically decrease the readability and
+    #         elegance of the python extension.  They need to be completely
+    #         purged.  If I understand correctly, these are all attributes that
+    #         should be accessible through the main nlsl["key"] getitem
+    #         mechanism.  If that's not true, then explain in the codex chat
+    #         and give options for what can be done.
     @property
     def layout(self):
         """Metadata describing the most recent spectral evaluation."""
@@ -2017,16 +2027,29 @@ class nlsl(object):
             for window in windows
         )
 
+        # TODO ☐: your description of "windows" is very weak.  You need to
+        #         first explain what exactly a "window" is?? Are we slicing out
+        #         a portion of the experimental data? Why don't we just pass
+        #         sliced data when loading, if that's the case?
         # ``windows`` preserve the absolute indices used by the Fortran work
         # arrays so callers can recover the recorded experimental data, while
         # ``relative_windows`` remap the same ranges onto the trimmed spectra
         # returned below.
 
+        # TODO ☐: see notes above about layout.
         self._last_layout = {
             "ixsp": starts,
             "npts": counts,
             "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
             "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
+            "dataid": tuple(
+                (
+                    item.decode("ascii", "ignore")
+                    if isinstance(item, bytes)
+                    else str(item)
+                ).rstrip()
+                for item in _fortrancore.expdat.dataid[:nspc]
+            ),
             "ndatot": max_stop - min_start,
             "nsite": nsite,
             "nspc": nspc,
@@ -2056,61 +2079,42 @@ class nlsl(object):
             if not _HAS_PYSPECDATA:
                 raise ImportError("pyspecdata is required for nddata outputs")
             array = np.asarray(site_spectra, dtype=float)
-            # TODO ☐: what you are doing here is completely ridiculous!
-            # The source nddata is not needed!!
-            if len(self._source_nddata) >= nspc:
-                source_nddata = self._source_nddata[:nspc]
-                if any(item is None for item in source_nddata):
-                    source_nddata = None
-            else:
-                source_nddata = None
-            if source_nddata:
-                # TODO ☐: you should ABSOLUTELY not need to refer back
-                # to the source nddata in order to capture the state.
-                # That completely defeats the purpose!!! the
-                # capture_state function is designed to explain the
-                # state of the fortran module COMPLETELY AGNOSTIC of
-                # everything that came before.  This is clearly some
-                # type of BOGUS HACK to allow you to pass tests in a
-                # duplicitous fashion!!
-                field_label = source_nddata[0].dimlabels[0] field_coords
-                = np.asarray( source_nddata[0].getaxis(field_label),
-                             dtype=float
-                ).reshape(-1)
-                field_units = source_nddata[0].get_units(field_label)
-                for item in source_nddata[1:]:
-                    label = item.dimlabels[0]
-                    coords = np.asarray(
-                        item.getaxis(label), dtype=float
-                    ).reshape(-1)
-                    units = item.get_units(label)
-                    if (
-                        label != field_label
-                        or units != field_units
-                        or coords.shape != field_coords.shape
-                        or not np.allclose(coords, field_coords)
-                    ):
-                        raise ValueError(
-                            "return_nddata requires all active spectra to"
-                            " share one common field axis"
-                        )
-            elif nspc > 0:
-                field_label = "field"
-                field_coords = np.asarray(
-                    self.field_axes[0], dtype=float
-                ).reshape(-1)
-                field_units = None
-                for coords in self.field_axes[1:nspc]:
-                    coords = np.asarray(coords, dtype=float).reshape(-1)
-                    if coords.shape != field_coords.shape or not np.allclose(
-                        coords, field_coords
-                    ):
-                        raise ValueError(
-                            "return_nddata requires all active spectra to"
-                            " share one common field axis"
-                        )
-            else:
+            if nspc <= 0:
                 raise RuntimeError("no field axis metadata is available")
+            # TODO ☐: you need comments explaiing what all the following code
+            #         is about.  It doesn't seem to have any purpose.  It seems
+            #         like you are setting a bunch of variables you don't even
+            #         use!
+            field_axes = self.field_axes
+            field_label = "field"
+            field_units = None
+            field_coords = None
+            for idx in range(nspc):
+                coords = np.asarray(field_axes[idx], dtype=float).reshape(-1)
+                encoded = self._last_layout["dataid"][idx]
+                label = "field"
+                units = None
+                if encoded.startswith("nddata:"):
+                    label = encoded[len("nddata:") :]
+                    if label.endswith("]") and " [" in label:
+                        label, units = label[:-1].rsplit(" [", 1)
+                    if len(label) == 0:
+                        label = "field"
+                if field_coords is None:
+                    field_label = label
+                    field_units = units
+                    field_coords = coords
+                    continue
+                if (
+                    label != field_label
+                    or units != field_units
+                    or coords.shape != field_coords.shape
+                    or not np.allclose(coords, field_coords)
+                ):
+                    raise ValueError(
+                        "return_nddata requires all active spectra to share one"
+                        " common field axis"
+                    )
 
             if nspc <= 1:
                 site_payload = nddata(
@@ -2146,9 +2150,11 @@ class nlsl(object):
                 site_payload.set_axis(field_label, field_coords)
                 site_payload.set_units(field_label, field_units)
 
+        # TODO ☐: I see no need for _last_experimental_data.  If there is a
+        #         reason to keep this information around, it needs to be very
+        #         clearly justified.  More likely, however, this is just sloppy
+        #         coding and an attempt to hack your way to passing tests.
         self._last_site_spectra = site_payload
-        # TODO ☐: see the last TODO -- EVERYTHING you have added above
-        # is in an attempt to falsely pass tests.  get rid of it!
         self._last_experimental_data = stacked
         return self._last_site_spectra
 

@@ -27,13 +27,9 @@ def _build_experimental_spectrum():
     import nlsl as _nlsl
     n_tmp = _nlsl.nlsl()
 
-    # ☐ TODO -- the max points should be an accessible property or attribute supplied by the
-    # class -- we should not need to do the following in our script
-    max_points = n_tmp._core.expdat.data.shape[0] // max(n_tmp._core.expdat.nft.shape[0], 1)
-
     # {{{ we use convolution to downsample the data
-    if d_local.shape["$B_0$"] > max_points:
-        divisor = d_local.shape["$B_0$"] // max_points + 1
+    if d_local.shape["$B_0$"] > n_tmp.max_points:
+        divisor = d_local.shape["$B_0$"] // n_tmp.max_points + 1
         dB = np.diff(d_local["$B_0$"][r_[0, 1]]).item()
         d_orig_max = d_local.max()
         d_local.convolve("$B_0$", dB / 6 * divisor)
