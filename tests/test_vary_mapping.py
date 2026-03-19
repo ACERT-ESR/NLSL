@@ -19,6 +19,49 @@ def clean_model():
     return nlsl.nlsl()
 
 
+def _capture_first_vary_slot():
+    """Collect the leading ``parcom`` slot so paths can be compared."""
+
+    parcom = nlsl.fortrancore.parcom
+    return {
+        "nprm": int(parcom.nprm),
+        "ixpr": int(parcom.ixpr[0]),
+        "ixst": int(parcom.ixst[0]),
+        "prmin": float(parcom.prmin[0]),
+        "prmax": float(parcom.prmax[0]),
+        "prscl": float(parcom.prscl[0]),
+        "xfdstp": float(parcom.xfdstp[0]),
+        "ibnd": int(parcom.ibnd[0]),
+        "tag": parcom.tag[0].decode("ascii").strip(),
+    }
+
+
+def test_parameter_vary_matches_procline_path():
+    """Setting ``vary`` through ``parameters`` must mirror ``procline``."""
+
+    procline_model = nlsl.nlsl()
+    procline_model["gxx"] = 2.01
+    procline_model.procline("vary gxx(1)")
+
+    procline_snapshot = _capture_first_vary_slot()
+
+    parameter_model = nlsl.nlsl()
+    parameter_model["gxx"] = 2.01
+    parameter_model.parameters["gxx_0"].vary = True
+
+    parameter_snapshot = _capture_first_vary_slot()
+
+    assert procline_snapshot["nprm"] == parameter_snapshot["nprm"]
+    assert procline_snapshot["ixpr"] == parameter_snapshot["ixpr"]
+    assert procline_snapshot["ixst"] == parameter_snapshot["ixst"]
+    assert np.isclose(procline_snapshot["prmin"], parameter_snapshot["prmin"])
+    assert np.isclose(procline_snapshot["prmax"], parameter_snapshot["prmax"])
+    assert np.isclose(procline_snapshot["prscl"], parameter_snapshot["prscl"])
+    assert np.isclose(procline_snapshot["xfdstp"], parameter_snapshot["xfdstp"])
+    assert procline_snapshot["ibnd"] == parameter_snapshot["ibnd"]
+    assert procline_snapshot["tag"] == parameter_snapshot["tag"]
+
+
 def test_parameter_bounds_and_steps_mirror_parcom(clean_model):
     """Assigning lmfit bounds should mirror into the Fortran parcom slots."""
 
@@ -42,7 +85,7 @@ def test_parameter_bounds_and_steps_mirror_parcom(clean_model):
     assert np.isclose(parcom.prscl[slot], 0.5)
     assert np.isclose(parcom.xfdstp[slot], 1.0e-4)
     assert int(parcom.ixpr[slot]) == model.parameter_index("gxx")
-    assert int(parcom.ixst[slot]) == 0
+    assert int(parcom.ixst[slot]) == 1
 
 
 def test_multi_site_entries_follow_parameter_slots(clean_model):

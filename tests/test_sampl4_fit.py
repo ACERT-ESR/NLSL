@@ -29,10 +29,17 @@ def run_pythonic_sampl4_fit():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    model.parameters["gib0_0"].vary = True
-    model.parameters["gib0_1"].vary = True
-    model.parameters["rx_0"].vary = True
-    model.parameters["rx_1"].vary = True
+    # Mirror the runfile ``vary`` directives with site-indexed lmfit entries.
+    for token in SAMPL4_PARAMETERS_TO_VARY:
+        if "(" in token:
+            base, rest = token.split("(", 1)
+            site_number = int(rest.rstrip(")")) - 1
+            canonical = model.canonical_name(base)
+            model.parameters[f"{canonical}_{site_number}"].vary = True
+        else:
+            canonical = model.canonical_name(token)
+            for site_number in range(model.nsites):
+                model.parameters[f"{canonical}_{site_number}"].vary = True
 
     model.fortran_lm_engine.update(SAMPL4_FIT_CONTROLS)
 
