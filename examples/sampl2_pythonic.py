@@ -58,20 +58,25 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
     model.shift = True
-    model.normalize = True
 
     for command in SERIES_COMMANDS:
         model.procline(command)
 
+    # ``normalize=True`` follows the Fortran ``NORM`` path for both traces:
+    # ``datac`` stores ``nrmlz=1``, and ``getdat`` normalizes each loaded
+    # spectrum by its integral (or double integral after baseline adjustment
+    # when the data are first-derivative).
     model.load_data(
         examples_dir / "sampl200.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
     model.load_data(
         examples_dir / "sampl290.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
 
     for command in SEARCH_COMMANDS:

@@ -104,10 +104,9 @@ def test_load_data_matches_datac():
     # Python path
     modern = nlsl.nlsl()
     modern.shift = True
-    modern.normalize = True
     modern.derivative_mode = 1
     for sample in samples:
-        modern.load_data(sample, nspline=200, bc_points=20)
+        modern.load_data(sample, nspline=200, bc_points=20, normalize=True)
     python_state = _capture_state()
 
     for key, legacy_value in legacy_state.items():

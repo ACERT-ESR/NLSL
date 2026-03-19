@@ -38,7 +38,6 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
     model.shift = True
-    model.normalize = True
 
     model.series("psi", (0.0, 90.0))
     model.load_basis("sampl5")
@@ -46,15 +45,21 @@ def main():
     model["c22"] = np.array([1.0, 0.0])
     model["nort"] = np.array([0.0, 10.0])
 
+    # ``normalize=True`` matches the legacy Fortran ``NORM`` option for both
+    # orientations.  Each experimental trace is therefore scaled to unit
+    # integral, or for first-derivative data to unit double integral after
+    # subtracting the constant term needed to zero the single integral.
     model.load_data(
         examples_dir / "sampl500.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
     model.load_data(
         examples_dir / "sampl590.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
 
     model.weights = np.ones((2, 2))

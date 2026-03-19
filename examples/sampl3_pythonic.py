@@ -39,7 +39,6 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
     model.shift = True
-    model.normalize = True
 
     # ``load_basis`` mirrors the runfile ``basis`` directive so the
     # diffusion tensor truncation is identical to the original script.
@@ -55,10 +54,15 @@ def main():
     # same coordinate system as the historical ``axial r`` command.
     model.tensor_symmetry["r"] = "axial"
 
+    # ``normalize=True`` is the old Fortran ``NORM`` behaviour: it sets the
+    # per-spectrum ``nrmlz`` flag so ``getdat`` rescales the experimental
+    # trace to unit integral, or to unit double integral after removing the
+    # constant offset for first-derivative data.
     model.load_data(
         examples_dir / "sampl3.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
 
     for key in FIT_CONTROLS:

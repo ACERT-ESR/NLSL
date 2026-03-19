@@ -99,15 +99,19 @@ def main():
     model.update(SITE_PARAMETER_VALUES)
     model.update(GLOBAL_CONTROLS)
     model.shift = True
-    model.normalize = True
 
     for token, indices in INITIAL_VARIATIONS.items():
         model.fit_params.vary[token] = {"index": indices}
 
+    # ``normalize=True`` reproduces the Fortran ``NORM`` flag by setting
+    # ``nrmlz`` for the loaded spectrum.  That makes the loader normalize the
+    # experimental input to unit integral, or to unit double integral after
+    # constant-baseline removal for first-derivative data.
     model.load_data(
         examples_dir / "c16pc371e.dat",
         nspline=NSPLINE_POINTS,
         bc_points=0,
+        normalize=True,
     )
 
     for key, value in INITIAL_FIT.items():

@@ -55,15 +55,19 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
     model.shift = True
-    model.normalize = True
 
     for command in SETUP_COMMANDS:
         model.procline(command)
 
+    # ``normalize=True`` matches the Fortran ``NORM`` flag stored in
+    # ``nrmlz``.  The loader therefore normalizes the experimental trace by
+    # its integral, or for first-derivative data first removes the constant
+    # baseline term and normalizes the double integral instead.
     model.load_data(
         examples_dir / "sampl3.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
 
     for key in FIT_CONTROLS:

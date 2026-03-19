@@ -335,6 +335,9 @@ class MainWindow(QtWidgets.QMainWindow):
     # ---- Data/model preparation (no fitting) ----
     def prepare_model(self):
         data_path = Path(__file__).resolve().parent / "sampl4.dat"
+        # ``normalize=False`` is the Fortran ``NONORM`` path, so the helper
+        # keeps the experimental amplitudes on their original scale while
+        # still applying the requested spline/baseline preprocessing.
         proc = process_spectrum(
             data_path,
             NSPLINE_POINTS,

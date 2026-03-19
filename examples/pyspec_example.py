@@ -6,6 +6,7 @@ import re
 import nlsl
 from pathlib import Path
 from pyspecdata.datadir import pyspec_config
+from matplotlib.pyplot import figure
 from numpy import r_
 
 if not Path(psd.getDATADIR("nlsl_examples")).exists():
@@ -21,7 +22,7 @@ if not Path(psd.getDATADIR("nlsl_examples")).exists():
         if (example_root / "230621_w0_10.DSC").exists():
             packaged_dir = example_root
     pyspec_config.set_setting(
-        "ExpTypes", "nlsl_examples", str(packaged_dir.absolute)
+        "ExpTypes", "nlsl_examples", str(packaged_dir.absolute())
     )
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
@@ -37,53 +38,51 @@ max_points = n.max_points
 if field_axis.size > max_points:
     divisor = d.shape["$B_0$"] // max_points + 1
     dB = np.diff(d["$B_0$"][r_[0, 1]]).item()
-    d_orig_max = d.data.max()
+    d_orig_max = d.max()
     # (at 6σ, pretty much falls to zero between points
     d.convolve("$B_0$", dB / 6 * divisor)
     d = d["$B_0$", 0::divisor]
-    # I'm a little confused b/c normalization should be preserved, and we end
-    # up needing to do following
-    d *= d_orig_max / d.data.max()
+    # The convolution/downsampling step preserves area better than peak
+    # height, so rescale the decimated trace back to the original maximum for
+    # easier visual comparison.
+    d *= d_orig_max / d.max()
 # }}}
 
 # Provide reasonable starting parameters so the fit can run immediately.
-n.update({
-    "gxx": 2.0089,
-    "gyy": 2.0021,
-    "gzz": 2.0058,
-    "in2": 2,
-    "axx": 5.6,
-    "ayy": 33.8,
-    "azz": 5.3,
-    "lemx": 6,
-    "lomx": 5,
-    "kmx": 4,
-    "mmx": (2, 2),
-    "rpll": np.log10(1.0e8),
-    "rprp": 8.0,
-    "gib0": 1.5,
-})
+n["gxx"] = 2.0089
+n["gyy"] = 2.0021
+n["gzz"] = 2.0058
+n["in2"] = 2
+n["axx"] = 5.6
+n["ayy"] = 33.8
+n["azz"] = 5.3
+n["lemx"] = 6
+n["lomx"] = 5
+n["kmx"] = 4
+n["mmx"] = (2, 2)
+n["rpll"] = np.log10(1.0e8)
+n["rprp"] = 8.0
+n["gib0"] = 1.5
 
 for token in ("rpll", "rprp", "gib0"):
     n.fit_params.vary[token] = True
 
-for key, value in {
-    "maxitr": 20,
-    "maxfun": 400,
-    "ftol": 1.0e-3,
-    "xtol": 1.0e-3,
-}.items():
-    n.fit_params[key] = value
-with psd.figlist_var() as fl:
-    fl.next("RS ESR figure")
-    fl.plot(d)
-    # Load the nddata into the optimiser buffers without shifting the field.
-    n.load_nddata(d)
+n.fit_params["maxitr"] = 20
+n.fit_params["maxfun"] = 400
+n.fit_params["ftol"] = 1.0e-3
+n.fit_params["xtol"] = 1.0e-3
 
-    # Run a quick fit using the single-site parameters above.
-    site_spectra = n.fit()
-    simulated_total = np.squeeze(n.weights @ site_spectra)
+figure("RS ESR fit example")
+psd.plot(d, alpha=0.45, label="experimental")
+# ``normalize=False`` matches the old Fortran ``NONORM`` path: ``datac``
+# would leave ``nrmlz=0`` for this spectrum, so the loader keeps the supplied
+# nddata amplitudes and skips the integral-based rescaling step in ``getdat``.
+n.load_nddata(d, normalize=False)
 
-    # Overlay the simulated spectrum on the experimental trace.
-    field_axis = d[d.dimlabels[0]]
-    fl.plot(field_axis, simulated_total, alpha=0.8, label="NLSL fit")
+# Run a quick fit using the single-site parameters above so the
+# least-squares weights are updated before plotting the nddata outputs.
+n.fit()
+
+# ``current_spectrum`` now carries the field axis and site labels directly.
+psd.plot(n.current_spectrum, alpha=0.35, label="NLSL sites")
+psd.plot(n.weights @ n.current_spectrum, alpha=0.8, label="NLSL fit")

@@ -57,15 +57,19 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
     model.shift = True
-    model.normalize = False
 
     # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through
     # the modern Python entry point so the processed intensities stay in
     # memory.
+    # ``normalize=False`` is the old Fortran ``NONORM`` setting: ``nrmlz``
+    # stays zero, so baseline correction/splining still happen but ``getdat``
+    # skips the integral-based amplitude normalization of the experimental
+    # trace.
     model.load_data(
         data_path,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=False,
     )
 
     for token, indices in PARAMETERS_TO_VARY.items():

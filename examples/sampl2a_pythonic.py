@@ -44,19 +44,24 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
     model.shift = False
-    model.normalize = True
 
     model.series("psi", (0.0, 90.0))
 
+    # ``normalize=True`` reproduces the Fortran ``NORM`` setting for both
+    # loaded spectra, so the experimental inputs are rescaled to unit integral
+    # or, for derivative data, to unit double integral after subtracting the
+    # constant offset needed to make the single integral vanish.
     model.load_data(
         examples_dir / "sampl200.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
     model.load_data(
         examples_dir / "sampl290.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
 
     model.search("rbar")

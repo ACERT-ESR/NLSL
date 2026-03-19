@@ -94,6 +94,9 @@ SAMPL4_FINAL_NRMLZ = np.array([0], dtype=np.int32)
 def main():
     # Load and process the experimental trace on the same 200-pt grid
     data_path = Path(__file__).resolve().parent / "sampl4.dat"
+    # ``normalize=False`` mirrors the Fortran ``NONORM`` path, so the helper
+    # applies the requested spline/baseline treatment but leaves the raw
+    # experimental amplitudes alone instead of scaling by integral.
     proc = process_spectrum(
         data_path,
         NSPLINE_POINTS,

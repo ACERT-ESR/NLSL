@@ -45,11 +45,15 @@ def main():
     model.update(INITIAL_PARAMETERS)
 
     model.shift = True
-    model.normalize = True
+    # ``normalize=True`` mirrors the old Fortran ``NORM`` flag by setting
+    # ``nrmlz`` for this spectrum.  ``getdat`` then rescales the loaded
+    # experimental trace to unit integral, or for first-derivative data first
+    # subtracts a constant baseline and normalizes the double integral to 1.
     model.load_data(
         examples_dir / "sampl1.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=True,
     )
 
     for token in PARAMETERS_TO_VARY:

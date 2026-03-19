@@ -68,12 +68,12 @@ def test_load_data_accepts_spline_arguments_without_warning():
     # Spline arguments are normal API inputs, so this path should run cleanly
     # without emitting compatibility warnings.
     model.shift = False
-    model.normalize = False
     model.derivative_mode = 1
     model.load_data(
         sample_path,
         nspline=10,
         bc_points=0,
+        normalize=False,
     )
 
 
@@ -82,9 +82,8 @@ def test_load_data_defaults_without_spline_arguments():
     sample_path = Path(__file__).parent / "sampl1.dat"
 
     model.shift = False
-    model.normalize = False
     model.derivative_mode = 1
-    model.load_data(sample_path, bc_points=0)
+    model.load_data(sample_path, bc_points=0, normalize=False)
 
     data_span = model._core.expdat.data[: model.max_points]
     assert np.count_nonzero(data_span) > 0

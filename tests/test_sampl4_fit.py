@@ -23,11 +23,11 @@ def run_pythonic_sampl4_fit():
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
     model.shift = True
-    model.normalize = False
     model.load_data(
         SAMPL4_DATA_PATH,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
+        normalize=False,
     )
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
@@ -110,8 +110,7 @@ def test_load_nddata_runs_fit_cycle():
     dataset.setaxis(dataset.dimlabels[0], fields)
 
     model.shift = True
-    model.normalize = False
-    model.load_nddata(dataset)
+    model.load_nddata(dataset, normalize=False)
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
         model.procline(f"vary {token}")
@@ -122,7 +121,15 @@ def test_load_nddata_runs_fit_cycle():
     model.fit()
     site_spectra = model.fit()
 
-    simulated_total = np.squeeze(model.weights @ site_spectra)
+    simulated_total = model.weights @ site_spectra
+    field_label = simulated_total.dimlabels[0]
+    simulated_total = np.array(
+        [
+            simulated_total[field_label, j].item()
+            for j in range(len(simulated_total.getaxis(field_label)))
+        ],
+        dtype=float,
+    )
     experimental = np.squeeze(model.experimental_data)
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)

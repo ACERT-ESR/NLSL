@@ -32,17 +32,17 @@ def _build_experimental_spectrum():
     max_points = n_tmp._core.expdat.data.shape[0] // max(n_tmp._core.expdat.nft.shape[0], 1)
 
     # {{{ we use convolution to downsample the data
-    if d_local.data.shape[0] > max_points:
+    if d_local.shape["$B_0$"] > max_points:
         divisor = d_local.shape["$B_0$"] // max_points + 1
         dB = np.diff(d_local["$B_0$"][r_[0, 1]]).item()
-        d_orig_max = d_local.data.max()
+        d_orig_max = d_local.max()
         d_local.convolve("$B_0$", dB / 6 * divisor)
         d_local = d_local["$B_0$", 0::divisor]
-        d_local *= d_orig_max / d_local.data.max()
+        d_local *= d_orig_max / d_local.max()
     # }}}
 
     # Normalize experimental data (keep your existing convention)
-    d_local.data /= d_local.data.max() - d_local.data.min()
+    d_local /= d_local.max() - d_local.min()
 
     return d_local
 
@@ -102,7 +102,7 @@ for k in param_tokens:
 # Per-process NLSL + nddata cache (ONE instance per process)
 # -------------------------
 
-_WORKER = {"pid": None, "n": None, "d": None}
+_WORKER = {"pid": None, "n": None, "d": None, "d_values": None}
 
 
 def _get_ctx():
@@ -115,9 +115,17 @@ def _get_ctx():
     import nlsl as _nlsl
     n_local = _nlsl.nlsl()
     n_local.update(initial_params)
-    n_local.load_nddata(d_local)
+    # ``normalize=False`` keeps the old Fortran ``NONORM`` behaviour.  This
+    # example already rescales the nddata explicitly above, so we do not want
+    # the loader to set ``nrmlz`` and renormalize by integral/double-integral.
+    n_local.load_nddata(d_local, normalize=False)
+    field_label = d_local.dimlabels[0]
+    d_values = np.array(
+        [d_local[field_label, j].item() for j in range(len(d_local.getaxis(field_label)))],
+        dtype=float,
+    )
 
-    _WORKER.update({"pid": pid, "n": n_local, "d": d_local})
+    _WORKER.update({"pid": pid, "n": n_local, "d": d_local, "d_values": d_values})
     return _WORKER
 
 def objective(x_vec):
@@ -126,16 +134,23 @@ def objective(x_vec):
     for value, token in zip(x_vec, param_tokens):
         n_local[token] = value
     site_spectra = n_local.current_spectrum
-    simulated_total = np.squeeze(n_local.weights @ site_spectra)
+    simulated_total = n_local.weights @ site_spectra
+    field_label = simulated_total.dimlabels[0]
+    simulated_total = np.array(
+        [
+            simulated_total[field_label, j].item()
+            for j in range(len(simulated_total.getaxis(field_label)))
+        ],
+        dtype=float,
+    )
     simulated_total /= simulated_total.max() - simulated_total.min()
     return simulated_total
 
 
 def residual_norm(x_vec):
     ctx = _get_ctx()
-    d_local = ctx["d"]
     sim = objective(x_vec)
-    return np.linalg.norm(d_local.data - sim)
+    return np.linalg.norm(ctx["d_values"] - sim)
 
 
 # Target residual (L2 norm) for guidance / restarts
@@ -223,8 +238,7 @@ if __name__ == '__main__':
         x_vec = np.clip(x_vec, lb, ub)
         sim = objective(x_vec)
         ctx = _get_ctx()
-        d_local = ctx["d"]
-        res = d_local.data - sim
+        res = ctx["d_values"] - sim
         return float(np.linalg.norm(res))
 
 
@@ -246,7 +260,7 @@ if __name__ == '__main__':
         n_local[token] = value
 
     simulated_total = objective(best_x_refined)
-    residual = d_local.data - simulated_total
+    residual = ctx["d_values"] - simulated_total
     with psd.figlist_var() as fl:
         fl.next("Global+local DE/Powell fit on pyspecdata trace")
         fl.plot(d_local, alpha=0.6, label="experimental")
