@@ -40,12 +40,11 @@ FIT_CONTROLS = {
     "xtol": 1.0e-4,
 }
 
-# These parameters are refined during the optimisation.  Each entry listed
-# below mirrors the original ``vary`` commands from the runfile.
-PARAMETERS_TO_VARY = {
-    "gib0": [1, 2],
-    "rbar": [1, 2],
-}
+# These parameters are refined during the optimisation.  Each entry matches
+# the ``vary`` directives in the runfile, where ``rbar(1)``/``rbar(2)`` are
+# per-site releases and ``gib0`` is varied as a shared parameter across both
+# sites.
+PARAMETERS_TO_VARY = ("gib0", "rbar(1)", "rbar(2)")
 
 
 def main():
@@ -69,9 +68,15 @@ def main():
         derivative_mode=DERIVATIVE_MODE,
     )
 
-    for token, indices in PARAMETERS_TO_VARY.items():
-        for idx in indices:
-            model.parameters[f"{token}_{idx - 1}"].vary = True
+    for token in PARAMETERS_TO_VARY:
+        if "(" in token:
+            base, rest = token.split("(", 1)
+            site_number = int(rest.rstrip(")")) - 1
+            canonical = model.canonical_name(base)
+            model.parameters[f"{canonical}_{site_number}"].vary = True
+        else:
+            canonical = model.canonical_name(token)
+            model.parameters[f"{canonical}_all"].vary = True
 
     model.fortran_lm_engine.update(FIT_CONTROLS)
 

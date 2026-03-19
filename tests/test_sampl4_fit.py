@@ -38,10 +38,11 @@ def run_pythonic_sampl4_fit():
             model.parameters[f"{canonical}_{site_number}"].vary = True
         else:
             canonical = model.canonical_name(token)
-            for site_number in range(model.nsites):
-                model.parameters[f"{canonical}_{site_number}"].vary = True
+            model.parameters[f"{canonical}_all"].vary = True
 
     model.fortran_lm_engine.update(SAMPL4_FIT_CONTROLS)
+
+    model.weights = np.ones(model.nsites)
 
     # The historical run issues ``fit`` twice; repeating it here mirrors the
     # published optimisation cycle and ensures the spectra are stored.

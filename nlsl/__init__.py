@@ -66,7 +66,7 @@ class NLSLParameter(LmfitParameter):
         self._code = code
         self._index_by_spectrum = owner._is_spectrum_parameter(self._code)
         self._site_index = int(site_index)
-        label = f"{canonical}_{self._site_index}"
+        label = f"{canonical}_all" if self._site_index < 0 else f"{canonical}_{self._site_index}"
         # Fetch the current value from the Fortran table using the appropriate
         # index axis (site or spectrum) so the lmfit wrapper starts in sync with
         # the core state.
@@ -82,6 +82,8 @@ class NLSLParameter(LmfitParameter):
 
     def _slot_index(self):
         limit = self._owner._index_limit(self._code, self._index_by_spectrum)
+        if self._site_index < 0:
+            return 0
         # The Fortran parameter tables expect one-based indices.  Single-slot
         # parameters therefore map to index ``1`` rather than ``0`` so that
         # ``addprm`` records the entry in the visible range.
@@ -203,12 +205,26 @@ class NLSLParameters(LmfitParameters):
                 continue
 
             limit = self._owner._index_limit(code_lookup[base])
+            if idx_text == "all":
+                if limit <= 1:
+                    if name in self:
+                        self[name]._remove_from_fortran()
+                    del self[name]
+                continue
             if int(idx_text) >= limit:
                 if name in self:
                     self[name]._remove_from_fortran()
                 del self[name]
         for base, code in base_pairs:
             limit = self._owner._index_limit(code)
+            # ``_all`` mirrors the runfile's "index=0" behaviour where a single
+            # varied slot controls every site or spectrum.
+            if limit > 1:
+                label = f"{base}_all"
+                if label not in self:
+                    LmfitParameters.__setitem__(
+                        self, label, NLSLParameter(self._owner, base, -1, code)
+                    )
             for site in range(limit):
                 label = f"{base}_{site}"
                 if label not in self:
@@ -227,10 +243,13 @@ class NLSLParameters(LmfitParameters):
             raise KeyError(key)
         base, idx_text = text.rsplit("_", 1)
         canonical = self._owner.canonical_name(base)
-        site = int(idx_text)
+        if idx_text == "all":
+            site = -1
+        else:
+            site = int(idx_text)
         code = self._owner.parameter_index(canonical)
         limit = self._owner._index_limit(code)
-        if site < 0:
+        if site < 0 and idx_text != "all":
             raise KeyError(key)
         if site >= limit:
             raise KeyError(key)
@@ -238,7 +257,7 @@ class NLSLParameters(LmfitParameters):
 
     def __getitem__(self, key):
         canonical, site = self.parse_key(key)
-        internal = f"{canonical}_{site}"
+        internal = f"{canonical}_all" if site < 0 else f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
             limit = self._owner._index_limit(self._owner.parameter_index(canonical))
@@ -250,7 +269,7 @@ class NLSLParameters(LmfitParameters):
 
     def __setitem__(self, key, value):
         canonical, site = self.parse_key(key)
-        internal = f"{canonical}_{site}"
+        internal = f"{canonical}_all" if site < 0 else f"{canonical}_{site}"
         if internal not in self:
             self.refresh_sites()
             limit = self._owner._index_limit(self._owner.parameter_index(canonical))
@@ -268,7 +287,7 @@ class NLSLParameters(LmfitParameters):
             canonical, site = self.parse_key(key)
         except Exception:
             return False
-        internal = f"{canonical}_{site}"
+        internal = f"{canonical}_all" if site < 0 else f"{canonical}_{site}"
         return LmfitParameters.__contains__(self, internal)
 
     def __iter__(self):

@@ -9,6 +9,7 @@ from tests.sampl4_reference import (
     SAMPL4_DATA_PATH,
     SAMPL4_FIT_CONTROLS,
     SAMPL4_INITIAL_PARAMETERS,
+    SAMPL4_PARAMETERS_TO_VARY,
 )
 
 
@@ -19,20 +20,22 @@ def clean_model():
     return nlsl.nlsl()
 
 
-def _capture_first_vary_slot():
-    """Collect the leading ``parcom`` slot so paths can be compared."""
+def _parcom_snapshot():
+    """Capture the active ``parcom`` slots for parity comparisons."""
 
     parcom = nlsl.fortrancore.parcom
+    active = int(parcom.nprm)
     return {
-        "nprm": int(parcom.nprm),
-        "ixpr": int(parcom.ixpr[0]),
-        "ixst": int(parcom.ixst[0]),
-        "prmin": float(parcom.prmin[0]),
-        "prmax": float(parcom.prmax[0]),
-        "prscl": float(parcom.prscl[0]),
-        "xfdstp": float(parcom.xfdstp[0]),
-        "ibnd": int(parcom.ibnd[0]),
-        "tag": parcom.tag[0].decode("ascii").strip(),
+        "nprm": active,
+        "ixpr": parcom.ixpr[:active].copy(),
+        "ixst": parcom.ixst[:active].copy(),
+        "prmin": parcom.prmin[:active].copy(),
+        "prmax": parcom.prmax[:active].copy(),
+        "prscl": parcom.prscl[:active].copy(),
+        "xfdstp": parcom.xfdstp[:active].copy(),
+        "ibnd": parcom.ibnd[:active].copy(),
+        "tag": parcom.tag[:active].copy(),
+        "ixx": parcom.ixx[:, : max(1, int(parcom.nsite))].copy(),
     }
 
 
@@ -43,23 +46,23 @@ def test_parameter_vary_matches_procline_path():
     procline_model["gxx"] = 2.01
     procline_model.procline("vary gxx(1)")
 
-    procline_snapshot = _capture_first_vary_slot()
+    procline_snapshot = _parcom_snapshot()
 
     parameter_model = nlsl.nlsl()
     parameter_model["gxx"] = 2.01
     parameter_model.parameters["gxx_0"].vary = True
 
-    parameter_snapshot = _capture_first_vary_slot()
+    parameter_snapshot = _parcom_snapshot()
 
     assert procline_snapshot["nprm"] == parameter_snapshot["nprm"]
-    assert procline_snapshot["ixpr"] == parameter_snapshot["ixpr"]
-    assert procline_snapshot["ixst"] == parameter_snapshot["ixst"]
-    assert np.isclose(procline_snapshot["prmin"], parameter_snapshot["prmin"])
-    assert np.isclose(procline_snapshot["prmax"], parameter_snapshot["prmax"])
-    assert np.isclose(procline_snapshot["prscl"], parameter_snapshot["prscl"])
-    assert np.isclose(procline_snapshot["xfdstp"], parameter_snapshot["xfdstp"])
-    assert procline_snapshot["ibnd"] == parameter_snapshot["ibnd"]
-    assert procline_snapshot["tag"] == parameter_snapshot["tag"]
+    assert np.array_equal(procline_snapshot["ixpr"], parameter_snapshot["ixpr"])
+    assert np.array_equal(procline_snapshot["ixst"], parameter_snapshot["ixst"])
+    assert np.allclose(procline_snapshot["prmin"], parameter_snapshot["prmin"])
+    assert np.allclose(procline_snapshot["prmax"], parameter_snapshot["prmax"])
+    assert np.allclose(procline_snapshot["prscl"], parameter_snapshot["prscl"])
+    assert np.allclose(procline_snapshot["xfdstp"], parameter_snapshot["xfdstp"])
+    assert np.array_equal(procline_snapshot["ibnd"], parameter_snapshot["ibnd"])
+    assert np.array_equal(procline_snapshot["ixx"], parameter_snapshot["ixx"])
 
 
 def test_parameter_bounds_and_steps_mirror_parcom(clean_model):
@@ -160,6 +163,51 @@ def test_vary_toggle_removes_parameter(clean_model):
     param.vary = False
 
     assert int(nlsl.fortrancore.parcom.nprm) == 0
+
+
+def test_runfile_vary_tokens_match_parameter_slots():
+    """The SAMPL4 vary directives should map identically through both paths."""
+
+    procline_model = nlsl.nlsl()
+    procline_model.update(SAMPL4_INITIAL_PARAMETERS)
+    for token in SAMPL4_PARAMETERS_TO_VARY:
+        procline_model.procline(f"vary {token}")
+    procline_state = _parcom_snapshot()
+
+    parameter_model = nlsl.nlsl()
+    parameter_model.update(SAMPL4_INITIAL_PARAMETERS)
+    for token in SAMPL4_PARAMETERS_TO_VARY:
+        if "(" in token:
+            base, rest = token.split("(", 1)
+            site_number = int(rest.rstrip(")")) - 1
+            canonical = parameter_model.canonical_name(base)
+            parameter_model.parameters[f"{canonical}_{site_number}"].vary = True
+        else:
+            canonical = parameter_model.canonical_name(token)
+            parameter_model.parameters[f"{canonical}_all"].vary = True
+    parameter_state = _parcom_snapshot()
+
+    assert procline_state["nprm"] == parameter_state["nprm"]
+    assert np.array_equal(procline_state["ixpr"], parameter_state["ixpr"])
+    assert np.array_equal(procline_state["ixst"], parameter_state["ixst"])
+    assert np.allclose(procline_state["prmin"], parameter_state["prmin"])
+    assert np.allclose(procline_state["prmax"], parameter_state["prmax"])
+    assert np.allclose(procline_state["prscl"], parameter_state["prscl"])
+    assert np.allclose(procline_state["xfdstp"], parameter_state["xfdstp"])
+    assert np.array_equal(procline_state["ibnd"], parameter_state["ibnd"])
+
+    def _canonical_tags(raw_tags, model):
+        cleaned = []
+        for tag in raw_tags:
+            text = tag.decode("ascii").strip().lower()
+            base = text.split("(")[0]
+            cleaned.append(model.canonical_name(base))
+        return cleaned
+
+    assert _canonical_tags(procline_state["tag"], procline_model) == _canonical_tags(
+        parameter_state["tag"], parameter_model
+    )
+    assert np.array_equal(procline_state["ixx"], parameter_state["ixx"])
 
 
 def test_fixed_parameter_remains_constant_during_fit():
