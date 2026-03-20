@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
+import warnings
 from .data import process_spectrum, read_ascii_spectrum
 
 try:
@@ -746,7 +747,7 @@ class nlsl(object):
     @nsites.setter
     def nsites(self, value: int) -> None:
         # Propagate the site count to the core and refresh ``sfac`` so newly
-        # exposed rows default to unity populations.
+        # exposed rows default to unity scale factors.
         _fortrancore.parcom.nsite = int(value)
         self._sync_weight_matrix()
 
@@ -764,17 +765,22 @@ class nlsl(object):
 
     @property
     def weights(self):
-        """Expose the active ``/mspctr/sfac/`` populations.
+        """Expose the active ``/mspctr/sfac/`` scale factors.
 
-        ``sfac`` stores one scale factor per (site, spectrum) pair inside a
-        static ``MXSITE × MXSPC`` workspace that the optimiser and the
-        single-point evaluator share.  ``_sync_weight_matrix`` keeps that table
-        aligned with the current ``nsite``/``nspc`` counters so previously
-        fitted populations remain intact when callers change the active site or
-        spectrum counts.  Returning a column view yields a 1D vector for the
-        common single-spectrum case, while the multi-spectrum case exposes an
-        ``(nspc, nsite)`` view via ``transpose``.  Both paths hand out live
-        views, so any edits immediately update the Fortran state.
+        ``sfac`` stores one least-squares coefficient per (site, spectrum)
+        pair inside a static ``MXSITE × MXSPC`` workspace that the optimiser
+        and the single-point evaluator share.  In Fortran, ``lfun`` updates
+        those coefficients through ``sscale`` (or ``sshift`` when shifting is
+        enabled) so the calculated spectra best match the experimental data.
+        They therefore act as overall amplitudes or site contributions, and
+        they are not constrained to sum to unity.  ``_sync_weight_matrix``
+        keeps that table aligned with the current ``nsite``/``nspc`` counters
+        so previously fitted scale factors remain intact when callers change
+        the active site or spectrum counts.  Returning a column view yields a
+        1D vector for the common single-spectrum case, while the
+        multi-spectrum case exposes an ``(nspc, nsite)`` view via
+        ``transpose``.  Both paths hand out live views, so any edits
+        immediately update the Fortran state.
         """
 
         matrix = self._sync_weight_matrix()
@@ -811,8 +817,8 @@ class nlsl(object):
 
         ``sfac`` is shared between the optimiser and any ad-hoc spectrum
         evaluations.  When a caller provides new weights we zero the visible
-        block and rewrite it with the supplied populations so that any entries
-        outside the active range remain at the default value of one.
+        block and rewrite it with the supplied scale factors so that any
+        entries outside the active range remain at the default value of one.
         """
 
         matrix = self._sync_weight_matrix()
@@ -839,13 +845,27 @@ class nlsl(object):
         _fortrancore.procline(val)
 
     def fit(self):
-        """Run the nonlinear least-squares fit using current parameters."""
+        """Run ``fitl`` and return the resulting site spectra.
+
+        Even when no model parameters are varying, Fortran still calls
+        ``lfun`` once.  That means this method updates the least-squares
+        scale factors in :attr:`weights` and, when shifting is enabled for a
+        spectrum, updates the stored field shifts before returning the site
+        spectra.
+        """
         _fortrancore.fitl()
         return self._capture_state()
 
     @property
     def current_spectrum(self):
-        """Evaluate the current spectral model without running a full fit.
+        """Evaluate the current spectral model without running ``fitl``.
+
+        This performs the Fortran ``single_point`` calculation only.  It does
+        not call ``lfun``, so it does not recompute least-squares scale
+        factors or optimise any new data shift.  The returned array therefore
+        contains the raw per-site calculated spectra at the currently stored
+        shifts.  Use :meth:`fit` when you want NLSL to auto-rescale the model
+        to the data before reading :attr:`weights`.
 
         The returned array contains one row per site unless ``return_nddata``
         is enabled, in which case the output is wrapped as labelled nddata.
@@ -860,34 +880,35 @@ class nlsl(object):
 
     @property
     def experimental_data(self):
-        """Return the active experimental traces from the current data buffer.
+        """Return experimental data on the shared trimmed fitting span.
 
-        The matrix is shaped as ``(number of spectra, point span)`` so it
-        aligns with ``model.weights @ model.site_spectra``.  Each row contains
-        the measured intensities for the corresponding recorded spectrum,
-        zeroing any samples that fall outside that spectrum's active window.
+        Returns
+        -------
+        ndarray
+            A 2D array with shape ``(nspc, span)``.  Each row is padded with
+            zeros outside the active region of that spectrum so the rows align
+            with ``weights @ site_spectra`` in the legacy ndarray workflow.
+
+        Notes
+        -----
+        This differs from :attr:`data`.  ``data`` returns each loaded
+        spectrum by itself, either as a single trace or as a list of traces,
+        preserving the original point counts and field axes.  By contrast,
+        ``experimental_data`` repacks those same spectra onto one common
+        trimmed span of the shared Fortran work arrays, which is convenient
+        for matrix arithmetic against the similarly packed output of
+        :attr:`current_spectrum` when ``return_nddata`` is ``False``.
         """
-        # TODO ☐: I do not understand what this function does that is
-        #         different vs. the "data" property.
-        #         It actually seems like there is not a useful
-        #         difference, in which case, you should remove this
-        #         function, and make sure all code can rely on the data
-        #         property instead.  If there is a useful difference,
-        #         both docstrings need to carefully compare and contrast
-        #         and explain the need for both.
 
         nspc = int(_fortrancore.expdat.nspc)
         ndatot = int(_fortrancore.expdat.ndatot)
         if nspc <= 0 or ndatot <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
-        # TODO ☐: see comment elsewhere about windows
-        windows = self.windows
-        min_start = min(window.start for window in windows)
-        max_stop = max(window.stop for window in windows)
-        relative_windows = self.relative_windows
+        min_start = min(window.start for window in self.windows)
+        max_stop = max(window.stop for window in self.windows)
         trimmed = _fortrancore.expdat.data[min_start:max_stop].copy()
         stacked = np.zeros((nspc, max_stop - min_start), dtype=float)
-        for idx, window in enumerate(relative_windows):
+        for idx, window in enumerate(self.relative_windows):
             stacked[idx, window] = trimmed[window]
         return stacked
 
@@ -1682,14 +1703,24 @@ class nlsl(object):
 
     @property
     def windows(self):
-        """Return absolute per-spectrum slices into the shared data buffers."""
-        # TODO ☐: you need a proper numpy docstring that documents that the
-        #         return value in  a tuple of slices.  You also need to
-        #         carefully analyze the code down the fortran level and explain
-        #         the *meaning* of these slices, and why they exist at all!
-        # TODO ☐: As part of this, you need to explain what exactly the
-        #         difference between windows and relative windows is, and why
-        #         both are needed (if they are! maybe only one is needed!)
+        """Return absolute slices for each spectrum in the shared buffers.
+
+        Returns
+        -------
+        tuple of slice
+            One Python ``slice`` per active spectrum.  Each slice is suitable
+            for indexing the shared 1D Fortran work arrays such as
+            ``expdat.data`` and ``lmcom.fvec``.
+
+        Notes
+        -----
+        NLSL stores all experimental spectra in one flat workspace rather than
+        in separate arrays.  Fortran records where each spectrum starts with
+        ``ixsp(isp)`` and how many points it owns with ``npts(isp)``.
+        ``windows`` is the direct 0-based Python translation of that layout,
+        so ``self.windows[i]`` selects the actual segment of the shared memory
+        that belongs to spectrum ``i``.
+        """
 
         nspc = int(_fortrancore.expdat.nspc)
         counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
@@ -1703,30 +1734,30 @@ class nlsl(object):
 
     @property
     def relative_windows(self):
-        """Return per-spectrum slices into the shared trimmed data span.
+        """Return per-spectrum slices into the shared trimmed span.
 
-        Fortran stores every loaded spectrum inside one flat ``expdat.data``
-        work array.  Each spectrum therefore occupies a contiguous slice
-        determined by ``ixsp`` and ``npts``; that slice is the window for the
-        spectrum.  When Python exposes multiple spectra together, it trims the
-        shared work array down to the smallest block that contains every
-        active spectrum, and ``relative_windows`` remaps each spectrum's
-        absolute slice onto that trimmed block.
+        Returns
+        -------
+        tuple of slice
+            One Python ``slice`` per active spectrum, expressed relative to
+            the smallest trimmed block that contains every active spectrum.
+
+        Notes
+        -----
+        ``windows`` index the original shared Fortran arrays directly.
+        ``relative_windows`` index a NumPy view of the trimmed block
+        ``min_start:max_stop`` cut out of those arrays.  That makes them the
+        convenient companion for code that first trims the shared storage and
+        then wants per-spectrum views into the trimmed NumPy array without
+        carrying the unused leading or trailing buffer space.
         """
-        # TODO ☐: what you are describing sounds like the main function of this
-        #         tuple of slices is to create a series of numpy views into the
-        #         shared memory space.  If that's true, then use that language,
-        #         as well as what you are saying here.  Also, provide a proper
-        #         numpy docstring that documents the return value as a tuple of
-        #         slices, as appropriate for indexing a numpy array!
 
-        windows = self.windows
-        if len(windows) == 0:
+        if len(self.windows) == 0:
             return tuple()
-        min_start = min(window.start for window in windows)
+        min_start = min(window.start for window in self.windows)
         return tuple(
             slice(window.start - min_start, window.stop - min_start)
-            for window in windows
+            for window in self.windows
         )
 
     @property
@@ -1862,17 +1893,22 @@ class nlsl(object):
 
     @property
     def data(self):
-        """Return the active experimental intensities.
+        """Return the loaded experimental traces spectrum-by-spectrum.
 
         A single loaded spectrum returns one array or one nddata.  Multiple
-        spectra return a Python list so each trace keeps its own field axis.
+        spectra return a Python list so each trace keeps its own field axis
+        and point count.
+
+        Unlike :attr:`experimental_data`, this property does not repack
+        spectra onto a shared trimmed span.  It simply returns the stored
+        traces one spectrum at a time.
         """
-        windows = self.windows
-        if len(windows) == 0:
+        if len(self.windows) == 0:
             raise RuntimeError("no spectra have been allocated")
         if not self.return_nddata:
             traces = [
-                _fortrancore.expdat.data[window].copy() for window in windows
+                _fortrancore.expdat.data[window].copy()
+                for window in self.windows
             ]
             if len(traces) == 1:
                 return traces[0]
@@ -1881,7 +1917,7 @@ class nlsl(object):
             raise ImportError("pyspecdata is required for nddata outputs")
         fields = self.field_axes
         traces = []
-        for idx, window in enumerate(windows):
+        for idx, window in enumerate(self.windows):
             encoded = _fortrancore.expdat.wndoid[idx]
             if isinstance(encoded, bytes):
                 encoded = encoded.decode("ascii", "ignore")
@@ -2015,24 +2051,17 @@ class nlsl(object):
             self.return_nddata = True
             return
 
-        # TODO ☐: for legibility, throughout when using windows or relative
-        #         windows, do not assign intermediate variables like this, but
-        #         reference the full path starting with self during every use
-        #         e.g. below you will have something like self.windows[-1].stop
-        #         do this THROUGHOUT THE CODE
-        windows = self.windows
-        if len(windows) == 0:
+        if len(self.windows) == 0:
             raise RuntimeError("no spectra have been allocated")
-        window = windows[-1]
         flat = np.asarray(values, dtype=float).reshape(-1)
-        expected = window.stop - window.start
+        expected = self.windows[-1].stop - self.windows[-1].start
         if flat.size != expected:
             raise ValueError("intensity vector length mismatch")
-        _fortrancore.expdat.data[window] = flat
-        _fortrancore.lmcom.fvec[window] = flat
+        _fortrancore.expdat.data[self.windows[-1]] = flat
+        _fortrancore.lmcom.fvec[self.windows[-1]] = flat
 
     def set_site_weights(self, spectrum_index, weights):
-        """Update the population weights for a specific spectrum index."""
+        """Update the scale factors for a specific spectrum index."""
 
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
@@ -2064,16 +2093,12 @@ class nlsl(object):
         nsite = min(nsite, spectra_src.shape[1])
         ndatot = min(ndatot, spectra_src.shape[0])
 
-        windows = self.windows[:nspc]
-
-        if windows:
-            min_start = min(window.start for window in windows)
-            max_stop = max(window.stop for window in windows)
+        if self.windows[:nspc]:
+            min_start = min(window.start for window in self.windows[:nspc])
+            max_stop = max(window.stop for window in self.windows[:nspc])
         else:
             min_start = 0
             max_stop = 0
-
-        relative_windows = self.relative_windows[:nspc]
 
         # Each spectrum occupies a contiguous slice of the shared Fortran work
         # arrays.  ``windows`` are those absolute slices in ``expdat.data`` and
@@ -2142,14 +2167,20 @@ class nlsl(object):
                 site_payload.set_axis(field_label, field_coords)
                 site_payload.set_units(field_label, field_units)
             else:
-                window_lengths = [window.stop - window.start for window in relative_windows]
+                window_lengths = [
+                    window.stop - window.start
+                    for window in self.relative_windows[:nspc]
+                ]
                 if any(length != field_coords.size for length in window_lengths):
                     raise ValueError(
                         "return_nddata requires all active spectra to share one"
                         " common field axis"
                     )
                 stacked_site_spectra = np.stack(
-                    [array[:, window].copy() for window in relative_windows],
+                    [
+                        array[:, window].copy()
+                        for window in self.relative_windows[:nspc]
+                    ],
                     axis=0,
                 )
                 site_payload = nddata(
@@ -2177,9 +2208,9 @@ class nlsl(object):
         is running, and the Fortran code never reinitialises the table after
         the initial call.  Changing ``nsite`` or ``nspc`` therefore only
         updates the integer counters; without extra work the exposed
-        populations would keep whatever values happened to be in memory.  This
+        scale factors would keep whatever values happened to be in memory. This
         helper mirrors the housekeeping performed by the Fortran data loaders
-        so Python callers always see a predictable set of populations.
+        so Python callers always see a predictable set of coefficients.
         """
 
         nsite = int(_fortrancore.parcom.nsite)
@@ -2192,13 +2223,14 @@ class nlsl(object):
 
         if nsite <= 0 or nspc <= 0:
             # No active spectra or sites: blank the entire ``sfac`` matrix so a
-            # subsequent resize starts from zero populations.
+            # subsequent resize starts from zero scale factors.
             weights[:, :] = 0.0
             self._weight_shape = new_shape
             return weights
 
-        # Preserve the overlapping block so previously fitted populations stay
-        # in place when callers expand or shrink the grid of sites/spectra.
+        # Preserve the overlapping block so previously fitted scale factors
+        # stay in place when callers expand or shrink the grid of
+        # sites/spectra.
         row_stop = min(self._weight_shape[0], nsite)
         col_stop = min(self._weight_shape[1], nspc)
         if row_stop > 0 and col_stop > 0:
@@ -2208,7 +2240,7 @@ class nlsl(object):
 
         # The Fortran initialisation routines seed ``sfac`` with ones, so new
         # rows/columns must do the same.  Reset the full table before restoring
-        # any surviving populations.
+        # any surviving scale factors.
         weights[:, :] = 1.0
 
         if preserved is not None:

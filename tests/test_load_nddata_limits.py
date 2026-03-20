@@ -30,13 +30,16 @@ def test_nddata_assignment_reports_capacity_limit():
 
 
 def test_nddata_assignment_defaults_to_no_shift():
-    """The shift flag should default to the unshifted behaviour."""
-    # TODO ☐: you need to carefully analyze the fortran code and explain
-    #         what exactly the shift flag is used for.  Does it simply
-    #         record something that happens during data loading, or is
-    #         it read/referenced at later times -- specifically during
-    #         spectral simulation and/or fitting??
-    #         Document this in the docstring here
+    """The shift flag should default to the unshifted behaviour.
+
+    ``model.shift`` is the Python-side default copied into Fortran
+    ``shftflg`` and then into the per-spectrum ``ishft(idx)`` flag when a new
+    spectrum is allocated.  That flag is not just load-time metadata:
+    later, ``lfun`` checks ``ishft(idx)`` to decide whether it should call
+    ``sshift`` and optimise a data/model field offset for that spectrum.
+    The accumulated shifts are then applied through ``setspc`` via
+    ``sbi - shft - tmpshft`` when spectra are simulated.
+    """
 
     model = nlsl.nlsl()
     points = 4

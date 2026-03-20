@@ -83,16 +83,17 @@ n.data = d
 
 # ``current_spectrum`` now carries the field axis and site labels directly.
 # this shows the initial guess
-# TODO ☐: there is a lot of confusion about how I get the absolute amplitude of
-#         my spectrum to match the absolute amplitude of the data.  Is this
-#         done by adjusting the weights? Must weights total 1 or not?  Does the
-#         fitting automatically rescale the amplitude for best match? Or does
-#         it do so dependent on a particular parameter?  Is overall amplitude
-#         treated as a fitting parameter in any way? You need to carefully
-#         analyze the fortran code so that you can provide answers to all these
-#         questions, and then document them here as a comment preceding the
-#         following plot command, as well as in the appropriate docstrings for
-#         the appropriate functions or properties.
+
+# Before ``fit()``, ``current_spectrum`` is just the raw per-site calculation
+# from Fortran ``single_point``.  It is not auto-rescaled to the data.
+# During ``fit()``, Fortran ``lfun`` calls ``sscale`` (or ``sshift`` when
+# shifting is enabled) to determine least-squares scale factors and stores
+# them in ``sfac``, exposed in Python as ``weights``.
+# Those coefficients are not constrained to sum to one, so for a single site
+# they simply provide the best-fit overall amplitude, and for multiple sites
+# they provide the best-fit linear combination of site spectra.
+# They are only user-fixed if Fortran's ``iscal`` flag is turned off for a
+# site; otherwise fitting recomputes them.
 psd.plot(n.current_spectrum, alpha=0.35, label="initial guess")
 
 # Run a quick fit using the single-site parameters above so the
