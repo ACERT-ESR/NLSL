@@ -66,13 +66,13 @@ def main():
     # ``datac`` stores ``nrmlz=1``, and ``getdat`` normalizes each loaded
     # spectrum by its integral (or double integral after baseline adjustment
     # when the data are first-derivative).
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl200.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
         normalize=True,
     )
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl290.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
@@ -108,21 +108,18 @@ def main():
 
     experimental_block = model.experimental_data
     fields = model.field_axes
-    # TODO ☐: do not do the following or the preceeding -- it decreases
-    #         legibility.  Just have the full path in place below.
-    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
     for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, windows[idx]]
+            experimental_block[idx, model.relative_windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, windows[idx]]
+            simulated_total[idx, model.relative_windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, windows[idx]]
+            component_curves[idx, :, model.relative_windows[idx]]
         )
 
     combined_num = 0.0

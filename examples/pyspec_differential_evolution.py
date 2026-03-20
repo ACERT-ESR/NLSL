@@ -112,10 +112,11 @@ def _get_ctx():
     import nlsl as _nlsl
     n_local = _nlsl.nlsl()
     n_local.update(initial_params)
-    # ``normalize=False`` keeps the old Fortran ``NONORM`` behaviour.  This
-    # example already rescales the nddata explicitly above, so we do not want
-    # the loader to set ``nrmlz`` and renormalize by integral/double-integral.
-    n_local.load_nddata(d_local, normalize=False)
+    # Assigning nddata records its field axis directly and leaves the supplied
+    # amplitudes untouched.  This example already rescales the nddata above,
+    # so we intentionally bypass the raw-file ``normalize=...`` preprocessing
+    # path that corresponds to the old Fortran ``NORM``/``NONORM`` switch.
+    n_local.data = d_local
     field_label = d_local.dimlabels[0]
     d_values = np.array(
         [d_local[field_label, j].item() for j in range(len(d_local.getaxis(field_label)))],

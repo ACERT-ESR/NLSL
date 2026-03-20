@@ -51,13 +51,13 @@ def main():
     # loaded spectra, so the experimental inputs are rescaled to unit integral
     # or, for derivative data, to unit double integral after subtracting the
     # constant offset needed to make the single integral vanish.
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl200.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
         normalize=True,
     )
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl290.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,

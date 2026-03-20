@@ -106,7 +106,9 @@ def test_load_data_matches_datac():
     modern.shift = True
     modern.derivative_mode = 1
     for sample in samples:
-        modern.load_data(sample, nspline=200, bc_points=20, normalize=True)
+        modern.load_raw_datafile(
+            sample, nspline=200, bc_points=20, normalize=True
+        )
     python_state = _capture_state()
 
     for key, legacy_value in legacy_state.items():

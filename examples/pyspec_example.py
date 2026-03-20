@@ -75,10 +75,11 @@ n.fit_params["xtol"] = 1.0e-3
 
 figure("RS ESR fit example")
 psd.plot(d, alpha=0.45, label="experimental")
-# ``normalize=False`` matches the old Fortran ``NONORM`` path: ``datac``
-# would leave ``nrmlz=0`` for this spectrum, so the loader keeps the supplied
-# nddata amplitudes and skips the integral-based rescaling step in ``getdat``.
-n.load_nddata(d, normalize=False)
+# Assigning nddata records its field axis directly and leaves the supplied
+# amplitudes untouched.  The raw-file ``normalize=...`` keyword is what maps
+# to Fortran's old ``NORM``/``NONORM`` preprocessing switch; this nddata path
+# deliberately skips that integral-based rescaling step.
+n.data = d
 
 # Run a quick fit using the single-site parameters above so the
 # least-squares weights are updated before plotting the nddata outputs.

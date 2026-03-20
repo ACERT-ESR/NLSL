@@ -23,7 +23,7 @@ def run_pythonic_sampl4_fit():
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
     model.shift = True
-    model.load_data(
+    model.load_raw_datafile(
         SAMPL4_DATA_PATH,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
@@ -91,7 +91,7 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
 
 
 def test_load_nddata_runs_fit_cycle():
-    """Verify ``load_nddata`` ingests a prepared spectrum and converges."""
+    """Verify nddata assignment ingests a prepared spectrum and converges."""
 
     try:
         from pyspecdata.core import nddata
@@ -111,7 +111,7 @@ def test_load_nddata_runs_fit_cycle():
     dataset.setaxis(dataset.dimlabels[0], fields)
 
     model.shift = True
-    model.load_nddata(dataset, normalize=False)
+    model.data = dataset
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
         model.procline(f"vary {token}")

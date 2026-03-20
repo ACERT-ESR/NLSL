@@ -49,7 +49,7 @@ def main():
     # ``nrmlz`` for this spectrum.  ``getdat`` then rescales the loaded
     # experimental trace to unit integral, or for first-derivative data first
     # subtracts a constant baseline and normalizes the double integral to 1.
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl1.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,

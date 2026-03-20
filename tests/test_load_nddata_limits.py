@@ -8,7 +8,7 @@ pytest.importorskip(
 from pyspecdata.core import nddata
 
 
-def test_load_nddata_reports_capacity_limit():
+def test_nddata_assignment_reports_capacity_limit():
     """Oversized nddata inputs should report the storage limit clearly."""
 
     model = nlsl.nlsl()
@@ -22,14 +22,14 @@ def test_load_nddata_reports_capacity_limit():
     dataset.setaxis("field", fields)
 
     with pytest.raises(ValueError) as excinfo:
-        model.load_nddata(dataset)
+        model.data = dataset
 
     message = str(excinfo.value)
     assert str(int(points)) in message
     assert str(int(max_points)) in message
 
 
-def test_load_nddata_defaults_to_no_shift():
+def test_nddata_assignment_defaults_to_no_shift():
     """The shift flag should default to the unshifted behaviour."""
 
     model = nlsl.nlsl()
@@ -39,6 +39,6 @@ def test_load_nddata_defaults_to_no_shift():
     dataset.name("synthetic.dat")
     dataset.setaxis("field", fields)
 
-    model.load_nddata(dataset)
+    model.data = dataset
 
     assert int(model._core.expdat.ishft[0]) == 0

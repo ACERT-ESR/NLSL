@@ -49,13 +49,13 @@ def main():
     # orientations.  Each experimental trace is therefore scaled to unit
     # integral, or for first-derivative data to unit double integral after
     # subtracting the constant term needed to zero the single integral.
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl500.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
         normalize=True,
     )
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl590.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,

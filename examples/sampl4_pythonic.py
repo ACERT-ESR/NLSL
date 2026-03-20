@@ -65,7 +65,7 @@ def main():
     # stays zero, so baseline correction/splining still happen but ``getdat``
     # skips the integral-based amplitude normalization of the experimental
     # trace.
-    model.load_data(
+    model.load_raw_datafile(
         data_path,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,

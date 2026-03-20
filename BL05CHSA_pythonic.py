@@ -58,7 +58,7 @@ def main():
     for command in SETUP_COMMANDS:
         model.procline(command)
 
-    model.load_data(
+    model.load_raw_datafile(
         root_dir / "BL05CHSA.dat",
         nspline=NSPLINE_POINTS,
         bc_points=0,

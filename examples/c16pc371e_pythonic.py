@@ -107,7 +107,7 @@ def main():
     # ``nrmlz`` for the loaded spectrum.  That makes the loader normalize the
     # experimental input to unit integral, or to unit double integral after
     # constant-baseline removal for first-derivative data.
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "c16pc371e.dat",
         nspline=NSPLINE_POINTS,
         bc_points=0,

@@ -61,7 +61,7 @@ def test_max_points_property_matches_buffers():
     assert model.max_points == expected_points
 
 
-def test_load_data_accepts_spline_arguments_without_warning():
+def test_load_raw_datafile_accepts_spline_arguments_without_warning():
     model = nlsl.nlsl()
     sample_path = Path(__file__).parent / "sampl1.dat"
 
@@ -69,7 +69,7 @@ def test_load_data_accepts_spline_arguments_without_warning():
     # without emitting compatibility warnings.
     model.shift = False
     model.derivative_mode = 1
-    model.load_data(
+    model.load_raw_datafile(
         sample_path,
         nspline=10,
         bc_points=0,
@@ -77,13 +77,13 @@ def test_load_data_accepts_spline_arguments_without_warning():
     )
 
 
-def test_load_data_defaults_without_spline_arguments():
+def test_load_raw_datafile_defaults_without_spline_arguments():
     model = nlsl.nlsl()
     sample_path = Path(__file__).parent / "sampl1.dat"
 
     model.shift = False
     model.derivative_mode = 1
-    model.load_data(sample_path, bc_points=0, normalize=False)
+    model.load_raw_datafile(sample_path, bc_points=0, normalize=False)
 
     data_span = model._core.expdat.data[: model.max_points]
     assert np.count_nonzero(data_span) > 0

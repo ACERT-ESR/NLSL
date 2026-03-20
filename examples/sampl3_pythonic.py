@@ -58,7 +58,7 @@ def main():
     # per-spectrum ``nrmlz`` flag so ``getdat`` rescales the experimental
     # trace to unit integral, or to unit double integral after removing the
     # constant offset for first-derivative data.
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl3.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,

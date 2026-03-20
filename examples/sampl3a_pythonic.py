@@ -63,7 +63,7 @@ def main():
     # ``nrmlz``.  The loader therefore normalizes the experimental trace by
     # its integral, or for first-derivative data first removes the constant
     # baseline term and normalizes the double integral instead.
-    model.load_data(
+    model.load_raw_datafile(
         examples_dir / "sampl3.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
