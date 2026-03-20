@@ -867,11 +867,20 @@ class nlsl(object):
         the measured intensities for the corresponding recorded spectrum,
         zeroing any samples that fall outside that spectrum's active window.
         """
+        # TODO ☐: I do not understand what this function does that is
+        #         different vs. the "data" property.
+        #         It actually seems like there is not a useful
+        #         difference, in which case, you should remove this
+        #         function, and make sure all code can rely on the data
+        #         property instead.  If there is a useful difference,
+        #         both docstrings need to carefully compare and contrast
+        #         and explain the need for both.
 
         nspc = int(_fortrancore.expdat.nspc)
         ndatot = int(_fortrancore.expdat.ndatot)
         if nspc <= 0 or ndatot <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
+        # TODO ☐: see comment elsewhere about windows
         windows = self.windows
         min_start = min(window.start for window in windows)
         max_stop = max(window.stop for window in windows)
@@ -894,7 +903,7 @@ class nlsl(object):
         normalize=True,
         preprocess=True,
     ):
-        """Load a raw ASCII data file and update the Fortran state.
+        """Load a raw ASCII data file of experimental data and update the Fortran state.
 
         The workflow mirrors the legacy ``datac`` command, but performs the
         file read and optional preprocessing from Python before copying the
@@ -924,6 +933,17 @@ class nlsl(object):
         token = str(path)
         base_name = token[:-4] if token.lower().endswith(".dat") else token
         mxspt = self.max_points
+
+        spline_params_used = nspline is not None
+        if spline_params_used:
+            # NOTE TO AGENTS: leave this warning in place, in spite of
+            # instructions about backwards compatibility.
+            warnings.warn(
+                "load_data spline arguments are retained only for backwards"
+                " compatibility; prefer using pyspecdata or scipy to smooth"
+                " the data before loading.",
+                stacklevel=2,
+            )
 
         requested_points = int(nspline) if nspline is not None else 0
         if requested_points > 0:
@@ -1663,6 +1683,13 @@ class nlsl(object):
     @property
     def windows(self):
         """Return absolute per-spectrum slices into the shared data buffers."""
+        # TODO ☐: you need a proper numpy docstring that documents that the
+        #         return value in  a tuple of slices.  You also need to
+        #         carefully analyze the code down the fortran level and explain
+        #         the *meaning* of these slices, and why they exist at all!
+        # TODO ☐: As part of this, you need to explain what exactly the
+        #         difference between windows and relative windows is, and why
+        #         both are needed (if they are! maybe only one is needed!)
 
         nspc = int(_fortrancore.expdat.nspc)
         counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
@@ -1686,6 +1713,12 @@ class nlsl(object):
         active spectrum, and ``relative_windows`` remaps each spectrum's
         absolute slice onto that trimmed block.
         """
+        # TODO ☐: what you are describing sounds like the main function of this
+        #         tuple of slices is to create a series of numpy views into the
+        #         shared memory space.  If that's true, then use that language,
+        #         as well as what you are saying here.  Also, provide a proper
+        #         numpy docstring that documents the return value as a tuple of
+        #         slices, as appropriate for indexing a numpy array!
 
         windows = self.windows
         if len(windows) == 0:
@@ -1834,7 +1867,6 @@ class nlsl(object):
         A single loaded spectrum returns one array or one nddata.  Multiple
         spectra return a Python list so each trace keeps its own field axis.
         """
-
         windows = self.windows
         if len(windows) == 0:
             raise RuntimeError("no spectra have been allocated")
@@ -1883,7 +1915,7 @@ class nlsl(object):
 
     @data.setter
     def data(self, values):
-        """Assign experimental intensities.
+        """Set the experimental spectrum that we are trying to fit.
 
         Array-like input overwrites the most recently allocated spectrum
         window.  Passing a labelled 1D ``pyspecdata.nddata`` appends a new
@@ -1983,6 +2015,11 @@ class nlsl(object):
             self.return_nddata = True
             return
 
+        # TODO ☐: for legibility, throughout when using windows or relative
+        #         windows, do not assign intermediate variables like this, but
+        #         reference the full path starting with self during every use
+        #         e.g. below you will have something like self.windows[-1].stop
+        #         do this THROUGHOUT THE CODE
         windows = self.windows
         if len(windows) == 0:
             raise RuntimeError("no spectra have been allocated")

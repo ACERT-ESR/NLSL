@@ -81,6 +81,20 @@ psd.plot(d, alpha=0.45, label="experimental")
 # deliberately skips that integral-based rescaling step.
 n.data = d
 
+# ``current_spectrum`` now carries the field axis and site labels directly.
+# this shows the initial guess
+# TODO ☐: there is a lot of confusion about how I get the absolute amplitude of
+#         my spectrum to match the absolute amplitude of the data.  Is this
+#         done by adjusting the weights? Must weights total 1 or not?  Does the
+#         fitting automatically rescale the amplitude for best match? Or does
+#         it do so dependent on a particular parameter?  Is overall amplitude
+#         treated as a fitting parameter in any way? You need to carefully
+#         analyze the fortran code so that you can provide answers to all these
+#         questions, and then document them here as a comment preceding the
+#         following plot command, as well as in the appropriate docstrings for
+#         the appropriate functions or properties.
+psd.plot(n.current_spectrum, alpha=0.35, label="initial guess")
+
 # Run a quick fit using the single-site parameters above so the
 # least-squares weights are updated before plotting the nddata outputs.
 n.fit()

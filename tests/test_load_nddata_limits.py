@@ -31,6 +31,12 @@ def test_nddata_assignment_reports_capacity_limit():
 
 def test_nddata_assignment_defaults_to_no_shift():
     """The shift flag should default to the unshifted behaviour."""
+    # TODO ☐: you need to carefully analyze the fortran code and explain
+    #         what exactly the shift flag is used for.  Does it simply
+    #         record something that happens during data loading, or is
+    #         it read/referenced at later times -- specifically during
+    #         spectral simulation and/or fitting??
+    #         Document this in the docstring here
 
     model = nlsl.nlsl()
     points = 4
