@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
-from .data import process_spectrum
 import warnings
+from .data import process_spectrum, read_ascii_spectrum
 
 try:
     from pyspecdata import nddata
@@ -698,12 +698,14 @@ class nlsl(object):
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params(self)
         self.tensor_symmetry = TensorSymmetryMapping(self)
-        self._last_layout = None
         self._last_site_spectra = None
-        self._last_experimental_data = None
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
+        self.return_nddata = False
+        # Global model-level controls for data loading and coordinate creation.
+        self._shift = False
+        self._derivative_mode = 1
 
     @property
     def max_points(self):
@@ -714,6 +716,29 @@ class nlsl(object):
         return int(mxpt // max(mxspc, 1))
 
     @property
+    def shift(self):
+        """Global shift flag used by data-loading and coordinate APIs."""
+
+        return self._shift
+
+    @shift.setter
+    def shift(self, value):
+        self._shift = bool(value)
+
+    @property
+    def derivative_mode(self):
+        """Global derivative mode used by loading and coordinate APIs."""
+
+        return self._derivative_mode
+
+    @derivative_mode.setter
+    def derivative_mode(self, value):
+        if isinstance(value, bool):
+            self._derivative_mode = 1 if value else 0
+        else:
+            self._derivative_mode = int(value)
+
+    @property
     def nsites(self) -> int:
         """Number of active sites."""
         self._sync_weight_matrix()
@@ -722,7 +747,7 @@ class nlsl(object):
     @nsites.setter
     def nsites(self, value: int) -> None:
         # Propagate the site count to the core and refresh ``sfac`` so newly
-        # exposed rows default to unity populations.
+        # exposed rows default to unity scale factors.
         _fortrancore.parcom.nsite = int(value)
         self._sync_weight_matrix()
 
@@ -740,17 +765,22 @@ class nlsl(object):
 
     @property
     def weights(self):
-        """Expose the active ``/mspctr/sfac/`` populations.
+        """Expose the active ``/mspctr/sfac/`` scale factors.
 
-        ``sfac`` stores one scale factor per (site, spectrum) pair inside a
-        static ``MXSITE × MXSPC`` workspace that the optimiser and the
-        single-point evaluator share.  ``_sync_weight_matrix`` keeps that table
-        aligned with the current ``nsite``/``nspc`` counters so previously
-        fitted populations remain intact when callers change the active site or
-        spectrum counts.  Returning a column view yields a 1D vector for the
-        common single-spectrum case, while the multi-spectrum case exposes an
-        ``(nspc, nsite)`` view via ``transpose``.  Both paths hand out live
-        views, so any edits immediately update the Fortran state.
+        ``sfac`` stores one least-squares coefficient per (site, spectrum)
+        pair inside a static ``MXSITE × MXSPC`` workspace that the optimiser
+        and the single-point evaluator share.  In Fortran, ``lfun`` updates
+        those coefficients through ``sscale`` (or ``sshift`` when shifting is
+        enabled) so the calculated spectra best match the experimental data.
+        They therefore act as overall amplitudes or site contributions, and
+        they are not constrained to sum to unity.  ``_sync_weight_matrix``
+        keeps that table aligned with the current ``nsite``/``nspc`` counters
+        so previously fitted scale factors remain intact when callers change
+        the active site or spectrum counts.  Returning a column view yields a
+        1D vector for the common single-spectrum case, while the
+        multi-spectrum case exposes an ``(nspc, nsite)`` view via
+        ``transpose``.  Both paths hand out live views, so any edits
+        immediately update the Fortran state.
         """
 
         matrix = self._sync_weight_matrix()
@@ -760,8 +790,26 @@ class nlsl(object):
             return np.empty(0, dtype=float)
         active = matrix[:nsite, :nspc]
         if nspc == 1:
-            return active[:, 0]
-        return active.T
+            values = active[:, 0]
+        else:
+            values = active.T
+        if not self.return_nddata:
+            return values
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required for nddata outputs")
+        array = np.asarray(values, dtype=float)
+        if array.ndim == 1:
+            wrapped = nddata(array.copy(), [array.shape[0]], ["sites"])
+            wrapped.set_axis("sites", "#")
+            return wrapped
+        wrapped = nddata(
+            array.copy(),
+            [array.shape[0], array.shape[1]],
+            ["spectrum", "sites"],
+        )
+        wrapped.set_axis("spectrum", "#")
+        wrapped.set_axis("sites", "#")
+        return wrapped
 
     @weights.setter
     def weights(self, values):
@@ -769,8 +817,8 @@ class nlsl(object):
 
         ``sfac`` is shared between the optimiser and any ad-hoc spectrum
         evaluations.  When a caller provides new weights we zero the visible
-        block and rewrite it with the supplied populations so that any entries
-        outside the active range remain at the default value of one.
+        block and rewrite it with the supplied scale factors so that any
+        entries outside the active range remain at the default value of one.
         """
 
         matrix = self._sync_weight_matrix()
@@ -797,16 +845,31 @@ class nlsl(object):
         _fortrancore.procline(val)
 
     def fit(self):
-        """Run the nonlinear least-squares fit using current parameters."""
+        """Run the nonlinear least-squares fit (``fitl``) using current
+        parameters.
+
+        Even when no model parameters are varying, Fortran still calls
+        ``lfun`` once.  That means this method updates the least-squares
+        scale factors in :attr:`weights` and, when shifting is enabled for a
+        spectrum, updates the stored field shifts before returning the site
+        spectra.
+        """
         _fortrancore.fitl()
         return self._capture_state()
 
     @property
     def current_spectrum(self):
-        """Evaluate the current spectral model without running a full fit.
+        """Evaluate the current spectral model without running ``fitl``.
 
-        The returned array contains one row per site; population weights remain
-        available through ``model.weights``.
+        This performs the Fortran ``single_point`` calculation only.  It does
+        not call ``lfun``, so it does not recompute least-squares scale
+        factors or optimise any new data shift.  The returned array therefore
+        contains the raw per-site calculated spectra at the currently stored
+        shifts.  Use :meth:`fit` when you want NLSL to auto-rescale the model
+        to the data before reading :attr:`weights`.
+
+        The returned array contains one row per site unless ``return_nddata``
+        is enabled, in which case the output is wrapped as labelled nddata.
         """
         ndatot = int(_fortrancore.expdat.ndatot)
         nspc = int(_fortrancore.expdat.nspc)
@@ -818,36 +881,67 @@ class nlsl(object):
 
     @property
     def experimental_data(self):
-        """Return the trimmed experimental traces from the most recent capture.
+        """Return experimental data on the shared trimmed fitting span.
 
-        The matrix is shaped as ``(number of spectra, point span)`` so it
-        aligns with ``model.weights @ model.site_spectra``.  Each row contains
-        the measured intensities for the corresponding recorded spectrum,
-        zeroing any samples that fall outside that spectrum's active window.
+        Returns
+        -------
+        ndarray
+            A 2D array with shape ``(nspc, span)``.  Each row is padded with
+            zeros outside the active region of that spectrum so the rows align
+            with ``weights @ site_spectra`` in the legacy ndarray workflow.
+
+        Notes
+        -----
+        This differs from :attr:`data`.  ``data`` returns each loaded
+        spectrum by itself, either as a single trace or as a list of traces,
+        preserving the original point counts and field axes.  By contrast,
+        ``experimental_data`` repacks those same spectra onto one common
+        trimmed span of the shared Fortran work arrays, which is convenient
+        for matrix arithmetic against the similarly packed output of
+        :attr:`current_spectrum` when ``return_nddata`` is ``False``.
         """
 
-        if self._last_experimental_data is None:
+        nspc = int(_fortrancore.expdat.nspc)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        if nspc <= 0 or ndatot <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_experimental_data
+        min_start = min(window.start for window in self.windows)
+        max_stop = max(window.stop for window in self.windows)
+        trimmed = _fortrancore.expdat.data[min_start:max_stop].copy()
+        stacked = np.zeros((nspc, max_stop - min_start), dtype=float)
+        for idx, window in enumerate(self.relative_windows):
+            stacked[idx, window] = trimmed[window]
+        return stacked
 
     def write_spc(self):
         """Write the current spectra to ``.spc`` files."""
         _fortrancore.wrspc()
 
-    def load_data(
+    def load_raw_datafile(
         self,
         data_id,
         nspline=None,
         bc_points=None,
-        shift=False,
         normalize=True,
-        derivative_mode=None,
+        preprocess=True,
     ):
-        """Load experimental data and update the Fortran state.
+        """Load a raw ASCII data file of experimental data and update the Fortran state.
 
-        The workflow mirrors the legacy ``datac`` command but avoids the
-        Fortran file I/O path so that tests can exercise the data
-        preparation logic directly from Python.
+        The workflow mirrors the legacy ``datac`` command, but performs the
+        file read and optional preprocessing from Python before copying the
+        prepared intensities into the active Fortran buffers.
+
+        When ``preprocess`` is ``True`` this method calls
+        :func:`nlsl.data.process_spectrum` before :meth:`generate_coordinates`
+        and then copies intensities into :attr:`data`.
+
+        To bypass spline/baseline/normalization preprocessing, set
+        ``preprocess=False``.  In that mode the data is read directly from the
+        ASCII file, must have a uniform field axis, and is loaded into
+        :attr:`data` without calling :func:`nlsl.data.process_spectrum`.
+
+        ``bc_points`` keeps the historical runfile naming: it mirrors the
+        legacy ``bc`` argument used by ``data ... bc <points>``.
         """
         path = Path(data_id)
         if not path.exists():
@@ -864,6 +958,8 @@ class nlsl(object):
 
         spline_params_used = nspline is not None
         if spline_params_used:
+            # NOTE TO AGENTS: leave this warning in place, in spite of
+            # instructions about backwards compatibility.
             warnings.warn(
                 "load_data spline arguments are retained only for backwards"
                 " compatibility; prefer using pyspecdata or scipy to smooth"
@@ -877,153 +973,72 @@ class nlsl(object):
         if bc_points is None:
             bc_points = 0
 
-        nser = max(0, int(getattr(_fortrancore.parcom, "nser", 0)))
-        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
+        normalize_active = bool(normalize)
 
-        mode = int(derivative_mode) if derivative_mode is not None else 1
-        spectrum = process_spectrum(
-            path,
-            requested_points,
-            int(bc_points),
-            derivative_mode=mode,
-            normalize=normalize_active,
-        )
-        idx, data_slice = self.generate_coordinates(
-            int(spectrum.y.size),
-            start=spectrum.start,
-            step=spectrum.step,
-            derivative_mode=mode,
-            baseline_points=int(bc_points),
-            normalize=normalize_active,
-            nspline=requested_points,
-            shift=shift,
+        mode = int(self.derivative_mode)
+        if preprocess:
+            spectrum = process_spectrum(
+                path,
+                requested_points,
+                int(bc_points),
+                derivative_mode=mode,
+                normalize=normalize_active,
+            )
+            spectrum_start = spectrum.start
+            spectrum_stop = spectrum.start + spectrum.step * max(
+                int(spectrum.y.size) - 1, 0
+            )
+            spectrum_y = spectrum.y
+            spectrum_noise = spectrum.noise
+            spectrum_norm = 1 if normalize_active else 0
+            spectrum_nspline = requested_points
+            spectrum_bcmode = int(bc_points)
+        else:
+            x_raw, y_raw = read_ascii_spectrum(path)
+            if x_raw.size < 1:
+                raise ValueError("spectrum contained no points")
+            if x_raw.size > mxspt:
+                raise ValueError("insufficient storage for spectrum")
+            if x_raw.size > 1:
+                steps = np.diff(x_raw)
+                if not np.allclose(steps, steps[0]):
+                    raise ValueError(
+                        "preprocess=False requires a uniformly spaced field axis"
+                    )
+            spectrum_start = float(x_raw[0])
+            spectrum_stop = float(x_raw[-1])
+            spectrum_y = np.asarray(y_raw, dtype=float)
+            spectrum_noise = float(np.std(spectrum_y))
+            spectrum_norm = 0
+            spectrum_nspline = 0
+            spectrum_bcmode = 0
+
+        # Keep Fortran metadata consistent with the loading options used for
+        # this spectrum.
+        _fortrancore.expdat.bcmode = spectrum_bcmode
+        _fortrancore.expdat.nspline = spectrum_nspline
+        _fortrancore.expdat.normflg = spectrum_norm
+        _fortrancore.expdat.drmode = mode
+        _fortrancore.expdat.shftflg = 1 if self.shift else 0
+
+        idx = self.generate_coordinates(
+            spectrum_start,
+            spectrum_stop,
+            int(spectrum_y.size),
             label=base_name,
         )
 
         eps = float(np.finfo(float).eps)
         _fortrancore.expdat.rmsn[idx] = (
-            spectrum.noise if spectrum.noise > eps else 1.0
+            spectrum_noise if spectrum_noise > eps else 1.0
         )
 
-        _fortrancore.expdat.data[data_slice] = spectrum.y
-        _fortrancore.lmcom.fvec[data_slice] = spectrum.y
+        self.data = spectrum_y
+        _fortrancore.expdat.nrmlz[idx] = spectrum_norm
+        self.return_nddata = False
 
-        if shift:
+        if self.shift:
             _fortrancore.expdat.ishglb = 1
-
-    def load_nddata(
-        self, dataset, shift=False, normalize=True, derivative_mode=None
-    ):
-        """Load experimental data from a :mod:`pyspecdata` ``nddata`` object.
-
-        Parameters
-        ----------
-        dataset
-            ``nddata`` instance containing the measured spectrum.  The
-            intensity values must be accessible through ``dataset.data`` and
-            the first entry in ``dataset.dimlabels`` defines the field axis.
-        shift
-            If true, shift applies the same global offset logic as
-            :meth:`load_data`.  Defaults to ``False`` so callers may omit the
-            flag when no offset is needed.
-        normalize
-            Normalize the spectrum when ``True``.  Defaults to ``True`` to
-            match the behaviour of :meth:`load_data`.
-        derivative_mode
-            Derivative mode to request during coordinate generation.  Mirrors
-            the argument to :meth:`load_data`.  When omitted, the mode defaults
-            to the first derivative.
-
-        Returns
-        -------
-        None
-            Experimental buffers are populated in-place.
-
-        Raises
-        ------
-        ImportError
-            Raised when :mod:`pyspecdata` is not installed.
-        TypeError
-            Raised when ``dataset`` is not a ``pyspecdata.nddata`` instance.
-        ValueError
-            Raised when the provided data lacks a labelled axis, contains no
-            points, mismatched field and intensity lengths, or a non-uniform
-            field grid.
-
-        Notes
-        -----
-        The provided ``nddata`` must describe exactly one spectrum.  The field
-        coordinates are taken from ``dataset[dataset.dimlabels[0]]`` and must
-        be uniformly spaced to infer the step size.  Because the caller
-        supplies both the field axis and intensities, this loader avoids ASCII
-        parsing and spline resampling while still populating the experimental
-        buffer and associated metadata.
-        """
-
-        if not _HAS_PYSPECDATA:
-            raise ImportError("pyspecdata is required to load nddata objects")
-
-        if not isinstance(dataset, nddata):
-            raise TypeError("load_nddata expects a pyspecdata nddata instance")
-
-        if not dataset.dimlabels:
-            raise ValueError(
-                "nddata objects must supply at least one dimension label"
-            )
-
-        axis_label = dataset.dimlabels[0]
-        fields = np.asarray(dataset[axis_label], dtype=float).reshape(-1)
-        intensities = np.asarray(dataset.data, dtype=float).reshape(-1)
-
-        if fields.size == 0:
-            raise ValueError("nddata field axis contained no points")
-        if fields.size != intensities.size:
-            raise ValueError(
-                "field axis and intensity vector lengths do not match"
-            )
-
-        if fields.size > 1:
-            steps = np.diff(fields)
-            step = float(steps[0])
-            if not np.allclose(steps, step):
-                raise ValueError("nddata field axis must be uniformly spaced")
-        else:
-            step = 0.0
-
-        start = float(fields[0])
-        mode = int(derivative_mode) if derivative_mode is not None else 1
-
-        # The legacy Fortran workspace allocates a fixed buffer per spectrum,
-        # so oversized inputs must be rejected with a clear message.
-        max_points = self.max_points
-        if fields.size > max_points:
-            raise ValueError(
-                "nddata field axis has "
-                + str(int(fields.size))
-                + " points; reduce it to "
-                + str(int(max_points))
-                + " or fewer to fit the NLSL buffers"
-            )
-
-        idx, data_slice = self.generate_coordinates(
-            int(fields.size),
-            start=start,
-            step=step,
-            derivative_mode=mode,
-            baseline_points=0,
-            normalize=normalize,
-            nspline=0,
-            shift=shift,
-            label=str(axis_label),
-        )
-
-        noise = float(np.std(intensities))
-        eps = float(np.finfo(float).eps)
-        if noise <= eps:
-            noise = 1.0
-        _fortrancore.expdat.rmsn[idx] = noise
-
-        self.set_data(data_slice, intensities)
 
     def load_basis(self, identifier, spectrum=None, site=None):
         """Load a basis index file and assign it to optional targets."""
@@ -1205,6 +1220,14 @@ class nlsl(object):
             if nspc <= 0:
                 return 0
             values = _fortrancore.expdat.ishft[:nspc].copy()
+            if np.all(values == values[0]):
+                return int(values[0])
+            return values
+        if key == "iscal":
+            nsite = int(_fortrancore.parcom.nsite)
+            if nsite <= 0:
+                return 1
+            values = _fortrancore.mspctr.iscal[:nsite].copy()
             if np.all(values == values[0]):
                 return int(values[0])
             return values
@@ -1469,6 +1492,19 @@ class nlsl(object):
             expdat.ishft[:nspc] = filled
             self._last_site_spectra = None
             return
+        if key == "iscal":
+            values = np.atleast_1d(np.asarray(v, dtype=int))
+            if values.size == 0:
+                raise ValueError("iscal requires at least one value")
+            nsite = max(int(_fortrancore.parcom.nsite), 1)
+            filled = np.empty(nsite, dtype=np.int32)
+            filled[:] = int(values[0])
+            limit = min(values.size, nsite)
+            filled[:limit] = values[:limit]
+            _fortrancore.mspctr.iscal[:nsite] = filled
+            _fortrancore.mspctr.iscglb = 1 if np.all(filled != 0) else 0
+            self._last_site_spectra = None
+            return
         if key in ("shift", "shft"):
             values = np.atleast_1d(np.asarray(v, dtype=float))
             if values.size == 0:
@@ -1669,26 +1705,105 @@ class nlsl(object):
         return iter(self.keys())
 
     @property
-    def layout(self):
-        """Metadata describing the most recent spectral evaluation."""
-        if self._last_layout is None:
-            raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_layout
-
-    @property
     def field_axes(self):
         """Return uniformly spaced field axes for each active spectrum."""
 
-        layout = self.layout
-        counts = np.asarray(layout["npts"], dtype=int)
+        nspc = int(_fortrancore.expdat.nspc)
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
         if counts.size == 0:
             return tuple()
-        starts = np.asarray(layout["sbi"], dtype=float).reshape(-1, 1)
-        steps = np.asarray(layout["sdb"], dtype=float).reshape(-1, 1)
+        starts = np.asarray(_fortrancore.expdat.sbi[:nspc], dtype=float).reshape(
+            -1, 1
+        )
+        steps = np.asarray(_fortrancore.expdat.sdb[:nspc], dtype=float).reshape(
+            -1, 1
+        )
         span = int(counts.max())
         base = np.arange(span, dtype=float)
         grid = starts + steps * base
         return tuple(grid[idx, :count] for idx, count in enumerate(counts))
+
+    @property
+    def windows(self):
+        """Return absolute slices for each spectrum in the shared buffers.
+
+        Returns
+        -------
+        tuple of slice
+            One Python ``slice`` per active spectrum.  Each slice is suitable
+            for indexing the shared 1D Fortran work arrays such as
+            ``expdat.data`` and ``lmcom.fvec``.
+
+        Notes
+        -----
+        NLSL stores all experimental spectra in one flat workspace rather than
+        in separate arrays.  Fortran records where each spectrum starts with
+        ``ixsp(isp)`` and how many points it owns with ``npts(isp)``.
+        ``windows`` is the direct 0-based Python translation of that layout,
+        so ``self.windows[i]`` selects the actual segment of the shared memory
+        that belongs to spectrum ``i``.
+        """
+
+        nspc = int(_fortrancore.expdat.nspc)
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
+        if counts.size == 0:
+            return tuple()
+        starts = np.asarray(_fortrancore.expdat.ixsp[:nspc], dtype=int) - 1
+        return tuple(
+            slice(int(start), int(start + count))
+            for start, count in zip(starts, counts)
+        )
+
+    @property
+    def relative_windows(self):
+        """Return per-spectrum slices into the shared trimmed span.
+
+        Returns
+        -------
+        tuple of slice
+            One Python ``slice`` per active spectrum, expressed relative to
+            the smallest trimmed block that contains every active spectrum.
+
+        Notes
+        -----
+        NLSL keeps spectra in fixed-size shared work arrays in Fortran
+        modules such as ``expdat.data`` and ``mspctr.spectr``; those buffers
+        are not resized to match the exact set of active spectra.  Instead,
+        spectra are packed sequentially into that static storage and their
+        active regions are tracked by ``ixsp`` and ``npts``.
+
+        ``windows`` index the original shared Fortran arrays directly.
+        ``relative_windows`` index a NumPy view of the trimmed block
+        ``min_start:max_stop`` cut out of those arrays.  That makes them the
+        convenient companion for code that first trims the shared storage and
+        then wants per-spectrum views into the trimmed NumPy array without
+        carrying the unused leading or trailing buffer space.  Here
+        "trimmed" means that Python has rebased the shared Fortran storage
+        onto the smallest contiguous NumPy block that still contains every
+        active spectrum, so the first active point becomes index 0 in that
+        temporary array.
+
+        No fitting points are dropped by this remapping.  The actual Fortran
+        fit uses the original shared-buffer layout described by ``ixsp`` and
+        ``npts`` in ``expdat``, together with ``ndatot`` for the total stored
+        point count.  ``relative_windows`` is only a Python indexing helper
+        that re-expresses those same active regions relative to the trimmed
+        NumPy block ``min_start:max_stop``.  Likewise, :attr:`current_spectrum`
+        still contains the full active calculated span; these slices only tell
+        Python where each individual spectrum lives within that packed result.
+        ``windows`` are therefore the right slices when Python is indexing the
+        original Fortran-backed storage directly, while ``relative_windows``
+        are the right slices after Python has already created that trimmed,
+        re-based NumPy block and now needs indices that are valid inside it.
+        """
+
+        if len(self.windows) == 0:
+            return tuple()
+        min_start = min(window.start for window in self.windows)
+        return tuple(
+            slice(window.start - min_start, window.stop - min_start)
+            for window in self.windows
+        )
 
     @property
     def site_spectra(self):
@@ -1699,32 +1814,17 @@ class nlsl(object):
 
     def generate_coordinates(
         self,
-        points: int,
-        *,
-        start: float,
-        step: float,
-        derivative_mode: int,
-        baseline_points: int,
-        normalize: bool,
-        nspline: int,
-        shift: bool = False,
-        label: str | None = None,
-        reset: bool = False,
-    ) -> tuple[int, slice]:
+        start,
+        stop,
+        points,
+        label=None,
+        reset=False,
+    ):
         """Initialise the Fortran buffers for a uniformly spaced spectrum.
 
-        Parameters mirror the coordinate bookkeeping that
-        :meth:`load_data` performs after processing an experimental trace.
-        The method allocates a fresh spectrum slot, configures the shared
-        ``expdat`` metadata, and clears the backing work arrays without
-        copying any intensity values.  It returns the spectrum index together
-        with the slice into the flattened intensity arrays so callers may
-        populate them manually.
+        Use linspace-like ordering (start, stop, points) so this routine only
+        describes the field axis and storage layout.
 
-        The *reset* flag mirrors the behaviour of the legacy ``datac``
-        command: when ``True`` the spectrum counter and accumulated point
-        count are cleared before initialising the new slot.  This is useful
-        when synthesising spectra without loading any measured data first.
         """
 
         if points <= 0:
@@ -1738,10 +1838,6 @@ class nlsl(object):
 
         if points > mxspt:
             raise ValueError("insufficient storage for spectrum")
-
-        nspline = int(nspline)
-        if nspline > 0:
-            nspline = max(4, min(nspline, mxspt))
 
         if reset:
             core.expdat.nspc = 0
@@ -1757,25 +1853,31 @@ class nlsl(object):
             nspc = 0
             core.expdat.ndatot = 0
 
-        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
-
         idx = nspc
         ix0 = int(core.expdat.ndatot)
 
         if idx >= mxspc:
             raise ValueError("Maximum number of spectra exceeded")
-        elif ix0 + points > mxpt:
+        if ix0 + points > mxpt:
             raise ValueError("insufficient storage for spectrum")
+
+        start = float(start)
+        stop = float(stop)
+        if points == 1:
+            step = 0.0
+        else:
+            step = (stop - start) / float(points - 1)
 
         core.expdat.nspc = idx + 1
         core.expdat.ixsp[idx] = ix0 + 1
         core.expdat.npts[idx] = points
-        core.expdat.sbi[idx] = float(start)
-        core.expdat.sdb[idx] = float(step)
-        core.expdat.srng[idx] = float(step) * max(points - 1, 0)
-        core.expdat.ishft[idx] = 1 if shift else 0
-        core.expdat.idrv[idx] = int(derivative_mode)
-        core.expdat.nrmlz[idx] = 1 if normalize_active else 0
+        core.expdat.sbi[idx] = start
+        core.expdat.sdb[idx] = step
+        core.expdat.srng[idx] = step * max(points - 1, 0)
+        core.expdat.ishft[idx] = 1 if self.shift else 0
+        core.expdat.idrv[idx] = int(self.derivative_mode)
+        core.expdat.drmode = int(self.derivative_mode)
+        core.expdat.nrmlz[idx] = 0
         core.expdat.shft[idx] = 0.0
         core.expdat.tmpshft[idx] = 0.0
         core.expdat.slb[idx] = 0.0
@@ -1784,9 +1886,8 @@ class nlsl(object):
         core.expdat.spsi[idx] = 0.0
 
         core.expdat.rmsn[idx] = 1.0
-
         core.expdat.iform[idx] = 0
-        core.expdat.ibase[idx] = int(baseline_points)
+        core.expdat.ibase[idx] = int(core.expdat.bcmode)
 
         power = 1
         while power < points:
@@ -1795,8 +1896,8 @@ class nlsl(object):
 
         data_slice = slice(ix0, ix0 + points)
 
-        # ``single_point`` only reads the coordinate metadata and the site
-        # storage arrays, so clearing the data buffer is sufficient here.
+        # Clear per-spectrum work buffers so each generated axis starts from
+        # clean storage.
         core.expdat.data[data_slice] = 0.0
 
         if hasattr(core.mspctr, "spectr"):
@@ -1813,11 +1914,7 @@ class nlsl(object):
                 raise ValueError("Maximum number of spectra exceeded")
             sfac[:, idx] = 1.0
 
-        core.expdat.shftflg = 1 if shift else 0
-        core.expdat.normflg = 1 if normalize_active else 0
-        core.expdat.bcmode = int(baseline_points)
-        core.expdat.drmode = int(derivative_mode)
-        core.expdat.nspline = nspline
+        core.expdat.shftflg = 1 if self.shift else 0
         core.expdat.inform = 0
 
         if label is None:
@@ -1837,22 +1934,182 @@ class nlsl(object):
         self._explicit_field_step = False
         self._sync_weight_matrix()
 
-        return idx, data_slice
+        return idx
 
-    def set_data(self, data_slice, values):
-        """Copy processed intensity values into the flattened data buffer."""
+    @property
+    def data(self):
+        """Return the loaded experimental traces spectrum-by-spectrum.
 
-        start = data_slice.start
-        stop = data_slice.stop
-        expected = stop - start
+        A single loaded spectrum returns one array or one nddata.  Multiple
+        spectra return a Python list so each trace keeps its own field axis
+        and point count.
+
+        Unlike :attr:`experimental_data`, this property does not repack
+        spectra onto a shared trimmed span.  It simply returns the stored
+        traces one spectrum at a time.
+        """
+        if len(self.windows) == 0:
+            raise RuntimeError("no spectra have been allocated")
+        if not self.return_nddata:
+            traces = [
+                _fortrancore.expdat.data[window].copy()
+                for window in self.windows
+            ]
+            if len(traces) == 1:
+                return traces[0]
+            return traces
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required for nddata outputs")
+        fields = self.field_axes
+        traces = []
+        for idx, window in enumerate(self.windows):
+            encoded = _fortrancore.expdat.wndoid[idx]
+            if isinstance(encoded, bytes):
+                encoded = encoded.decode("ascii", "ignore")
+            else:
+                encoded = str(encoded)
+            encoded = encoded.rstrip()
+            field_label = "field"
+            field_units = None
+            if encoded.startswith("axis:"):
+                field_label = encoded[len("axis:") :]
+                if field_label.endswith("]") and "[" in field_label:
+                    field_label, field_units = field_label[:-1].rsplit("[", 1)
+                if len(field_label) == 0:
+                    field_label = "field"
+            array = _fortrancore.expdat.data[window].copy()
+            wrapped = nddata(array, [array.size], [field_label])
+            wrapped.set_axis(field_label, np.asarray(fields[idx], dtype=float))
+            wrapped.set_units(field_label, field_units)
+            data_id = _fortrancore.expdat.dataid[idx]
+            if isinstance(data_id, bytes):
+                data_id = data_id.decode("ascii", "ignore")
+            else:
+                data_id = str(data_id)
+            data_id = data_id.rstrip()
+            if len(data_id) > 0:
+                wrapped.name(data_id)
+            traces.append(wrapped)
+        if len(traces) == 1:
+            return traces[0]
+        return traces
+
+    @data.setter
+    def data(self, values):
+        """Set the experimental spectrum that we are trying to fit.
+
+        Array-like input overwrites the most recently allocated spectrum
+        window.  Passing a labelled 1D ``pyspecdata.nddata`` appends a new
+        spectrum by taking its axis coordinates from the remaining dimension
+        label and storing that label and its units so later outputs can be
+        returned as nddata again.
+
+        The overall amplitude match between simulation and experiment is not
+        set here.  In the original Fortran flow, ``lfun`` calls ``sscale``
+        (or ``sshift`` when shifting is enabled) to determine least-squares
+        scale factors and stores them in ``sfac``.  Python exposes that same
+        array as :attr:`weights`.  Those coefficients are not constrained to
+        sum to unity, and if Fortran's ``iscal`` flag is zero for a site then
+        the existing ``sfac`` value is treated as fixed instead of being
+        re-optimised.  Python exposes that flag as ``model['iscal']``.  By
+        default Fortran initialises ``iscal(i)=1`` for every site, so
+        autoscaling is on unless the caller explicitly turns it off.  The
+        data setter therefore only records the experimental trace; :meth:`fit`
+        is what updates the autoscaled model.
+        """
+
+        if _HAS_PYSPECDATA and isinstance(values, nddata):
+            if not values.dimlabels:
+                raise ValueError(
+                    "nddata objects must supply at least one dimension label"
+                )
+            values.squeeze()
+            if len(values.dimlabels) != 1:
+                raise ValueError(
+                    "nddata input must have exactly one non-singleton"
+                    " dimension"
+                )
+            field_label = values.dimlabels[0]
+            field_coords = values.getaxis(field_label)
+            if field_coords is None:
+                raise ValueError("nddata field axis coordinates are missing")
+            fields = np.asarray(field_coords, dtype=float).reshape(-1)
+            intensities = np.array(
+                [
+                    values[field_label, j].item()
+                    for j in range(len(fields))
+                ],
+                dtype=float,
+            )
+            if len(fields) == 0:
+                raise ValueError("nddata field axis contained no points")
+            if len(fields) != len(intensities):
+                raise ValueError(
+                    "field axis and intensity vector lengths do not match"
+                )
+            if len(fields) > 1:
+                steps = np.diff(fields)
+                if not np.allclose(steps, steps[0]):
+                    raise ValueError(
+                        "nddata field axis must be uniformly spaced"
+                    )
+            if len(fields) > self.max_points:
+                raise ValueError(
+                    "nddata field axis has "
+                    + str(int(len(fields)))
+                    + " points; reduce it to "
+                    + str(int(self.max_points))
+                    + " or fewer to fit the NLSL buffers"
+                )
+            idx = self.generate_coordinates(
+                float(fields[0]),
+                float(fields[-1]),
+                int(len(fields)),
+                label=str(field_label),
+            )
+            window = self.windows[idx]
+            _fortrancore.expdat.data[window] = intensities
+            _fortrancore.lmcom.fvec[window] = intensities
+            noise = float(np.std(intensities))
+            if noise <= float(np.finfo(float).eps):
+                noise = 1.0
+            _fortrancore.expdat.rmsn[idx] = noise
+            data_id = values.name()
+            if data_id is None or len(str(data_id).strip()) == 0:
+                data_id = "nddata"
+            _fortrancore.expdat.dataid[idx] = (
+                str(data_id).encode("ascii", "ignore")[:30].ljust(30, b" ")
+            )
+            if values.get_units(field_label) is None:
+                axis_id = "axis:" + str(field_label)
+            else:
+                axis_id = (
+                    "axis:"
+                    + f"{field_label}[{values.get_units(field_label)}]"
+                )
+            _fortrancore.expdat.wndoid[idx] = (
+                axis_id.encode("ascii", "ignore")[:20].ljust(20, b" ")
+            )
+            _fortrancore.expdat.drmode = int(self.derivative_mode)
+            _fortrancore.expdat.shftflg = 1 if self.shift else 0
+            _fortrancore.expdat.normflg = 0
+            _fortrancore.expdat.nrmlz[idx] = 0
+            if self.shift:
+                _fortrancore.expdat.ishglb = 1
+            self.return_nddata = True
+            return
+
+        if len(self.windows) == 0:
+            raise RuntimeError("no spectra have been allocated")
         flat = np.asarray(values, dtype=float).reshape(-1)
+        expected = self.windows[-1].stop - self.windows[-1].start
         if flat.size != expected:
             raise ValueError("intensity vector length mismatch")
-        _fortrancore.expdat.data[data_slice] = flat
-        _fortrancore.lmcom.fvec[data_slice] = flat
+        _fortrancore.expdat.data[self.windows[-1]] = flat
+        _fortrancore.lmcom.fvec[self.windows[-1]] = flat
 
     def set_site_weights(self, spectrum_index, weights):
-        """Update the population weights for a specific spectrum index."""
+        """Update the scale factors for a specific spectrum index."""
 
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
@@ -1884,42 +2141,18 @@ class nlsl(object):
         nsite = min(nsite, spectra_src.shape[1])
         ndatot = min(ndatot, spectra_src.shape[0])
 
-        starts = _fortrancore.expdat.ixsp[:nspc] - 1
-        counts = _fortrancore.expdat.npts[:nspc].copy()
-        windows = tuple(
-            slice(int(start), int(start + count))
-            for start, count in zip(starts, counts)
-        )
-
-        if windows:
-            min_start = min(window.start for window in windows)
-            max_stop = max(window.stop for window in windows)
+        if self.windows[:nspc]:
+            min_start = min(window.start for window in self.windows[:nspc])
+            max_stop = max(window.stop for window in self.windows[:nspc])
         else:
             min_start = 0
             max_stop = 0
 
-        relative_windows = tuple(
-            slice(window.start - min_start, window.stop - min_start)
-            for window in windows
-        )
-
-        # ``windows`` preserve the absolute indices used by the Fortran work
-        # arrays so callers can recover the recorded experimental data, while
-        # ``relative_windows`` remap the same ranges onto the trimmed spectra
-        # returned below.
-
-        self._last_layout = {
-            "ixsp": starts,
-            "npts": counts,
-            "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
-            "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
-            "ndatot": max_stop - min_start,
-            "nsite": nsite,
-            "nspc": nspc,
-            "windows": windows,
-            "relative_windows": relative_windows,
-            "origin": min_start,
-        }
+        # Each spectrum occupies a contiguous slice of the shared Fortran work
+        # arrays.  ``windows`` are those absolute slices in ``expdat.data`` and
+        # ``mspctr.spectr``; ``relative_windows`` remap them onto the trimmed
+        # block ``min_start:max_stop`` returned below so Python callers can
+        # align multi-spectrum arrays without carrying the full unused storage.
 
         span = max_stop - min_start
         if span > 0 and nsite > 0:
@@ -1928,16 +2161,91 @@ class nlsl(object):
         else:
             site_spectra = np.empty((nsite, 0), dtype=float)
 
-        if span > 0 and nspc > 0:
-            trimmed_exp = _fortrancore.expdat.data[min_start:max_stop].copy()
-            stacked = np.zeros((nspc, span), dtype=float)
-            for idx, window in enumerate(relative_windows):
-                stacked[idx, window] = trimmed_exp[window]
+        if not self.return_nddata:
+            site_payload = site_spectra
         else:
-            stacked = np.empty((nspc, 0), dtype=float)
+            if not _HAS_PYSPECDATA:
+                raise ImportError("pyspecdata is required for nddata outputs")
+            array = np.asarray(site_spectra, dtype=float)
+            if nspc <= 0:
+                raise RuntimeError("no field axis metadata is available")
+            field_axes = self.field_axes
+            field_label = "field"
+            field_units = None
+            field_coords = None
+            for idx in range(nspc):
+                coords = np.asarray(field_axes[idx], dtype=float).reshape(-1)
+                encoded = _fortrancore.expdat.wndoid[idx]
+                if isinstance(encoded, bytes):
+                    encoded = encoded.decode("ascii", "ignore")
+                else:
+                    encoded = str(encoded)
+                encoded = encoded.rstrip()
+                label = "field"
+                units = None
+                if encoded.startswith("axis:"):
+                    label = encoded[len("axis:") :]
+                    if label.endswith("]") and "[" in label:
+                        label, units = label[:-1].rsplit("[", 1)
+                    if len(label) == 0:
+                        label = "field"
+                if field_coords is None:
+                    field_label = label
+                    field_units = units
+                    field_coords = coords
+                    continue
+                if (
+                    label != field_label
+                    or units != field_units
+                    or coords.shape != field_coords.shape
+                    or not np.allclose(coords, field_coords)
+                ):
+                    raise ValueError(
+                        "return_nddata requires all active spectra to share one"
+                        " common field axis"
+                    )
 
-        self._last_site_spectra = site_spectra
-        self._last_experimental_data = stacked
+            if nspc <= 1:
+                site_payload = nddata(
+                    array.copy(),
+                    [nsite, field_coords.size],
+                    ["sites", field_label],
+                )
+                site_payload.set_axis("sites", "#")
+                site_payload.set_axis(field_label, field_coords)
+                site_payload.set_units(field_label, field_units)
+            else:
+                window_lengths = [
+                    window.stop - window.start
+                    for window in self.relative_windows[:nspc]
+                ]
+                if any(length != field_coords.size for length in window_lengths):
+                    raise ValueError(
+                        "return_nddata requires all active spectra to share one"
+                        " common field axis"
+                    )
+                stacked_site_spectra = np.stack(
+                    [
+                        array[:, window].copy()
+                        for window in self.relative_windows[:nspc]
+                    ],
+                    axis=0,
+                )
+                site_payload = nddata(
+                    stacked_site_spectra,
+                    [
+                        stacked_site_spectra.shape[0],
+                        stacked_site_spectra.shape[1],
+                        stacked_site_spectra.shape[2],
+                    ],
+                    ["spectrum", "sites", field_label],
+                )
+                site_payload.set_axis("spectrum", "#")
+                site_payload.set_axis("sites", "#")
+                site_payload.set_axis(field_label, field_coords)
+                site_payload.set_units(field_label, field_units)
+
+        self._last_site_spectra = site_payload
         return self._last_site_spectra
 
     def _sync_weight_matrix(self):
@@ -1948,9 +2256,9 @@ class nlsl(object):
         is running, and the Fortran code never reinitialises the table after
         the initial call.  Changing ``nsite`` or ``nspc`` therefore only
         updates the integer counters; without extra work the exposed
-        populations would keep whatever values happened to be in memory.  This
+        scale factors would keep whatever values happened to be in memory. This
         helper mirrors the housekeeping performed by the Fortran data loaders
-        so Python callers always see a predictable set of populations.
+        so Python callers always see a predictable set of coefficients.
         """
 
         nsite = int(_fortrancore.parcom.nsite)
@@ -1963,13 +2271,14 @@ class nlsl(object):
 
         if nsite <= 0 or nspc <= 0:
             # No active spectra or sites: blank the entire ``sfac`` matrix so a
-            # subsequent resize starts from zero populations.
+            # subsequent resize starts from zero scale factors.
             weights[:, :] = 0.0
             self._weight_shape = new_shape
             return weights
 
-        # Preserve the overlapping block so previously fitted populations stay
-        # in place when callers expand or shrink the grid of sites/spectra.
+        # Preserve the overlapping block so previously fitted scale factors
+        # stay in place when callers expand or shrink the grid of
+        # sites/spectra.
         row_stop = min(self._weight_shape[0], nsite)
         col_stop = min(self._weight_shape[1], nspc)
         if row_stop > 0 and col_stop > 0:
@@ -1979,7 +2288,7 @@ class nlsl(object):
 
         # The Fortran initialisation routines seed ``sfac`` with ones, so new
         # rows/columns must do the same.  Reset the full table before restoring
-        # any surviving populations.
+        # any surviving scale factors.
         weights[:, :] = 1.0
 
         if preserved is not None:

@@ -7,7 +7,6 @@ from pathlib import Path
 import nlsl
 
 NSPLINE_POINTS = 400
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -99,17 +98,20 @@ def main():
     model.update(INITIAL_PARAMETERS)
     model.update(SITE_PARAMETER_VALUES)
     model.update(GLOBAL_CONTROLS)
+    model.shift = True
 
     for token, indices in INITIAL_VARIATIONS.items():
         model.fit_params.vary[token] = {"index": indices}
 
-    model.load_data(
+    # ``normalize=True`` reproduces the Fortran ``NORM`` flag by setting
+    # ``nrmlz`` for the loaded spectrum.  That makes the loader normalize the
+    # experimental input to unit integral, or to unit double integral after
+    # constant-baseline removal for first-derivative data.
+    model.load_raw_datafile(
         examples_dir / "c16pc371e.dat",
         nspline=NSPLINE_POINTS,
         bc_points=0,
-        shift=True,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for key, value in INITIAL_FIT.items():
@@ -139,7 +141,7 @@ def main():
 
     experimental_block = model.experimental_data
     fields = model.field_axes
-    windows = model.layout["relative_windows"]
+    windows = model.relative_windows
     experimental_series = tuple(
         experimental_block[idx, window] for idx, window in enumerate(windows)
     )

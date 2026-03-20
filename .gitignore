@@ -34,3 +34,5 @@ tests/sampl200.spc
 tests/sampl290.spc
 tests/sampl500.spc
 tests/sampl590.spc
+data_files.csv
+examples/c16pc371e_pythonic.py

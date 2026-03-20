@@ -89,6 +89,8 @@ def _capture_state():
         if hasattr(mspctr, name):
             state[name] = getattr(mspctr, name).copy()
     return state
+
+
 def test_load_data_matches_datac():
     samples = ["tests/sampl1", "tests/sampl3"]
 
@@ -101,8 +103,12 @@ def test_load_data_matches_datac():
 
     # Python path
     modern = nlsl.nlsl()
+    modern.shift = True
+    modern.derivative_mode = 1
     for sample in samples:
-        modern.load_data(sample, nspline=200, bc_points=20, shift=True, normalize=True)
+        modern.load_raw_datafile(
+            sample, nspline=200, bc_points=20, normalize=True
+        )
     python_state = _capture_state()
 
     for key, legacy_value in legacy_state.items():

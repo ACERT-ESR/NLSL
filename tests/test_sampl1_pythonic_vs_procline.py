@@ -185,13 +185,13 @@ def run_pythonic(runfile_name):
             )
 
             # sampl1.run: data sampl1 ascii nspline 200 bc 20 shift
-            model.load_data(
+            model.shift = True
+            model.derivative_mode = 1
+            model.load_raw_datafile(
                 TESTS_DIR / "sampl1.dat",
                 nspline=200,
                 bc_points=20,
-                shift=True,
                 normalize=False,
-                derivative_mode=1,
             )
 
             # sampl1.run: vary rpll, rprp, gib0

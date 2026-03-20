@@ -2,9 +2,6 @@ import numpy as np
 
 import nlsl
 from tests.sampl4_reference import (
-    BASELINE_EDGE_POINTS,
-    DERIVATIVE_MODE,
-    NSPLINE_POINTS,
     SAMPL4_FIELD_START,
     SAMPL4_FIELD_STEP,
     SAMPL4_FINAL_PARAMETERS,
@@ -22,29 +19,25 @@ from tests.sampl4_reference import (
 def test_generate_coordinates_enables_current_spectrum():
     model = nlsl.nlsl()
     model["nsite"] = 2
+    model.shift = True
+    model.derivative_mode = 1
     model.update(SAMPL4_FINAL_PARAMETERS)
 
     # Generate the field grid used by the SAMPL4 data so the evaluation spans
     # the same axis as the published runfile.
-    index, data_slice = model.generate_coordinates(
+    index = model.generate_coordinates(
+        SAMPL4_FIELD_START,
+        SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * (SAMPL4_POINT_COUNT - 1),
         SAMPL4_POINT_COUNT,
-        start=SAMPL4_FIELD_START,
-        step=SAMPL4_FIELD_STEP,
-        derivative_mode=DERIVATIVE_MODE,
-        baseline_points=BASELINE_EDGE_POINTS,
-        normalize=False,
-        nspline=NSPLINE_POINTS,
-        shift=True,
         label="sampl4-single-eval",
         reset=True,
     )
 
     assert index == 0
-    assert data_slice.start == 0 and data_slice.stop == SAMPL4_POINT_COUNT
 
     # Copy the processed intensities so the synthetic spectrum can be compared
     # directly against the reference trace.
-    model.set_data(data_slice, SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT])
+    model.data = SAMPL4_SPECTRAL_DATA[:SAMPL4_POINT_COUNT]
 
     # Mirror the runfile-4 solution through the dictionary interface so the
     # synthetic spectrum is generated with the converged parameters.

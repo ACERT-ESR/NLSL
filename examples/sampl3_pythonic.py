@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 400
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -39,6 +38,7 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
 
     # ``load_basis`` mirrors the runfile ``basis`` directive so the
     # diffusion tensor truncation is identical to the original script.
@@ -54,13 +54,15 @@ def main():
     # same coordinate system as the historical ``axial r`` command.
     model.tensor_symmetry["r"] = "axial"
 
-    model.load_data(
+    # ``normalize=True`` is the old Fortran ``NORM`` behaviour: it sets the
+    # per-spectrum ``nrmlz`` flag so ``getdat`` rescales the experimental
+    # trace to unit integral, or to unit double integral after removing the
+    # constant offset for first-derivative data.
+    model.load_raw_datafile(
         examples_dir / "sampl3.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for key in FIT_CONTROLS:
@@ -95,24 +97,20 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
+    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, windows[idx]]
         )
 
     combined_num = 0.0

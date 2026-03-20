@@ -3,7 +3,6 @@ import pytest
 import nlsl
 from tests.sampl4_reference import (
     BASELINE_EDGE_POINTS,
-    DERIVATIVE_MODE,
     NSPLINE_POINTS,
     SAMPL4_DATA_PATH,
     SAMPL4_FIELD_START,
@@ -23,13 +22,12 @@ def run_pythonic_sampl4_fit():
     model = nlsl.nlsl()
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
-    model.load_data(
+    model.shift = True
+    model.load_raw_datafile(
         SAMPL4_DATA_PATH,
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
         normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
@@ -93,7 +91,7 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
 
 
 def test_load_nddata_runs_fit_cycle():
-    """Verify ``load_nddata`` ingests a prepared spectrum and converges."""
+    """Verify nddata assignment ingests a prepared spectrum and converges."""
 
     try:
         from pyspecdata.core import nddata
@@ -109,14 +107,11 @@ def test_load_nddata_runs_fit_cycle():
     dataset = nddata(
         SAMPL4_SPECTRAL_DATA.copy(), [SAMPL4_POINT_COUNT], ["field"]
     )
+    dataset.name("sampl4.dat")
     dataset.setaxis(dataset.dimlabels[0], fields)
 
-    model.load_nddata(
-        dataset,
-        shift=True,
-        normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
-    )
+    model.shift = True
+    model.data = dataset
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
         model.procline(f"vary {token}")
@@ -127,7 +122,15 @@ def test_load_nddata_runs_fit_cycle():
     model.fit()
     site_spectra = model.fit()
 
-    simulated_total = np.squeeze(model.weights @ site_spectra)
+    simulated_total = model.weights @ site_spectra
+    field_label = simulated_total.dimlabels[0]
+    simulated_total = np.array(
+        [
+            simulated_total[field_label, j].item()
+            for j in range(len(simulated_total.getaxis(field_label)))
+        ],
+        dtype=float,
+    )
     experimental = np.squeeze(model.experimental_data)
     residual = simulated_total - experimental
     rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)

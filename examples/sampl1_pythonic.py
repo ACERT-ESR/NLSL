@@ -8,7 +8,6 @@ import nlsl
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -45,13 +44,16 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
-    model.load_data(
+    model.shift = True
+    # ``normalize=True`` mirrors the old Fortran ``NORM`` flag by setting
+    # ``nrmlz`` for this spectrum.  ``getdat`` then rescales the loaded
+    # experimental trace to unit integral, or for first-derivative data first
+    # subtracts a constant baseline and normalizes the double integral to 1.
+    model.load_raw_datafile(
         examples_dir / "sampl1.dat",
         nspline=NSPLINE_POINTS,
         bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
 
     for token in PARAMETERS_TO_VARY:
@@ -77,7 +79,7 @@ def main():
 
     experimental_block = model.experimental_data
     fields = model.field_axes
-    windows = model.layout["relative_windows"]
+    windows = model.relative_windows
     experimental_series = tuple(
         experimental_block[idx, window] for idx, window in enumerate(windows)
     )
