@@ -845,7 +845,8 @@ class nlsl(object):
         _fortrancore.procline(val)
 
     def fit(self):
-        """Run ``fitl`` and return the resulting site spectra.
+        """Run the nonlinear least-squares fit (``fitl``) using current
+        parameters.
 
         Even when no model parameters are varying, Fortran still calls
         ``lfun`` once.  That means this method updates the least-squares
@@ -1751,6 +1752,14 @@ class nlsl(object):
         then wants per-spectrum views into the trimmed NumPy array without
         carrying the unused leading or trailing buffer space.
         """
+        # TODO ☐: modify above to clarify -- does this imply that some portion
+        #         of the spectrum are left out fo the least-squares fitting?
+        #         Are they also left out of the spectrum returned by
+        #         current_spectrum? (hopefully not!)
+        #         If this is the case, they should be renamed into
+        #         fit_active_slices or something like that.  Also explain: how
+        #         were these set in the original fortran code (give the
+        #         parameter names)?
 
         if len(self.windows) == 0:
             return tuple()

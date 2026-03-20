@@ -94,6 +94,9 @@ n.data = d
 # they provide the best-fit linear combination of site spectra.
 # They are only user-fixed if Fortran's ``iscal`` flag is turned off for a
 # site; otherwise fitting recomputes them.
+# TODO ☐: edit above to clarify -- how is iscal exposed in python? is it
+#         set using nlsl['iscal']? Also, if it's not set, what is the
+#         default value?
 psd.plot(n.current_spectrum, alpha=0.35, label="initial guess")
 
 # Run a quick fit using the single-site parameters above so the
