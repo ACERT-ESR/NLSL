@@ -1766,6 +1766,12 @@ class nlsl(object):
 
         Notes
         -----
+        NLSL keeps spectra in fixed-size shared work arrays in Fortran
+        modules such as ``expdat.data`` and ``mspctr.spectr``; those buffers
+        are not resized to match the exact set of active spectra.  Instead,
+        spectra are packed sequentially into that static storage and their
+        active regions are tracked by ``ixsp`` and ``npts``.
+
         ``windows`` index the original shared Fortran arrays directly.
         ``relative_windows`` index a NumPy view of the trimmed block
         ``min_start:max_stop`` cut out of those arrays.  That makes them the
@@ -1790,12 +1796,6 @@ class nlsl(object):
         are the right slices after Python has already created that trimmed,
         re-based NumPy block and now needs indices that are valid inside it.
         """
-        # TODO ☐: There might be the implication above that the fortran
-        #         memory space for the spectra is not dynamically
-        #         allocated, hence the need for the trimming.  If you
-        #         explained this first, you could explain more
-        #         compactly.  If it's not true, then clarify why the
-        #         trimming is necessary.
 
         if len(self.windows) == 0:
             return tuple()

@@ -1,6 +1,7 @@
 import importlib.resources as resources
 import numpy as np
 import nlsl
+import pytest
 from pathlib import Path
 from pyspecdata.datadir import pyspec_config, getDATADIR
 
@@ -89,14 +90,24 @@ def test_load_raw_datafile_defaults_without_spline_arguments():
     assert np.count_nonzero(data_span) > 0
 
 
-# TODO ☐: parametrize for 1 through 3 sites
-def test_iscal_exposed_through_mapping():
+@pytest.mark.parametrize(
+    "nsite,new_value,expected",
+    [
+        (1, [0], 0),
+        (2, [1, 0], np.array([1, 0])),
+        (3, [1, 0, 1], np.array([1, 0, 1])),
+    ],
+)
+def test_iscal_exposed_through_mapping(nsite, new_value, expected):
     model = nlsl.nlsl()
-    model["nsite"] = 2
+    model["nsite"] = nsite
 
     assert int(model["iscal"]) == 1
 
-    model["iscal"] = [1, 0]
+    model["iscal"] = new_value
 
-    assert np.array_equal(model["iscal"], np.array([1, 0]))
+    if np.isscalar(expected):
+        assert int(model["iscal"]) == int(expected)
+    else:
+        assert np.array_equal(model["iscal"], expected)
     assert int(model._core.mspctr.iscglb) == 0
