@@ -1790,6 +1790,12 @@ class nlsl(object):
         are the right slices after Python has already created that trimmed,
         re-based NumPy block and now needs indices that are valid inside it.
         """
+        # TODO ☐: There might be the implication above that the fortran
+        #         memory space for the spectra is not dynamically
+        #         allocated, hence the need for the trimming.  If you
+        #         explained this first, you could explain more
+        #         compactly.  If it's not true, then clarify why the
+        #         trimming is necessary.
 
         if len(self.windows) == 0:
             return tuple()
