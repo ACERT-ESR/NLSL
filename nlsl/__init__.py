@@ -1751,15 +1751,16 @@ class nlsl(object):
         convenient companion for code that first trims the shared storage and
         then wants per-spectrum views into the trimmed NumPy array without
         carrying the unused leading or trailing buffer space.
+
+        No fitting points are dropped by this remapping.  The actual Fortran
+        fit uses the original shared-buffer layout described by ``ixsp`` and
+        ``npts`` in ``expdat``, together with ``ndatot`` for the total stored
+        point count.  ``relative_windows`` is only a Python indexing helper
+        that re-expresses those same active regions relative to the trimmed
+        NumPy block ``min_start:max_stop``.  Likewise, :attr:`current_spectrum`
+        still contains the full active calculated span; these slices only tell
+        Python where each individual spectrum lives within that packed result.
         """
-        # TODO ☐: modify above to clarify -- does this imply that some portion
-        #         of the spectrum are left out fo the least-squares fitting?
-        #         Are they also left out of the spectrum returned by
-        #         current_spectrum? (hopefully not!)
-        #         If this is the case, they should be renamed into
-        #         fit_active_slices or something like that.  Also explain: how
-        #         were these set in the original fortran code (give the
-        #         parameter names)?
 
         if len(self.windows) == 0:
             return tuple()
@@ -1975,8 +1976,12 @@ class nlsl(object):
         array as :attr:`weights`.  Those coefficients are not constrained to
         sum to unity, and if Fortran's ``iscal`` flag is zero for a site then
         the existing ``sfac`` value is treated as fixed instead of being
-        re-optimised.  The data setter therefore only records the
-        experimental trace; :meth:`fit` is what updates the autoscaled model.
+        re-optimised.  The current public Python API does not yet surface
+        ``iscal`` directly through ``model[...]``; unless a caller reaches
+        into the underlying Fortran core manually, NLSL keeps the Fortran
+        default ``iscal(i)=1`` for every site.  The data setter therefore
+        only records the experimental trace; :meth:`fit` is what updates the
+        autoscaled model.
         """
 
         if _HAS_PYSPECDATA and isinstance(values, nddata):
