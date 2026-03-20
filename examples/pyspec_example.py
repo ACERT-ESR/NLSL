@@ -93,12 +93,9 @@ n.data = d
 # they simply provide the best-fit overall amplitude, and for multiple sites
 # they provide the best-fit linear combination of site spectra.
 # They are only user-fixed if Fortran's ``iscal`` flag is turned off for a
-# site; otherwise fitting recomputes them.
-# At the moment ``iscal`` is not surfaced through the public Python
-# mapping (so ``n['iscal']`` is not a supported public control).  Unless
-# you modify the underlying Fortran core directly, Python therefore uses
-# the Fortran startup default ``iscal(i)=1`` for every site, meaning
-# autoscaling is on.
+# site; otherwise fitting recomputes them.  Python exposes that flag as
+# ``n['iscal']``.  If you never touch it, Fortran startup leaves
+# ``iscal(i)=1`` for every site, so autoscaling is on by default.
 
 psd.plot(n.current_spectrum, alpha=0.35, label="initial guess")
 

@@ -87,3 +87,16 @@ def test_load_raw_datafile_defaults_without_spline_arguments():
 
     data_span = model._core.expdat.data[: model.max_points]
     assert np.count_nonzero(data_span) > 0
+
+
+# TODO ☐: parametrize for 1 through 3 sites
+def test_iscal_exposed_through_mapping():
+    model = nlsl.nlsl()
+    model["nsite"] = 2
+
+    assert int(model["iscal"]) == 1
+
+    model["iscal"] = [1, 0]
+
+    assert np.array_equal(model["iscal"], np.array([1, 0]))
+    assert int(model._core.mspctr.iscglb) == 0

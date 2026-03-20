@@ -1223,6 +1223,14 @@ class nlsl(object):
             if np.all(values == values[0]):
                 return int(values[0])
             return values
+        if key == "iscal":
+            nsite = int(_fortrancore.parcom.nsite)
+            if nsite <= 0:
+                return 1
+            values = _fortrancore.mspctr.iscal[:nsite].copy()
+            if np.all(values == values[0]):
+                return int(values[0])
+            return values
         if key in ("shift", "shft"):
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
@@ -1482,6 +1490,19 @@ class nlsl(object):
             limit = min(values.size, nspc)
             filled[:limit] = values[:limit]
             expdat.ishft[:nspc] = filled
+            self._last_site_spectra = None
+            return
+        if key == "iscal":
+            values = np.atleast_1d(np.asarray(v, dtype=int))
+            if values.size == 0:
+                raise ValueError("iscal requires at least one value")
+            nsite = max(int(_fortrancore.parcom.nsite), 1)
+            filled = np.empty(nsite, dtype=np.int32)
+            filled[:] = int(values[0])
+            limit = min(values.size, nsite)
+            filled[:limit] = values[:limit]
+            _fortrancore.mspctr.iscal[:nsite] = filled
+            _fortrancore.mspctr.iscglb = 1 if np.all(filled != 0) else 0
             self._last_site_spectra = None
             return
         if key in ("shift", "shft"):
@@ -1750,7 +1771,11 @@ class nlsl(object):
         ``min_start:max_stop`` cut out of those arrays.  That makes them the
         convenient companion for code that first trims the shared storage and
         then wants per-spectrum views into the trimmed NumPy array without
-        carrying the unused leading or trailing buffer space.
+        carrying the unused leading or trailing buffer space.  Here
+        "trimmed" means that Python has rebased the shared Fortran storage
+        onto the smallest contiguous NumPy block that still contains every
+        active spectrum, so the first active point becomes index 0 in that
+        temporary array.
 
         No fitting points are dropped by this remapping.  The actual Fortran
         fit uses the original shared-buffer layout described by ``ixsp`` and
@@ -1760,10 +1785,11 @@ class nlsl(object):
         NumPy block ``min_start:max_stop``.  Likewise, :attr:`current_spectrum`
         still contains the full active calculated span; these slices only tell
         Python where each individual spectrum lives within that packed result.
+        ``windows`` are therefore the right slices when Python is indexing the
+        original Fortran-backed storage directly, while ``relative_windows``
+        are the right slices after Python has already created that trimmed,
+        re-based NumPy block and now needs indices that are valid inside it.
         """
-        # TODO ☐: you are still no explaining above why we need
-        #         (allegedly) both .windows and .relative_windows.  Also
-        #         you are not explaining what you mean by "trimmed."
 
         if len(self.windows) == 0:
             return tuple()
@@ -1979,16 +2005,12 @@ class nlsl(object):
         array as :attr:`weights`.  Those coefficients are not constrained to
         sum to unity, and if Fortran's ``iscal`` flag is zero for a site then
         the existing ``sfac`` value is treated as fixed instead of being
-        re-optimised.  The current public Python API does not yet surface
-        ``iscal`` directly through ``model[...]``; unless a caller reaches
-        into the underlying Fortran core manually, NLSL keeps the Fortran
-        default ``iscal(i)=1`` for every site.  The data setter therefore
-        only records the experimental trace; :meth:`fit` is what updates the
-        autoscaled model.
+        re-optimised.  Python exposes that flag as ``model['iscal']``.  By
+        default Fortran initialises ``iscal(i)=1`` for every site, so
+        autoscaling is on unless the caller explicitly turns it off.  The
+        data setter therefore only records the experimental trace; :meth:`fit`
+        is what updates the autoscaled model.
         """
-        # TODO ☐: you need to allow access to iscal, where as
-        #         nlsl['iscal'] or nlsl.fit_params['iscal'], or whatever
-        #         makes sense.
 
         if _HAS_PYSPECDATA and isinstance(values, nddata):
             if not values.dimlabels:
