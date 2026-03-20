@@ -1761,6 +1761,9 @@ class nlsl(object):
         still contains the full active calculated span; these slices only tell
         Python where each individual spectrum lives within that packed result.
         """
+        # TODO ☐: you are still no explaining above why we need
+        #         (allegedly) both .windows and .relative_windows.  Also
+        #         you are not explaining what you mean by "trimmed."
 
         if len(self.windows) == 0:
             return tuple()
@@ -1983,6 +1986,9 @@ class nlsl(object):
         only records the experimental trace; :meth:`fit` is what updates the
         autoscaled model.
         """
+        # TODO ☐: you need to allow access to iscal, where as
+        #         nlsl['iscal'] or nlsl.fit_params['iscal'], or whatever
+        #         makes sense.
 
         if _HAS_PYSPECDATA and isinstance(values, nddata):
             if not values.dimlabels:
