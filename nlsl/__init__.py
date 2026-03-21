@@ -11,7 +11,7 @@ try:
 except Exception:
     pass
 try:
-    test = nddata(r_[0:10],"t")
+    test = nddata(np.r_[0:10],"t")
     _HAS_PYSPECDATA = True
 except Exception:
     _HAS_PYSPECDATA = False
