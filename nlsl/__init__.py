@@ -8,9 +8,13 @@ from .data import process_spectrum, read_ascii_spectrum
 
 try:
     from pyspecdata import nddata
-
-    _HAS_PYSPECDATA = True
 except Exception:
+    pass
+
+try:
+    test = nddata(r_[0:10],"t")
+    _HAS_PYSPECDATA = True
+except exception:
     _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
@@ -2121,11 +2125,7 @@ class nlsl(object):
         is what updates the autoscaled model.
         """
 
-        if (
-            _HAS_PYSPECDATA
-            and hasattr(values, "dimlabels")
-            and hasattr(values, "data")
-        ):
+        if hasattr(values, "dimlabels") and hasattr(values, "data"):
             if not values.dimlabels:
                 raise ValueError(
                     "nddata objects must supply at least one dimension label"
