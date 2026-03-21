@@ -11,7 +11,7 @@ and to show what it looks like.
 (As elsewhere, comments make use of fold markers where {{{ and }}} indicate the
 beginning and end of the section that the comment pertains to.)
 """
-import os
+
 import importlib.resources as resources
 import numpy as np
 import pyspecdata as psd
@@ -37,11 +37,15 @@ if not Path(psd.getDATADIR("nlsl_examples")).exists():
     )
 # }}}
 
+# first, we load the data from the registered directory (exp_type is a weird
+# name for registered directory)
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
-field_axis = d[d.dimlabels[0]] # the field axis is called "$B_0$" so that it
+field_axis = d[d.dimlabels[0]]  # the field axis is called "$B_0$" so that it
 #                                looks pretty, so we just store it out of
 #                                laziness.
+# next, this is a multi-harmonic file, so we pull the first harmonic
 d = d.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
+# and we give it a name
 d.name("230621: RM with $w_0=10$")
 n = nlsl.nlsl()
 
@@ -77,13 +81,14 @@ n["mmx"] = (2, 2)
 n["rpll"] = np.log10(1.0e8)
 n["rprp"] = 8.0
 n["gib0"] = 1.5
+n["betad"] = 15.0
 n.shift = True
 # }}}
 plt.figure("RS ESR fit example")
 # Show the raw data -- note that the field axis, units, etc, are preloaded as
 # part of the pySpecData nddata object.
-psd.plot(d, alpha=0.45, label="experimental")
-n.data = d.real # convolution introduced zero imag, so need to return
+psd.plot(d, alpha=0.45, label="experimental: " + d.name())
+n.data = d.real  # convolution introduced zero imag, so need to return
 #                 real
 
 # ``current_spectrum`` now carries the field axis and site labels directly.
@@ -128,16 +133,16 @@ psd.plot(
 )
 # }}}
 
-# TODO ☐: here, I also want to be able to optimize the diffusion tilt angle, so add that in
 # {{{ now enable fit of dynamic parameters, and fit again
 for token in ("rpll", "rprp", "gib0"):
     n.fit_params.vary[token] = True
+n.fit_params.vary["betad"] = {"minimum": 0.0, "maximum": 90.0}
 n.fit()
 # }}}
 
 # {{{ ``current_spectrum`` now carries the field axis and site labels directly.
 psd.plot(n.weights @ n.current_spectrum, alpha=0.8, label="NLSL fit")
 # }}}
-plt.legend(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0)
+plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0)
 plt.tight_layout()
 plt.show()

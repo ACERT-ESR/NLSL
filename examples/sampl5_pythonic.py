@@ -46,32 +46,24 @@ def main():
     model["c22"] = np.array([1.0, 0.0])
     model["nort"] = np.array([0.0, 10.0])
 
-    # TODO ☐: copy the following exact explanation message to wherever
-    #         process_spectrum is used in the code
     # In the original NLSL runfiles, ``data ... nspline ... bc ... norm`` did
     # file I/O, spline/baseline preprocessing, optional normalization, and the
-    # final copy into NLSL's Fortran buffers in one bundled step.
-    # In the Python wrapper we separate those stages deliberately, for
-    # greater transparency in terms of what the code is doing:
-    #   1. ``process_spectrum(...)`` makes the preprocessing explicit
-    #   2. ``generate_coordinates(...)`` sets the x axis
-    #   3. ``model.data``/``model.name``/ ``model.noise`` set the name
-    #      of the data and the noise that's used to weight different
-    #      spectra (if present)
-    # Be sure to see the *pyspec* examples, which show how a lot of this
-    # is simplified by pairing with pyspecdata.
-    # TODO ☐: also move the comment pertaining to normalize next to the
-    #         appropriate kwarg, exactly as follows
+    # final copy into NLSL's Fortran buffers in one bundled step.  In the
+    # Python examples we separate those stages deliberately: first
+    # ``process_spectrum(...)`` makes the preprocessing explicit, then
+    # ``generate_coordinates(...)`` plus ``model.data``/``model.name``/
+    # ``model.noise`` load the already-processed spectrum into NLSL.  That
+    # split is more verbose, but it makes it clear exactly what happened to
+    # the experimental data before fitting.
     processed_500 = process_spectrum(
         examples_dir / "sampl500.dat",
         NSPLINE_POINTS,
         BASELINE_EDGE_POINTS,
         derivative_mode=model.derivative_mode,
-        normalize=True, # ``normalize=True`` preprocesses both
-        #                  experimental traces onto the same normalized
-        #                  scale as the old loader, but the explicit
-        #                  processed-data workflow does not preserve the
-        #                  legacy ``nrmlz`` bookkeeping flag.
+        normalize=True,  # ``normalize=True`` preprocesses both
+        # experimental traces onto the same normalized scale as the old
+        # loader, but the explicit processed-data workflow does not preserve
+        # the legacy ``nrmlz`` bookkeeping flag.
     )
     idx_500 = model.generate_coordinates(
         processed_500.start,
@@ -86,7 +78,7 @@ def main():
         NSPLINE_POINTS,
         BASELINE_EDGE_POINTS,
         derivative_mode=model.derivative_mode,
-        normalize=True,
+        normalize=True,  # Same normalization note as above applies here.
     )
     idx_590 = model.generate_coordinates(
         processed_590.start,
