@@ -84,7 +84,7 @@ n["gib0"] = 1.5
 n["betad"] = 15.0
 n.shift = True
 # }}}
-plt.figure("RS ESR fit example")
+plt.figure("RS ESR fit example", figsize=(10,6))
 # Show the raw data -- note that the field axis, units, etc, are preloaded as
 # part of the pySpecData nddata object.
 psd.plot(d, alpha=0.45, label="experimental: " + d.name())
@@ -139,10 +139,23 @@ for token in ("rpll", "rprp", "gib0"):
 n.fit_params.vary["betad"] = {"minimum": 0.0, "maximum": 90.0}
 n.fit()
 # }}}
-
 # {{{ ``current_spectrum`` now carries the field axis and site labels directly.
 psd.plot(n.weights @ n.current_spectrum, alpha=0.8, label="NLSL fit")
 # }}}
+# {{{ now enable fit of tensor parameters, and fit again
+for token in (a+2*b for b in ["x","y","z"] for a in ["a"]):
+    n.fit_params.vary[token] = True
+n.fit()
+# releasing all at once gives craziness, so do A first, which has greater
+# effect
+for token in (a+2*b for b in ["x","y","z"] for a in ["g"]):
+    n.fit_params.vary[token] = True
+n.fit()
+# }}}
+# {{{ ``current_spectrum`` now carries the field axis and site labels directly.
+psd.plot(n.weights @ n.current_spectrum, alpha=0.8, label="NLSL fit, with tensors")
+# }}}
+
 plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0)
 plt.tight_layout()
 plt.show()
