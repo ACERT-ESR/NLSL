@@ -1,3 +1,16 @@
+"""
+pySpecData example
+==================
+
+pySpecData already directly loads Bruker datafiles, so we show how to directly
+load a data file and fit it with NLSL.
+
+As part of this, we show how to generate a somewhat reasonable initial guess,
+and to show what it looks like.
+
+(As elsewhere, comments make use of fold markers where {{{ and }}} indicate the
+beginning and end of the section that the comment pertains to.)
+"""
 import os
 import importlib.resources as resources
 import numpy as np
@@ -6,15 +19,13 @@ import re
 import nlsl
 from pathlib import Path
 from pyspecdata.datadir import pyspec_config
-from matplotlib.pyplot import figure
+import matplotlib.pyplot as plt
 from numpy import r_
 
+# {{{ This section seems complicated, but simply makes sure that pyspecdata
+# knows where the examples that ship with NLSL are located.
+# Thanks to R. Shathy for this data.
 if not Path(psd.getDATADIR("nlsl_examples")).exists():
-    # Register the packaged examples directory.  We materialize a file that we
-    # know is part of the wheel (``__init__.py``) to locate the installed
-    # package root; this works with meson and other editable loaders that
-    # refuse to materialize directories.  If the packaged DSC is unavailable,
-    # fall back to the source tree copy.
     with resources.as_file(
         resources.files("nlsl").joinpath("__init__.py")
     ) as installed_loc:
@@ -24,18 +35,20 @@ if not Path(psd.getDATADIR("nlsl_examples")).exists():
     pyspec_config.set_setting(
         "ExpTypes", "nlsl_examples", str(packaged_dir.absolute())
     )
+# }}}
 
 d = psd.find_file(re.escape("230621_w0_10.DSC"), exp_type="nlsl_examples")
-d.set_units(
-    "$B_0$", None
-)  # just for now, because I'm not prepared to deal with the weirdness, yet
+field_axis = d[d.dimlabels[0]] # the field axis is called "$B_0$" so that it
+#                                looks pretty, so we just store it out of
+#                                laziness.
 d = d.chunk_auto("harmonic")["harmonic", 0]["phase", 0]
-d.name("230621_w0_10.DSC")
+d.name("230621: RM with $w_0=10$")
 n = nlsl.nlsl()
 
-field_axis = d[d.dimlabels[0]]
 max_points = n.max_points
-# {{{ we use convolution to downsample the data
+# {{{ using pySpecData allows us to do more advanced pre-processing → e.g.
+#     here, we use convolution averaging to downsample our data, rather than
+#     relying on splines as in other examples.
 if field_axis.size > max_points:
     divisor = d.shape["$B_0$"] // max_points + 1
     dB = np.diff(d["$B_0$"][r_[0, 1]]).item()
@@ -49,7 +62,7 @@ if field_axis.size > max_points:
     d *= d_orig_max / d.max()
 # }}}
 
-# Provide reasonable starting parameters so the fit can run immediately.
+# {{{ Provide reasonable starting parameters so the fit can run immediately.
 n["gxx"] = 2.0089
 n["gyy"] = 2.0021
 n["gzz"] = 2.0058
@@ -64,22 +77,21 @@ n["mmx"] = (2, 2)
 n["rpll"] = np.log10(1.0e8)
 n["rprp"] = 8.0
 n["gib0"] = 1.5
-
+# }}}
+# {{{ set parameters related to the fit
 for token in ("rpll", "rprp", "gib0"):
     n.fit_params.vary[token] = True
-
 n.fit_params["maxitr"] = 20
 n.fit_params["maxfun"] = 400
 n.fit_params["ftol"] = 1.0e-3
 n.fit_params["xtol"] = 1.0e-3
-
-figure("RS ESR fit example")
+# }}}
+plt.figure("RS ESR fit example")
+# Show the raw data -- note that the field axis, units, etc, are preloaded as
+# part of the pySpecData nddata object.
 psd.plot(d, alpha=0.45, label="experimental")
-# Assigning nddata records its field axis directly and leaves the supplied
-# amplitudes untouched.  The raw-file ``normalize=...`` keyword is what maps
-# to Fortran's old ``NORM``/``NONORM`` preprocessing switch; this nddata path
-# deliberately skips that integral-based rescaling step.
-n.data = d
+n.data = d.real # convolution introduced zero imag, so need to return
+#                 real
 
 # ``current_spectrum`` now carries the field axis and site labels directly.
 # this shows the initial guess
@@ -97,7 +109,9 @@ n.data = d
 # ``n['iscal']``.  If you never touch it, Fortran startup leaves
 # ``iscal(i)=1`` for every site, so autoscaling is on by default.
 
-psd.plot(n.current_spectrum, alpha=0.35, label="initial guess")
+n.weights = r_[600]
+
+psd.plot(n.weights @ n.current_spectrum, alpha=0.35, label="initial guess")
 
 # Run a quick fit using the single-site parameters above so the
 # least-squares weights are updated before plotting the nddata outputs.
@@ -106,3 +120,6 @@ n.fit()
 # ``current_spectrum`` now carries the field axis and site labels directly.
 psd.plot(n.current_spectrum, alpha=0.35, label="NLSL sites")
 psd.plot(n.weights @ n.current_spectrum, alpha=0.8, label="NLSL fit")
+plt.legend(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0)
+plt.tight_layout()
+plt.show()

@@ -104,8 +104,8 @@ def main():
         normalize=False,
     )
 
-    field_start = float(proc.start)
-    field_step = float(proc.step)
+    field_start = proc.start
+    field_step = proc.step
     point_count = proc.y.size
     y_exp = proc.y.copy()
 

@@ -71,12 +71,17 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=False,
     )
-    stop = float(processed.start) + float(processed.step) * max(
+    # TODO ☐: just have processed data return a stop attribute so that
+    #         we can get rid of the following calculation that shows up
+    #         in all the examples!
+    stop = processed.start + processed.step * max(
         int(processed.y.size) - 1,
         0,
     )
+    # TODO ☐: as noted elsewhere, make the int in the follow not needed,
+    #         so all examples can be cleaned up
     idx = model.generate_coordinates(
-        float(processed.start),
+        processed.start,
         stop,
         int(processed.y.size),
     )

@@ -195,12 +195,12 @@ def run_pythonic(runfile_name):
                 derivative_mode=model.derivative_mode,
                 normalize=False,
             )
-            stop = float(processed.start) + float(processed.step) * max(
+            stop = processed.start + processed.step * max(
                 int(processed.y.size) - 1,
                 0,
             )
             idx = model.generate_coordinates(
-                float(processed.start),
+                processed.start,
                 stop,
                 int(processed.y.size),
             )

@@ -74,12 +74,12 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop_200 = float(processed_200.start) + float(processed_200.step) * max(
+    stop_200 = processed_200.start + processed_200.step * max(
         int(processed_200.y.size) - 1,
         0,
     )
     idx_200 = model.generate_coordinates(
-        float(processed_200.start),
+        processed_200.start,
         stop_200,
         int(processed_200.y.size),
     )
@@ -93,12 +93,12 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop_290 = float(processed_290.start) + float(processed_290.step) * max(
+    stop_290 = processed_290.start + processed_290.step * max(
         int(processed_290.y.size) - 1,
         0,
     )
     idx_290 = model.generate_coordinates(
-        float(processed_290.start),
+        processed_290.start,
         stop_290,
         int(processed_290.y.size),
     )
