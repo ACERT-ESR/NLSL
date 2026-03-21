@@ -5,12 +5,13 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
+    "nsite": 2,
     "in2": 2,
     "gxx": 2.0089,
     "gyy": 2.0021,
@@ -31,71 +32,87 @@ FIT_CONTROLS = {
     "maxfun": 1000,
 }
 
-SETUP_COMMANDS = [
-    "sites 2",
-    "series psi 0 90",
-    "basis sampl5",
-    "let c20(1) = 4",
-    "let c22(1) = 1",
-    "let c20(2) = 0.2",
-    "let c22(2) = 0",
-    "let nort(2) = 10",
-]
-
-FIT_STEPS = [
-    ["vary gib0(*) rbar(*)"],
-    ["vary c20(*)"],
-    ["vary n(*) c22(*)"],
-]
-
-FINAL_REFINEMENT = [
-    "search gib2(1)",
-    "search gib2(2)",
-    "search rbar(2)",
-    "fix all",
-    "vary rbar(2) n(2) c20(2) c22(2) gib0(2)",
-]
-
-
 def main():
     """Execute the ``sampl5`` MOMD refinement from Python."""
 
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
 
-    for command in SETUP_COMMANDS:
-        model.procline(command)
+    model.series("psi", (0.0, 90.0))
+    model.load_basis("sampl5")
+    model["c20"] = np.array([4.0, 0.2])
+    model["c22"] = np.array([1.0, 0.0])
+    model["nort"] = np.array([0.0, 10.0])
 
-    model.load_data(
+    # In the original NLSL runfiles, ``data ... nspline ... bc ... norm`` did
+    # file I/O, spline/baseline preprocessing, optional normalization, and the
+    # final copy into NLSL's Fortran buffers in one bundled step.  In the
+    # Python examples we separate those stages deliberately: first
+    # ``process_spectrum(...)`` makes the preprocessing explicit, then
+    # ``generate_coordinates(...)`` plus ``model.data``/``model.name``/
+    # ``model.noise`` load the already-processed spectrum into NLSL.  That
+    # split is more verbose, but it makes it clear exactly what happened to
+    # the experimental data before fitting.
+    processed_500 = process_spectrum(
         examples_dir / "sampl500.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
+        normalize=True,  # ``normalize=True`` preprocesses both
+        # experimental traces onto the same normalized scale as the old
+        # loader, but the explicit processed-data workflow does not preserve
+        # the legacy ``nrmlz`` bookkeeping flag.
     )
-    model.load_data(
+    idx_500 = model.generate_coordinates(
+        processed_500.start,
+        processed_500.stop,
+        processed_500.y.size,
+    )
+    model.data = processed_500.y
+    model.name(str(examples_dir / "sampl500"), spectrum=idx_500)
+    model.noise(processed_500.noise, spectrum=idx_500)
+    processed_590 = process_spectrum(
         examples_dir / "sampl590.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
-        normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
+        normalize=True,  # Same normalization note as above applies here.
     )
+    idx_590 = model.generate_coordinates(
+        processed_590.start,
+        processed_590.stop,
+        processed_590.y.size,
+    )
+    model.data = processed_590.y
+    model.name(str(examples_dir / "sampl590"), spectrum=idx_590)
+    model.noise(processed_590.noise, spectrum=idx_590)
 
     model.weights = np.ones((2, 2))
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    for commands in FIT_STEPS:
-        for command in commands:
-            model.procline(command)
-        model.fit()
+    all_sites = {"index": [1, 2]}
+    model.fit_params.vary["gib0"] = all_sites
+    model.fit_params.vary["rbar"] = all_sites
+    model.fit()
 
-    for command in FINAL_REFINEMENT:
-        model.procline(command)
+    model.fit_params.vary["c20"] = all_sites
+    model.fit()
+
+    model.fit_params.vary["n"] = all_sites
+    model.fit_params.vary["c22"] = all_sites
+    model.fit()
+
+    model.search("gib2", site=1)
+    model.search("gib2", site=2)
+    model.search("rbar", site=2)
+
+    model.fit_params.vary.clear()
+    for token in ("rbar", "n", "c20", "c22", "gib0"):
+        model.fit_params.vary[token] = {"index": 2}
     site_spectra = model.fit()
 
     weights = model.weights
@@ -111,24 +128,20 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
+    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, windows[idx]]
         )
 
     combined_num = 0.0

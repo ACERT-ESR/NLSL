@@ -5,10 +5,10 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 0
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -38,59 +38,65 @@ FIT_CONTROLS = {
     "maxfun": 1000,
 }
 
-SERIES_COMMANDS = ["series psi = 0, 90"]
-
-SEARCH_COMMANDS = [
-    "search rbar",
-    "search betad step 5 bound 45",
-    "search c20",
-    "search c22",
-    "search gib0",
-]
-
-VARY_PHASE_ONE = ["vary gib0, rbar, c20"]
-VARY_PHASE_TWO = ["vary gib2, n, c22, betad"]
-
-
 def main():
     """Execute the ``sampl2a`` fitting workflow without legacy scripts."""
 
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = False
 
-    for command in SERIES_COMMANDS:
-        model.procline(command)
+    model.series("psi", (0.0, 90.0))
 
-    model.load_data(
+    # ``normalize=True`` rescales both processed spectra before they are
+    # copied into the NLSL buffers.  The explicit processed-data path does
+    # not preserve the legacy ``nrmlz`` bookkeeping flag.
+    processed_200 = process_spectrum(
         examples_dir / "sampl200.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=False,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
-    model.load_data(
+    idx_200 = model.generate_coordinates(
+        processed_200.start,
+        processed_200.stop,
+        processed_200.y.size,
+    )
+    model.data = processed_200.y
+    model.name(str(examples_dir / "sampl200"), spectrum=idx_200)
+    model.noise(processed_200.noise, spectrum=idx_200)
+    processed_290 = process_spectrum(
         examples_dir / "sampl290.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=False,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx_290 = model.generate_coordinates(
+        processed_290.start,
+        processed_290.stop,
+        processed_290.y.size,
+    )
+    model.data = processed_290.y
+    model.name(str(examples_dir / "sampl290"), spectrum=idx_290)
+    model.noise(processed_290.noise, spectrum=idx_290)
 
-    for command in SEARCH_COMMANDS:
-        model.procline(command)
+    model.search("rbar")
+    model.search("betad", step=5, bound=45)
+    model.search("c20")
+    model.search("c22")
+    model.search("gib0")
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    for command in VARY_PHASE_ONE:
-        model.procline(command)
+    for token in ("gib0", "rbar", "c20"):
+        model.fit_params.vary[token] = True
     model.fit()
 
-    for command in VARY_PHASE_TWO:
-        model.procline(command)
+    for token in ("gib2", "n", "c22", "betad"):
+        model.fit_params.vary[token] = True
     model.fit()
 
     site_spectra = model.fit()
@@ -107,24 +113,20 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
+    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, windows[idx]]
         )
 
     combined_num = 0.0

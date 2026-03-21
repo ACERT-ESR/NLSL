@@ -25,6 +25,7 @@ class ProcessedSpectrum:
     x: np.ndarray
     y: np.ndarray
     start: float
+    stop: float
     step: float
     baseline_intercept: float
     baseline_slope: float
@@ -236,6 +237,7 @@ def process_spectrum(
         x=xs,
         y=ys,
         start=float(xs[0]),
+        stop=float(xs[-1]),
         step=step,
         baseline_intercept=intercept,
         baseline_slope=slope,

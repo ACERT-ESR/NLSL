@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 400
 DERIVATIVE_MODE = 1
@@ -54,18 +55,27 @@ def main():
     root_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
+    model.derivative_mode = DERIVATIVE_MODE
 
     for command in SETUP_COMMANDS:
         model.procline(command)
 
-    model.load_data(
+    processed = process_spectrum(
         root_dir / "BL05CHSA.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=0,
-        shift=True,
+        NSPLINE_POINTS,
+        0,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(root_dir / "BL05CHSA"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]

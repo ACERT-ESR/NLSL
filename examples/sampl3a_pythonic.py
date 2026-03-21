@@ -5,10 +5,10 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 400
 BASELINE_EDGE_POINTS = 0
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -55,18 +55,34 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
 
     for command in SETUP_COMMANDS:
         model.procline(command)
 
-    model.load_data(
+    # ``normalize=True`` preprocesses the experimental trace onto the
+    # same normalized scale as the old loader, but the explicit
+    # processed-data workflow does not preserve the legacy ``nrmlz``
+    # bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "sampl3.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    # ``generate_coordinates`` allocates the Fortran field axis and the
+    # matching shared-buffer window for this processed spectrum.  The x-axis
+    # metadata lives there; the subsequent ``model.data = ...`` call only
+    # copies intensities into the newly allocated window.
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "sampl3"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
@@ -96,24 +112,20 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
+    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, windows[idx]]
         )
 
     combined_num = 0.0

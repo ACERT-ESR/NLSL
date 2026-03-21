@@ -1,15 +1,18 @@
 import numpy as np
 import pytest
-
 import nlsl
+from nlsl.data import process_spectrum
 from tests.sampl4_reference import (
     BASELINE_EDGE_POINTS,
-    DERIVATIVE_MODE,
     NSPLINE_POINTS,
     SAMPL4_DATA_PATH,
+    SAMPL4_FIELD_START,
+    SAMPL4_FIELD_STEP,
     SAMPL4_FIT_CONTROLS,
     SAMPL4_INITIAL_PARAMETERS,
+    SAMPL4_POINT_COUNT,
     SAMPL4_PARAMETERS_TO_VARY,
+    SAMPL4_SPECTRAL_DATA,
 )
 
 
@@ -20,14 +23,22 @@ def run_pythonic_sampl4_fit():
     model = nlsl.nlsl()
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
-    model.load_data(
+    model.shift = True
+    processed = process_spectrum(
         SAMPL4_DATA_PATH,
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(SAMPL4_DATA_PATH.with_suffix("")), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
         model.procline(f"vary {token}")
@@ -87,3 +98,51 @@ def test_current_spectrum_matches_fit_components(sampl4_fit_result):
         sampl4_fit_result["simulated_total"],
         atol=3e-6,
     )
+
+
+def test_load_nddata_runs_fit_cycle():
+    """Verify nddata assignment ingests a prepared spectrum and converges."""
+
+    try:
+        from pyspecdata.core import nddata
+    except ImportError:
+        pytest.fail("pyspecdata is required for the nddata loader test")
+
+    model = nlsl.nlsl()
+    model.update(SAMPL4_INITIAL_PARAMETERS)
+
+    fields = SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * np.arange(
+        SAMPL4_POINT_COUNT
+    )
+    dataset = nddata(
+        SAMPL4_SPECTRAL_DATA.copy(), [SAMPL4_POINT_COUNT], ["field"]
+    )
+    dataset.name("sampl4.dat")
+    dataset.setaxis(dataset.dimlabels[0], fields)
+
+    model.shift = True
+    model.data = dataset
+
+    for token in SAMPL4_PARAMETERS_TO_VARY:
+        model.procline(f"vary {token}")
+
+    for key in SAMPL4_FIT_CONTROLS:
+        model.fit_params[key] = SAMPL4_FIT_CONTROLS[key]
+
+    model.fit()
+    site_spectra = model.fit()
+
+    simulated_total = model.weights @ site_spectra
+    field_label = simulated_total.dimlabels[0]
+    simulated_total = np.array(
+        [
+            simulated_total[field_label, j].item()
+            for j in range(len(simulated_total.getaxis(field_label)))
+        ],
+        dtype=float,
+    )
+    experimental = np.squeeze(model.experimental_data)
+    residual = simulated_total - experimental
+    rel_rms = np.linalg.norm(residual) / np.linalg.norm(experimental)
+
+    assert rel_rms < 0.0401

@@ -3,7 +3,15 @@ import os
 from pathlib import Path
 from collections.abc import Mapping
 import numpy as np
-from .data import process_spectrum
+import warnings
+from .data import process_spectrum, read_ascii_spectrum
+
+try:
+    from pyspecdata import nddata
+
+    _HAS_PYSPECDATA = True
+except Exception:
+    _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
     "phase",
@@ -33,14 +41,14 @@ def _decode_lpnam_array(array, width):
             .view(dtype="|S%d" % width)[:, 0]
             .tolist()
         )
-    tokens = []
-    # TODO: the following loop should be handled with a list comprehension
-    for raw in raw_entries:
-        if isinstance(raw, bytes):
-            text = raw.decode("ascii")
-        else:
-            text = str(raw)
-        tokens.append(text.upper().rstrip())
+    # Decode each entry and normalise the tokens in a single pass so the
+    # surrounding logic does not need to maintain an accumulator.
+    tokens = [
+        (raw.decode("ascii") if isinstance(raw, bytes) else str(raw))
+        .upper()
+        .rstrip()
+        for raw in raw_entries
+    ]
     return tuple(tokens)
 
 
@@ -75,23 +83,6 @@ class FitParameterVaryMapping(object):
                 # associated with the parameter in question.
                 records.append((int(parcom.ixst[position]), position))
         return records
-
-    # TODO: this should not be a private function.  Make it a method of the
-    # class.
-    def _resolve_parameter(self, token):
-        """Resolve *token* into canonical metadata and index codes."""
-
-        if self._model is None:
-            raise RuntimeError("parameter resolution requires an nlsl model")
-        canonical = self._model.canonical_name(token)
-        code = self._model.parameter_index(token)
-        if canonical in self._model._fepr_names:
-            base = self._model._fepr_names.index(canonical) + 1
-        elif canonical in self._model._iepr_names:
-            base = self._model._iepr_names.index(canonical) + 1
-        else:
-            raise KeyError(token)
-        return canonical, code, base
 
     def _is_spectrum_parameter(self, parameter):
         spectral = []
@@ -142,8 +133,11 @@ class FitParameterVaryMapping(object):
                 " array returned for multi-site parameters instead"
             )
 
+        # Require an attached model so canonical resolution can proceed.
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
         try:
-            _, ix, parameter = self._resolve_parameter(token)
+            _, ix, parameter = self._model.canonical_name(token)
         except KeyError:
             raise KeyError(f"{token} doesn't seem to be a parameter")
         entries = self._entries(parameter)
@@ -200,8 +194,11 @@ class FitParameterVaryMapping(object):
             config = value
         else:
             raise TypeError("vary requires bool or mapping values")
+        # Require an attached model so canonical resolution can proceed.
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
         try:
-            _, ix, parameter = self._resolve_parameter(token)
+            _, ix, parameter = self._model.canonical_name(token)
         except KeyError:
             raise KeyError(f"{token} doesn't seem to be a parameter")
         spectral = self._is_spectrum_parameter(parameter)
@@ -323,8 +320,11 @@ class FitParameterVaryMapping(object):
                 "parameter keys no longer accept explicit indices; remove"
                 " entries by requesting the base name"
             )
+        # Require an attached model so canonical resolution can proceed.
+        if self._model is None:
+            raise RuntimeError("parameter resolution requires an nlsl model")
         try:
-            _, ix, parameter = self._resolve_parameter(token)
+            _, ix, parameter = self._model.canonical_name(token)
         except KeyError:
             raise KeyError(f"{token} doesn't seem to be a parameter")
         entries = self._entries(parameter)
@@ -376,6 +376,179 @@ class FitParameterVaryMapping(object):
             items = other
         for key, val in items:
             self[key] = val
+
+
+class TensorSymmetryMapping(object):
+    """Dictionary-style view of the tensor symmetry flags."""
+
+    _TOKEN_MAP = {
+        "r": ("R", "irflg"),
+        "diffusion": ("R", "irflg"),
+        "g": ("G", "igflg"),
+        "magnetic": ("G", "igflg"),
+        "a": ("A", "iaflg"),
+        "hyperfine": ("A", "iaflg"),
+        "w": ("W", "iwflg"),
+        "linewidth": ("W", "iwflg"),
+    }
+    _MODE_CODES = {
+        "cartesian": 1,
+        "cart": 1,
+        "spherical": 2,
+        "spher": 2,
+        "axial": 3,
+    }
+    _MODE_LABELS = {
+        0: "unset",
+        1: "cartesian",
+        2: "spherical",
+        3: "axial",
+    }
+    _BASE_PARAMETER = {
+        "W": "WXX",
+        "G": "GXX",
+        "A": "AXX",
+        "R": "RX",
+    }
+
+    def __init__(self, model):
+        self._model = model
+
+    def _resolve_token(self, key):
+        if not isinstance(key, str):
+            raise KeyError(key)
+        token = key.strip().lower()
+        if not token:
+            raise KeyError(key)
+        if token not in self._TOKEN_MAP:
+            raise KeyError(key)
+        return self._TOKEN_MAP[token]
+
+    def __getitem__(self, key):
+        _, flag_name = self._resolve_token(key)
+        if flag_name not in self._model._iepr_names:
+            raise KeyError(key)
+        row = self._model._iepr_names.index(flag_name)
+        active_sites = max(self._model.nsites, 1)
+        values = self._model._iparm[row, :active_sites]
+        labels = [self._MODE_LABELS.get(int(val), "unknown") for val in values]
+        if len(labels) == 1:
+            return labels[0]
+        return np.array(labels, dtype=object)
+
+    def __setitem__(self, key, value):
+        canonical, flag_name = self._resolve_token(key)
+        if isinstance(value, str):
+            mode_label = value
+            indices = None
+        elif isinstance(value, Mapping):
+            if "mode" not in value:
+                raise ValueError("tensor symmetry assignments need a mode")
+            mode_label = value["mode"]
+            if "site" in value:
+                indices = value["site"]
+            elif "index" in value:
+                indices = value["index"]
+            elif "spectrum" in value:
+                indices = value["spectrum"]
+            else:
+                indices = None
+        else:
+            raise TypeError(
+                "tensor symmetry values must be strings or mappings"
+            )
+        if not isinstance(mode_label, str):
+            raise ValueError("tensor symmetry mode must be text")
+        mode = mode_label.strip().lower()
+        if mode not in self._MODE_CODES:
+            raise ValueError(f"unknown tensor symmetry '{mode_label}'")
+        flag_row = self._model._iepr_names.index(flag_name)
+        _, _, table_index = self._model.canonical_name(
+            self._BASE_PARAMETER[canonical]
+        )
+        component_start = table_index - 1
+        total_sites = self._model._iparm.shape[1]
+        if indices is None:
+            site_indices = range(total_sites)
+        elif np.isscalar(indices):
+            index = int(indices)
+            if index < 0:
+                raise ValueError("site indices must be non-negative")
+            if index == 0:
+                site_indices = range(total_sites)
+            else:
+                if index > total_sites:
+                    raise IndexError("site index exceeds available entries")
+                site_indices = [index - 1]
+        else:
+            site_indices = []
+            for entry in indices:
+                index = int(entry)
+                if index <= 0:
+                    raise ValueError(
+                        "explicit site indices must be positive integers"
+                    )
+                if index > total_sites:
+                    raise IndexError("site index exceeds available entries")
+                site_indices.append(index - 1)
+        # Look up the converter and bookkeeping tables through the model so the
+        # mapping stays aligned with the instance it manages.
+        core = self._model._core
+        converter = None
+        if mode in ("spherical", "spher"):
+            converter = core.tensym.tosphr
+        elif mode == "axial":
+            converter = core.tensym.toaxil
+        else:
+            converter = core.tensym.tocart
+        ixx_table = core.parcom.ixx
+        tag_table = core.parcom.tag
+        for site_index in site_indices:
+            # Guard against converting tensors whose components are currently
+            # varied so the optimiser's bookkeeping stays consistent.
+            for offset in range(3):
+                var_index = int(
+                    ixx_table[component_start + offset, site_index]
+                )
+                if var_index != 0:
+                    label = tag_table[var_index - 1].decode("ascii").strip()
+                    raise RuntimeError(
+                        f"tensor symmetry unchanged: {canonical} tensor "
+                        f"component is being varied as {label}"
+                    )
+            current_mode = int(self._model._iparm[flag_row, site_index])
+            if current_mode == 0:
+                self._model._iparm[flag_row, site_index] = self._MODE_CODES[
+                    mode
+                ]
+                continue
+            if current_mode == self._MODE_CODES[mode]:
+                continue
+            # Apply the requested conversion in-place so the tensor components
+            # match the new symmetry before updating the bookkeeping flag.
+            converter(
+                self._model._fparm[
+                    component_start : component_start + 3, site_index
+                ],
+                current_mode,
+            )
+            self._model._iparm[flag_row, site_index] = self._MODE_CODES[mode]
+
+    def __contains__(self, key):
+        try:
+            self._resolve_token(key)
+        except KeyError:
+            return False
+        return True
+
+    def keys(self):
+        return list(self._TOKEN_MAP.keys())
+
+    def items(self):
+        return [(key, self[key]) for key in self.keys()]
+
+    def values(self):
+        return [self[key] for key in self.keys()]
 
 
 class fit_params(dict):
@@ -462,6 +635,10 @@ class nlsl(object):
     def __init__(self):
         _fortrancore.nlsinit()
 
+        # Keep a reference to the shared Fortran bindings so helper mappings
+        # can reach the active runtime state through this instance.
+        self._core = _fortrancore
+
         self._fepr_names = [
             name.decode("ascii").strip().lower()
             for name in _fortrancore.eprprm.fepr_name.reshape(-1).tolist()
@@ -499,24 +676,18 @@ class nlsl(object):
         # with the fixed-width Fortran character arrays.
         self._lpnam_tables = {}
         lpnam_module = _fortrancore.lpnam
-        # TODO the following several lines could be implemented more compactly
-        # with a loop
-        self._lpnam_tables["parnam"] = _decode_lpnam_array(
-            lpnam_module.parnam,
-            int(lpnam_module.parnam_strlen),
-        )
-        self._lpnam_tables["iprnam"] = _decode_lpnam_array(
-            lpnam_module.iprnam,
-            int(lpnam_module.iprnam_strlen),
-        )
-        self._lpnam_tables["alias1"] = _decode_lpnam_array(
-            lpnam_module.alias1,
-            int(lpnam_module.alias_strlen),
-        )
-        self._lpnam_tables["alias2"] = _decode_lpnam_array(
-            lpnam_module.alias2,
-            int(lpnam_module.alias_strlen),
-        )
+        for key, attr, length_attr in [
+            ("parnam", "parnam", "parnam_strlen"),
+            ("iprnam", "iprnam", "iprnam_strlen"),
+            ("alias1", "alias1", "alias_strlen"),
+            ("alias2", "alias2", "alias_strlen"),
+        ]:
+            # Decode each lpnam table once so future lookups avoid touching the
+            # Fortran character arrays directly.
+            self._lpnam_tables[key] = _decode_lpnam_array(
+                getattr(lpnam_module, attr),
+                int(getattr(lpnam_module, length_attr)),
+            )
         self._lpnam_tables["iwxx"] = None
         for position, token in enumerate(self._lpnam_tables["parnam"]):
             if token == "WXX":
@@ -525,12 +696,45 @@ class nlsl(object):
         self._fparm = _fortrancore.parcom.fparm
         self._iparm = _fortrancore.parcom.iparm
         self.fit_params = fit_params(self)
-        self._last_layout = None
-        self._last_site_spectra = None
-        self._last_experimental_data = None
+        self.tensor_symmetry = TensorSymmetryMapping(self)
         self._weight_shape = (0, 0)
         self._explicit_field_start = False
         self._explicit_field_step = False
+        self.return_nddata = False
+        # Global model-level controls for data loading and coordinate creation.
+        self._shift = False
+        self._derivative_mode = 1
+
+    @property
+    def max_points(self):
+        """Maximum number of points available for a single spectrum."""
+
+        mxpt = self._core.expdat.data.shape[0]
+        mxspc = self._core.expdat.nft.shape[0]
+        return int(mxpt // max(mxspc, 1))
+
+    @property
+    def shift(self):
+        """Global shift flag used by data-loading and coordinate APIs."""
+
+        return self._shift
+
+    @shift.setter
+    def shift(self, value):
+        self._shift = bool(value)
+
+    @property
+    def derivative_mode(self):
+        """Global derivative mode used by loading and coordinate APIs."""
+
+        return self._derivative_mode
+
+    @derivative_mode.setter
+    def derivative_mode(self, value):
+        if isinstance(value, bool):
+            self._derivative_mode = 1 if value else 0
+        else:
+            self._derivative_mode = int(value)
 
     @property
     def nsites(self) -> int:
@@ -541,7 +745,7 @@ class nlsl(object):
     @nsites.setter
     def nsites(self, value: int) -> None:
         # Propagate the site count to the core and refresh ``sfac`` so newly
-        # exposed rows default to unity populations.
+        # exposed rows default to unity scale factors.
         _fortrancore.parcom.nsite = int(value)
         self._sync_weight_matrix()
 
@@ -559,17 +763,22 @@ class nlsl(object):
 
     @property
     def weights(self):
-        """Expose the active ``/mspctr/sfac/`` populations.
+        """Expose the active ``/mspctr/sfac/`` scale factors.
 
-        ``sfac`` stores one scale factor per (site, spectrum) pair inside a
-        static ``MXSITE × MXSPC`` workspace that the optimiser and the
-        single-point evaluator share.  ``_sync_weight_matrix`` keeps that table
-        aligned with the current ``nsite``/``nspc`` counters so previously
-        fitted populations remain intact when callers change the active site or
-        spectrum counts.  Returning a column view yields a 1D vector for the
-        common single-spectrum case, while the multi-spectrum case exposes an
-        ``(nspc, nsite)`` view via ``transpose``.  Both paths hand out live
-        views, so any edits immediately update the Fortran state.
+        ``sfac`` stores one least-squares coefficient per (site, spectrum)
+        pair inside a static ``MXSITE × MXSPC`` workspace that the optimiser
+        and the single-point evaluator share.  In Fortran, ``lfun`` updates
+        those coefficients through ``sscale`` (or ``sshift`` when shifting is
+        enabled) so the calculated spectra best match the experimental data.
+        They therefore act as overall amplitudes or site contributions, and
+        they are not constrained to sum to unity.  ``_sync_weight_matrix``
+        keeps that table aligned with the current ``nsite``/``nspc`` counters
+        so previously fitted scale factors remain intact when callers change
+        the active site or spectrum counts.  Returning a column view yields a
+        1D vector for the common single-spectrum case, while the
+        multi-spectrum case exposes an ``(nspc, nsite)`` view via
+        ``transpose``.  Both paths hand out live views, so any edits
+        immediately update the Fortran state.
         """
 
         matrix = self._sync_weight_matrix()
@@ -579,8 +788,26 @@ class nlsl(object):
             return np.empty(0, dtype=float)
         active = matrix[:nsite, :nspc]
         if nspc == 1:
-            return active[:, 0]
-        return active.T
+            values = active[:, 0]
+        else:
+            values = active.T
+        if not self.return_nddata:
+            return values
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required for nddata outputs")
+        array = np.asarray(values, dtype=float)
+        if array.ndim == 1:
+            wrapped = nddata(array.copy(), [array.shape[0]], ["sites"])
+            wrapped.set_axis("sites", "#")
+            return wrapped
+        wrapped = nddata(
+            array.copy(),
+            [array.shape[0], array.shape[1]],
+            ["spectrum", "sites"],
+        )
+        wrapped.set_axis("spectrum", "#")
+        wrapped.set_axis("sites", "#")
+        return wrapped
 
     @weights.setter
     def weights(self, values):
@@ -588,8 +815,8 @@ class nlsl(object):
 
         ``sfac`` is shared between the optimiser and any ad-hoc spectrum
         evaluations.  When a caller provides new weights we zero the visible
-        block and rewrite it with the supplied populations so that any entries
-        outside the active range remain at the default value of one.
+        block and rewrite it with the supplied scale factors so that any
+        entries outside the active range remain at the default value of one.
         """
 
         matrix = self._sync_weight_matrix()
@@ -616,16 +843,31 @@ class nlsl(object):
         _fortrancore.procline(val)
 
     def fit(self):
-        """Run the nonlinear least-squares fit using current parameters."""
+        """Run the nonlinear least-squares fit (``fitl``) using current
+        parameters.
+
+        Even when no model parameters are varying, Fortran still calls
+        ``lfun`` once.  That means this method updates the least-squares
+        scale factors in :attr:`weights` and, when shifting is enabled for a
+        spectrum, updates the stored field shifts before returning the site
+        spectra.
+        """
         _fortrancore.fitl()
         return self._capture_state()
 
     @property
     def current_spectrum(self):
-        """Evaluate the current spectral model without running a full fit.
+        """Evaluate the current spectral model without running ``fitl``.
 
-        The returned array contains one row per site; population weights remain
-        available through ``model.weights``.
+        This performs the Fortran ``single_point`` calculation only.  It does
+        not call ``lfun``, so it does not recompute least-squares scale
+        factors or optimise any new data shift.  The returned array therefore
+        contains the raw per-site calculated spectra at the currently stored
+        shifts.  Use :meth:`fit` when you want NLSL to auto-rescale the model
+        to the data before reading :attr:`weights`.
+
+        The returned array contains one row per site unless ``return_nddata``
+        is enabled, in which case the output is wrapped as labelled nddata.
         """
         ndatot = int(_fortrancore.expdat.ndatot)
         nspc = int(_fortrancore.expdat.nspc)
@@ -637,39 +879,74 @@ class nlsl(object):
 
     @property
     def experimental_data(self):
-        """Return the trimmed experimental traces from the most recent capture.
+        """Return experimental data on the shared trimmed fitting span.
 
-        The matrix is shaped as ``(number of spectra, point span)`` so it
-        aligns with ``model.weights @ model.site_spectra``.  Each row contains
-        the measured intensities for the corresponding recorded spectrum,
-        zeroing any samples that fall outside that spectrum's active window.
+        Returns
+        -------
+        ndarray
+            A 2D array with shape ``(nspc, span)``.  Each row is padded with
+            zeros outside the active region of that spectrum so the rows align
+            with ``weights @ site_spectra`` in the legacy ndarray workflow.
+
+        Notes
+        -----
+        This differs from :attr:`data`.  ``data`` returns each loaded
+        spectrum by itself, either as a single trace or as a list of traces,
+        preserving the original point counts and field axes.  By contrast,
+        ``experimental_data`` repacks those same spectra onto one common
+        trimmed span of the shared Fortran work arrays, which is convenient
+        for matrix arithmetic against the similarly packed output of
+        :attr:`current_spectrum` when ``return_nddata`` is ``False``.
         """
 
-        if self._last_experimental_data is None:
+        nspc = int(_fortrancore.expdat.nspc)
+        ndatot = int(_fortrancore.expdat.ndatot)
+        if nspc <= 0 or ndatot <= 0:
             raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_experimental_data
+        min_start = min(window.start for window in self.windows)
+        max_stop = max(window.stop for window in self.windows)
+        trimmed = _fortrancore.expdat.data[min_start:max_stop].copy()
+        stacked = np.zeros((nspc, max_stop - min_start), dtype=float)
+        for idx, window in enumerate(self.relative_windows):
+            stacked[idx, window] = trimmed[window]
+        return stacked
 
     def write_spc(self):
         """Write the current spectra to ``.spc`` files."""
         _fortrancore.wrspc()
 
-    def load_data(
+    def load_raw_datafile(
         self,
-        data_id: str | os.PathLike,
-        *,
-        nspline: int,
-        bc_points: int,
-        shift: bool,
-        normalize: bool = True,
-        derivative_mode: int | None = None,
-    ) -> None:
-        """Load experimental data and update the Fortran state.
+        data_id,
+        nspline=None,
+        bc_points=None,
+        normalize=True,
+        preprocess=True,
+    ):
+        """Load a raw ASCII data file of experimental data and update the Fortran state.
 
-        The workflow mirrors the legacy ``datac`` command but avoids the
-        Fortran file I/O path so that tests can exercise the data
-        preparation logic directly from Python.
+        The workflow mirrors the legacy ``datac`` command, but performs the
+        file read and optional preprocessing from Python before copying the
+        prepared intensities into the active Fortran buffers.
+
+        Passing ``nspline`` keeps the legacy spline-preprocessing behaviour,
+        but that compatibility path is deprecated.  Prefer
+        :func:`nlsl.data.process_spectrum`, then
+        :meth:`generate_coordinates`, :attr:`data`, :meth:`name`, and
+        :meth:`noise`.
+
+        When ``preprocess`` is ``True`` this method calls
+        :func:`nlsl.data.process_spectrum` before :meth:`generate_coordinates`
+        and then copies intensities into :attr:`data`.
+
+        To bypass spline/baseline/normalization preprocessing, set
+        ``preprocess=False``.  In that mode the data is read directly from the
+        ASCII file, must have a uniform field axis, and is loaded into
+        :attr:`data` without calling :func:`nlsl.data.process_spectrum`.
+
+        ``bc_points`` keeps the historical runfile naming: it mirrors the
+        legacy ``bc`` argument used by ``data ... bc <points>``.
         """
-
         path = Path(data_id)
         if not path.exists():
             if path.suffix:
@@ -681,66 +958,245 @@ class nlsl(object):
 
         token = str(path)
         base_name = token[:-4] if token.lower().endswith(".dat") else token
-        mxpt = _fortrancore.expdat.data.shape[0]
-        mxspc = _fortrancore.expdat.nft.shape[0]
-        mxspt = mxpt // max(mxspc, 1)
+        mxspt = self.max_points
 
-        requested_points = int(nspline)
+        spline_params_used = nspline is not None
+        if spline_params_used:
+            # NOTE TO AGENTS: leave this warning in place, in spite of
+            # instructions about backwards compatibility.
+            warnings.warn(
+                    (
+                        "load_raw_datafile spline preprocessing is deprecated; call "
+                        "nlsl.data.process_spectrum(...), then generate_coordinates(...), "
+                        "assign model.data, set model.name(...), and set model.noise(...) "
+                        "instead."
+                        ),
+                    DeprecationWarning,
+                    stacklevel=2,
+                    )
+
+        requested_points = int(nspline) if nspline is not None else 0
         if requested_points > 0:
             requested_points = max(4, min(requested_points, mxspt))
+        if bc_points is None:
+            bc_points = 0
 
-        nser = max(0, int(getattr(_fortrancore.parcom, "nser", 0)))
-        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
+        normalize_active = bool(normalize)
 
-        mode = int(derivative_mode) if derivative_mode is not None else 1
-        spectrum = process_spectrum(
-            path,
-            requested_points,
-            int(bc_points),
-            derivative_mode=mode,
-            normalize=normalize_active,
+        mode = int(self.derivative_mode)
+        if preprocess:
+            spectrum = process_spectrum(
+                path,
+                requested_points,
+                int(bc_points),
+                derivative_mode=mode,
+                normalize=normalize_active,
+            )
+            idx = self.generate_coordinates(
+                spectrum.start,
+                spectrum.start + spectrum.step * max(
+                    int(spectrum.y.size) - 1, 0
+                ),
+                int(spectrum.y.size),
+            )
+            self.data = spectrum.y
+            self.noise(spectrum.noise, spectrum=idx)
+        else:
+            x_raw, y_raw = read_ascii_spectrum(path)
+            if x_raw.size < 1:
+                raise ValueError("spectrum contained no points")
+            if x_raw.size > mxspt:
+                raise ValueError("insufficient storage for spectrum")
+            if x_raw.size > 1:
+                steps = np.diff(x_raw)
+                if not np.allclose(steps, steps[0]):
+                    raise ValueError(
+                        "preprocess=False requires a uniformly spaced field axis"
+                    )
+            idx = self.generate_coordinates(
+                x_raw[0],
+                x_raw[-1],
+                int(y_raw.size),
+            )
+            self.data = np.asarray(y_raw, dtype=float)
+            self.noise(float(np.std(y_raw)), spectrum=idx)
+        self.name(base_name, spectrum=idx)
+
+    def load_basis(self, identifier, spectrum=None, site=None):
+        """Load a basis index file and assign it to optional targets."""
+
+        if not isinstance(identifier, str):
+            raise ValueError("basis identifiers must be strings")
+        token = identifier.strip()
+        if not token:
+            raise ValueError("basis identifier cannot be empty")
+        parts = [token]
+        if spectrum is not None:
+            parts.append("spectrum")
+            parts.append(str(int(spectrum)))
+        if site is not None:
+            parts.append("site")
+            parts.append(str(int(site)))
+        command = " ".join(parts)
+        if len(command) > 80:
+            raise ValueError("basis command exceeds the 80 character limit")
+        _fortrancore.basisc(command)
+
+    def search(self, parameter, site=1, **options):
+        """Perform a one-dimensional search for *parameter* at *site*."""
+
+        if not isinstance(parameter, str):
+            raise ValueError("search expects the parameter name as text")
+        token = parameter.strip()
+        if not token:
+            raise ValueError("parameter name cannot be empty")
+        parts = [token]
+        if site is not None:
+            parts.append(str(int(site)))
+        # ``srchc`` recognises a small, fixed vocabulary of modifiers for the
+        # golden-section driver.  Mirror that list so callers receive a
+        # meaningful error whenever an unsupported keyword slips through.
+        allowed = {
+            "xtol",
+            "ftol",
+            "step",
+            "bound",
+            "maxfun",
+            "srange",
+        }
+        for key, value in options.items():
+            label = key.strip().lower()
+            if label not in allowed:
+                raise ValueError(f"unsupported search option '{key}'")
+            parts.append(label)
+            if label == "maxfun":
+                parts.append(str(int(value)))
+            else:
+                parts.append(str(float(value)))
+        command = " ".join(parts)
+        if len(command) > 80:
+            raise ValueError("search command exceeds the 80 character limit")
+        _fortrancore.srchc(command)
+
+    def series(self, parameter, values):
+        """Configure a series definition for *parameter* with *values*."""
+
+        if not isinstance(parameter, str):
+            raise ValueError("series expects the parameter name as text")
+        token = parameter.strip()
+        if not token:
+            raise ValueError("series parameter cannot be empty")
+        if np.isscalar(values):
+            raise ValueError(
+                "series requires a sequence of at least two values"
+            )
+        sequence = [float(item) for item in values]
+        if len(sequence) < 2:
+            raise ValueError("series requires at least two values")
+        parts = [token]
+        parts.extend(str(entry) for entry in sequence)
+        command = "series " + " ".join(parts)
+        if len(command) > 80:
+            raise ValueError("series command exceeds the 80 character limit")
+        self.procline(command)
+
+    def _active_spectrum_index(self, spectrum=None):
+        """Resolve a Python selector to a 0-based active spectrum index."""
+
+        nspc = int(_fortrancore.expdat.nspc)
+        if nspc <= 0:
+            raise RuntimeError("no spectra have been allocated")
+        if spectrum is None:
+            return nspc - 1
+        idx = int(spectrum)
+        if idx < 0 or idx >= nspc:
+            raise IndexError("spectrum index out of range")
+        return idx
+
+    def _sync_shift_global(self):
+        """Keep the global shift flag aligned with the active ``ishft`` block."""
+
+        nspc = int(_fortrancore.expdat.nspc)
+        if nspc <= 0:
+            _fortrancore.expdat.ishglb = 0
+            return
+        active = _fortrancore.expdat.ishft[:nspc]
+        _fortrancore.expdat.ishglb = 1 if np.any(active != 0) else 0
+
+    def _collapse_buffer_values(
+        self, values, count, empty, *, integer=False
+    ):
+        """Return a scalar for uniform active values or a copy of the block."""
+
+        if count <= 0:
+            return empty
+        active = np.asarray(values[:count]).copy()
+        if integer:
+            if np.all(active == active[0]):
+                return int(active[0])
+        else:
+            if np.allclose(active, active[0]):
+                return float(active[0])
+        return active
+
+    def name(self, value=None, spectrum=None):
+        """Get or set the per-spectrum data identifier.
+
+        This method wraps the Fortran ``expdat.dataid`` slots that the legacy
+        code prints in status reports and uses to label loaded spectra.  It
+        names the y-data associated with a spectrum; it does not describe the
+        x-axis.  Axis metadata remains the responsibility of coordinate-setup
+        paths such as the nddata setter, which stores field labels in
+        ``expdat.wndoid``.
+        """
+
+        idx = self._active_spectrum_index(spectrum)
+        if value is None:
+            current = _fortrancore.expdat.dataid[idx]
+            if isinstance(current, bytes):
+                text = current.decode("ascii", "ignore")
+            else:
+                text = str(current)
+            text = text.split("\0", 1)[0].rstrip()
+            return text if text else None
+
+        token = str(value)
+        _fortrancore.expdat.dataid[idx] = (
+            token.encode("ascii", "ignore")[:30].ljust(30, b" ")
         )
 
-        idx, data_slice = self.generate_coordinates(
-            int(spectrum.y.size),
-            start=spectrum.start,
-            step=spectrum.step,
-            derivative_mode=mode,
-            baseline_points=int(bc_points),
-            normalize=normalize_active,
-            nspline=requested_points,
-            shift=shift,
-            label=base_name,
-        )
+    def noise(self, value=None, spectrum=None):
+        """Get or set the per-spectrum residual noise scale.
 
-        eps = float(np.finfo(float).eps)
-        _fortrancore.expdat.rmsn[idx] = (
-            spectrum.noise if spectrum.noise > eps else 1.0
-        )
+        NLSL stores one value per spectrum in ``expdat.rmsn``.  A careful
+        reading of the Fortran fit path shows that this is not just a loader
+        breadcrumb:
 
-        _fortrancore.expdat.data[data_slice] = spectrum.y
-        _fortrancore.lmcom.fvec[data_slice] = spectrum.y
+        - ``datac.f90`` passes ``rmsn(nspc)`` into ``getdat`` when data are
+          read, then clamps very small values to ``1.0``.
+        - ``lfun.f90`` divides residuals and Jacobian columns by
+          ``rmsn(isp)`` when weighted fitting is enabled.
+        - ``fitl.f90`` computes the weighted residual norm as
+          ``sum((fvec/rmsn)**2)``.
 
-        if shift:
-            _fortrancore.expdat.ishglb = 1
+        In practice, ``rmsn`` is the per-spectrum noise scale that weights a
+        spectrum's contribution to the least-squares objective.  Smaller
+        values give a spectrum more weight; larger values down-weight it.
+        """
+
+        idx = self._active_spectrum_index(spectrum)
+        if value is None:
+            return float(_fortrancore.expdat.rmsn[idx])
+
+        values = np.asarray(value, dtype=float).reshape(-1)
+        if values.size != 1:
+            raise ValueError("noise expects a single scalar value")
+        noise = float(values[0])
+        if noise <= float(np.finfo(float).eps):
+            noise = 1.0
+        _fortrancore.expdat.rmsn[idx] = noise
 
     # -- mapping protocol -------------------------------------------------
-
-    # TODO: rather than having this be separate, just have canonical_name
-    # return the idx as well, then replace all calls to
-    # _canonical_and_index with calls to canonical_name
-    def _canonical_and_index(self, token):
-        """Return the canonical name and index code for *token*."""
-
-        try:
-            canonical_key = self.canonical_name(token)
-        except KeyError:
-            canonical_key = None
-        try:
-            code = self.parameter_index(token)
-        except KeyError:
-            code = 0
-        return canonical_key, code
 
     def __getitem__(self, key):
         key = key.lower()
@@ -767,10 +1223,11 @@ class nlsl(object):
                             return float(values[0])
                         return values.copy()
                 return 0.0
-            values = _fortrancore.expdat.sb0[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.sb0,
+                nspc,
+                0.0,
+            )
         if key in ("srng", "range"):
             nspc = int(_fortrancore.expdat.nspc)
             if nspc <= 0:
@@ -790,10 +1247,11 @@ class nlsl(object):
                             return float(values[0])
                         return values.copy()
                 return 0.0
-            values = _fortrancore.expdat.srng[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.srng,
+                nspc,
+                0.0,
+            )
         if key == "fldi":
             # ``fldi`` mirrors the field origin stored in ``expdat.sbi`` so
             # callers can recover the absolute coordinates used for the most
@@ -810,10 +1268,11 @@ class nlsl(object):
                             return float(values[0])
                         return values.copy()
                 return 0.0
-            values = _fortrancore.expdat.sbi[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.sbi,
+                nspc,
+                0.0,
+            )
         if key == "dfld":
             # ``dfld`` exposes the constant spacing between consecutive field
             # points.  When no spectra have been registered yet we fall back to
@@ -830,53 +1289,77 @@ class nlsl(object):
                             return float(values[0])
                         return values.copy()
                 return 0.0
-            values = _fortrancore.expdat.sdb[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.sdb,
+                nspc,
+                0.0,
+            )
         if key == "ishft":
-            nspc = int(_fortrancore.expdat.nspc)
-            if nspc <= 0:
-                return 0
-            values = _fortrancore.expdat.ishft[:nspc].copy()
-            if np.all(values == values[0]):
-                return int(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.ishft,
+                int(_fortrancore.expdat.nspc),
+                0,
+                integer=True,
+            )
+        if key in ("rmsn", "noise"):
+            # ``rmsn`` is the per-spectrum residual noise scale used to
+            # weight each spectrum in the least-squares objective.
+            # Expose the raw Fortran values directly so Python callers
+            # can inspect or tune the same quantity that ``lfun`` and
+            # ``fitl`` divide by.
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.rmsn,
+                int(_fortrancore.expdat.nspc),
+                1.0,
+            )
+        if key == "iscal":
+            return self._collapse_buffer_values(
+                _fortrancore.mspctr.iscal,
+                int(_fortrancore.parcom.nsite),
+                1,
+                integer=True,
+            )
         if key in ("shift", "shft"):
-            nspc = int(_fortrancore.expdat.nspc)
-            if nspc <= 0:
-                return 0.0
-            values = _fortrancore.expdat.shft[:nspc].copy()
-            if np.allclose(values, values[0]):
-                return float(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.shft,
+                int(_fortrancore.expdat.nspc),
+                0.0,
+            )
         if key in ("normalize_flags", "nrmlz"):
-            nspc = int(_fortrancore.expdat.nspc)
-            if nspc <= 0:
-                return 0
-            values = _fortrancore.expdat.nrmlz[:nspc].copy()
-            if np.all(values == values[0]):
-                return int(values[0])
-            return values
+            return self._collapse_buffer_values(
+                _fortrancore.expdat.nrmlz,
+                int(_fortrancore.expdat.nspc),
+                0,
+                integer=True,
+            )
         if key in ("weights", "weight", "sfac"):
             return self.weights
-        canonical_key, res = self._canonical_and_index(key)
+        # Resolve the canonical mnemonic together with its index so the
+        # fallback paths behave like the historic resolver.
+        try:
+            canonical_key, res, base = self.canonical_name(key)
+        except KeyError:
+            canonical_key, res, base = None, 0, 0
         if res == 0:
             if canonical_key in self._iepr_names:
-                idx = self._iepr_names.index(canonical_key)
+                idx = (
+                    base - 1 if base else self._iepr_names.index(canonical_key)
+                )
                 vals = self._iparm[idx, : self.nsites]
                 if np.all(vals == vals[0]):
                     return int(vals[0])
                 return vals.copy()
             if canonical_key in self._fepr_names:
-                idx = self._fepr_names.index(canonical_key)
+                idx = (
+                    base - 1 if base else self._fepr_names.index(canonical_key)
+                )
                 vals = self._fparm[idx, : self.nsites]
                 if np.allclose(vals, vals[0]):
                     return float(vals[0])
                 return vals.copy()
             raise KeyError(key)
         if res > 100:
-            idx = self._iepr_names.index(canonical_key)
+            idx = base - 1 if base else self._iepr_names.index(canonical_key)
             vals = self._iparm[idx, : self.nsites]
         else:
             vals = np.array([
@@ -926,7 +1409,6 @@ class nlsl(object):
                             self._fparm[row, col] = expanded[col]
                         else:
                             self._fparm[row, col] = expanded[0]
-            self._last_site_spectra = None
             return
         if key == "dfld":
             # ``dfld`` records the field increment between points.  Preserve it
@@ -955,7 +1437,6 @@ class nlsl(object):
                             self._fparm[row, col] = expanded[col]
                         else:
                             self._fparm[row, col] = expanded[0]
-            self._last_site_spectra = None
             return
         if key in ("b0", "sb0", "range", "srng"):
             values = np.atleast_1d(np.asarray(v, dtype=float))
@@ -1080,7 +1561,6 @@ class nlsl(object):
                         else:
                             self._fparm[step_row, :columns] = 0.0
 
-            self._last_site_spectra = None
             return
         if key == "ishft":
             values = np.atleast_1d(np.asarray(v, dtype=int))
@@ -1092,7 +1572,33 @@ class nlsl(object):
             limit = min(values.size, nspc)
             filled[:limit] = values[:limit]
             expdat.ishft[:nspc] = filled
-            self._last_site_spectra = None
+            self._sync_shift_global()
+            return
+        if key in ("rmsn", "noise"):
+            values = np.atleast_1d(np.asarray(v, dtype=float))
+            if values.size == 0:
+                raise ValueError("rmsn requires at least one value")
+            nspc = int(expdat.nspc)
+            if nspc <= 0:
+                raise RuntimeError("rmsn requires allocated spectra")
+            filled = np.empty(nspc, dtype=float)
+            filled[:] = float(values[0])
+            limit = min(values.size, nspc)
+            filled[:limit] = values[:limit]
+            for idx in range(nspc):
+                self.noise(filled[idx], spectrum=idx)
+            return
+        if key == "iscal":
+            values = np.atleast_1d(np.asarray(v, dtype=int))
+            if values.size == 0:
+                raise ValueError("iscal requires at least one value")
+            nsite = max(int(_fortrancore.parcom.nsite), 1)
+            filled = np.empty(nsite, dtype=np.int32)
+            filled[:] = int(values[0])
+            limit = min(values.size, nsite)
+            filled[:limit] = values[:limit]
+            _fortrancore.mspctr.iscal[:nsite] = filled
+            _fortrancore.mspctr.iscglb = 1 if np.all(filled != 0) else 0
             return
         if key in ("shift", "shft"):
             values = np.atleast_1d(np.asarray(v, dtype=float))
@@ -1104,9 +1610,9 @@ class nlsl(object):
             limit = min(values.size, nspc)
             filled[:limit] = values[:limit]
             expdat.shft[:nspc] = filled
+            self._sync_shift_global()
             if np.any(filled != 0.0):
                 expdat.ishglb = 1
-            self._last_site_spectra = None
             return
         if key in ("normalize_flags", "nrmlz"):
             values = np.atleast_1d(np.asarray(v, dtype=int))
@@ -1118,21 +1624,27 @@ class nlsl(object):
             limit = min(values.size, nspc)
             filled[:limit] = values[:limit]
             expdat.nrmlz[:nspc] = filled
-            self._last_site_spectra = None
             return
         iterinput = isinstance(v, (list, tuple, np.ndarray))
-        canonical_key, res = self._canonical_and_index(key)
+        try:
+            canonical_key, res, base = self.canonical_name(key)
+        except KeyError:
+            canonical_key, res, base = None, 0, 0
         if res == 0:
             if canonical_key in self._iepr_names:
-                idx = self._iepr_names.index(canonical_key)
+                idx = (
+                    base - 1 if base else self._iepr_names.index(canonical_key)
+                )
                 if iterinput:
                     limit = min(len(v), self.nsites)
                     self._iparm[idx, :limit] = np.asarray(v[:limit], dtype=int)
                 else:
                     self._iparm[idx, : self.nsites] = int(v)
                 return
-            if canonical_key in self._fepr_names:
-                idx = self._fepr_names.index(canonical_key)
+            elif canonical_key in self._fepr_names:
+                idx = (
+                    base - 1 if base else self._fepr_names.index(canonical_key)
+                )
                 values = np.asarray(v, dtype=float)
                 if values.ndim == 0:
                     self._fparm[idx, : self.nsites] = float(values)
@@ -1140,34 +1652,42 @@ class nlsl(object):
                     limit = min(values.size, self.nsites)
                     self._fparm[idx, :limit] = values[:limit]
                 return
-            raise KeyError(key)
-        is_spectral = canonical_key in _SPECTRAL_PARAMETER_NAMES
-        if res > 100:
-            if iterinput:
-                limit = len(v)
-                if not is_spectral:
-                    limit = min(limit, self.nsites)
-                else:
-                    limit = min(limit, int(_fortrancore.expdat.nspc))
-                for site_idx in range(limit):
-                    _fortrancore.setipr(res, site_idx + 1, int(v[site_idx]))
             else:
-                _fortrancore.setipr(res, 0, int(v))
+                raise KeyError(key)
         else:
-            if iterinput:
-                limit = len(v)
-                if not is_spectral:
-                    limit = min(limit, self.nsites)
+            is_spectral = canonical_key in _SPECTRAL_PARAMETER_NAMES
+            if res > 100:
+                if iterinput:
+                    limit = len(v)
+                    if not is_spectral:
+                        limit = min(limit, self.nsites)
+                    else:
+                        limit = min(limit, int(_fortrancore.expdat.nspc))
+                    for site_idx in range(limit):
+                        _fortrancore.setipr(
+                            res, site_idx + 1, int(v[site_idx])
+                        )
                 else:
-                    limit = min(limit, int(_fortrancore.expdat.nspc))
-                for site_idx in range(limit):
-                    _fortrancore.setprm(res, site_idx + 1, float(v[site_idx]))
+                    _fortrancore.setipr(res, 0, int(v))
             else:
-                _fortrancore.setprm(res, 0, float(v))
+                if iterinput:
+                    limit = len(v)
+                    if not is_spectral:
+                        limit = min(limit, self.nsites)
+                    else:
+                        limit = min(limit, int(_fortrancore.expdat.nspc))
+                    for site_idx in range(limit):
+                        _fortrancore.setprm(
+                            res, site_idx + 1, float(v[site_idx])
+                        )
+                else:
+                    _fortrancore.setprm(res, 0, float(v))
 
     def __contains__(self, key):
         key = key.lower()
         if key in ("nsite", "nsites"):
+            return True
+        if key in ("rmsn", "noise"):
             return True
         if key in self._fepr_names or key in self._iepr_names:
             return True
@@ -1177,156 +1697,237 @@ class nlsl(object):
             return False
         return True
 
-    def canonical_name(self, name: str) -> str:
-        """Return the canonical parameter name for *name*.
+    def canonical_name(self, name):
+        """Return canonical metadata and index codes for *name*.
 
-        The lookup mirrors the legacy ``ipfind`` routine in pure Python so the
-        resolver works even when the Fortran helper is unavailable.  If *name*
-        is already canonical it is returned unchanged.  ``KeyError`` is raised
-        when the name cannot be resolved.
+        The resolver mirrors the legacy ``ipfind`` routine so callers always
+        receive the canonical mnemonic, the Fortran index code, and the 1-based
+        table position used by the vary machinery.  ``KeyError`` is raised when
+        the name cannot be resolved.
         """
-        key = name.strip().lower()
-        if not key:
+
+        raw = name.strip()
+        if not raw:
             raise KeyError(name)
-        if key in ("nsite", "nsites"):
-            return "nsite"
-        if key in self._fepr_names or key in self._iepr_names:
-            return key
-        token = name.strip().upper()
+        token = raw.upper()
+        if token in ("NSITE", "NSITES"):
+            return "nsite", 0, 0
+        # Search the floating-parameter table first so canonical mnemonics and
+        # their historic abbreviations map to the corresponding positive codes.
         token_idx = _match_parameter_token(token, self._lpnam_tables["parnam"])
         if token_idx is None:
+            # ``alias1`` encodes the traditional ``W1``/``G1``/etc. shorthands.
             alias_index = _match_parameter_token(
                 token, self._lpnam_tables["alias1"]
             )
             if alias_index is None:
+                # ``alias2`` hosts the extended ``WPRP``/``GPLL``-style
+                # mnemonics.
                 alias_index = _match_parameter_token(
                     token, self._lpnam_tables["alias2"]
                 )
                 if alias_index is None:
+                    # Integral parameters are offset by 100 so they remain
+                    # distinct from the floating parameter table when mirrored
+                    # into the Fortran layer.
                     token_idx = _match_parameter_token(
                         token, self._lpnam_tables["iprnam"]
                     )
-                    if token_idx is not None:
-                        return self._iepr_names[token_idx]
-                    raise KeyError(name)
+                    if token_idx is None:
+                        lowered = raw.lower()
+                        if lowered in self._fepr_names:
+                            idx = self._fepr_names.index(lowered)
+                            return lowered, idx + 1, idx + 1
+                        else:
+                            if lowered in self._iepr_names:
+                                idx = self._iepr_names.index(lowered)
+                                return lowered, 100 + idx + 1, idx + 1
+                            else:
+                                raise KeyError(name)
+                    else:
+                        return (
+                            self._iepr_names[token_idx],
+                            100 + token_idx + 1,
+                            token_idx + 1,
+                        )
                 else:
                     if self._lpnam_tables["iwxx"] is None:
                         raise KeyError(name)
-                    base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
-                    if base_idx >= 0 and base_idx < len(self._fepr_names):
-                        return self._fepr_names[base_idx]
+                    else:
+                        base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
+                        if base_idx < 0 or base_idx >= len(self._fepr_names):
+                            raise KeyError(name)
+                        else:
+                            index_code = -(
+                                99
+                                + self._lpnam_tables["iwxx"]
+                                + alias_index
+                                + 1
+                            )
+                            return (
+                                self._fepr_names[base_idx],
+                                index_code,
+                                base_idx + 1,
+                            )
             else:
                 if self._lpnam_tables["iwxx"] is None:
                     raise KeyError(name)
                 else:
                     base_idx = self._lpnam_tables["iwxx"] + alias_index - 1
-                    if base_idx >= 0 and base_idx < len(self._fepr_names):
-                        return self._fepr_names[base_idx]
+                    if base_idx < 0 or base_idx >= len(self._fepr_names):
+                        raise KeyError(name)
+                    else:
+                        index_code = 1 - (
+                            self._lpnam_tables["iwxx"] + alias_index + 1
+                        )
+                        return (
+                            self._fepr_names[base_idx],
+                            index_code,
+                            base_idx + 1,
+                        )
         else:
-            return self._fepr_names[token_idx]
+            return (
+                self._fepr_names[token_idx],
+                token_idx + 1,
+                token_idx + 1,
+            )
 
     def parameter_index(self, name):
         """Return the Fortran-style index code for *name*."""
 
-        token = name.strip().upper()
-        if not token:
-            raise KeyError(name)
-        canonical = self.canonical_name(name)
-        alias_index = _match_parameter_token(
-            token, self._lpnam_tables["alias1"]
-        )
-        if alias_index is None:
-            alias_index = _match_parameter_token(
-                token, self._lpnam_tables["alias2"]
-            )
-            if alias_index is None:
-                token_idx = _match_parameter_token(
-                    canonical.upper(),
-                    self._lpnam_tables["parnam"],
-                )
-                if token_idx is None:
-                    token_idx = _match_parameter_token(
-                        canonical.upper(),
-                        self._lpnam_tables["iprnam"],
-                    )
-                    if token_idx is not None:
-                        return 100 + token_idx + 1
-                    if canonical == "nsite":
-                        return 0
-                    raise KeyError(name)
-                else:
-                    return token_idx + 1
-            else:
-                if self._lpnam_tables["iwxx"] is None:
-                    raise KeyError(name)
-                return -(99 + self._lpnam_tables["iwxx"] + alias_index + 1)
-        else:
-            if self._lpnam_tables["iwxx"] is None:
-                raise KeyError(name)
-            return 1 - (self._lpnam_tables["iwxx"] + alias_index + 1)
+        return self.canonical_name(name)[1]
 
     def __iter__(self):
         return iter(self.keys())
 
     @property
-    def layout(self):
-        """Metadata describing the most recent spectral evaluation."""
-        if self._last_layout is None:
-            raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_layout
-
-    @property
     def field_axes(self):
         """Return uniformly spaced field axes for each active spectrum."""
 
-        layout = self.layout
-        counts = np.asarray(layout["npts"], dtype=int)
+        nspc = int(_fortrancore.expdat.nspc)
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
         if counts.size == 0:
             return tuple()
-        starts = np.asarray(layout["sbi"], dtype=float).reshape(-1, 1)
-        steps = np.asarray(layout["sdb"], dtype=float).reshape(-1, 1)
+        starts = np.asarray(_fortrancore.expdat.sbi[:nspc], dtype=float).reshape(
+            -1, 1
+        )
+        steps = np.asarray(_fortrancore.expdat.sdb[:nspc], dtype=float).reshape(
+            -1, 1
+        )
         span = int(counts.max())
         base = np.arange(span, dtype=float)
         grid = starts + steps * base
         return tuple(grid[idx, :count] for idx, count in enumerate(counts))
 
     @property
+    def windows(self):
+        """Return absolute slices for each spectrum in the shared buffers.
+
+        Returns
+        -------
+        tuple of slice
+            One Python ``slice`` per active spectrum.  Each slice is suitable
+            for indexing the shared 1D Fortran work arrays such as
+            ``expdat.data`` and ``lmcom.fvec``.
+
+        Notes
+        -----
+        NLSL stores all experimental spectra in one flat workspace rather than
+        in separate arrays.  Fortran records where each spectrum starts with
+        ``ixsp(isp)`` and how many points it owns with ``npts(isp)``.
+        ``windows`` is the direct 0-based Python translation of that layout,
+        so ``self.windows[i]`` selects the actual segment of the shared memory
+        that belongs to spectrum ``i``.
+        """
+
+        nspc = int(_fortrancore.expdat.nspc)
+        counts = np.asarray(_fortrancore.expdat.npts[:nspc], dtype=int)
+        if counts.size == 0:
+            return tuple()
+        starts = np.asarray(_fortrancore.expdat.ixsp[:nspc], dtype=int) - 1
+        return tuple(
+            slice(int(start), int(start + count))
+            for start, count in zip(starts, counts)
+        )
+
+    @property
+    def relative_windows(self):
+        """Return per-spectrum slices into the shared trimmed span.
+
+        Returns
+        -------
+        tuple of slice
+            One Python ``slice`` per active spectrum, expressed relative to
+            the smallest trimmed block that contains every active spectrum.
+
+        Notes
+        -----
+        NLSL keeps spectra in fixed-size shared work arrays in Fortran
+        modules such as ``expdat.data`` and ``mspctr.spectr``; those buffers
+        are not resized to match the exact set of active spectra.  Instead,
+        spectra are packed sequentially into that static storage and their
+        active regions are tracked by ``ixsp`` and ``npts``.
+
+        ``windows`` index the original shared Fortran arrays directly.
+        ``relative_windows`` index a NumPy view of the trimmed block
+        ``min_start:max_stop`` cut out of those arrays.  That makes them the
+        convenient companion for code that first trims the shared storage and
+        then wants per-spectrum views into the trimmed NumPy array without
+        carrying the unused leading or trailing buffer space.  Here
+        "trimmed" means that Python has rebased the shared Fortran storage
+        onto the smallest contiguous NumPy block that still contains every
+        active spectrum, so the first active point becomes index 0 in that
+        temporary array.
+
+        No fitting points are dropped by this remapping.  The actual Fortran
+        fit uses the original shared-buffer layout described by ``ixsp`` and
+        ``npts`` in ``expdat``, together with ``ndatot`` for the total stored
+        point count.  ``relative_windows`` is only a Python indexing helper
+        that re-expresses those same active regions relative to the trimmed
+        NumPy block ``min_start:max_stop``.  Likewise, :attr:`current_spectrum`
+        still contains the full active calculated span; these slices only tell
+        Python where each individual spectrum lives within that packed result.
+        ``windows`` are therefore the right slices when Python is indexing the
+        original Fortran-backed storage directly, while ``relative_windows``
+        are the right slices after Python has already created that trimmed,
+        re-based NumPy block and now needs indices that are valid inside it.
+        """
+
+        if len(self.windows) == 0:
+            return tuple()
+        min_start = min(window.start for window in self.windows)
+        return tuple(
+            slice(window.start - min_start, window.stop - min_start)
+            for window in self.windows
+        )
+
+    @property
     def site_spectra(self):
-        """Return the most recently evaluated site spectra."""
-        if self._last_site_spectra is None:
-            raise RuntimeError("no spectra have been evaluated yet")
-        return self._last_site_spectra
+        """Return the current site-spectrum workspace from the Fortran buffers.
+
+        This reads the shared ``mspctr.spectr`` workspace directly rather than
+        caching a Python copy.  Call :attr:`current_spectrum` or :meth:`fit`
+        first when you want those buffers refreshed for the current model
+        state.
+        """
+
+        return self._capture_state()
 
     def generate_coordinates(
         self,
-        points: int,
-        *,
-        start: float,
-        step: float,
-        derivative_mode: int,
-        baseline_points: int,
-        normalize: bool,
-        nspline: int,
-        shift: bool = False,
-        label: str | None = None,
-        reset: bool = False,
-    ) -> tuple[int, slice]:
+        start,
+        stop,
+        points,
+        reset=False,
+    ):
         """Initialise the Fortran buffers for a uniformly spaced spectrum.
 
-        Parameters mirror the coordinate bookkeeping that
-        :meth:`load_data` performs after processing an experimental trace.
-        The method allocates a fresh spectrum slot, configures the shared
-        ``expdat`` metadata, and clears the backing work arrays without
-        copying any intensity values.  It returns the spectrum index together
-        with the slice into the flattened intensity arrays so callers may
-        populate them manually.
+        Use linspace-like ordering (start, stop, points) so this routine only
+        describes the field axis and storage layout.
 
-        The *reset* flag mirrors the behaviour of the legacy ``datac``
-        command: when ``True`` the spectrum counter and accumulated point
-        count are cleared before initialising the new slot.  This is useful
-        when synthesising spectra without loading any measured data first.
         """
 
+        points = int(points)
         if points <= 0:
             raise ValueError("points must be positive")
 
@@ -1339,10 +1940,6 @@ class nlsl(object):
         if points > mxspt:
             raise ValueError("insufficient storage for spectrum")
 
-        nspline = int(nspline)
-        if nspline > 0:
-            nspline = max(4, min(nspline, mxspt))
-
         if reset:
             core.expdat.nspc = 0
             core.expdat.ndatot = 0
@@ -1353,11 +1950,9 @@ class nlsl(object):
             nser = max(0, int(core.parcom.nser))
         else:
             nser = 0
-        if nspc >= nser:
+        if nser > 0 and nspc >= nser:
             nspc = 0
             core.expdat.ndatot = 0
-
-        normalize_active = bool(normalize or (self.nsites > 1 and nser > 1))
 
         idx = nspc
         ix0 = int(core.expdat.ndatot)
@@ -1367,15 +1962,22 @@ class nlsl(object):
         if ix0 + points > mxpt:
             raise ValueError("insufficient storage for spectrum")
 
+        start = float(start)
+        stop = float(stop)
+        if points == 1:
+            step = 0.0
+        else:
+            step = (stop - start) / float(points - 1)
+
         core.expdat.nspc = idx + 1
         core.expdat.ixsp[idx] = ix0 + 1
         core.expdat.npts[idx] = points
-        core.expdat.sbi[idx] = float(start)
-        core.expdat.sdb[idx] = float(step)
-        core.expdat.srng[idx] = float(step) * max(points - 1, 0)
-        core.expdat.ishft[idx] = 1 if shift else 0
-        core.expdat.idrv[idx] = int(derivative_mode)
-        core.expdat.nrmlz[idx] = 1 if normalize_active else 0
+        core.expdat.sbi[idx] = start
+        core.expdat.sdb[idx] = step
+        core.expdat.srng[idx] = step * max(points - 1, 0)
+        core.expdat.ishft[idx] = 1 if self.shift else 0
+        core.expdat.idrv[idx] = int(self.derivative_mode)
+        core.expdat.nrmlz[idx] = 0
         core.expdat.shft[idx] = 0.0
         core.expdat.tmpshft[idx] = 0.0
         core.expdat.slb[idx] = 0.0
@@ -1384,9 +1986,8 @@ class nlsl(object):
         core.expdat.spsi[idx] = 0.0
 
         core.expdat.rmsn[idx] = 1.0
-
         core.expdat.iform[idx] = 0
-        core.expdat.ibase[idx] = int(baseline_points)
+        core.expdat.ibase[idx] = 0
 
         power = 1
         while power < points:
@@ -1395,9 +1996,10 @@ class nlsl(object):
 
         data_slice = slice(ix0, ix0 + points)
 
-        # ``single_point`` only reads the coordinate metadata and the site
-        # storage arrays, so clearing the data buffer is sufficient here.
+        # Clear per-spectrum work buffers so each generated axis starts from
+        # clean storage.
         core.expdat.data[data_slice] = 0.0
+        core.lmcom.fvec[data_slice] = 0.0
 
         if hasattr(core.mspctr, "spectr"):
             spectr = core.mspctr.spectr
@@ -1413,46 +2015,194 @@ class nlsl(object):
                 raise ValueError("Maximum number of spectra exceeded")
             sfac[:, idx] = 1.0
 
-        core.expdat.shftflg = 1 if shift else 0
-        core.expdat.normflg = 1 if normalize_active else 0
-        core.expdat.bcmode = int(baseline_points)
-        core.expdat.drmode = int(derivative_mode)
-        core.expdat.nspline = nspline
+        # These are loader-provenance fields from the legacy ``datac`` path.
+        # When Python allocates coordinates for already-processed data we
+        # intentionally reset them to neutral values so stale spline/baseline/
+        # normalization bookkeeping from an earlier load cannot leak into the
+        # new spectrum.  Runtime-relevant per-spectrum state such as ``ishft``,
+        # ``idrv`` and ``rmsn`` is stored separately above.
+        core.expdat.bcmode = 0
+        core.expdat.nspline = 0
+        core.expdat.normflg = 0
+        core.expdat.shftflg = 0
+        core.expdat.drmode = 0
         core.expdat.inform = 0
-
-        if label is None:
-            label = "synthetic"
-        encoded = label.encode("ascii", "ignore")[:30]
-        core.expdat.dataid[idx] = encoded.ljust(30, b" ")
-
-        trimmed = label.strip()
-        window_label = f"{idx + 1:2d}: {trimmed}"[:19] + "\0"
-        core.expdat.wndoid[idx] = window_label.encode("ascii", "ignore").ljust(
-            20, b" "
-        )
+        core.expdat.dataid[idx] = b"".ljust(30, b" ")
+        core.expdat.wndoid[idx] = b"".ljust(20, b" ")
 
         core.expdat.ndatot = ix0 + points
 
         self._explicit_field_start = False
         self._explicit_field_step = False
+        self._sync_shift_global()
         self._sync_weight_matrix()
 
-        return idx, data_slice
+        return idx
 
-    def set_data(self, data_slice, values):
-        """Copy processed intensity values into the flattened data buffer."""
+    @property
+    def data(self):
+        """Return the loaded experimental traces spectrum-by-spectrum.
 
-        start = data_slice.start
-        stop = data_slice.stop
-        expected = stop - start
+        A single loaded spectrum returns one array or one nddata.  Multiple
+        spectra return a Python list so each trace keeps its own field axis
+        and point count.
+
+        Unlike :attr:`experimental_data`, this property does not repack
+        spectra onto a shared trimmed span.  It simply returns the stored
+        traces one spectrum at a time.
+        """
+        if len(self.windows) == 0:
+            raise RuntimeError("no spectra have been allocated")
+        if not self.return_nddata:
+            traces = [
+                _fortrancore.expdat.data[window].copy()
+                for window in self.windows
+            ]
+            if len(traces) == 1:
+                return traces[0]
+            return traces
+        if not _HAS_PYSPECDATA:
+            raise ImportError("pyspecdata is required for nddata outputs")
+        fields = self.field_axes
+        traces = []
+        for idx, window in enumerate(self.windows):
+            encoded = _fortrancore.expdat.wndoid[idx]
+            if isinstance(encoded, bytes):
+                encoded = encoded.decode("ascii", "ignore")
+            else:
+                encoded = str(encoded)
+            encoded = encoded.rstrip()
+            field_label = "field"
+            field_units = None
+            if encoded.startswith("axis:"):
+                field_label = encoded[len("axis:") :]
+                if field_label.endswith("]") and "[" in field_label:
+                    field_label, field_units = field_label[:-1].rsplit("[", 1)
+                if len(field_label) == 0:
+                    field_label = "field"
+            array = _fortrancore.expdat.data[window].copy()
+            wrapped = nddata(array, [array.size], [field_label])
+            wrapped.set_axis(field_label, np.asarray(fields[idx], dtype=float))
+            wrapped.set_units(field_label, field_units)
+            data_id = _fortrancore.expdat.dataid[idx]
+            if isinstance(data_id, bytes):
+                data_id = data_id.decode("ascii", "ignore")
+            else:
+                data_id = str(data_id)
+            data_id = data_id.rstrip()
+            if len(data_id) > 0:
+                wrapped.name(data_id)
+            traces.append(wrapped)
+        if len(traces) == 1:
+            return traces[0]
+        return traces
+
+    @data.setter
+    def data(self, values):
+        """Set the experimental spectrum that we are trying to fit.
+
+        Array-like input overwrites the most recently allocated spectrum
+        window.  Passing a labelled 1D ``pyspecdata.nddata`` appends a new
+        spectrum by taking its axis coordinates from the remaining dimension
+        label and storing that label and its units so later outputs can be
+        returned as nddata again.
+
+        The overall amplitude match between simulation and experiment is not
+        set here.  In the original Fortran flow, ``lfun`` calls ``sscale``
+        (or ``sshift`` when shifting is enabled) to determine least-squares
+        scale factors and stores them in ``sfac``.  Python exposes that same
+        array as :attr:`weights`.  Those coefficients are not constrained to
+        sum to unity, and if Fortran's ``iscal`` flag is zero for a site then
+        the existing ``sfac`` value is treated as fixed instead of being
+        re-optimised.  Python exposes that flag as ``model['iscal']``.  By
+        default Fortran initialises ``iscal(i)=1`` for every site, so
+        autoscaling is on unless the caller explicitly turns it off.  The
+        data setter therefore only records the experimental trace; :meth:`fit`
+        is what updates the autoscaled model.
+        """
+
+        if _HAS_PYSPECDATA and isinstance(values, nddata):
+            if not values.dimlabels:
+                raise ValueError(
+                    "nddata objects must supply at least one dimension label"
+                )
+            values.squeeze()
+            if len(values.dimlabels) != 1:
+                raise ValueError(
+                    "nddata input must have exactly one non-singleton"
+                    " dimension"
+                )
+            field_label = values.dimlabels[0]
+            field_coords = values.getaxis(field_label)
+            if field_coords is None:
+                raise ValueError("nddata field axis coordinates are missing")
+            fields = np.asarray(field_coords, dtype=float).reshape(-1)
+            intensities = np.array(
+                [
+                    values[field_label, j].item()
+                    for j in range(len(fields))
+                ],
+                dtype=float,
+            )
+            if len(fields) == 0:
+                raise ValueError("nddata field axis contained no points")
+            if len(fields) != len(intensities):
+                raise ValueError(
+                    "field axis and intensity vector lengths do not match"
+                )
+            if len(fields) > 1:
+                steps = np.diff(fields)
+                if not np.allclose(steps, steps[0]):
+                    raise ValueError(
+                        "nddata field axis must be uniformly spaced"
+                    )
+            if len(fields) > self.max_points:
+                raise ValueError(
+                    "nddata field axis has "
+                    + str(int(len(fields)))
+                    + " points; reduce it to "
+                    + str(int(self.max_points))
+                    + " or fewer to fit the NLSL buffers"
+                )
+            idx = self.generate_coordinates(
+                float(fields[0]),
+                float(fields[-1]),
+                int(len(fields)),
+            )
+            window = self.windows[idx]
+            _fortrancore.expdat.data[window] = intensities
+            _fortrancore.lmcom.fvec[window] = intensities
+            noise = float(np.std(intensities))
+            self.noise(noise, spectrum=idx)
+            data_id = values.name()
+            if data_id is None or len(str(data_id).strip()) == 0:
+                data_id = "nddata"
+            self.name(data_id, spectrum=idx)
+            if values.get_units(field_label) is None:
+                axis_id = "axis:" + str(field_label)
+            else:
+                axis_id = (
+                    "axis:"
+                    + f"{field_label}[{values.get_units(field_label)}]"
+                )
+            _fortrancore.expdat.wndoid[idx] = (
+                axis_id.encode("ascii", "ignore")[:20].ljust(20, b" ")
+            )
+            self.return_nddata = True
+            return
+
+        if len(self.windows) == 0:
+            raise RuntimeError("no spectra have been allocated")
         flat = np.asarray(values, dtype=float).reshape(-1)
+        expected = self.windows[-1].stop - self.windows[-1].start
         if flat.size != expected:
             raise ValueError("intensity vector length mismatch")
-        _fortrancore.expdat.data[data_slice] = flat
-        _fortrancore.lmcom.fvec[data_slice] = flat
+        _fortrancore.expdat.data[self.windows[-1]] = flat
+        _fortrancore.lmcom.fvec[self.windows[-1]] = flat
+        self.return_nddata = False
 
     def set_site_weights(self, spectrum_index, weights):
-        """Update the population weights for a specific spectrum index."""
+        """Update the scale factors for a specific spectrum index."""
 
         nsite = int(_fortrancore.parcom.nsite)
         nspc = int(_fortrancore.expdat.nspc)
@@ -1484,42 +2234,18 @@ class nlsl(object):
         nsite = min(nsite, spectra_src.shape[1])
         ndatot = min(ndatot, spectra_src.shape[0])
 
-        starts = _fortrancore.expdat.ixsp[:nspc] - 1
-        counts = _fortrancore.expdat.npts[:nspc].copy()
-        windows = tuple(
-            slice(int(start), int(start + count))
-            for start, count in zip(starts, counts)
-        )
-
-        if windows:
-            min_start = min(window.start for window in windows)
-            max_stop = max(window.stop for window in windows)
+        if self.windows[:nspc]:
+            min_start = min(window.start for window in self.windows[:nspc])
+            max_stop = max(window.stop for window in self.windows[:nspc])
         else:
             min_start = 0
             max_stop = 0
 
-        relative_windows = tuple(
-            slice(window.start - min_start, window.stop - min_start)
-            for window in windows
-        )
-
-        # ``windows`` preserve the absolute indices used by the Fortran work
-        # arrays so callers can recover the recorded experimental data, while
-        # ``relative_windows`` remap the same ranges onto the trimmed spectra
-        # returned below.
-
-        self._last_layout = {
-            "ixsp": starts,
-            "npts": counts,
-            "sbi": _fortrancore.expdat.sbi[:nspc].copy(),
-            "sdb": _fortrancore.expdat.sdb[:nspc].copy(),
-            "ndatot": max_stop - min_start,
-            "nsite": nsite,
-            "nspc": nspc,
-            "windows": windows,
-            "relative_windows": relative_windows,
-            "origin": min_start,
-        }
+        # Each spectrum occupies a contiguous slice of the shared Fortran work
+        # arrays.  ``windows`` are those absolute slices in ``expdat.data`` and
+        # ``mspctr.spectr``; ``relative_windows`` remap them onto the trimmed
+        # block ``min_start:max_stop`` returned below so Python callers can
+        # align multi-spectrum arrays without carrying the full unused storage.
 
         span = max_stop - min_start
         if span > 0 and nsite > 0:
@@ -1528,17 +2254,91 @@ class nlsl(object):
         else:
             site_spectra = np.empty((nsite, 0), dtype=float)
 
-        if span > 0 and nspc > 0:
-            trimmed_exp = _fortrancore.expdat.data[min_start:max_stop].copy()
-            stacked = np.zeros((nspc, span), dtype=float)
-            for idx, window in enumerate(relative_windows):
-                stacked[idx, window] = trimmed_exp[window]
+        if not self.return_nddata:
+            site_payload = site_spectra
         else:
-            stacked = np.empty((nspc, 0), dtype=float)
+            if not _HAS_PYSPECDATA:
+                raise ImportError("pyspecdata is required for nddata outputs")
+            array = np.asarray(site_spectra, dtype=float)
+            if nspc <= 0:
+                raise RuntimeError("no field axis metadata is available")
+            field_axes = self.field_axes
+            field_label = "field"
+            field_units = None
+            field_coords = None
+            for idx in range(nspc):
+                coords = np.asarray(field_axes[idx], dtype=float).reshape(-1)
+                encoded = _fortrancore.expdat.wndoid[idx]
+                if isinstance(encoded, bytes):
+                    encoded = encoded.decode("ascii", "ignore")
+                else:
+                    encoded = str(encoded)
+                encoded = encoded.rstrip()
+                label = "field"
+                units = None
+                if encoded.startswith("axis:"):
+                    label = encoded[len("axis:") :]
+                    if label.endswith("]") and "[" in label:
+                        label, units = label[:-1].rsplit("[", 1)
+                    if len(label) == 0:
+                        label = "field"
+                if field_coords is None:
+                    field_label = label
+                    field_units = units
+                    field_coords = coords
+                    continue
+                if (
+                    label != field_label
+                    or units != field_units
+                    or coords.shape != field_coords.shape
+                    or not np.allclose(coords, field_coords)
+                ):
+                    raise ValueError(
+                        "return_nddata requires all active spectra to share one"
+                        " common field axis"
+                    )
 
-        self._last_site_spectra = site_spectra
-        self._last_experimental_data = stacked
-        return self._last_site_spectra
+            if nspc <= 1:
+                site_payload = nddata(
+                    array.copy(),
+                    [nsite, field_coords.size],
+                    ["sites", field_label],
+                )
+                site_payload.set_axis("sites", "#")
+                site_payload.set_axis(field_label, field_coords)
+                site_payload.set_units(field_label, field_units)
+            else:
+                window_lengths = [
+                    window.stop - window.start
+                    for window in self.relative_windows[:nspc]
+                ]
+                if any(length != field_coords.size for length in window_lengths):
+                    raise ValueError(
+                        "return_nddata requires all active spectra to share one"
+                        " common field axis"
+                    )
+                stacked_site_spectra = np.stack(
+                    [
+                        array[:, window].copy()
+                        for window in self.relative_windows[:nspc]
+                    ],
+                    axis=0,
+                )
+                site_payload = nddata(
+                    stacked_site_spectra,
+                    [
+                        stacked_site_spectra.shape[0],
+                        stacked_site_spectra.shape[1],
+                        stacked_site_spectra.shape[2],
+                    ],
+                    ["spectrum", "sites", field_label],
+                )
+                site_payload.set_axis("spectrum", "#")
+                site_payload.set_axis("sites", "#")
+                site_payload.set_axis(field_label, field_coords)
+                site_payload.set_units(field_label, field_units)
+
+        return site_payload
 
     def _sync_weight_matrix(self):
         """Keep ``/mspctr/sfac/`` aligned with the active site/spectrum counts.
@@ -1548,9 +2348,9 @@ class nlsl(object):
         is running, and the Fortran code never reinitialises the table after
         the initial call.  Changing ``nsite`` or ``nspc`` therefore only
         updates the integer counters; without extra work the exposed
-        populations would keep whatever values happened to be in memory.  This
+        scale factors would keep whatever values happened to be in memory. This
         helper mirrors the housekeeping performed by the Fortran data loaders
-        so Python callers always see a predictable set of populations.
+        so Python callers always see a predictable set of coefficients.
         """
 
         nsite = int(_fortrancore.parcom.nsite)
@@ -1563,13 +2363,14 @@ class nlsl(object):
 
         if nsite <= 0 or nspc <= 0:
             # No active spectra or sites: blank the entire ``sfac`` matrix so a
-            # subsequent resize starts from zero populations.
+            # subsequent resize starts from zero scale factors.
             weights[:, :] = 0.0
             self._weight_shape = new_shape
             return weights
 
-        # Preserve the overlapping block so previously fitted populations stay
-        # in place when callers expand or shrink the grid of sites/spectra.
+        # Preserve the overlapping block so previously fitted scale factors
+        # stay in place when callers expand or shrink the grid of
+        # sites/spectra.
         row_stop = min(self._weight_shape[0], nsite)
         col_stop = min(self._weight_shape[1], nspc)
         if row_stop > 0 and col_stop > 0:
@@ -1579,7 +2380,7 @@ class nlsl(object):
 
         # The Fortran initialisation routines seed ``sfac`` with ones, so new
         # rows/columns must do the same.  Reset the full table before restoring
-        # any surviving populations.
+        # any surviving scale factors.
         weights[:, :] = 1.0
 
         if preserved is not None:

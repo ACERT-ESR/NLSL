@@ -227,3 +227,5 @@ py.install_sources('nlsl/__init__.py', 'nlsl/data.py', 'nlsl/cli.py', subdir: 'n
 # can locate the extension module without modifying sys.path in tests.
 install_subdir('tests',
     install_dir: join_paths(py.get_install_dir(), 'nlsl', 'tests'))
+install_subdir('examples',
+    install_dir: join_paths(py.get_install_dir(), 'nlsl', 'examples'))

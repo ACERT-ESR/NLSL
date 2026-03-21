@@ -33,6 +33,10 @@ line-length = 79
 [tool.ruff.lint]
 extend-select = ["E501"]
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error::DeprecationWarning:nlsl(\\.|$)",
+]
+
 [project.scripts]
 nlsl = "nlsl.cli:exampledir"
-

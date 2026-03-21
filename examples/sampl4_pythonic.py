@@ -5,10 +5,10 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 # These entries mirror the manual ``let`` statements in ``sampl4.run`` and
 # supply the same initial guesses for the fit.
@@ -57,18 +57,28 @@ def main():
 
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
 
     # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through
-    # the modern Python entry point so the processed intensities stay in
-    # memory.
-    model.load_data(
+    # the explicit processed-data path so the prepared intensities stay in
+    # memory.  ``normalize=False`` keeps the experimental amplitudes on their
+    # original scale while still applying spline resampling and baseline
+    # correction.
+    processed = process_spectrum(
         data_path,
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=False,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(data_path.with_suffix("")), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for token, indices in PARAMETERS_TO_VARY.items():
         model.fit_params.vary[token] = {"index": indices}

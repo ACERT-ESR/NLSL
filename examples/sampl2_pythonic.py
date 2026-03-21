@@ -5,10 +5,10 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -58,26 +58,45 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
 
     for command in SERIES_COMMANDS:
         model.procline(command)
 
-    model.load_data(
+    # ``normalize=True`` preprocesses both traces onto the same normalized
+    # scale before copying them into the NLSL buffers.  The explicit
+    # processed-data workflow does not preserve the legacy ``nrmlz`` loader
+    # bookkeeping flag.
+    processed_200 = process_spectrum(
         examples_dir / "sampl200.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
-    model.load_data(
+    idx_200 = model.generate_coordinates(
+        processed_200.start,
+        processed_200.stop,
+        processed_200.y.size,
+    )
+    model.data = processed_200.y
+    model.name(str(examples_dir / "sampl200"), spectrum=idx_200)
+    model.noise(processed_200.noise, spectrum=idx_200)
+    processed_290 = process_spectrum(
         examples_dir / "sampl290.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx_290 = model.generate_coordinates(
+        processed_290.start,
+        processed_290.stop,
+        processed_290.y.size,
+    )
+    model.data = processed_290.y
+    model.name(str(examples_dir / "sampl290"), spectrum=idx_290)
+    model.noise(processed_290.noise, spectrum=idx_290)
 
     for command in SEARCH_COMMANDS:
         model.procline(command)
@@ -107,24 +126,19 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, model.relative_windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, model.relative_windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, model.relative_windows[idx]]
         )
 
     combined_num = 0.0
@@ -183,6 +197,7 @@ def main():
     axes[-1].set_xlabel("Magnetic field (G)")
     axes[0].set_title("sampl2 two-spectrum series reproduced from Python")
     plt.tight_layout()
+    print({j:model[j] for j in INITIAL_PARAMETERS.keys()})
     plt.show()
 
 

@@ -9,6 +9,36 @@ python module fortrancore ! in
             use symdef
             character*80 intent(in) :: line
         end subroutine procline
+        subroutine basisc(line) ! in :fortrancore:src/fortran/matrix_model/basisc.f90
+            use nlsdim
+            use eprprm
+            use parcom
+            use basis
+            use tridag
+            use stdio
+            character*80 intent(in) :: line
+        end subroutine basisc
+        subroutine srchc(line) ! in :fortrancore:src/fortran/cli/srchc.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use lmcom
+            use parcom
+            use iterat
+            use errmsg
+            use lpnam
+            use stdio
+            character*80 intent(in) :: line
+        end subroutine srchc
+        subroutine series(line) ! in :fortrancore:src/fortran/cli/series.f90
+            use nlsdim
+            use eprprm
+            use expdat
+            use mspctr
+            use parcom
+            use stdio
+            character*80 intent(in) :: line
+        end subroutine series
         subroutine fitl ! in :fortrancore:src/fortran/least_squares/fitl.f90
             use expdat
             use eprprm
@@ -253,6 +283,21 @@ python module fortrancore ! in
             logical, save :: mtxclc
             character*9, save,dimension(mxjcol) :: tag
         end module parcom
+        module tensym ! in :fortrancore:src/fortran/matrix_model/tensym.f90
+            use symdef
+            subroutine tocart(t,iflg)
+                double precision intent(inout),dimension(3) :: t
+                integer intent(in) :: iflg
+            end subroutine tocart
+            subroutine tosphr(t,iflg)
+                double precision intent(inout),dimension(3) :: t
+                integer intent(in) :: iflg
+            end subroutine tosphr
+            subroutine toaxil(t,iflg)
+                double precision intent(inout),dimension(3) :: t
+                integer intent(in) :: iflg
+            end subroutine toaxil
+        end module tensym
         module expdat ! in :fortrancore:src/fortran/core/expdat.f90
             use nlsdim
             double precision, save,target,dimension(mxpt) :: data

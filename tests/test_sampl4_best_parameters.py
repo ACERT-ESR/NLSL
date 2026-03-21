@@ -3,9 +3,6 @@ import pytest
 
 import nlsl
 from tests.sampl4_reference import (
-    BASELINE_EDGE_POINTS,
-    DERIVATIVE_MODE,
-    NSPLINE_POINTS,
     SAMPL4_FIELD_START,
     SAMPL4_FIELD_STEP,
     SAMPL4_FINAL_PARAMETERS,
@@ -26,17 +23,13 @@ def test_sampl4_best_parameters_match_data_without_fit():
 
     model = nlsl.nlsl()
     model["nsite"] = SAMPL4_FINAL_PARAMETERS["nsite"]
+    model.shift = True
+    model.derivative_mode = 1
 
     model.generate_coordinates(
+        SAMPL4_FIELD_START,
+        SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * (SAMPL4_POINT_COUNT - 1),
         SAMPL4_POINT_COUNT,
-        start=SAMPL4_FIELD_START,
-        step=SAMPL4_FIELD_STEP,
-        derivative_mode=DERIVATIVE_MODE,
-        baseline_points=BASELINE_EDGE_POINTS,
-        normalize=False,
-        nspline=NSPLINE_POINTS,
-        shift=True,
-        label="sampl4-known-parameters",
         reset=True,
     )
 

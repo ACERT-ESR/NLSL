@@ -5,9 +5,9 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 400
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -99,18 +99,29 @@ def main():
     model.update(INITIAL_PARAMETERS)
     model.update(SITE_PARAMETER_VALUES)
     model.update(GLOBAL_CONTROLS)
+    model.shift = True
 
     for token, indices in INITIAL_VARIATIONS.items():
         model.fit_params.vary[token] = {"index": indices}
 
-    model.load_data(
+    # ``normalize=True`` preprocesses the experimental trace onto the same
+    # normalized scale as the old loader, but the explicit processed-data
+    # workflow does not preserve the legacy ``nrmlz`` bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "c16pc371e.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=0,
-        shift=True,
+        NSPLINE_POINTS,
+        0,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "c16pc371e"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for key, value in INITIAL_FIT.items():
         model.fit_params[key] = value
@@ -139,7 +150,7 @@ def main():
 
     experimental_block = model.experimental_data
     fields = model.field_axes
-    windows = model.layout["relative_windows"]
+    windows = model.relative_windows
     experimental_series = tuple(
         experimental_block[idx, window] for idx, window in enumerate(windows)
     )

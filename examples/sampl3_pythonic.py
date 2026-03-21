@@ -5,10 +5,10 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 400
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -32,22 +32,6 @@ FIT_CONTROLS = {
     "xtol": 1.0e-3,
 }
 
-SETUP_COMMANDS = [
-    "basis sampl3",
-    "search rbar",
-    "search c20",
-    "axial r",
-]
-
-FIRST_VARY = ["vary rpll,rprp,c20,gib0"]
-SECOND_PHASE = [
-    "fix rpll",
-    "fix rprp",
-    "spherical r",
-    "vary rbar",
-]
-FINAL_COMMANDS = ["vary gib2"]
-
 
 def main():
     """Execute the ``sampl3`` workflow and plot the resulting fit."""
@@ -55,32 +39,58 @@ def main():
     examples_dir = Path(__file__).resolve().parent
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
+    model.shift = True
 
-    for command in SETUP_COMMANDS:
-        model.procline(command)
+    # ``load_basis`` mirrors the runfile ``basis`` directive so the
+    # diffusion tensor truncation is identical to the original script.
+    model.load_basis("sampl3")
 
-    model.load_data(
+    # The legacy ``search`` commands become direct method calls.  Each
+    # invocation wraps the 1-D minimiser used by the runfile interface.
+    model.search("rbar")
+    model.search("c20")
+
+    # ``tensor_symmetry`` controls how tensor components are represented.
+    # Selecting the axial form keeps the diffusion tensor locked to the
+    # same coordinate system as the historical ``axial r`` command.
+    model.tensor_symmetry["r"] = "axial"
+
+    # ``normalize=True`` preprocesses the experimental trace onto the same
+    # normalized scale as the old loader, but the explicit processed-data
+    # workflow does not preserve the legacy ``nrmlz`` bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "sampl3.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "sampl3"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]
 
-    for command in FIRST_VARY:
-        model.procline(command)
+    for token in ("rpll", "rprp", "c20", "gib0"):
+        model.fit_params.vary[token] = True
     model.fit()
 
-    for command in SECOND_PHASE:
-        model.procline(command)
+    for token in ("rpll", "rprp"):
+        if token in model.fit_params.vary:
+            del model.fit_params.vary[token]
+    # Switching the tensor back to spherical coordinates matches the
+    # behaviour of the second-stage ``spherical r`` command in the runfile.
+    model.tensor_symmetry["r"] = "spherical"
+    model.fit_params.vary["rbar"] = True
     model.fit()
 
-    for command in FINAL_COMMANDS:
-        model.procline(command)
+    model.fit_params.vary["gib2"] = True
     site_spectra = model.fit()
 
     weights = model.weights
@@ -96,24 +106,20 @@ def main():
         )
 
     experimental_block = model.experimental_data
-    fields = []
+    fields = model.field_axes
+    windows = model.relative_windows
     experimental_series = []
     simulated_series = []
     component_series = []
-    for idx in range(int(model.layout["nspc"])):
-        fields.append(
-            float(model.layout["sbi"][idx])
-            + float(model.layout["sdb"][idx])
-            * np.arange(int(model.layout["npts"][idx]))
-        )
+    for idx in range(int(model.nspec)):
         experimental_series.append(
-            experimental_block[idx, model.layout["relative_windows"][idx]]
+            experimental_block[idx, windows[idx]]
         )
         simulated_series.append(
-            simulated_total[idx, model.layout["relative_windows"][idx]]
+            simulated_total[idx, windows[idx]]
         )
         component_series.append(
-            component_curves[idx, :, model.layout["relative_windows"][idx]]
+            component_curves[idx, :, windows[idx]]
         )
 
     combined_num = 0.0

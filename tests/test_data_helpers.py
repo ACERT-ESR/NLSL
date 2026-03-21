@@ -1,10 +1,31 @@
 import os
+from pathlib import Path
 
 import numpy as np
+import pytest
 
 import nlsl
 
-from nlsl.data import fit_linear_baseline, natural_cubic_spline_resample
+from nlsl.data import (
+    fit_linear_baseline,
+    natural_cubic_spline_resample,
+    process_spectrum,
+)
+
+
+DEPRECATION_MATCH = "load_raw_datafile spline preprocessing is deprecated"
+
+
+def _load_processed_with_public_api(model, processed, label):
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(label, spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
+    return idx
 
 
 def test_fit_linear_baseline_recovers_line():
@@ -16,6 +37,28 @@ def test_fit_linear_baseline_recovers_line():
     assert np.isclose(intercept, 2.0)
     assert np.isclose(slope, 0.5)
     assert np.isclose(noise, 0.0)
+
+
+def test_process_spectrum_exposes_stop_coordinate(tmp_path):
+    data_path = tmp_path / "sample.dat"
+    x = np.linspace(-2.0, 3.0, 6)
+    y = np.sin(x)
+    with data_path.open("w", encoding="utf-8") as handle:
+        for xi, yi in zip(x, y):
+            handle.write(f"{xi: .8f} {yi: .8f}\n")
+
+    processed = process_spectrum(
+        data_path,
+        10,
+        0,
+        derivative_mode=1,
+        normalize=False,
+    )
+
+    assert processed.stop == pytest.approx(processed.x[-1])
+    assert processed.stop == pytest.approx(
+        processed.start + processed.step * (processed.y.size - 1)
+    )
 
 
 def test_natural_cubic_spline_resample_matches_fortran(tmp_path):
@@ -89,6 +132,35 @@ def _capture_state():
         if hasattr(mspctr, name):
             state[name] = getattr(mspctr, name).copy()
     return state
+
+
+RUNTIME_STATE_KEYS = (
+    "data",
+    "iform",
+    "nft",
+    "rmsn",
+    "dataid",
+    "fvec",
+    "npts",
+    "ixsp",
+    "ishft",
+    "idrv",
+    "sbi",
+    "sdb",
+    "srng",
+    "shft",
+    "tmpshft",
+    "slb",
+    "sb0",
+    "sphs",
+    "spsi",
+    "nspc",
+    "ndatot",
+    "ishglb",
+    "inform",
+)
+
+
 def test_load_data_matches_datac():
     samples = ["tests/sampl1", "tests/sampl3"]
 
@@ -101,11 +173,18 @@ def test_load_data_matches_datac():
 
     # Python path
     modern = nlsl.nlsl()
-    for sample in samples:
-        modern.load_data(sample, nspline=200, bc_points=20, shift=True, normalize=True)
+    modern.shift = True
+    modern.derivative_mode = 1
+    with pytest.warns(DeprecationWarning, match=DEPRECATION_MATCH) as caught:
+        for sample in samples:
+            modern.load_raw_datafile(
+                sample, nspline=200, bc_points=20, normalize=True
+            )
+    assert len(caught) == len(samples)
     python_state = _capture_state()
 
-    for key, legacy_value in legacy_state.items():
+    for key in RUNTIME_STATE_KEYS:
+        legacy_value = legacy_state[key]
         python_value = python_state[key]
         if isinstance(legacy_value, np.ndarray):
             if np.issubdtype(legacy_value.dtype, np.floating):
@@ -114,3 +193,46 @@ def test_load_data_matches_datac():
                 assert np.array_equal(legacy_value, python_value)
         else:
             assert legacy_value == python_value
+
+
+def test_processed_data_sequence_matches_preprocessed_loader():
+    sample_path = Path("tests/sampl1.dat")
+    legacy = nlsl.nlsl()
+    legacy.shift = True
+    legacy.derivative_mode = 1
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(sample_path.parent)
+        legacy.procline("data sampl1 ascii nspline 200 bc 20 shift nonorm")
+    finally:
+        os.chdir(cwd)
+    legacy_state = _capture_state()
+
+    modern = nlsl.nlsl()
+    modern.shift = True
+    modern.derivative_mode = 1
+    processed = process_spectrum(
+        sample_path,
+        200,
+        20,
+        derivative_mode=modern.derivative_mode,
+        normalize=False,
+    )
+    _load_processed_with_public_api(
+        modern,
+        processed,
+        sample_path.stem,
+    )
+    processed_state = _capture_state()
+
+    for key in RUNTIME_STATE_KEYS:
+        legacy_value = legacy_state[key]
+        processed_value = processed_state[key]
+        if isinstance(legacy_value, np.ndarray):
+            if np.issubdtype(legacy_value.dtype, np.floating):
+                assert np.allclose(legacy_value, processed_value)
+            else:
+                assert np.array_equal(legacy_value, processed_value)
+        else:
+            assert legacy_value == processed_value

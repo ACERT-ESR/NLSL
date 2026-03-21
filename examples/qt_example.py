@@ -1,16 +1,16 @@
 from pathlib import Path
 import re
 import numpy as np
-from PyQt5 import QtCore, QtWidgets
+from PySide6 import QtCore, QtWidgets
 import nlsl
 from nlsl.data import process_spectrum
 
 # Use Qt backend BEFORE importing pyplot
 import matplotlib
 
-matplotlib.use("Qt5Agg")  # PyQt5
+matplotlib.use("QtAgg")  # Qt6 (PySide6/PyQt6 as available)
 import matplotlib.pyplot as plt
-from matplotlib.backends.backend_qt5agg import (
+from matplotlib.backends.backend_qtagg import (
     FigureCanvasQTAgg as FigureCanvas,
 )
 
@@ -18,7 +18,6 @@ from matplotlib.backends.backend_qt5agg import (
 # --- Hard-coded SAMPL4 setup (no imports from tests or references) ---
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 # Final parameters (mirror of classic runfile-4 solution)
 SAMPL4_FINAL_PARAMETERS = {
@@ -82,7 +81,7 @@ SAMPL4_FINAL_PARAMETERS = {
     "nort": 0,
     "nstep": 0,
     "nfield": NSPLINE_POINTS,
-    "ideriv": DERIVATIVE_MODE,
+    "ideriv": 1,
     "iwflg": 0,
     "igflg": 0,
     "iaflg": 0,
@@ -336,15 +335,17 @@ class MainWindow(QtWidgets.QMainWindow):
     # ---- Data/model preparation (no fitting) ----
     def prepare_model(self):
         data_path = Path(__file__).resolve().parent / "sampl4.dat"
+        # ``normalize=False`` is the Fortran ``NONORM`` path, so the helper
+        # keeps the experimental amplitudes on their original scale while
+        # still applying the requested spline/baseline preprocessing.
         proc = process_spectrum(
             data_path,
             NSPLINE_POINTS,
             BASELINE_EDGE_POINTS,
-            derivative_mode=DERIVATIVE_MODE,
             normalize=False,
         )
-        field_start = float(proc.start)
-        field_step = float(proc.step)
+        field_start = proc.start
+        field_step = proc.step
         point_count = proc.y.size
         y_exp = proc.y.copy()
 
@@ -355,19 +356,16 @@ class MainWindow(QtWidgets.QMainWindow):
 
         model = nlsl.nlsl()
         model["nsite"] = 2
-        index, sl = model.generate_coordinates(
+        model.shift = True
+        index = model.generate_coordinates(
+            field_start,
+            field_start + field_step * max(point_count - 1, 0),
             point_count,
-            start=field_start,
-            step=field_step,
-            derivative_mode=DERIVATIVE_MODE,
-            baseline_points=BASELINE_EDGE_POINTS,
-            normalize=False,
-            nspline=NSPLINE_POINTS,
-            shift=True,
-            label=f"sampl4-eval-{point_count}",
             reset=True,
         )
-        model.set_data(sl, y_exp[:point_count])
+        model.data = y_exp[:point_count]
+        model.name("sampl4-eval", spectrum=index)
+        model.noise(proc.noise, spectrum=index)
         model.update(params)
         model["sb0"] = sb0
         model["srng"] = srng
@@ -381,7 +379,7 @@ class MainWindow(QtWidgets.QMainWindow):
         return x, y_exp, model, site_spectra
 
     # ---- Weight change handlers ----
-    @QtCore.pyqtSlot()
+    @QtCore.Slot()
     def on_weight1_changed(self, value=None):
         # s1 drove change; enforce w1 + w2 = 1 and update partner slider
         w1 = self.s1.value() / self.weight_steps
@@ -554,7 +552,11 @@ def main():
     w = MainWindow()
     w.resize(1100, 820)
     w.show()
-    app.exec_()
+    # Qt6 uses exec(), Qt5 historically uses exec_(); support both.
+    if hasattr(app, "exec"):
+        app.exec()
+    else:
+        app.exec_()
 
 
 if __name__ == "__main__":

@@ -5,10 +5,10 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
-DERIVATIVE_MODE = 1
 
 INITIAL_PARAMETERS = {
     "in2": 2,
@@ -45,14 +45,27 @@ def main():
     model = nlsl.nlsl()
     model.update(INITIAL_PARAMETERS)
 
-    model.load_data(
+    model.shift = True
+    # ``normalize=True`` asks ``process_spectrum`` to rescale the experimental
+    # trace before it is copied into NLSL.  For first-derivative data this
+    # still removes the constant offset and normalizes the double integral,
+    # but the processed-data path does not preserve the old ``nrmlz``
+    # bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "sampl1.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
-        shift=True,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
-        derivative_mode=DERIVATIVE_MODE,
     )
+    idx = model.generate_coordinates(
+        processed.start,
+        processed.stop,
+        processed.y.size,
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "sampl1"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for token in PARAMETERS_TO_VARY:
         # ``fit_params.vary`` mirrors the Fortran vary list, so toggling each
@@ -77,7 +90,7 @@ def main():
 
     experimental_block = model.experimental_data
     fields = model.field_axes
-    windows = model.layout["relative_windows"]
+    windows = model.relative_windows
     experimental_series = tuple(
         experimental_block[idx, window] for idx, window in enumerate(windows)
     )
