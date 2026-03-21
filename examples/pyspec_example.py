@@ -128,15 +128,16 @@ psd.plot(
 )
 # }}}
 
+# TODO ☐: here, I also want to be able to optimize the diffusion tilt angle, so add that in
 # {{{ now enable fit of dynamic parameters, and fit again
 for token in ("rpll", "rprp", "gib0"):
     n.fit_params.vary[token] = True
 n.fit()
 # }}}
 
-# ``current_spectrum`` now carries the field axis and site labels directly.
-psd.plot(n.current_spectrum, alpha=0.35, label="NLSL sites")
+# {{{ ``current_spectrum`` now carries the field axis and site labels directly.
 psd.plot(n.weights @ n.current_spectrum, alpha=0.8, label="NLSL fit")
+# }}}
 plt.legend(bbox_to_anchor=(1.05,1), loc=2, borderaxespad=0)
 plt.tight_layout()
 plt.show()
