@@ -71,19 +71,10 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=False,
     )
-    # TODO ☐: just have processed data return a stop attribute so that
-    #         we can get rid of the following calculation that shows up
-    #         in all the examples!
-    stop = processed.start + processed.step * max(
-        int(processed.y.size) - 1,
-        0,
-    )
-    # TODO ☐: as noted elsewhere, make the int in the follow not needed,
-    #         so all examples can be cleaned up
     idx = model.generate_coordinates(
         processed.start,
-        stop,
-        int(processed.y.size),
+        processed.stop,
+        processed.y.size,
     )
     model.data = processed.y
     model.name(str(data_path.with_suffix("")), spectrum=idx)

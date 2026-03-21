@@ -58,14 +58,10 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop_200 = processed_200.start + processed_200.step * max(
-        int(processed_200.y.size) - 1,
-        0,
-    )
     idx_200 = model.generate_coordinates(
         processed_200.start,
-        stop_200,
-        int(processed_200.y.size),
+        processed_200.stop,
+        processed_200.y.size,
     )
     model.data = processed_200.y
     model.name(str(examples_dir / "sampl200"), spectrum=idx_200)
@@ -77,14 +73,10 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop_290 = processed_290.start + processed_290.step * max(
-        int(processed_290.y.size) - 1,
-        0,
-    )
     idx_290 = model.generate_coordinates(
         processed_290.start,
-        stop_290,
-        int(processed_290.y.size),
+        processed_290.stop,
+        processed_290.y.size,
     )
     model.data = processed_290.y
     model.name(str(examples_dir / "sampl290"), spectrum=idx_290)

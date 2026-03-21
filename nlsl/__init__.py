@@ -1927,6 +1927,7 @@ class nlsl(object):
 
         """
 
+        points = int(points)
         if points <= 0:
             raise ValueError("points must be positive")
 

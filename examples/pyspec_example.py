@@ -78,14 +78,6 @@ n["rpll"] = np.log10(1.0e8)
 n["rprp"] = 8.0
 n["gib0"] = 1.5
 # }}}
-# {{{ set parameters related to the fit
-for token in ("rpll", "rprp", "gib0"):
-    n.fit_params.vary[token] = True
-n.fit_params["maxitr"] = 20
-n.fit_params["maxfun"] = 400
-n.fit_params["ftol"] = 1.0e-3
-n.fit_params["xtol"] = 1.0e-3
-# }}}
 plt.figure("RS ESR fit example")
 # Show the raw data -- note that the field axis, units, etc, are preloaded as
 # part of the pySpecData nddata object.
@@ -111,11 +103,25 @@ n.data = d.real # convolution introduced zero imag, so need to return
 
 n.weights = r_[600]
 
+# {{{ set parameters related to the fit
+n.fit_params["maxitr"] = 20
+n.fit_params["maxfun"] = 400
+n.fit_params["ftol"] = 1.0e-3
+n.fit_params["xtol"] = 1.0e-3
+# }}}
+
+# TODO ☐: before doing anything else, I want to have least-square optimize the
+#         weight and shift ONLY so that the existing parameters line up as best
+#         as possible with the existing spectrum.  Leave all other parts of
+#         this script the same.
+
 psd.plot(n.weights @ n.current_spectrum, alpha=0.35, label="initial guess")
 
-# Run a quick fit using the single-site parameters above so the
-# least-squares weights are updated before plotting the nddata outputs.
+# {{{ now enable fit of dynamic parameters, and fit again
+for token in ("rpll", "rprp", "gib0"):
+    n.fit_params.vary[token] = True
 n.fit()
+# }}}
 
 # ``current_spectrum`` now carries the field axis and site labels directly.
 psd.plot(n.current_spectrum, alpha=0.35, label="NLSL sites")

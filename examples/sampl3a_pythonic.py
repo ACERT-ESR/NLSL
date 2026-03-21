@@ -71,20 +71,14 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop = processed.start + processed.step * max(
-        int(processed.y.size) - 1,
-        0,
-    )
     # ``generate_coordinates`` allocates the Fortran field axis and the
     # matching shared-buffer window for this processed spectrum.  The x-axis
     # metadata lives there; the subsequent ``model.data = ...`` call only
     # copies intensities into the newly allocated window.
-    # TODO ☐: similarly, here, we should not need to call int on the
-    #         size -- generate_coordinates should do that automatically
     idx = model.generate_coordinates(
         processed.start,
-        stop,
-        int(processed.y.size),
+        processed.stop,
+        processed.y.size,
     )
     model.data = processed.y
     model.name(str(examples_dir / "sampl3"), spectrum=idx)

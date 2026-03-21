@@ -31,14 +31,10 @@ def run_pythonic_sampl4_fit():
         derivative_mode=model.derivative_mode,
         normalize=False,
     )
-    stop = processed.start + processed.step * max(
-        int(processed.y.size) - 1,
-        0,
-    )
     idx = model.generate_coordinates(
         processed.start,
-        stop,
-        int(processed.y.size),
+        processed.stop,
+        processed.y.size,
     )
     model.data = processed.y
     model.name(str(SAMPL4_DATA_PATH.with_suffix("")), spectrum=idx)

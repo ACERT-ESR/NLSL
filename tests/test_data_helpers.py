@@ -17,14 +17,10 @@ DEPRECATION_MATCH = "load_raw_datafile spline preprocessing is deprecated"
 
 
 def _load_processed_with_public_api(model, processed, label):
-    stop = processed.start + processed.step * max(
-        int(processed.y.size) - 1,
-        0,
-    )
     idx = model.generate_coordinates(
         processed.start,
-        stop,
-        int(processed.y.size),
+        processed.stop,
+        processed.y.size,
     )
     model.data = processed.y
     model.name(label, spectrum=idx)
@@ -41,6 +37,28 @@ def test_fit_linear_baseline_recovers_line():
     assert np.isclose(intercept, 2.0)
     assert np.isclose(slope, 0.5)
     assert np.isclose(noise, 0.0)
+
+
+def test_process_spectrum_exposes_stop_coordinate(tmp_path):
+    data_path = tmp_path / "sample.dat"
+    x = np.linspace(-2.0, 3.0, 6)
+    y = np.sin(x)
+    with data_path.open("w", encoding="utf-8") as handle:
+        for xi, yi in zip(x, y):
+            handle.write(f"{xi: .8f} {yi: .8f}\n")
+
+    processed = process_spectrum(
+        data_path,
+        10,
+        0,
+        derivative_mode=1,
+        normalize=False,
+    )
+
+    assert processed.stop == pytest.approx(processed.x[-1])
+    assert processed.stop == pytest.approx(
+        processed.start + processed.step * (processed.y.size - 1)
+    )
 
 
 def test_natural_cubic_spline_resample_matches_fortran(tmp_path):

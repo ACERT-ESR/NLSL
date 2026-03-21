@@ -46,6 +46,12 @@ def main():
     model["c22"] = np.array([1.0, 0.0])
     model["nort"] = np.array([0.0, 10.0])
 
+    # TODO ☐: throughout, when we call process_spectrum in the examples,
+    #         we need a clear explanation that in the original NLSL, the
+    #         preprocessing was clumped with the data loading.  We have
+    #         deliberately separated it out for greater transparency in
+    #         terms of what the code is doing.
+
     # ``normalize=True`` preprocesses both experimental traces onto the same
     # normalized scale as the old loader, but the explicit processed-data
     # workflow does not preserve the legacy ``nrmlz`` bookkeeping flag.
@@ -56,14 +62,10 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop_500 = processed_500.start + processed_500.step * max(
-        int(processed_500.y.size) - 1,
-        0,
-    )
     idx_500 = model.generate_coordinates(
         processed_500.start,
-        stop_500,
-        int(processed_500.y.size),
+        processed_500.stop,
+        processed_500.y.size,
     )
     model.data = processed_500.y
     model.name(str(examples_dir / "sampl500"), spectrum=idx_500)
@@ -75,14 +77,10 @@ def main():
         derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    stop_590 = processed_590.start + processed_590.step * max(
-        int(processed_590.y.size) - 1,
-        0,
-    )
     idx_590 = model.generate_coordinates(
         processed_590.start,
-        stop_590,
-        int(processed_590.y.size),
+        processed_590.stop,
+        processed_590.y.size,
     )
     model.data = processed_590.y
     model.name(str(examples_dir / "sampl590"), spectrum=idx_590)
