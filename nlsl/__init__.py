@@ -10,11 +10,10 @@ try:
     from pyspecdata import nddata
 except Exception:
     pass
-
 try:
     test = nddata(r_[0:10],"t")
     _HAS_PYSPECDATA = True
-except exception:
+except Exception:
     _HAS_PYSPECDATA = False
 
 _SPECTRAL_PARAMETER_NAMES = {
