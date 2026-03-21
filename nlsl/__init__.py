@@ -2121,7 +2121,11 @@ class nlsl(object):
         is what updates the autoscaled model.
         """
 
-        if _HAS_PYSPECDATA and isinstance(values, nddata):
+        if (
+            _HAS_PYSPECDATA
+            and hasattr(values, "dimlabels")
+            and hasattr(values, "data")
+        ):
             if not values.dimlabels:
                 raise ValueError(
                     "nddata objects must supply at least one dimension label"
