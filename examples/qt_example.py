@@ -361,10 +361,11 @@ class MainWindow(QtWidgets.QMainWindow):
             field_start,
             field_start + field_step * max(point_count - 1, 0),
             point_count,
-            label=f"sampl4-eval-{point_count}",
             reset=True,
         )
         model.data = y_exp[:point_count]
+        model.name("sampl4-eval", spectrum=index)
+        model.noise(proc.noise, spectrum=index)
         model.update(params)
         model["sb0"] = sb0
         model["srng"] = srng

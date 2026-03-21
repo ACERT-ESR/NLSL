@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
@@ -45,16 +46,30 @@ def main():
     model.update(INITIAL_PARAMETERS)
 
     model.shift = True
-    # ``normalize=True`` mirrors the old Fortran ``NORM`` flag by setting
-    # ``nrmlz`` for this spectrum.  ``getdat`` then rescales the loaded
-    # experimental trace to unit integral, or for first-derivative data first
-    # subtracts a constant baseline and normalizes the double integral to 1.
-    model.load_raw_datafile(
+    # ``normalize=True`` asks ``process_spectrum`` to rescale the experimental
+    # trace before it is copied into NLSL.  For first-derivative data this
+    # still removes the constant offset and normalizes the double integral,
+    # but the processed-data path does not preserve the old ``nrmlz``
+    # bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "sampl1.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
+    stop = float(processed.start) + float(processed.step) * max(
+        int(processed.y.size) - 1,
+        0,
+    )
+    idx = model.generate_coordinates(
+        float(processed.start),
+        stop,
+        int(processed.y.size),
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "sampl1"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for token in PARAMETERS_TO_VARY:
         # ``fit_params.vary`` mirrors the Fortran vary list, so toggling each

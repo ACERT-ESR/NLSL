@@ -126,12 +126,13 @@ def main():
         field_start,
         field_start + field_step * max(point_count - 1, 0),
         point_count,
-        label="sampl4-single-eval",
         reset=True,
     )
 
     # Set the experimental intensities for the active spectrum
     model.data = y_exp[:point_count]
+    model.name("sampl4-single-eval", spectrum=index)
+    model.noise(proc.noise, spectrum=index)
 
     # Mirror the runfile-4 solution through the dict interface (no fitting)
     model.update(params)

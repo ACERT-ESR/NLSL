@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
@@ -62,22 +63,48 @@ def main():
     for command in SERIES_COMMANDS:
         model.procline(command)
 
-    # ``normalize=True`` follows the Fortran ``NORM`` path for both traces:
-    # ``datac`` stores ``nrmlz=1``, and ``getdat`` normalizes each loaded
-    # spectrum by its integral (or double integral after baseline adjustment
-    # when the data are first-derivative).
-    model.load_raw_datafile(
+    # ``normalize=True`` preprocesses both traces onto the same normalized
+    # scale before copying them into the NLSL buffers.  The explicit
+    # processed-data workflow does not preserve the legacy ``nrmlz`` loader
+    # bookkeeping flag.
+    processed_200 = process_spectrum(
         examples_dir / "sampl200.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    model.load_raw_datafile(
+    stop_200 = float(processed_200.start) + float(processed_200.step) * max(
+        int(processed_200.y.size) - 1,
+        0,
+    )
+    idx_200 = model.generate_coordinates(
+        float(processed_200.start),
+        stop_200,
+        int(processed_200.y.size),
+    )
+    model.data = processed_200.y
+    model.name(str(examples_dir / "sampl200"), spectrum=idx_200)
+    model.noise(processed_200.noise, spectrum=idx_200)
+    processed_290 = process_spectrum(
         examples_dir / "sampl290.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
+    stop_290 = float(processed_290.start) + float(processed_290.step) * max(
+        int(processed_290.y.size) - 1,
+        0,
+    )
+    idx_290 = model.generate_coordinates(
+        float(processed_290.start),
+        stop_290,
+        int(processed_290.y.size),
+    )
+    model.data = processed_290.y
+    model.name(str(examples_dir / "sampl290"), spectrum=idx_290)
+    model.noise(processed_290.noise, spectrum=idx_290)
 
     for command in SEARCH_COMMANDS:
         model.procline(command)

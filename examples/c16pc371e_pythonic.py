@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 400
 
@@ -103,16 +104,28 @@ def main():
     for token, indices in INITIAL_VARIATIONS.items():
         model.fit_params.vary[token] = {"index": indices}
 
-    # ``normalize=True`` reproduces the Fortran ``NORM`` flag by setting
-    # ``nrmlz`` for the loaded spectrum.  That makes the loader normalize the
-    # experimental input to unit integral, or to unit double integral after
-    # constant-baseline removal for first-derivative data.
-    model.load_raw_datafile(
+    # ``normalize=True`` preprocesses the experimental trace onto the same
+    # normalized scale as the old loader, but the explicit processed-data
+    # workflow does not preserve the legacy ``nrmlz`` bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "c16pc371e.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=0,
+        NSPLINE_POINTS,
+        0,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
+    stop = float(processed.start) + float(processed.step) * max(
+        int(processed.y.size) - 1,
+        0,
+    )
+    idx = model.generate_coordinates(
+        float(processed.start),
+        stop,
+        int(processed.y.size),
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "c16pc371e"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for key, value in INITIAL_FIT.items():
         model.fit_params[key] = value

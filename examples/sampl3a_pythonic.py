@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 400
 BASELINE_EDGE_POINTS = 0
@@ -59,16 +60,34 @@ def main():
     for command in SETUP_COMMANDS:
         model.procline(command)
 
-    # ``normalize=True`` matches the Fortran ``NORM`` flag stored in
-    # ``nrmlz``.  The loader therefore normalizes the experimental trace by
-    # its integral, or for first-derivative data first removes the constant
-    # baseline term and normalizes the double integral instead.
-    model.load_raw_datafile(
+    # ``normalize=True`` preprocesses the experimental trace onto the
+    # same normalized scale as the old loader, but the explicit
+    # processed-data workflow does not preserve the legacy ``nrmlz``
+    # bookkeeping flag.
+    processed = process_spectrum(
         examples_dir / "sampl3.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
+    stop = float(processed.start) + float(processed.step) * max(
+        int(processed.y.size) - 1,
+        0,
+    )
+    # TODO ☐: explanatory comment needed for generate_coordinates (carry
+    #         through to all examples).
+    # TODO ☐: it should not be needed to convert to float here --
+    #         generate_coordinates should do that as needed. (This should
+    #         affect all examples)
+    idx = model.generate_coordinates(
+        float(processed.start),
+        stop,
+        int(processed.y.size),
+    )
+    model.data = processed.y
+    model.name(str(examples_dir / "sampl3"), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for key in FIT_CONTROLS:
         model.fit_params[key] = FIT_CONTROLS[key]

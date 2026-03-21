@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import nlsl
+from nlsl.data import process_spectrum
 from tests.sampl4_reference import (
     BASELINE_EDGE_POINTS,
     NSPLINE_POINTS,
@@ -23,12 +24,25 @@ def run_pythonic_sampl4_fit():
     model.update(SAMPL4_INITIAL_PARAMETERS)
 
     model.shift = True
-    model.load_raw_datafile(
+    processed = process_spectrum(
         SAMPL4_DATA_PATH,
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=False,
     )
+    stop = float(processed.start) + float(processed.step) * max(
+        int(processed.y.size) - 1,
+        0,
+    )
+    idx = model.generate_coordinates(
+        float(processed.start),
+        stop,
+        int(processed.y.size),
+    )
+    model.data = processed.y
+    model.name(str(SAMPL4_DATA_PATH.with_suffix("")), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for token in SAMPL4_PARAMETERS_TO_VARY:
         model.procline(f"vary {token}")

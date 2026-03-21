@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 from .runfile_helpers import run_runfile
 
@@ -187,12 +188,25 @@ def run_pythonic(runfile_name):
             # sampl1.run: data sampl1 ascii nspline 200 bc 20 shift
             model.shift = True
             model.derivative_mode = 1
-            model.load_raw_datafile(
+            processed = process_spectrum(
                 TESTS_DIR / "sampl1.dat",
-                nspline=200,
-                bc_points=20,
+                200,
+                20,
+                derivative_mode=model.derivative_mode,
                 normalize=False,
             )
+            stop = float(processed.start) + float(processed.step) * max(
+                int(processed.y.size) - 1,
+                0,
+            )
+            idx = model.generate_coordinates(
+                float(processed.start),
+                stop,
+                int(processed.y.size),
+            )
+            model.data = processed.y
+            model.name(str(TESTS_DIR / "sampl1"), spectrum=idx)
+            model.noise(processed.noise, spectrum=idx)
 
             # sampl1.run: vary rpll, rprp, gib0
             for token in ("rpll", "rprp", "gib0"):

@@ -5,6 +5,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
@@ -59,18 +60,29 @@ def main():
     model.shift = True
 
     # ``data ... nspline 200 bc 20 shift`` from the runfile, executed through
-    # the modern Python entry point so the processed intensities stay in
-    # memory.
-    # ``normalize=False`` is the old Fortran ``NONORM`` setting: ``nrmlz``
-    # stays zero, so baseline correction/splining still happen but ``getdat``
-    # skips the integral-based amplitude normalization of the experimental
-    # trace.
-    model.load_raw_datafile(
+    # the explicit processed-data path so the prepared intensities stay in
+    # memory.  ``normalize=False`` keeps the experimental amplitudes on their
+    # original scale while still applying spline resampling and baseline
+    # correction.
+    processed = process_spectrum(
         data_path,
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=False,
     )
+    stop = float(processed.start) + float(processed.step) * max(
+        int(processed.y.size) - 1,
+        0,
+    )
+    idx = model.generate_coordinates(
+        float(processed.start),
+        stop,
+        int(processed.y.size),
+    )
+    model.data = processed.y
+    model.name(str(data_path.with_suffix("")), spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
 
     for token, indices in PARAMETERS_TO_VARY.items():
         model.fit_params.vary[token] = {"index": indices}

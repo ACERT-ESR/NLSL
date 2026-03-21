@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 
 import nlsl
+from nlsl.data import process_spectrum
 
 NSPLINE_POINTS = 200
 BASELINE_EDGE_POINTS = 20
@@ -45,22 +46,47 @@ def main():
     model["c22"] = np.array([1.0, 0.0])
     model["nort"] = np.array([0.0, 10.0])
 
-    # ``normalize=True`` matches the legacy Fortran ``NORM`` option for both
-    # orientations.  Each experimental trace is therefore scaled to unit
-    # integral, or for first-derivative data to unit double integral after
-    # subtracting the constant term needed to zero the single integral.
-    model.load_raw_datafile(
+    # ``normalize=True`` preprocesses both experimental traces onto the same
+    # normalized scale as the old loader, but the explicit processed-data
+    # workflow does not preserve the legacy ``nrmlz`` bookkeeping flag.
+    processed_500 = process_spectrum(
         examples_dir / "sampl500.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
-    model.load_raw_datafile(
+    stop_500 = float(processed_500.start) + float(processed_500.step) * max(
+        int(processed_500.y.size) - 1,
+        0,
+    )
+    idx_500 = model.generate_coordinates(
+        float(processed_500.start),
+        stop_500,
+        int(processed_500.y.size),
+    )
+    model.data = processed_500.y
+    model.name(str(examples_dir / "sampl500"), spectrum=idx_500)
+    model.noise(processed_500.noise, spectrum=idx_500)
+    processed_590 = process_spectrum(
         examples_dir / "sampl590.dat",
-        nspline=NSPLINE_POINTS,
-        bc_points=BASELINE_EDGE_POINTS,
+        NSPLINE_POINTS,
+        BASELINE_EDGE_POINTS,
+        derivative_mode=model.derivative_mode,
         normalize=True,
     )
+    stop_590 = float(processed_590.start) + float(processed_590.step) * max(
+        int(processed_590.y.size) - 1,
+        0,
+    )
+    idx_590 = model.generate_coordinates(
+        float(processed_590.start),
+        stop_590,
+        int(processed_590.y.size),
+    )
+    model.data = processed_590.y
+    model.name(str(examples_dir / "sampl590"), spectrum=idx_590)
+    model.noise(processed_590.noise, spectrum=idx_590)
 
     model.weights = np.ones((2, 2))
 

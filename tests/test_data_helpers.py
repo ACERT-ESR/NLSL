@@ -1,10 +1,35 @@
 import os
+from pathlib import Path
 
 import numpy as np
+import pytest
 
 import nlsl
 
-from nlsl.data import fit_linear_baseline, natural_cubic_spline_resample
+from nlsl.data import (
+    fit_linear_baseline,
+    natural_cubic_spline_resample,
+    process_spectrum,
+)
+
+
+DEPRECATION_MATCH = "load_raw_datafile spline preprocessing is deprecated"
+
+
+def _load_processed_with_public_api(model, processed, label):
+    stop = float(processed.start) + float(processed.step) * max(
+        int(processed.y.size) - 1,
+        0,
+    )
+    idx = model.generate_coordinates(
+        float(processed.start),
+        stop,
+        int(processed.y.size),
+    )
+    model.data = processed.y
+    model.name(label, spectrum=idx)
+    model.noise(processed.noise, spectrum=idx)
+    return idx
 
 
 def test_fit_linear_baseline_recovers_line():
@@ -91,6 +116,33 @@ def _capture_state():
     return state
 
 
+RUNTIME_STATE_KEYS = (
+    "data",
+    "iform",
+    "nft",
+    "rmsn",
+    "dataid",
+    "fvec",
+    "npts",
+    "ixsp",
+    "ishft",
+    "idrv",
+    "sbi",
+    "sdb",
+    "srng",
+    "shft",
+    "tmpshft",
+    "slb",
+    "sb0",
+    "sphs",
+    "spsi",
+    "nspc",
+    "ndatot",
+    "ishglb",
+    "inform",
+)
+
+
 def test_load_data_matches_datac():
     samples = ["tests/sampl1", "tests/sampl3"]
 
@@ -105,13 +157,16 @@ def test_load_data_matches_datac():
     modern = nlsl.nlsl()
     modern.shift = True
     modern.derivative_mode = 1
-    for sample in samples:
-        modern.load_raw_datafile(
-            sample, nspline=200, bc_points=20, normalize=True
-        )
+    with pytest.warns(DeprecationWarning, match=DEPRECATION_MATCH) as caught:
+        for sample in samples:
+            modern.load_raw_datafile(
+                sample, nspline=200, bc_points=20, normalize=True
+            )
+    assert len(caught) == len(samples)
     python_state = _capture_state()
 
-    for key, legacy_value in legacy_state.items():
+    for key in RUNTIME_STATE_KEYS:
+        legacy_value = legacy_state[key]
         python_value = python_state[key]
         if isinstance(legacy_value, np.ndarray):
             if np.issubdtype(legacy_value.dtype, np.floating):
@@ -120,3 +175,46 @@ def test_load_data_matches_datac():
                 assert np.array_equal(legacy_value, python_value)
         else:
             assert legacy_value == python_value
+
+
+def test_processed_data_sequence_matches_preprocessed_loader():
+    sample_path = Path("tests/sampl1.dat")
+    legacy = nlsl.nlsl()
+    legacy.shift = True
+    legacy.derivative_mode = 1
+
+    cwd = os.getcwd()
+    try:
+        os.chdir(sample_path.parent)
+        legacy.procline("data sampl1 ascii nspline 200 bc 20 shift nonorm")
+    finally:
+        os.chdir(cwd)
+    legacy_state = _capture_state()
+
+    modern = nlsl.nlsl()
+    modern.shift = True
+    modern.derivative_mode = 1
+    processed = process_spectrum(
+        sample_path,
+        200,
+        20,
+        derivative_mode=modern.derivative_mode,
+        normalize=False,
+    )
+    _load_processed_with_public_api(
+        modern,
+        processed,
+        sample_path.stem,
+    )
+    processed_state = _capture_state()
+
+    for key in RUNTIME_STATE_KEYS:
+        legacy_value = legacy_state[key]
+        processed_value = processed_state[key]
+        if isinstance(legacy_value, np.ndarray):
+            if np.issubdtype(legacy_value.dtype, np.floating):
+                assert np.allclose(legacy_value, processed_value)
+            else:
+                assert np.array_equal(legacy_value, processed_value)
+        else:
+            assert legacy_value == processed_value

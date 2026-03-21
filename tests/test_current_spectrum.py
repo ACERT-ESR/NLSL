@@ -29,7 +29,6 @@ def test_generate_coordinates_enables_current_spectrum():
         SAMPL4_FIELD_START,
         SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * (SAMPL4_POINT_COUNT - 1),
         SAMPL4_POINT_COUNT,
-        label="sampl4-single-eval",
         reset=True,
     )
 

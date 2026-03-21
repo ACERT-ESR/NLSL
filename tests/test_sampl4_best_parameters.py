@@ -30,7 +30,6 @@ def test_sampl4_best_parameters_match_data_without_fit():
         SAMPL4_FIELD_START,
         SAMPL4_FIELD_START + SAMPL4_FIELD_STEP * (SAMPL4_POINT_COUNT - 1),
         SAMPL4_POINT_COUNT,
-        label="sampl4-known-parameters",
         reset=True,
     )
 
