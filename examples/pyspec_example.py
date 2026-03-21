@@ -77,6 +77,7 @@ n["mmx"] = (2, 2)
 n["rpll"] = np.log10(1.0e8)
 n["rprp"] = 8.0
 n["gib0"] = 1.5
+n.shift = True
 # }}}
 plt.figure("RS ESR fit example")
 # Show the raw data -- note that the field axis, units, etc, are preloaded as
@@ -110,12 +111,22 @@ n.fit_params["ftol"] = 1.0e-3
 n.fit_params["xtol"] = 1.0e-3
 # }}}
 
-# TODO ☐: before doing anything else, I want to have least-square optimize the
-#         weight and shift ONLY so that the existing parameters line up as best
-#         as possible with the existing spectrum.  Leave all other parts of
-#         this script the same.
+# {{{ With no entries in ``fit_params.vary``, calling ``fit()`` still
+#     lets NLSL run the least-squares scale/shift update once.  That
+#     gives us the best weight and field shift for the current
+#     hand-entered parameters before we let the dynamic parameters move.
+initial_site_spectra = n.fit()
+# }}}
 
-psd.plot(n.weights @ n.current_spectrum, alpha=0.35, label="initial guess")
+# {{{ when plotting, we use matrix multiplication (@) even when there is
+#     only one spectrum (the weights still scales the overall amplitude
+#     to match the spectrum)
+psd.plot(
+    n.weights @ initial_site_spectra,
+    alpha=0.35,
+    label="initial guess (shift/scale optimized)",
+)
+# }}}
 
 # {{{ now enable fit of dynamic parameters, and fit again
 for token in ("rpll", "rprp", "gib0"):
