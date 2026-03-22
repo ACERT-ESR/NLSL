@@ -159,6 +159,7 @@ def test_rmsn_mapping_tracks_noise_scale_per_spectrum():
     model.series("psi", (0.0, 90.0))
     first = model.generate_coordinates(0.0, 1.0, 4, reset=True)
     model.data = np.arange(4, dtype=float)
+    model.generate_coordinates(1.0, 2.0, 4)
     model.data = np.arange(4, dtype=float) + 10.0
 
     model["rmsn"] = [0.25, 0.0]
