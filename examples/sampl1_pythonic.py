@@ -46,11 +46,32 @@ def main():
     model.update(INITIAL_PARAMETERS)
 
     model.shift = True
+
     # ``normalize=True`` asks ``process_spectrum`` to rescale the experimental
     # trace before it is copied into NLSL.  For first-derivative data this
     # still removes the constant offset and normalizes the double integral,
     # but the processed-data path does not preserve the old ``nrmlz``
     # bookkeeping flag.
+
+
+    # **In general, you cannot directly load a ESR spectrum into NLSL because
+    # it has too many points.** When loading a DAT file into the original
+    # version of NLSL, it was never loading the spectrum as-is.
+    #     
+    # It was pre-processing it in some fashion (This is why information about
+    # baseline and spline points needed to be set).  With Python, we have more
+    # options for this pre-processing step, so we package the old NLSL
+    # pre-processing into the `process_spectrum` function.
+    #     
+    # If you want to reproduce the old NLSL behavior, you need to use this
+    # function.  Otherwise, look at other examples that directly load the DSC
+    # files.
+    # TODO ☐: Modify process_spectrum so that it contains y_orig and x_orig
+    #         attributes, which are the original data before spline
+    #         interpolation, etc.  Then, plot these below. (currently, it pulls
+    #         experimental_data, which actually contains the data that has been
+    #         processed.)  Do this for all examples that are loading the .dat
+    #         file.
     processed = process_spectrum(
         examples_dir / "sampl1.dat",
         NSPLINE_POINTS,
@@ -101,6 +122,9 @@ def main():
         component_curves[idx, :, window] for idx, window in enumerate(windows)
     )
 
+    # TODO ☐: this section is very complicated for an example -- you need to
+    #         add comments that carefully walk the user through what's going
+    #         on.
     numerators = []
     denominators = []
     for idx, experimental in enumerate(experimental_series):

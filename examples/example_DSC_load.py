@@ -79,6 +79,9 @@ for key, value in {
 with psd.figlist_var() as fl:
     fl.next("RS ESR figure")
     fl.plot(d)
+    # TODO ☐: load_nddata is an obsolete function -- we now do this through
+    #         property assignment.  See other examples and tests, and upgrade
+    #         this code so that it works!
     # Load the nddata into the optimiser buffers without shifting the field.
     n.load_nddata(d)
     n.normalization = True
