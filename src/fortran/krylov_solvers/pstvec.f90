@@ -39,7 +39,7 @@
       integer lr,kr,iberr
       common /ifzdat/lr,kr,iberr
 !
-      integer bss(5,MXDIM),ierr
+      integer bss(7,MXDIM),ierr
       double precision v(2,MXDIM)
 !
       integer i,id,ioldlr,ioldkr,ioldmr,ioldpnr,iparlr,ipnr,ipnrsg,

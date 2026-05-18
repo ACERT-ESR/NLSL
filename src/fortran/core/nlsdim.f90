@@ -52,13 +52,13 @@
      #           MXTDM=MXSPC*MXSITE,
      #           MXJCOL=MXVAR+MXSITE+MXSPC,
      #           MXTV=MXJCOL+4*MXSITE,
-     #           MXMTS=13
+     #           MXMTS=15
 !
-      integer, parameter :: NFPRM=43,
+      integer, parameter :: NFPRM=47,
      #           NFLMPR=4,
      #           NILMPR=4,
-     #           NVPRM=35,
-     #           NIPRM=24,
+     #           NVPRM=41,
+     #           NIPRM=25,
      #           NALIAS=12,
      #           NSYMTR=3,
      #           NSYMBL=5

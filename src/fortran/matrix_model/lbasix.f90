@@ -44,10 +44,11 @@
 !
       implicit none
       character*30 ixname,fname
-      integer lthb,maxb,new,ierr,bss(5,lthb),mts(MXMTS)
+      integer lthb,maxb,new,ierr,bss(7,lthb),mts(MXMTS)
 !
       integer i,ioerr,ipnr,ipnrmx,ipnrmn,iqnr,iqnrmx,iqnrmn,j,kr,
-     #        krmx,lth,lr,mr,mrmx,nrow,iparlr,krmn,mrmn
+     #        krmx,lth,lr,mr,mrmx,nrow,iparlr,krmn,mrmn,
+     #        ipn2r,ipn2mx,ipn2mn,iqn2r,iqn2mx,iqn2mn
 !
       logical fexist
       integer ipar,iroot
@@ -95,7 +96,7 @@
             ierr=-1
             return
          else
-            read (ludisk,iostat=ioerr) ((bss(i,j),i=1,5),j=1,lthb)
+            read (ludisk,iostat=ioerr) ((bss(i,j),i=1,7),j=1,lthb)
          end if
 !                                  *** error reading file
          if (ioerr.ne.0) then
@@ -167,15 +168,36 @@
               iqnrmn=-iqnrmx
               do 140 iqnr=iqnrmn,iqnrmx,2
 !
-                 nrow=nrow+1
-                 if (nrow.le.maxb) then
-                    bss(1,nrow)=lr
-                    bss(2,nrow)=kr
-                    bss(3,nrow)=mr
-                    bss(4,nrow)=ipnr
-                    bss(5,nrow)=iqnr
-                 end if
+!           *** loop over ipn2r (nucleus 2) ***
+                ipn2mx=mts(NIN2B)
+                ipn2mn=-ipn2mx
+                if (mts(NIN2B).le.0) then
+                   ipn2mn=0
+                   ipn2mx=0
+                end if
+                do 145 ipn2r=ipn2mn,ipn2mx
+!             *** loop over iqn2r (nucleus 2) ***
+                  iqn2mx=mts(NIN2B)-iabs(ipn2r)
+                  iqn2mn=-iqn2mx
+                  if (mts(NIN2B).le.0) then
+                     iqn2mn=0
+                     iqn2mx=0
+                  end if
+                  do 146 iqn2r=iqn2mn,iqn2mx,2
 !
+                     nrow=nrow+1
+                     if (nrow.le.maxb) then
+                        bss(1,nrow)=lr
+                        bss(2,nrow)=kr
+                        bss(3,nrow)=mr
+                        bss(4,nrow)=ipnr
+                        bss(5,nrow)=iqnr
+                        bss(6,nrow)=ipn2r
+                        bss(7,nrow)=iqn2r
+                     end if
+!
+ 146              continue
+ 145            continue
  140          continue
  130        continue
  120      continue
