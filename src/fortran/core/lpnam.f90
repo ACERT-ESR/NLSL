@@ -30,9 +30,9 @@
       save parnam
       data parnam /'PHASE ', 'GIB0  ', 'GIB2  ', 'WXX   ', 'WYY   ',
      #            'WZZ   ', 'GXX   ', 'GYY   ', 'GZZ   ', 'AXX   ',
-     #            'AYY   ', 'AZZ   ', 'RX    ', 'RY    ', 'RZ    ',
+     #            'AYY   ', 'AZZ   ', 'RX    ', 'RY    ', 'RZ    ', 
      #            'PML   ', 'PMXY  ', 'PMZZ  ', 'DJF   ', 'DJFPRP',
-     #            'OSS   ', 'PSI   ', 'ALPHAD', 'BETAD ', 'GAMMAD',
+     #            'OSS   ', 'PSI   ', 'ALPHAD', 'BETAD ', 'GAMMAD',  
      #            'ALPHAM', 'BETAM ', 'GAMMAM', 'C20   ', 'C22   ',
      #            'C40   ', 'C42   ', 'C44   ', 'LB    ', 'DC20  ',
      #            'B0    ', 'GAMMAN', 'A2XX  ', 'A2YY  ', 'A2ZZ  ',
@@ -43,11 +43,11 @@
       data iprnam_strlen /6/
       character*6 iprnam(NIPRM)
       save iprnam
-      data iprnam /'IN2   ', 'IN2B  ', 'IPDF  ', 'IST   ', 'ML    ',
-     #            'MXY   ', 'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ',
-     #            'KMX   ', 'MMN   ', 'MMX   ', 'IPNMX ', 'NORT  ',
-     #            'NSTEP ', 'NFIELD', 'IDERIV', '      ', '      ',
-     #            '      ', '      ', '      ', '      ', '      ' /
+      data iprnam /'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
+     #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',
+     #            'MMN   ', 'MMX   ', 'IPNMX ', 'NORT  ', 'NSTEP ',
+     #            'NFIELD', 'IDERIV', '      ', '      ', '      ',
+     #            '      ', '      ', '      ', '      ', 'IN2B  ' /
 !
       integer, save :: alias_strlen
       data alias_strlen /6/

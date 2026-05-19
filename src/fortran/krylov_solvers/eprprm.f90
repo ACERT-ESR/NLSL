@@ -104,18 +104,18 @@
      #         ICGTOL=42,ISHIFT=43,IRANGE=45,IFLDI=46,
      #         IDFLD=47
 !
-      integer, parameter :: IIN2=1,IIN2B=2,IIPDF=3,IIST=4,IML=5,
-     #         ILEMX=8,INORT=15,INSTEP=16,
-     #         INFLD=17,IIDERV=18,IIWFLG=19,IIGFLG=20,IIAFLG=21,
-     #         IIRFLG=22,INDIM=25
+      integer, parameter :: IIN2=1,IIPDF=2,IIST=3,IML=4,
+     #         ILEMX=7,INORT=14,INSTEP=15,
+     #         INFLD=16,IIDERV=17,IIWFLG=18,IIGFLG=19,IIAFLG=20,
+     #         IIRFLG=21,IIN2B=25,INDIM=24
 
 !     The following constants were absent from the original lists.
 !     They are now included for consistency.  
       integer, parameter :: IWYY=5,IGYY=8,IAYY=11,IDY=14,
      #         IBEM=27,IC22=30,IC40=31,IC42=32,ISHIFTI=44,
-     #         IMXY=6,IMZZ=7,
-     #         ILOMX=9,IKMN=10,IKMX=11,IMMN=12,IMMX=13,IIPNMX=14,
-     #         IJKMN=23,IJMMN=24
+     #         IMXY=5,IMZZ=6,
+     #         ILOMX=8,IKMN=9,IKMX=10,IMMN=11,IMMX=12,IIPNMX=13,
+     #         IJKMN=22,IJMMN=23
 
 !     In the original lists, IGAMAN, ISHIFT, IIDERV had odd spellings.
 !     The following extra constants conform to the typical pattern.
