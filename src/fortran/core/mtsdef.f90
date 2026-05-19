@@ -29,6 +29,7 @@
       integer, parameter ::
      #           NLEMX=1,NLOMX=2,NKMN=3,NKMX=4,NMMN=5,NMMX=6,NIPNMX=7,
      #           NLDEL=8,NKDEL=9,NIPSI0=10,NIN2=11,NJKMN=12,NJMMN=13,
+     #           NIN2B=14,NIPN2MX=15,
      #           NTRC=7
 !
       end module mtsdef

@@ -43,7 +43,7 @@
       logical evenk,fmpi0
       integer i,iparkr,iparlr,jkr,jmr,nup,id,nrow,krmn,krmx,krsgn,
      #     ipnr,ipnrmx,ipnrmn,ipnrsg,iqnr,iqnrmx,iqnrmn,mr,mrmn,mrmx,
-     #     mrsgn
+     #     mrsgn,ipn2r,ipn2mn,ipn2mx,iqn2r,iqn2mn,iqn2mx
 !
       double precision cnl,stv,stvlk,stvm,factor,dsq2,vnorm
 !
@@ -193,24 +193,41 @@
 !                 ----------------------
                   do 140 iqnr=iqnrmn,iqnrmx,2
 !
+!              *** loop over ipn2r (nucleus 2) ***
+                  if (in2b.gt.0) then
+                     ipn2mn=-in2b
+                     ipn2mx=in2b
+                  else
+                     ipn2mn=0
+                     ipn2mx=0
+                  end if
+                  do 142 ipn2r=ipn2mn,ipn2mx
+                  if (in2b.gt.0) then
+                     iqn2mn=-(in2b-iabs(ipn2r))
+                     iqn2mx=in2b-iabs(ipn2r)
+                  else
+                     iqn2mn=0
+                     iqn2mx=0
+                  end if
+                  do 144 iqn2r=iqn2mn,iqn2mx,2
+                  if (in2b.le.0 .and. iqn2r.ne.0) goto 144
+!
 !======================================================================
 !                  center of loops
 !======================================================================
 !
                      nrow=nrow+1
-                     v(1,nrow)=stv
-                     vnorm=vnorm+stv*stv
-!
-!.................... Debugging purposes only!
-!        if (abs(v(1,nrow)).gt.RNDOFF) then
-!           write(20,7000) lr,krsgn,mrsgn,ipnrsg,iqnr,v(1,nrow)
-! 7000      format('Re <v|',4(i3,','),i3,'> = ',2g14.7)
-!        end if
-!.............................................
+                     if (ipn2r.ne.0) then
+                        v(1,nrow)=ZERO
+                     else
+                        v(1,nrow)=stv
+                     end if
+                     vnorm=vnorm+v(1,nrow)*v(1,nrow)
 !
 !======================================================================
 !
-!
+ 144              continue
+ 142              continue
  140              continue
  130           continue
  120        continue

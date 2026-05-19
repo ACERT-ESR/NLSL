@@ -67,9 +67,10 @@
      #         djf,djfprp,oss,
      #         psi,ald,bed,gad,alm,bem,gam,
      #         c20,c22,c40,c42,c44,lb,dc20,b0,gamman,
+     #         a2xx,a2yy,a2zz,gamman2,
      #         cgtol,shiftr,shifti,range,fldi,dfld
 
-      integer, pointer, save :: in2,ipdf,ist,
+      integer, pointer, save :: in2,in2b,ipdf,ist,
      #         ml,mxy,mzz,lemx,lomx,kmn,kmx,mmn,mmx,ipnmx,
      #         nort,nstep,nfld,ideriv,iwflg,igflg,iaflg,irflg,jkmn,jmmn,
      #         ndim
@@ -80,7 +81,8 @@
 !
       double precision, save ::
      #         a0,g0,w0,expl,expkxy,expkzz,faa(5),fgm(5),fwm(5),
-     #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5)
+     #         fam(2,5),fgd(2,5),fad(2,5),fwd(2,5),cpot(5,5),xlk(5,5),
+     #         a20,faa2(5),fam2(2,5),fad2(2,5)
 
       integer, save ::
      #         itype,ipt,itm,itd,ipsi0,lband,kband,ldelta,
@@ -98,18 +100,19 @@
      #         IDZ=15,IPML=16,IPMXY=17,IPMZZ=18,
      #         IDJF=19,IDJFPRP=20,IOSS=21,IPSI=22,IALD=23,IBED=24,
      #         IGAD=25,IALM=26,IGAM=28,IC20=29,IC44=33,ILB=34,IDC20=35,
-     #         IB0=36,IGAMAN=37,ICGTOL=38,ISHIFT=39,IRANGE=41,IFLDI=42,
-     #         IDFLD=43
+     #         IB0=36,IGAMAN=37,IA2XX=38,IA2YY=39,IA2ZZ=40,IGAMN2=41,
+     #         ICGTOL=42,ISHIFT=43,IRANGE=45,IFLDI=46,
+     #         IDFLD=47
 !
       integer, parameter :: IIN2=1,IIPDF=2,IIST=3,IML=4,
      #         ILEMX=7,INORT=14,INSTEP=15,
      #         INFLD=16,IIDERV=17,IIWFLG=18,IIGFLG=19,IIAFLG=20,
-     #         IIRFLG=21,INDIM=24
+     #         IIRFLG=21,IIN2B=25,INDIM=24
 
 !     The following constants were absent from the original lists.
 !     They are now included for consistency.  
       integer, parameter :: IWYY=5,IGYY=8,IAYY=11,IDY=14,
-     #         IBEM=27,IC22=30,IC40=31,IC42=32,ISHIFTI=40,
+     #         IBEM=27,IC22=30,IC40=31,IC42=32,ISHIFTI=44,
      #         IMXY=5,IMZZ=6,
      #         ILOMX=8,IKMN=9,IKMX=10,IMMN=11,IMMX=12,IIPNMX=13,
      #         IJKMN=22,IJMMN=23
@@ -200,6 +203,14 @@
       fepr_name(IB0) = "b0"
       gamman => fepr(IGAMMAN)
       fepr_name(IGAMMAN) = "gamman"
+      a2xx => fepr(IA2XX)
+      fepr_name(IA2XX) = "a2xx"
+      a2yy => fepr(IA2YY)
+      fepr_name(IA2YY) = "a2yy"
+      a2zz => fepr(IA2ZZ)
+      fepr_name(IA2ZZ) = "a2zz"
+      gamman2 => fepr(IGAMN2)
+      fepr_name(IGAMN2) = "gamnan2"
       cgtol => fepr(ICGTOL)
       fepr_name(ICGTOL) = "cgtol"
       shiftr => fepr(ISHIFTR)
@@ -215,6 +226,8 @@
 
       in2 => iepr(IIN2)
       iepr_name(IIN2) = "in2"
+      in2b => iepr(IIN2B)
+      iepr_name(IIN2B) = "in2b"
       ipdf => iepr(IIPDF)
       iepr_name(IIPDF) = "ipdf"
       ist => iepr(IIST)

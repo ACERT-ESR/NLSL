@@ -73,11 +73,14 @@
          faa(i)=ZERO
          fgm(i)=ZERO
          fwm(i)=ZERO
+         faa2(i)=ZERO
          do j=1,2
             fam(j,i)=ZERO
             fgd(j,i)=ZERO
             fad(j,i)=ZERO
             fwd(j,i)=ZERO
+            fam2(j,i)=ZERO
+            fad2(j,i)=ZERO
          end do
       end do
 
@@ -151,6 +154,13 @@
       faa(3)=DSQ23*(azz-HALF*(axx+ayy))
       faa(5)=faa(1)
       axiala=abs(faa(1)).lt.RNDOFF
+!                                        *** Nucleus 2 Hyperfine ***
+      a20=(a2xx+a2yy+a2zz)/3.0D0
+      faa2(1)=HALF*(a2xx-a2yy)
+      faa2(3)=DSQ23*(a2zz-HALF*(a2xx+a2yy))
+      faa2(5)=faa2(1)
+      faa2(2)=ZERO
+      faa2(4)=ZERO
 !                                        *** Line-broadening ***
       w0=(wxx+wyy+wzz)/3.0D0
       fwm(1)=HALF*(wxx-wyy)
@@ -306,6 +316,8 @@
 !                           *** no tilt: copy A tensor directly
          do j=1,5
             fam(1,j)=faa(j)
+            fam2(1,j)=faa2(j)
+            fam2(2,j)=ZERO
          end do
       else
 !                          *** transform A tensor into g axis system
@@ -315,6 +327,8 @@
             do j=1,5
                fam(1,i)=fam(1,i)+d2km(1,i,j)*faa(j)
                fam(2,i)=fam(2,i)+d2km(2,i,j)*faa(j)
+               fam2(1,i)=fam2(1,i)+d2km(1,i,j)*faa2(j)
+               fam2(2,i)=fam2(2,i)+d2km(2,i,j)*faa2(j)
             end do
          end do
       end if
@@ -339,6 +353,8 @@
             fwd(1,i)=fwm(i)
             fad(1,i)=fam(1,i)
             fad(2,i)=fam(2,i)
+            fad2(1,i)=fam2(1,i)
+            fad2(2,i)=fam2(2,i)
          end do
       else
 !                    *** Transform A, g, W tensors into the diffusion frame
@@ -354,6 +370,10 @@
      #                          -d2km(2,i,j)*fam(2,j)
                fad(2,i)=fad(2,i)+d2km(1,i,j)*fam(2,j)
      #                       +d2km(2,i,j)*fam(1,j)
+               fad2(1,i)=fad2(1,i)+d2km(1,i,j)*fam2(1,j)
+     #                            -d2km(2,i,j)*fam2(2,j)
+               fad2(2,i)=fad2(2,i)+d2km(1,i,j)*fam2(2,j)
+     #                            +d2km(2,i,j)*fam2(1,j)
             end do
          end do
       end if

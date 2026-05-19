@@ -218,10 +218,10 @@ python module fortrancore ! in
             double precision intent(inout),dimension(npt),depend(npt) :: resid
         end subroutine sscale
         module nlsdim ! in :fortrancore:src/fortran/core/nlsdim.f90
-            integer, parameter,optional :: niprm=24
+            integer, parameter,optional :: niprm=25
             integer, parameter,optional :: mxstep=2000
             integer, parameter,optional :: mxdim=45000
-            integer, parameter,optional :: nvprm=35
+            integer, parameter,optional :: nvprm=41
             integer, parameter,optional :: mxinp=4096
             integer, parameter,optional :: mxsite=3
             integer, parameter,optional,depend(mxsite,mxspc) :: mxtdm=12
@@ -230,7 +230,7 @@ python module fortrancore ! in
             integer, parameter,optional :: nsymtr=3
             integer, parameter,optional,depend(mxstep,mxsite,mxspc) :: mxtdg=24000
             integer, parameter,optional :: mxel=50000000
-            integer, parameter,optional :: nfprm=43
+            integer, parameter,optional :: nfprm=47
             integer, parameter,optional :: nflmpr=4
             integer, parameter,optional :: nilmpr=4
             integer, parameter,optional :: mxsph=4
@@ -241,7 +241,7 @@ python module fortrancore ! in
             integer, parameter,optional :: nalias=12
             integer, parameter,optional :: mxvar=10
             integer, parameter,optional :: mxcmt=16
-            integer, parameter,optional :: mxmts=13
+            integer, parameter,optional :: mxmts=15
             integer, parameter,optional,depend(mxsite,mxvar,mxspc) :: mxjcol=mxvar+mxsite+mxspc
             integer, parameter,optional :: mxspt=512
         end module nlsdim
@@ -368,9 +368,10 @@ python module fortrancore ! in
             integer, parameter,optional :: igib0=2
             integer, parameter,optional :: igib2=3
             integer, parameter,optional :: iin2=1
-            integer, parameter,optional :: iipdf=2
-            integer, parameter,optional :: iist=3
-            integer, parameter,optional :: iml=4
+            integer, parameter,optional :: iin2b=2
+            integer, parameter,optional :: iipdf=3
+            integer, parameter,optional :: iist=4
+            integer, parameter,optional :: iml=5
             integer, parameter,optional :: iwyy=5
             integer, parameter,optional :: igyy=8
             integer, parameter,optional :: iayy=11

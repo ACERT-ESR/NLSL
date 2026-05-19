@@ -35,18 +35,19 @@
      #            'OSS   ', 'PSI   ', 'ALPHAD', 'BETAD ', 'GAMMAD',  
      #            'ALPHAM', 'BETAM ', 'GAMMAM', 'C20   ', 'C22   ',
      #            'C40   ', 'C42   ', 'C44   ', 'LB    ', 'DC20  ',
-     #            'B0    ', 'GAMMAN', 'CGTOL ', 'SHIFTR', 'SHIFTI',
-     #            'RANGE ', '      ', '      ' /
+     #            'B0    ', 'GAMMAN', 'A2XX  ', 'A2YY  ', 'A2ZZ  ',
+     #            'GAMAN2', 'CGTOL ', 'SHIFTR', 'SHIFTI', 'RANGE ',
+     #            '      ', '      ' /
 !
       integer, save :: iprnam_strlen
       data iprnam_strlen /6/
       character*6 iprnam(NIPRM)
       save iprnam
       data iprnam /'IN2   ', 'IPDF  ', 'IST   ', 'ML    ', 'MXY   ',
-     #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',   
+     #            'MZZ   ', 'LEMX  ', 'LOMX  ', 'KMN   ', 'KMX   ',
      #            'MMN   ', 'MMX   ', 'IPNMX ', 'NORT  ', 'NSTEP ',
      #            'NFIELD', 'IDERIV', '      ', '      ', '      ',
-     #            '      ', '      ', '      ', '      ' /
+     #            '      ', '      ', '      ', '      ', 'IN2B  ' /
 !
       integer, save :: alias_strlen
       data alias_strlen /6/

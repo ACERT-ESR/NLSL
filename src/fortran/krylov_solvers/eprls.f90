@@ -62,7 +62,7 @@
       parameter (ZERO=0.0D0,ONE=1.0D0,THIRD=0.333333333333333D0,
      #           TWO=2.0D0,EIGHT=8.0D0,EPS=1.0D-3,CZERO=(0.0D0,0.0D0))
 !
-      integer bss(5,MXDIM),ndone,icalc,ierr,iprune,nft
+      integer bss(7,MXDIM),ndone,icalc,ierr,iprune,nft
 !     double precision spectr(iepr(INFLD))
       double precision spectr(*)
       double complex al(MXDIM),be(MXDIM)

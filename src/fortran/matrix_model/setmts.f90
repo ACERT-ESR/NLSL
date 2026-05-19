@@ -62,6 +62,8 @@
      #     abs(fparmi(IPSI)-1.8D2).gt.RNDOFF) 
      #    .or. iparmi(INORT).gt.1) mts(NIPSI0)=1
       mts(NIN2)=iparmi(IIN2)
+      mts(NIN2B)=iparmi(IIN2B)
+      mts(NIPN2MX)=iparmi(IIN2B)
 !
 !    --- Allow antisymmetric K combinations if any tensor has
 !        imaginary elements (nonzero alm, gam, ald, or gad)
@@ -96,6 +98,7 @@
       if (mts(NMMX).gt.mts(NLEMX)) mts(NMMX)=mts(NLEMX)
       if (ipar(mts(NKMX)).ne.1) mts(NKMX)=mts(NKMX)-1
       if (mts(NIPNMX).gt.in2) mts(NIPNMX)=iparmi(IIN2)
+      if (mts(NIPN2MX).gt.iparmi(IIN2B)) mts(NIPN2MX)=iparmi(IIN2B)
       if (mts(NIPSI0).eq.0.and.mts(NMMX).gt.mts(NIPNMX) )
      #    mts(NMMX)=mts(NIPNMX)
       if (mts(NJKMN).eq.1) mts(NKMN)=max(mts(NKMN),0)
@@ -137,7 +140,9 @@
       if( isaxial(fparmi(IGXX),iparmi(IIGFLG)) .and.
      #    isaxial(fparmi(IAXX),iparmi(IIAFLG)) .and.
      #    isaxial(fparmi(IWXX),iparmi(IIWFLG)) .and.
-     #     (mts(NKDEL).eq.2).and.(.not.knon0p)) then
+     #     (mts(NKDEL).eq.2).and.(.not.knon0p)
+     #    .and.(iparmi(IIN2B).le.0 .or.
+     #     abs(fparmi(IA2XX)-fparmi(IA2XX+1)).lt.RNDOFF) ) then
          mts(NLDEL)=2
          mts(NKMX)=0
       else

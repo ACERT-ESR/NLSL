@@ -20,7 +20,7 @@
       use nlsdim
       implicit none
 !
-      integer, save :: ibasis(5,MXDIM),basno(MXSITE,MXSPC),
+      integer, save :: ibasis(7,MXDIM),basno(MXSITE,MXSPC),
      #                 mts(9,MXMTS),ixbas(MXTDM),ltbas(MXTDM),
      #                 bsused(MXTDM),nbas,nextbs
 !

@@ -79,7 +79,11 @@
      #     ipnc,ipncmn,ipncmx,iqnc,iqncmn,iqncmx,
      #     ipnd,ipns,ipndab,ipnsab,iqnd,iqns,iqndab,
      #     kip,nrow,ncol,nelr,neli,nel,ipnrsg,ipncsg,
-     #     jmc,jmr,krmn,mrmn,jkc,jkr,jkd,jmd,kcsgn,krsgn,mcsgn,mrsgn
+     #     jmc,jmr,krmn,mrmn,jkc,jkr,jkd,jmd,kcsgn,krsgn,mcsgn,mrsgn,
+     #     ipn2r,ipn2mn,ipn2mx,iqn2r,iqn2mn,iqn2mx,
+     #     ipn2c,ipn2cmn,ipn2cmx,iqn2c,iqn2cmn,iqn2cmx,
+     #     ipn2d,ipn2s,ipn2dab,ipn2sab,iqn2d,iqn2s,iqn2dab,
+     #     kip2
 !
       double precision dsq2,dsq6,dsq15,dsq23
       double precision ct,rpl,rmi,rz,rj,rp,ossc,fii,ra0,
@@ -90,6 +94,10 @@
      #     clioi2,clioua,sg1,sg2,clioug,ctemp,cgamw
       double precision cjkr,cjkc,cjmc,zeen
       double precision d2km(2,5,5)
+      double precision fii2,ra02,zeen2,cnp2r,cnp2c,cnp2
+      double precision sa2b1,sa2b2,fki2,clioi2b1,clioi2b2,ra2b
+      double precision ra2b1,ra2b2,d1b,d2b
+      logical fdpqi2
 !
       logical flk0,fld,fldmd,fdpqi,fdjkm
 !
@@ -147,6 +155,16 @@
       else
         ra0=-dsq15*a0
         zeen=b0*gamman/GAMMAE
+      end if
+!
+      if(in2b.le.0) then
+        ra02=ZERO
+        zeen2=ZERO
+        fii2=ZERO
+      else
+        fii2=0.25D0*dble(in2b*(in2b+2))
+        ra02=-dsq15*a20
+        zeen2=b0*gamman2/GAMMAE
       end if
 !
 !----------------------------------------------------------------------
@@ -327,6 +345,32 @@
               do 360 iqnr=iqnrmn,iqnrmx,2
 !
 !----------------------------------------------------------------------
+!     *** loops over ipn2r, iqn2r (nucleus 2) ***
+!----------------------------------------------------------------------
+              if (in2b.gt.0) then
+                ipn2mn=-in2b
+                ipn2mx=in2b
+              else
+                ipn2mn=0
+                ipn2mx=0
+              end if
+              do 362 ipn2r=ipn2mn,ipn2mx
+              if (in2b.gt.0 .and. ipn2r.eq.0) then
+                cnp2r=dsq2
+              else
+                cnp2r=ONE
+              end if
+              if (in2b.gt.0) then
+                iqn2mn=-(in2b-iabs(ipn2r))
+                iqn2mx=in2b-iabs(ipn2r)
+              else
+                iqn2mn=0
+                iqn2mx=0
+              end if
+              do 364 iqn2r=iqn2mn,iqn2mx,2
+              if (in2b.le.0 .and. iqn2r.ne.0) goto 364
+!
+!----------------------------------------------------------------------
 !     Increment row counter
 !----------------------------------------------------------------------
 !
@@ -487,6 +531,33 @@
                       ra=ra1+cplkc*cjkc*ra2
                     else
                       ra=ZERO
+                    end if
+!
+!                   --- Nucleus 2 hyperfine angular factor
+                    if(in2b.gt.0) then
+                      if((kdabs.le.2).and.fld) then
+                        z=w3j(lr,2,lc,kr,-kd,-kc)
+                        if (jkd.eq.0) then
+                          ra2b1=fad2(1,kd+3)*z
+                        else
+                          ra2b1=fad2(2,kd+3)*z*cjkr
+                        end if
+                      else
+                        ra2b1=ZERO
+                      end if
+                      if((ksabs.le.2).and.fld) then
+                        z=w3j(lr,2,lc,kr,-ks,kc)
+                        if (jkd.eq.0) then
+                          ra2b2=fad2(1,ks+3)*z
+                        else
+                          ra2b2=fad2(2,ks+3)*z*cjkr
+                        end if
+                      else
+                        ra2b2=ZERO
+                      end if
+                      ra2b=ra2b1+cplkc*cjkc*ra2b2
+                    else
+                      ra2b=ZERO
                     end if
 !
                     rg=rg1+cplkc*cjkc*rg2
@@ -679,14 +750,74 @@
                         do 460 iqnc=iqncmn,iqncmx,2
 !
 !----------------------------------------------------------------------
-!     skip calculation of matrix elements if non-zero
-!     matrix elements are not possible
+!     *** loops over ipn2c, iqn2c (nucleus 2 column) ***
+!----------------------------------------------------------------------
+                        if (in2b.gt.0) then
+                          ipn2cmn=-in2b
+                          ipn2cmx=in2b
+                        else
+                          ipn2cmn=0
+                          ipn2cmx=0
+                        end if
+                        if (nrow.eq.ncol) ipn2cmn=ipn2r
+                        do 462 ipn2c=ipn2cmn,ipn2cmx
+                        if (in2b.gt.0) then
+                          cnp2c=ONE
+                          if (ipn2c.eq.0) cnp2c=dsq2
+                          iqn2cmn=-(in2b-iabs(ipn2c))
+                          iqn2cmx=in2b-iabs(ipn2c)
+                        else
+                          cnp2c=ONE
+                          iqn2cmn=0
+                          iqn2cmx=0
+                        end if
+                        if (nrow.eq.ncol .and. ipn2c.eq.ipn2r)
+     #                     iqn2cmn=iqn2r
+                        do 464 iqn2c=iqn2cmn,iqn2cmx,2
+                        if (in2b.le.0.and.iqn2c.ne.0) goto 470
+!
+!     --- Compute nucleus 2 index differences
+                        ipn2d=ipn2r-ipn2c
+                        ipn2s=ipn2r+ipn2c
+                        ipn2dab=iabs(ipn2d)
+                        ipn2sab=iabs(ipn2s)
+                        iqn2d=iqn2r-iqn2c
+                        iqn2s=iqn2r+iqn2c
+                        iqn2dab=iabs(iqn2d)
+                        fdpqi2=(ipn2d.eq.0).and.(iqn2d.eq.0)
+!
+                        cnp2=ONE/(cnp2r*cnp2c)
+!
+!     --- Director tilt factors for nucleus 2
+                        if (in2b.gt.0) then
+                          if((ipn2dab.le.2).and.(mdabs.le.2)) then
+                            d1b=d2km(1,ipn2d+3,md+3)*wliou1
+                          else
+                            d1b=ZERO
+                          end if
+                          if((ipn2sab.le.2).and.(msabs.le.2)) then
+                            d2b=d2km(1,ipn2s+3,ms+3)*wliou2
+                          else
+                            d2b=ZERO
+                          end if
+                        else
+                          d1b=ZERO
+                          d2b=ZERO
+                        end if
+!
+!----------------------------------------------------------------------
+!     skip calculation if non-zero elements not possible
 !----------------------------------------------------------------------
 !
-                          if(.not.fldmd) go to 470
+                          if(.not.fldmd .and. .not.fdpqi2) go to 470
+                          if(.not.fldmd) then
+                            if (in2b.gt.0 .and. .not.fdpqi2) then
+                              go to 470
+                            end if
+                          end if
 !
 !----------------------------------------------------------------------
-!      find sums and differences
+!      find sums and differences for nucleus 1
 !----------------------------------------------------------------------
 !
                           iqnd=iqnr-iqnc
@@ -696,33 +827,23 @@
 !
 !----------------------------------------------------------------------
 !     Liouville operator
-!
-!     NOTE: see Appendix B p.3936-3937 in M,I,I,M, & F for
-!             details.  Sa and Sg in program also contain the
-!             appropriate Clebsch-Gordon coefficient. fki is
-!             Ki in text. 
-!             The isotropic contributions from the A tensor are
-!             not described in the text. They appear only when
-!             L1 (lr) equals L2 (lc). The Clebsch-Gordon coefficients
-!             for these terms (+/- 1/sqrt(3)) are included in the
-!             definition of a0. The Wigner 3J symbols appropriate for
-!             the isotropic terms exactly cancel the normalization
-!             constant cnorm. Instead of calculating the 3J symbols,
-!             the cnorm factor is simply omitted from the isotropic
-!             terms below.
-!             
 !----------------------------------------------------------------------
+!
+                          cliou=ZERO
+                          cgamw=ZERO
 !
                           if(fld) then
 !
                             if (jmd.eq.0) then
 !
+!----------------------------------------------------------------------
+!     Nucleus 1 hyperfine: requires delta(pI2,qI2)
+!----------------------------------------------------------------------
+                              if (fdpqi2) then
+!
                               if((ipndab.eq.iqndab).and.
      #                           (ipndab.le.1).and.(in2.ne.0)) then
 !
-!                             ----------------------------
-!                              Hyperfine interaction term
-!                             ----------------------------
                                 if(ipnd.eq.0) then
                                   sa1=iqnr/dsq6
                                   if(flk0.and.md.eq.0.and.jkd.eq.0) then
@@ -768,11 +889,75 @@
                               end if
 !
                               clioua=(sa1*d1+cjmc*cplmc*sa2*d2)
+                              cliou=cnorm*(clioua*ra)+
+     #                               cnp*(clioi1+clioi2)
+!
+                              end if
+!
+!----------------------------------------------------------------------
+!     Nucleus 2 hyperfine: requires delta(pI1,qI1)
+!----------------------------------------------------------------------
+                              if (fdpqi .and. in2b.gt.0) then
+!
+                              if((ipn2dab.eq.iqn2dab).and.
+     #                           (ipn2dab.le.1)) then
+!
+                                if(ipn2d.eq.0) then
+                                  sa2b1=iqn2r/dsq6
+                                  if(flk0.and.md.eq.0.and.jkd.eq.0)then
+                                    clioi2b1=-sa2b1*ra02
+                                  else
+                                    clioi2b1=ZERO
+                                  end if
+!
+                                else
+                                  kip2=iqn2r*iqn2d+ipn2r*ipn2d
+                                  kip2=kip2*(kip2-2)
+                                  fki2=dsqrt(fii2-0.25D0*kip2)
+                                  sa2b1=-ipn2d*fki2*0.25D0
+                                  clioi2b1=ZERO
+                                end if
+!
+                              else
+                                sa2b1=ZERO
+                                clioi2b1=ZERO
+                              end if
+!
+                              if((ipn2sab.eq.iqn2dab).and.
+     #                           (ipn2sab.le.1)) then
+!
+                                if(ipn2s.eq.0) then
+                                  sa2b2=iqn2r/dsq6
+                                  if(flk0.and.ms.eq.0.and.jkd.eq.0)then
+                                    clioi2b2=-sa2b2*ra02
+                                  else
+                                    clioi2b2=ZERO
+                                  end if
+                                else
+                                  kip2=iqn2r*iqn2d+ipn2r*ipn2s
+                                  kip2=kip2*(kip2-2)
+                                  fki2=dsqrt(fii2-0.25D0*kip2)
+                                  sa2b2=-ipn2s*fki2*0.25D0
+                                  clioi2b2=ZERO
+                                end if
+!
+                              else
+                                sa2b2=ZERO
+                                clioi2b2=ZERO
+                              end if
+!
+                              clioua=(sa2b1*d1b+cjmc*cplmc*sa2b2*d2b)
+                              cliou=cliou+cnorm*(clioua*ra2b)+
+     #                               cnp2*(clioi2b1+clioi2b2)
+!
+                              end if
 !
 !                              -----------------------
 !                              Electronic Zeeman term
+!                              (diagonal in ALL nuclear indices)
 !                              -----------------------
-                              if((iqnd.eq.0).and.
+                              if(fdpqi.and.fdpqi2.and.
+     #                           (iqnd.eq.0).and.
      #                           (abs(rg).gt.RNDOFF)) then
 !
                                 if(ipnd.eq.0) then
@@ -788,22 +973,23 @@
                                 end if
 !
                                 clioug=(sg1*d1+cjmc*cplmc*sg2*d2)
+                                cliou=cliou+cnorm*(clioug*rg)
 !
-                              else
-                                clioug=ZERO
                               end if
 !
 !                             --------------------------------------
 !                             Orientation-dependent linewidth term
+!                             (diagonal in all nuclear indices)
 !                             --------------------------------------
-                              if((iqnd.eq.0).and.(abs(rw).gt.RNDOFF)) 
+                              if(fdpqi.and.fdpqi2.and.
+     #                           (iqnd.eq.0).and.(abs(rw).gt.RNDOFF))
      #                        then
                                 if(ipnd.eq.0) then
                                   sw1=dsq23
                                 else
                                   sw1=ZERO
                                 end if
-!     
+!
                                 if(ipns.eq.0) then
                                   sw2=dsq23
                                 else
@@ -811,28 +997,20 @@
                                 end if
                                 cgamw=cnorm*(sw1*d1+cjmc*cplmc*sw2*d2)
      #                                     *rw
-!
-                              else
-                                cgamw=ZERO
                               end if
-!
-                             cliou=cnorm*(clioua*ra+clioug*rg)+
-     #                             cnp*(clioi1+clioi2)
 !
 !                                if (jmd.eq.0) then...
                            else
 !
 !                          --------------------
-!                          Nuclear Zeeman term
+!                          Nuclear Zeeman terms
+!                          (diagonal in all indices)
 !                          --------------------
                              if(flk0.and.(md.eq.0).and.(jkd.eq.0)
-     #                         .and.fdpqi) then
-                               cliou=ipnr*zeen
-                             else
-                               cliou=ZERO
+     #                         .and.fdpqi.and.fdpqi2) then
+                               cliou=ipnr*zeen+ipn2r*zeen2
                              end if
 !
-                             cgamw=ZERO
                            end if
 !
 !                               if (fld) then...
@@ -843,18 +1021,17 @@
 !
 !----------------------------------------------------------------------
 !                      Heisenberg exchange operator
-!                      Now also includes orientational averaging via HE
-!                      in slow-motional region with the delta(L1,0) term.
-!                      (See Lee,Budil,and Freed, JCP, 1994, Eq. B9)
 !----------------------------------------------------------------------
 !
                          if((abs(ossc).gt.RNDOFF).and.(ipnd.eq.0).and.
-     #                     (md.eq.0).and.flk0.and.fdjkm) then
+     #                     (md.eq.0).and.flk0.and.fdjkm.and.
+     #                     fdpqi2) then
 !
                             ctemp=ZERO
                             if(iqnd.eq.0) ctemp=ONE
-                            if ((ipnr.eq.0) .and.(lr.eq.0)) 
-     #                            ctemp=ctemp-ONE/dble(in2+1)
+                            if ((ipnr.eq.0).and.(ipn2r.eq.0)
+     #                          .and.(lr.eq.0))
+     #                       ctemp=ctemp-ONE/dble((in2+1)*(max(in2b,1)))
                             cgam=cgamw+ctemp*ossc
 !
                          else
@@ -862,19 +1039,13 @@
                          end if
 !
 !                        ----------------------------------------
-!                         Add in diffusion terms on the diagonal  
+!                         Add in diffusion terms on the diagonal
 !                        ----------------------------------------
-                         if(fdpqi.and.fdjkm) cgam=cgam+cdff
+                         if(fdpqi.and.fdpqi2.and.fdjkm) cgam=cgam+cdff
 !
-!---------------------------------------------------------------------- 
+!----------------------------------------------------------------------
 !  Store matrix elements
-!    Real off-diagonal matrix elements (cgam nonzero) are stored 
-!    sequentially starting from the end of the space allocated for zmat 
-!    and working down.
-!
-!    Imaginary off-diagonal matrix elements (cliou nonzero) are stored
-!    sequentially starting at the beginning of the zmat array.
-!---------------------------------------------------------------------- 
+!----------------------------------------------------------------------
 !
 !                         --- Diagonal elements
 !
@@ -910,16 +1081,7 @@
                                 end if
                              end if
 !
-!                                 if (ncol.eq.nrow)...else...
                           end if
-!
-!..........Debugging purposes only!
-!               if (abs(cgam).gt.RNDOFF.or.abs(cliou).gt.RNDOFF)
-!     #             write (20,7000) lr,krsgn,mrsgn,ipnr,iqnr,
-!     #                             lc,kcsgn,mcsgn,ipnc,iqnc,cgam,-cliou
-! 7000 format('<',4(i2,','),i2,'|L|',4(i2,','),i2,'> =',2g14.7)
-!...................................
-!
 !
 !                        --------------------------
 !                         increment column counter
@@ -936,6 +1098,8 @@
 !       end loop over columns
 !----------------------------------------------------------------------
 !
+ 464                    continue
+ 462                    continue
  460                    continue
  450                  continue
  440                continue
@@ -946,6 +1110,8 @@
 !     end loop over rows
 !----------------------------------------------------------------------
 !
+ 364          continue
+ 362          continue
  360          continue
  350        continue
  340      continue

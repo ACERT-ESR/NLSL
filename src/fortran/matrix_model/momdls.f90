@@ -62,7 +62,7 @@
       use dfunc
 !
       implicit none
-      integer bss(5,MXDIM),iparmi(NIPRM),ntotal,icalc,ierr,iprune,
+      integer bss(7,MXDIM),iparmi(NIPRM),ntotal,icalc,ierr,iprune,
      #        nft
 !     double precision fparmi(NFPRM),spectr(iparmi(INFLD)),
 !    #                 work(iparmi(INFLD)),cgerr
